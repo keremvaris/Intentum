@@ -3,11 +3,14 @@ Intentum - Yapay Zeka Çağı için Intent-Driven Development
 [![CI](https://github.com/keremvaris/Intentum/actions/workflows/ci.yml/badge.svg)](https://github.com/keremvaris/Intentum/actions/workflows/ci.yml)
 [![NuGet Intentum.Core](https://img.shields.io/nuget/v/Intentum.Core.svg)](https://www.nuget.org/packages/Intentum.Core)
 [![Coverage](https://keremvaris.github.io/Intentum/coverage/badge_linecoverage.svg)](https://keremvaris.github.io/Intentum/coverage/index.html)
+[![SonarCloud](https://sonarcloud.io/api/project_badges/measure?project=keremvaris_Intentum&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=keremvaris_Intentum)
 
 Intentum, senaryo tabanlı BDD yaklaşımını davranış uzayı çıkarımıyla değiştirir.
 Odak noktası, kullanıcının ne yaptığı değil ne yapmaya çalıştığıdır.
 
 [English](README.md) | Türkçe
+
+**Lisans:** [MIT](LICENSE) · **Katkıda bulunma** — [CONTRIBUTING.md](CONTRIBUTING.md) · [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md) · [SECURITY.md](SECURITY.md)
 
 Neden Intentum?
 - Deterministik olmayan akışlar artık yaygın.

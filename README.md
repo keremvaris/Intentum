@@ -3,11 +3,14 @@ Intentum - Intent-Driven Development for the AI Era
 [![CI](https://github.com/keremvaris/Intentum/actions/workflows/ci.yml/badge.svg)](https://github.com/keremvaris/Intentum/actions/workflows/ci.yml)
 [![NuGet Intentum.Core](https://img.shields.io/nuget/v/Intentum.Core.svg)](https://www.nuget.org/packages/Intentum.Core)
 [![Coverage](https://keremvaris.github.io/Intentum/coverage/badge_linecoverage.svg)](https://keremvaris.github.io/Intentum/coverage/index.html)
+[![SonarCloud](https://sonarcloud.io/api/project_badges/measure?project=keremvaris_Intentum&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=keremvaris_Intentum)
 
 Intentum replaces scenario-based BDD with behavior space inference.
 It focuses on what the user was trying to do, not just what they did.
 
 English | [Türkçe](README.tr.md)
+
+**License:** [MIT](LICENSE) · **Contributing** — [CONTRIBUTING.md](CONTRIBUTING.md) · [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md) · [SECURITY.md](SECURITY.md)
 
 Why Intentum?
 - Non-deterministic flows are now common.

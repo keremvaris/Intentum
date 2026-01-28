@@ -6,4 +6,4 @@ public sealed record CalculateCarbonCommand(
     string Actor,
     string Scope,
     decimal? EstimatedTonsCo2 = null
-) : IRequest<CalculateCarbonResponse>;
+) : IRequest<ICalculateCarbonResponse>;

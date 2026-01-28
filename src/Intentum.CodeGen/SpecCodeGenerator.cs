@@ -1,24 +1,30 @@
 using System.Reflection;
+using System.Runtime.Loader;
 using System.Text.RegularExpressions;
 using YamlDotNet.Serialization;
 using YamlDotNet.Serialization.NamingConventions;
 
 namespace Intentum.CodeGen;
 
-public static class SpecCodeGenerator
+public static partial class SpecCodeGenerator
 {
     private const string DefaultNamespace = "Intentum.Cqrs.Web";
+    private const string CommandSuffix = "Command";
+    private const string ResultSuffix = "Result";
+
+    [GeneratedRegex(@"^([A-Za-z][A-Za-z0-9]*)_")]
+    private static partial Regex FeatureNameRegex();
 
     public static async Task<int> Run(FileInfo? spec, FileInfo? assembly, DirectoryInfo output)
     {
         if (spec is not null && assembly is not null)
         {
-            Console.Error.WriteLine("Provide either --spec or --assembly, not both.");
+            await Console.Error.WriteLineAsync("Provide either --spec or --assembly, not both.");
             return 1;
         }
         if (spec is null && assembly is null)
         {
-            Console.Error.WriteLine("Provide --spec <file> or --assembly <dll>.");
+            await Console.Error.WriteLineAsync("Provide --spec <file> or --assembly <dll>.");
             return 1;
         }
 
@@ -30,14 +36,14 @@ public static class SpecCodeGenerator
             var features = ExtractFeaturesFromAssembly(assembly.FullName);
             foreach (var feature in features)
                 EmitFeature(root, feature, DefaultNamespace);
-            Console.WriteLine($"Generated {features.Count} feature(s) from {assembly.Name} into {root}");
+            await Console.Out.WriteLineAsync($"Generated {features.Count} feature(s) from {assembly.Name} into {root}");
         }
-        else if (spec is not null)
+        else
         {
-            var specModel = await LoadSpecAsync(spec.FullName);
+            var specModel = await LoadSpecAsync(spec!.FullName);
             foreach (var feature in specModel.Features)
                 EmitFeature(root, feature, specModel.Namespace ?? DefaultNamespace);
-            Console.WriteLine($"Generated {specModel.Features.Count} feature(s) from {spec.Name} into {root}");
+            await Console.Out.WriteLineAsync($"Generated {specModel.Features.Count} feature(s) from {spec.Name} into {root}");
         }
 
         return 0;
@@ -45,7 +51,7 @@ public static class SpecCodeGenerator
 
     private static List<FeatureSpec> ExtractFeaturesFromAssembly(string assemblyPath)
     {
-        var assembly = Assembly.LoadFrom(assemblyPath);
+        var assembly = AssemblyLoadContext.Default.LoadFromAssemblyPath(assemblyPath);
         var featureNames = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
         foreach (var type in assembly.GetExportedTypes())
         {
@@ -55,7 +61,7 @@ public static class SpecCodeGenerator
                     a.GetType().FullName?.Contains("Fact") == true ||
                     a.GetType().FullName?.Contains("TestMethod") == true);
                 if (!hasFact) continue;
-                var match = Regex.Match(method.Name, @"^([A-Za-z][A-Za-z0-9]*)_");
+                var match = FeatureNameRegex().Match(method.Name);
                 if (match.Success && match.Groups[1].Value.Length > 2)
                     featureNames.Add(match.Groups[1].Value);
             }
@@ -63,7 +69,7 @@ public static class SpecCodeGenerator
         return featureNames.Select(name => new FeatureSpec
         {
             Name = name,
-            Commands = [new CommandSpec { Name = name + "Command", Properties = [] }],
+            Commands = [new CommandSpec { Name = name + CommandSuffix, Properties = [] }],
             Queries = []
         }).ToList();
     }
@@ -93,8 +99,8 @@ public static class SpecCodeGenerator
 
         foreach (var cmd in feature.Commands ?? [])
         {
-            var cmdName = cmd.Name!.EndsWith("Command", StringComparison.Ordinal) ? cmd.Name : cmd.Name + "Command";
-            var resultName = cmdName.Replace("Command", "Result");
+            var cmdName = cmd.Name!.EndsWith(CommandSuffix, StringComparison.Ordinal) ? cmd.Name : cmd.Name + CommandSuffix;
+            var resultName = cmdName.Replace(CommandSuffix, ResultSuffix);
             WriteIfMissing(Path.Combine(commandsDir, cmdName + ".cs"), $"""
 using MediatR;
 

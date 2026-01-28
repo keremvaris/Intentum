@@ -1,0 +1,8 @@
+blank_issues_enabled: true
+contact_links:
+  - name: Documentation
+    url: https://keremvaris.github.io/Intentum/
+    about: Intentum docs (EN/TR) and API reference
+  - name: Code of Conduct
+    url: https://github.com/keremvaris/Intentum/blob/master/CODE_OF_CONDUCT.md
+    about: Community standards

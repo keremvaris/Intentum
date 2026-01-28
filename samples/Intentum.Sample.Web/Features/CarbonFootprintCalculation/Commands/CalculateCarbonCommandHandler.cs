@@ -7,7 +7,7 @@ using MediatR;
 
 namespace Intentum.Sample.Web.Features.CarbonFootprintCalculation.Commands;
 
-public sealed class CalculateCarbonCommandHandler : IRequestHandler<CalculateCarbonCommand, CalculateCarbonResponse>
+public sealed class CalculateCarbonCommandHandler : IRequestHandler<CalculateCarbonCommand, ICalculateCarbonResponse>
 {
     private readonly IIntentModel _intentModel;
     private readonly IntentPolicy _policy;
@@ -18,7 +18,7 @@ public sealed class CalculateCarbonCommandHandler : IRequestHandler<CalculateCar
         _policy = policy;
     }
 
-    public async Task<CalculateCarbonResponse> Handle(CalculateCarbonCommand request, CancellationToken cancellationToken)
+    public async Task<ICalculateCarbonResponse> Handle(CalculateCarbonCommand request, CancellationToken cancellationToken)
     {
         await Task.CompletedTask;
 

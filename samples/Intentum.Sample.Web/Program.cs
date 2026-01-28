@@ -101,7 +101,4 @@ app.MapPost("/api/orders", async (PlaceOrderCommand cmd, IMediator mediator) =>
     return Results.Created($"/api/orders/{result.OrderId}", result);
 }).WithName("PlaceOrder").Produces(201).Produces(400);
 
-app.Run();
-
-// ReSharper disable once PartialTypeWithSinglePart
-public partial class Program;
+await app.RunAsync();

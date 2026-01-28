@@ -62,7 +62,7 @@ public class SectorScenarioTests
                 PolicyDecision.Block))
             .AddRule(new PolicyRule(
                 "ComplianceRiskBlock",
-                i => i.Signals.Any(s => s.Description.Contains("compliance", StringComparison.OrdinalIgnoreCase) && 
+                i => i.Signals.Any(s => s.Description.Contains("compliance", StringComparison.OrdinalIgnoreCase) &&
                                         i.Confidence.Level == "Low"),
                 PolicyDecision.Block))
             .AddRule(new PolicyRule(

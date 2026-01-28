@@ -13,7 +13,7 @@ document.getElementById("carbon-form").addEventListener("submit", async (e) => {
   const form = e.target;
   const resultId = "carbon-result";
   setResult(resultId, "…", false);
-  const estimatedTonsCo2 = form.estimatedTonsCo2.value ? parseFloat(form.estimatedTonsCo2.value) : null;
+  const estimatedTonsCo2 = form.estimatedTonsCo2.value ? Number.parseFloat(form.estimatedTonsCo2.value) : null;
   try {
     const res = await api("/api/carbon/calculate", {
       method: "POST",
@@ -24,8 +24,8 @@ document.getElementById("carbon-form").addEventListener("submit", async (e) => {
       }),
     });
     const data = await res.json();
-    if (!res.ok) setResult(resultId, data, true);
-    else setResult(resultId, data, false);
+    if (res.ok) setResult(resultId, data, false);
+    else setResult(resultId, data, true);
   } catch (err) {
     setResult(resultId, err.message, true);
   }
@@ -56,13 +56,13 @@ document.getElementById("order-form").addEventListener("submit", async (e) => {
       method: "POST",
       body: JSON.stringify({
         productId: form.productId.value,
-        quantity: parseInt(form.quantity.value, 10),
+        quantity: Number.parseInt(form.quantity.value, 10),
         customerId: form.customerId.value,
       }),
     });
     const data = await res.json();
-    if (!res.ok) setResult(resultId, data, true);
-    else setResult(resultId, data, false);
+    if (res.ok) setResult(resultId, data, false);
+    else setResult(resultId, data, true);
   } catch (err) {
     setResult(resultId, err.message, true);
   }
