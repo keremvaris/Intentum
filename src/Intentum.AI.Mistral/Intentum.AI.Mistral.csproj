@@ -14,7 +14,7 @@
     <Authors>Intentum Contributors</Authors>
     <Description>Mistral adapter for Intentum intent inference.</Description>
     <PackageTags>intent;behavior;ai;mistral;dotnet</PackageTags>
-    <RepositoryUrl>https://github.com/intentum/intentum</RepositoryUrl>
+    <RepositoryUrl>https://github.com/keremvaris/Intentum</RepositoryUrl>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <PackageReadmeFile>README.md</PackageReadmeFile>

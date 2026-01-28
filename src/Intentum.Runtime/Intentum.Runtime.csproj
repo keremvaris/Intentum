@@ -13,7 +13,7 @@
     <Authors>Intentum Contributors</Authors>
     <Description>Intent policy and decision engine for inferred behaviors.</Description>
     <PackageTags>intent;behavior;policy;runtime;ai</PackageTags>
-    <RepositoryUrl>https://github.com/intentum/intentum</RepositoryUrl>
+    <RepositoryUrl>https://github.com/keremvaris/Intentum</RepositoryUrl>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <PackageReadmeFile>README.md</PackageReadmeFile>

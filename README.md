@@ -1,6 +1,6 @@
 Intentum - Intent-Driven Development for the AI Era
 
-[![CI](https://github.com/intentum/intentum/actions/workflows/ci.yml/badge.svg)](https://github.com/intentum/intentum/actions/workflows/ci.yml)
+[![CI](https://github.com/keremvaris/Intentum/actions/workflows/ci.yml/badge.svg)](https://github.com/keremvaris/Intentum/actions/workflows/ci.yml)
 [![NuGet Intentum.Core](https://img.shields.io/nuget/v/Intentum.Core.svg)](https://www.nuget.org/packages/Intentum.Core)
 
 Intentum replaces scenario-based BDD with behavior space inference.
@@ -30,6 +30,7 @@ Policy Decisions
 Replace pass/fail with policy-driven decisions.
 
 Quick Example
+```csharp
 using Intentum.AI.Mock;
 using Intentum.AI.Models;
 using Intentum.AI.Similarity;
@@ -55,11 +56,15 @@ var policy = new IntentPolicy()
         PolicyDecision.Allow));
 
 var decision = intent.Decide(policy);
+```
 
 Run the sample
+```bash
 dotnet run --project samples/Intentum.Sample
+```
 
 Showcase output (trimmed)
+```
 === INTENTUM SCENARIO: PaymentHappyPath ===
 Events            : 2
 Intent Confidence : High
@@ -84,6 +89,7 @@ Decision          : Block
 Behavior Vector:
  - user:login = 1
  - user:retry = 3
+```
 
 Packages
 - Intentum.Core

@@ -1,0 +1,16 @@
+## Build outputs
+**/bin/
+**/obj/
+
+## NuGet packages
+**/*.nupkg
+**/*.snupkg
+
+## IDE / OS
+.idea/
+.vscode/
+*.user
+*.suo
+*.cache
+*.log
+*.DS_Store
