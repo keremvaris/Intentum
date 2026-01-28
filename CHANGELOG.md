@@ -19,6 +19,14 @@ Bu dosya **conventional commit** mesajlarından otomatik üretilir.
 
 ### Features
 
+- Introduce multi-language support and search *(docs)*
+
+## [0.0.5] - 2026-01-28
+
+
+
+### Features
+
 - Introduce CodeGen tool, web sample, and SonarCloud CI
 
 ## [0.0.4] - 2026-01-28
