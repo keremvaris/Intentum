@@ -1,5 +1,11 @@
 ## [unreleased]
 
+### Miscellaneous
+
+- *(nuget-release)* Enhance NuGet push robustness and API key validation
+
+## [0.0.2] - 2026-01-28
+
 ### Documentation
 
 - *(pages)* Add documentation redirects and logo styles
