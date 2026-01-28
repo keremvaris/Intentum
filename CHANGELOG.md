@@ -18,6 +18,7 @@ Bu dosya **conventional commit** mesajlarından otomatik üretilir.
 
 
 
+
 ### Miscellaneous
 
 - Refactor token passing in CI *(sonarcloud)*
@@ -31,6 +32,12 @@ Bu dosya **conventional commit** mesajlarından otomatik üretilir.
 - Streamline code and enhance consistency *(internal)*
 
 - Require explicit base URL for AI providers *(config)*
+
+
+
+### Testing
+
+- Adds explicit base URLs to AI provider tests *(providers)*
 
 ## [0.0.7] - 2026-01-28
 
