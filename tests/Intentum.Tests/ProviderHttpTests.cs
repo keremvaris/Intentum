@@ -21,7 +21,7 @@ public class ProviderHttpTests
         """;
 
         var provider = new OpenAIEmbeddingProvider(
-            new OpenAIOptions { ApiKey = "k", EmbeddingModel = "text-embedding-3-large" },
+            new OpenAIOptions { ApiKey = "k", EmbeddingModel = "text-embedding-3-large", BaseUrl = "https://api.openai.com/v1/" },
             CreateClient(json));
 
         var result = provider.Embed("user:login");
@@ -37,7 +37,7 @@ public class ProviderHttpTests
         """;
 
         var provider = new GeminiEmbeddingProvider(
-            new GeminiOptions { ApiKey = "k", EmbeddingModel = "text-embedding-004" },
+            new GeminiOptions { ApiKey = "k", EmbeddingModel = "text-embedding-004", BaseUrl = "https://generativelanguage.googleapis.com/v1beta/" },
             CreateClient(json));
 
         var result = provider.Embed("user:retry");
@@ -53,7 +53,7 @@ public class ProviderHttpTests
         """;
 
         var provider = new MistralEmbeddingProvider(
-            new MistralOptions { ApiKey = "k", EmbeddingModel = "mistral-embed" },
+            new MistralOptions { ApiKey = "k", EmbeddingModel = "mistral-embed", BaseUrl = "https://api.mistral.ai/v1/" },
             CreateClient(json));
 
         var result = provider.Embed("user:submit");
@@ -87,7 +87,7 @@ public class ProviderHttpTests
     public void OpenAIEmbeddingProvider_ThrowsOnBadStatus()
     {
         var provider = new OpenAIEmbeddingProvider(
-            new OpenAIOptions { ApiKey = "k", EmbeddingModel = "text-embedding-3-large" },
+            new OpenAIOptions { ApiKey = "k", EmbeddingModel = "text-embedding-3-large", BaseUrl = "https://api.openai.com/v1/" },
             CreateClient("", HttpStatusCode.BadRequest));
 
         Assert.Throws<HttpRequestException>(() => provider.Embed("user:login"));
