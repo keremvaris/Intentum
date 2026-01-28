@@ -1,3 +1,5 @@
+using Intentum.Core.Intent;
+
 namespace Intentum.Core.Intents;
 
 /// <summary>

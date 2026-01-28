@@ -10,6 +10,7 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <NoWarn>$(NoWarn);1591</NoWarn>
     <PackageId>Intentum.AI.Gemini</PackageId>
     <Authors>Intentum Contributors</Authors>
     <Description>Gemini adapter for Intentum intent inference.</Description>

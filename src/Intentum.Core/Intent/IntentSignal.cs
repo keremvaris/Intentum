@@ -1,4 +1,4 @@
-namespace Intentum.Core.Intents;
+namespace Intentum.Core.Intent;
 
 /// <summary>
 /// Intent indicators inferred from behavior, logs, or models.

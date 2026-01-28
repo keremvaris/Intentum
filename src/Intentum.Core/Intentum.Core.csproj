@@ -5,6 +5,7 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <NoWarn>$(NoWarn);1591</NoWarn>
     <PackageId>Intentum.Core</PackageId>
     <Authors>Intentum Contributors</Authors>
     <Description>Intent-driven development core primitives: behavior space, intent inference, confidence.</Description>

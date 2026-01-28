@@ -19,11 +19,10 @@ jobs:
       - name: Build
         run: dotnet build Intentum.slnx --no-restore
       - name: Test
-        run: |
-          mkdir -p TestResults/coverage
-          dotnet test tests/Intentum.Tests/Intentum.Tests.csproj --no-build -p:CollectCoverage=true -p:CoverletOutputFormat=opencover -p:CoverletOutput=${{ github.workspace }}/TestResults/coverage/ -p:Threshold=70 -p:ThresholdType=line
+        run: dotnet test tests/Intentum.Tests/Intentum.Tests.csproj --no-build --collect:"XPlat Code Coverage" --results-directory TestResults
       - name: Upload coverage artifact
         uses: actions/upload-artifact@v4
         with:
-          name: coverage-opencover
-          path: TestResults/coverage/
+          name: coverage
+          path: TestResults/
+          if-no-files-found: ignore

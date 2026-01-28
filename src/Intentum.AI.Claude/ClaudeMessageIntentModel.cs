@@ -1,10 +1,9 @@
 using System.Globalization;
 using System.Net.Http.Json;
 using System.Text.Json.Serialization;
-using Intentum.AI.Embeddings;
-using Intentum.AI.Similarity;
 using Intentum.Core.Behavior;
 using Intentum.Core.Contracts;
+using Intentum.Core.Intent;
 using Intentum.Core.Intents;
 
 namespace Intentum.AI.Claude;

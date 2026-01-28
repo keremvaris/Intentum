@@ -4,27 +4,18 @@ using Intentum.AI.Embeddings;
 
 namespace Intentum.AI.Gemini;
 
-public sealed class GeminiEmbeddingProvider : IIntentEmbeddingProvider
+public sealed class GeminiEmbeddingProvider(GeminiOptions options, HttpClient httpClient) : IIntentEmbeddingProvider
 {
-    private readonly GeminiOptions _options;
-    private readonly HttpClient _httpClient;
-
-    public GeminiEmbeddingProvider(GeminiOptions options, HttpClient httpClient)
-    {
-        _options = options;
-        _httpClient = httpClient;
-    }
-
     public IntentEmbedding Embed(string behaviorKey)
     {
-        _options.Validate();
+        options.Validate();
 
         var request = new GeminiEmbedRequest(
             new GeminiContent([new GeminiPart(behaviorKey)]));
 
-        var url = $"models/{_options.EmbeddingModel}:embedContent?key={_options.ApiKey}";
+        var url = $"models/{options.EmbeddingModel}:embedContent?key={options.ApiKey}";
 
-        var response = _httpClient
+        var response = httpClient
             .PostAsJsonAsync(url, request)
             .GetAwaiter()
             .GetResult();
@@ -36,7 +27,7 @@ public sealed class GeminiEmbeddingProvider : IIntentEmbeddingProvider
             .GetAwaiter()
             .GetResult();
 
-        var values = payload?.Embedding?.Values ?? new List<double>();
+        var values = payload?.Embedding.Values ?? new List<double>();
         var score = Normalize(values);
 
         return new IntentEmbedding(

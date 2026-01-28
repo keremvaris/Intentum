@@ -19,6 +19,7 @@ using Intentum.Runtime.Policy;
 // ---------------------------------------------------------------------------
 
 IIntentEmbeddingProvider embeddingProvider;
+// ReSharper disable once InconsistentNaming
 var useOpenAI = !string.IsNullOrWhiteSpace(Environment.GetEnvironmentVariable("OPENAI_API_KEY"));
 if (useOpenAI)
 {

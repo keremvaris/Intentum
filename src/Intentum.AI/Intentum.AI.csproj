@@ -9,6 +9,7 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <NoWarn>$(NoWarn);1591</NoWarn>
     <PackageId>Intentum.AI</PackageId>
     <Authors>Intentum Contributors</Authors>
     <Description>AI abstractions and deterministic mock implementations for intent inference.</Description>

@@ -9,6 +9,7 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <NoWarn>$(NoWarn);1591</NoWarn>
     <PackageId>Intentum.Runtime</PackageId>
     <Authors>Intentum Contributors</Authors>
     <Description>Intent policy and decision engine for inferred behaviors.</Description>

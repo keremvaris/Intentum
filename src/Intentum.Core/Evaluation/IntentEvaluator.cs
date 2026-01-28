@@ -1,4 +1,5 @@
 using Intentum.Core.Behavior;
+using Intentum.Core.Intent;
 using Intentum.Core.Intents;
 
 namespace Intentum.Core.Evaluation;
@@ -8,6 +9,7 @@ namespace Intentum.Core.Evaluation;
 /// </summary>
 public sealed class IntentEvaluator
 {
+    /// <summary>Evaluates the given behavior space and returns an intent with confidence and signals.</summary>
     public IntentEvaluationResult Evaluate(
         string intentName,
         BehaviorSpace behaviorSpace)
@@ -25,7 +27,7 @@ public sealed class IntentEvaluator
 
         var confidence = IntentConfidence.FromScore(score);
 
-        var intent = new Intent(
+        var intent = new Intents.Intent(
             intentName,
             signals,
             confidence

@@ -4,25 +4,17 @@ using Intentum.AI.Embeddings;
 
 namespace Intentum.AI.AzureOpenAI;
 
-public sealed class AzureOpenAIEmbeddingProvider : IIntentEmbeddingProvider
+public sealed class AzureOpenAIEmbeddingProvider(AzureOpenAIOptions options, HttpClient httpClient)
+    : IIntentEmbeddingProvider
 {
-    private readonly AzureOpenAIOptions _options;
-    private readonly HttpClient _httpClient;
-
-    public AzureOpenAIEmbeddingProvider(AzureOpenAIOptions options, HttpClient httpClient)
-    {
-        _options = options;
-        _httpClient = httpClient;
-    }
-
     public IntentEmbedding Embed(string behaviorKey)
     {
-        _options.Validate();
+        options.Validate();
 
         var request = new AzureEmbeddingRequest(behaviorKey);
-        var url = $"openai/deployments/{_options.EmbeddingDeployment}/embeddings?api-version={_options.ApiVersion}";
+        var url = $"openai/deployments/{options.EmbeddingDeployment}/embeddings?api-version={options.ApiVersion}";
 
-        var response = _httpClient
+        var response = httpClient
             .PostAsJsonAsync(url, request)
             .GetAwaiter()
             .GetResult();
@@ -34,7 +26,7 @@ public sealed class AzureOpenAIEmbeddingProvider : IIntentEmbeddingProvider
             .GetAwaiter()
             .GetResult();
 
-        var values = payload?.Data?.FirstOrDefault()?.Embedding ?? new List<double>();
+        var values = payload?.Data.FirstOrDefault()?.Embedding ?? [];
         var score = Normalize(values);
 
         return new IntentEmbedding(
@@ -48,7 +40,7 @@ public sealed class AzureOpenAIEmbeddingProvider : IIntentEmbeddingProvider
         if (values.Count == 0)
             return 0;
 
-        var avgAbs = values.Average(v => Math.Abs(v));
+        var avgAbs = values.Average(Math.Abs);
         return Math.Clamp(avgAbs, 0.0, 1.0);
     }
 

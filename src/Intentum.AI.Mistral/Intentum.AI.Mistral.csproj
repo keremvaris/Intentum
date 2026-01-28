@@ -10,6 +10,7 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <NoWarn>$(NoWarn);1591</NoWarn>
     <PackageId>Intentum.AI.Mistral</PackageId>
     <Authors>Intentum Contributors</Authors>
     <Description>Mistral adapter for Intentum intent inference.</Description>

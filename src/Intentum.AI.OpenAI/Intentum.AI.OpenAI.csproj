@@ -14,6 +14,7 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <NoWarn>$(NoWarn);1591</NoWarn>
     <PackageId>Intentum.AI.OpenAI</PackageId>
     <Authors>Intentum Contributors</Authors>
     <Description>OpenAI adapter for Intentum intent inference.</Description>

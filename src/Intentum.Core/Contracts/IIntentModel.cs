@@ -8,5 +8,6 @@ namespace Intentum.Core.Contracts;
 /// </summary>
 public interface IIntentModel
 {
-    Intent Infer(BehaviorSpace behaviorSpace);
+    /// <summary>Infers intent and confidence from the observed behavior space.</summary>
+    Intents.Intent Infer(BehaviorSpace behaviorSpace);
 }

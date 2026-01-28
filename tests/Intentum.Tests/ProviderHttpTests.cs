@@ -1,5 +1,4 @@
 using System.Net;
-using System.Net.Http;
 using System.Text;
 using Intentum.AI.AzureOpenAI;
 using Intentum.AI.Gemini;

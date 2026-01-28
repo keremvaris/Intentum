@@ -8,6 +8,7 @@ public sealed record IntentConfidence(
     string Level
 )
 {
+    /// <summary>Maps a numeric score (0–1) to a confidence level (Low, Medium, High, Certain).</summary>
     public static IntentConfidence FromScore(double score)
     {
         var level = score switch

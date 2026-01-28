@@ -7,11 +7,14 @@ public sealed class BehaviorSpace
 {
     private readonly List<BehaviorEvent> _events = [];
 
+    /// <summary>All observed behavior events in order.</summary>
     public IReadOnlyCollection<BehaviorEvent> Events => _events;
 
+    /// <summary>Records a single behavior event (actor and action).</summary>
     public void Observe(BehaviorEvent behaviorEvent)
         => _events.Add(behaviorEvent);
 
+    /// <summary>Builds a behavior vector from observed events (actor:action keys with counts).</summary>
     public BehaviorVector ToVector()
     {
         var dimensions = new Dictionary<string, double>();

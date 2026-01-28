@@ -27,13 +27,13 @@ jobs:
       - name: Build
         run: dotnet build Intentum.slnx --no-restore
       - name: Test with coverage
-        run: dotnet test tests/Intentum.Tests/Intentum.Tests.csproj --no-build -p:CollectCoverage=true -p:CoverletOutputFormat=opencover
+        run: dotnet test tests/Intentum.Tests/Intentum.Tests.csproj --no-build --collect:"XPlat Code Coverage" --results-directory TestResults
       - name: Install ReportGenerator
         run: dotnet tool install -g dotnet-reportgenerator-globaltool
       - name: Generate coverage report
         run: |
-          REPORT=$(find . -name '*.opencover.xml' -print -quit)
-          if [ -z "$REPORT" ]; then echo "No coverage file found"; find . -name '*.xml' 2>/dev/null | head -5; exit 1; fi
+          REPORT=$(find TestResults -name 'coverage.cobertura.xml' -print -quit 2>/dev/null)
+          if [ -z "$REPORT" ]; then echo "No coverage file found"; find TestResults -type f -name '*.xml' 2>/dev/null | head -10; exit 1; fi
           reportgenerator -reports:"$REPORT" -targetdir:docs/coverage -reporttypes:Html;Badges
       - name: Install DocFX
         run: dotnet tool install -g docfx
