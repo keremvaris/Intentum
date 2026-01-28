@@ -37,7 +37,8 @@ So: *behavior → intent → policy decision*. No hard-coded scenario steps; the
 | **PolicyDecision** | Decision enum: **Allow**, **Observe**, **Warn**, **Block**, **Escalate**, **RequireAuth**, **RateLimit**. |
 | **IntentPolicyEngine** | Evaluates an intent against a policy; returns a **PolicyDecision**. |
 | **RuntimeExtensions.Decide** | Extension: `intent.Decide(policy)` — runs the policy and returns the decision. |
-| **RuntimeExtensions.DecideWithRateLimit** / **DecideWithRateLimitAsync** | When decision is RateLimit, checks **IRateLimiter** and returns **RateLimitResult** (Allowed, CurrentCount, Limit, RetryAfter). |
+| **RuntimeExtensions.DecideWithRateLimit** / **DecideWithRateLimitAsync** | When decision is RateLimit, checks **IRateLimiter** and returns **RateLimitResult**. Pass **RateLimitOptions** (Key, Limit, Window). |
+| **RateLimitOptions** | Key, Limit, Window — use with DecideWithRateLimit / DecideWithRateLimitAsync. |
 | **IRateLimiter** / **MemoryRateLimiter** | Rate limiting for PolicyDecision.RateLimit. **MemoryRateLimiter** = in-memory fixed window; use a distributed implementation for multi-node. |
 | **RateLimitResult** | Allowed, CurrentCount, Limit, RetryAfter. |
 | **RuntimeExtensions.ToLocalizedString** | Extension: `decision.ToLocalizedString(localizer)` — human-readable text (e.g. for UI). |

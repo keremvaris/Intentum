@@ -26,7 +26,7 @@ In Intentum, the **Infer** step optionally uses **AI (embeddings)**: it turns be
 | **Similarity** | A **similarity engine** aggregates all embeddings into a single score (e.g. average). That score is mapped to a confidence level. |
 | **Intent** | **LlmIntentModel** produces an **Intent** (Confidence + Signals) from this score; the policy returns Allow / Observe / Warn / Block based on that intent. |
 
-Examples usually use **Mock** (no API key). To try real AI, set the right environment variables and use a provider; see [Providers](providers.md) and [Setup – real provider](setup.md#real-provider-usage-eg-openai).
+Examples usually use **Mock** (no API key). To try real AI, set the right environment variables and use a provider; see [Providers](providers.md) and [Setup – real provider](setup.md#using-a-real-provider-eg-openai).
 
 ---
 

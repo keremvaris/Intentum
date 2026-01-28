@@ -2,6 +2,7 @@ using Intentum.AI.Caching;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
+using ZiggyCreatures.Caching.Fusion;
 
 namespace Intentum.AI.Caching.FusionCache;
 
@@ -60,12 +61,11 @@ public static class FusionCacheExtensions
 
         // Configure FusionCache with Redis as L2
         var fusionBuilder = services.AddFusionCache()
-            .WithDefaultEntryOptions(new FusionCacheEntryOptions
+            .WithDefaultEntryOptions(opt =>
             {
-                Duration = TimeSpan.FromHours(24), // Default 24 hours for embeddings
-                Priority = CacheItemPriority.Normal
+                opt.Duration = TimeSpan.FromHours(24); // Default 24 hours for embeddings
             })
-            .WithDistributedCache();
+            .TryWithRegisteredDistributedCache();
 
         if (configureFusionCache != null)
         {
@@ -100,18 +100,19 @@ public static class FusionCacheExtensions
             options.Configuration = redisConnectionString;
         });
 
-        // Add Redis backplane
+        // Add Redis backplane (requires ZiggyCreatures.FusionCache.Backplane.StackExchangeRedis)
+        services.AddFusionCacheStackExchangeRedisBackplane(opt =>
+        {
+            opt.Configuration = redisConnectionString;
+        });
+
         var fusionBuilder = services.AddFusionCache()
-            .WithDefaultEntryOptions(new FusionCacheEntryOptions
+            .WithDefaultEntryOptions(opt =>
             {
-                Duration = TimeSpan.FromHours(24),
-                Priority = CacheItemPriority.Normal
+                opt.Duration = TimeSpan.FromHours(24);
             })
-            .WithDistributedCache()
-            .WithBackplane(options =>
-            {
-                options.ConnectionString = redisConnectionString;
-            });
+            .TryWithRegisteredDistributedCache()
+            .WithRegisteredBackplane();
 
         if (configureFusionCache != null)
         {

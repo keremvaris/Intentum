@@ -5,6 +5,8 @@ namespace Intentum.Core.Behavior;
 /// </summary>
 public sealed class BehaviorSpaceBuilder
 {
+    private const string WithActorRequiredMessage = "Must call WithActor before Action";
+
     private readonly BehaviorSpace _space = new();
     private string? _currentActor;
 
@@ -23,7 +25,7 @@ public sealed class BehaviorSpaceBuilder
     public BehaviorSpaceBuilder Action(string action)
     {
         if (_currentActor == null)
-            throw new InvalidOperationException("Must call WithActor before Action");
+            throw new InvalidOperationException(WithActorRequiredMessage);
 
         _space.Observe(new BehaviorEvent(
             _currentActor,
@@ -39,7 +41,7 @@ public sealed class BehaviorSpaceBuilder
     public BehaviorSpaceBuilder Action(string action, DateTimeOffset occurredAt)
     {
         if (_currentActor == null)
-            throw new InvalidOperationException("Must call WithActor before Action");
+            throw new InvalidOperationException(WithActorRequiredMessage);
 
         _space.Observe(new BehaviorEvent(
             _currentActor,
@@ -55,7 +57,7 @@ public sealed class BehaviorSpaceBuilder
     public BehaviorSpaceBuilder Action(string action, IReadOnlyDictionary<string, object>? metadata)
     {
         if (_currentActor == null)
-            throw new InvalidOperationException("Must call WithActor before Action");
+            throw new InvalidOperationException(WithActorRequiredMessage);
 
         _space.Observe(new BehaviorEvent(
             _currentActor,
@@ -72,7 +74,7 @@ public sealed class BehaviorSpaceBuilder
     public BehaviorSpaceBuilder Action(string action, DateTimeOffset occurredAt, IReadOnlyDictionary<string, object>? metadata)
     {
         if (_currentActor == null)
-            throw new InvalidOperationException("Must call WithActor before Action");
+            throw new InvalidOperationException(WithActorRequiredMessage);
 
         _space.Observe(new BehaviorEvent(
             _currentActor,

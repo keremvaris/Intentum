@@ -45,19 +45,6 @@ else
 
 // Similarity engine selection: SimpleAverage (default), WeightedAverage, TimeDecay, Cosine, or Composite
 IIntentSimilarityEngine similarityEngine = new SimpleAverageSimilarityEngine();
-// Example: WeightedAverageSimilarityEngine with custom weights
-// var weights = new Dictionary<string, double> { { "user:login", 2.0 }, { "user:submit", 1.5 } };
-// similarityEngine = new WeightedAverageSimilarityEngine(weights);
-// Example: TimeDecaySimilarityEngine (requires BehaviorSpace for timestamps)
-// similarityEngine = new TimeDecaySimilarityEngine(TimeSpan.FromHours(1));
-// Example: CosineSimilarityEngine (uses vector similarity)
-// similarityEngine = new CosineSimilarityEngine();
-// Example: CompositeSimilarityEngine (combines multiple engines)
-// similarityEngine = new CompositeSimilarityEngine(new[]
-// {
-//     (new SimpleAverageSimilarityEngine(), 1.0),
-//     (new CosineSimilarityEngine(), 1.5)
-// });
 
 // Add caching for better performance
 var cache = new MemoryEmbeddingCache(new MemoryCache(new MemoryCacheOptions()));
@@ -331,7 +318,7 @@ void DemonstrateNewFeatures()
     var secondEmbedding = cachedProvider.Embed(testKey); // Should use cache
     Console.WriteLine($"  First call: Score={firstEmbedding.Score:0.00}, Vector={firstEmbedding.Vector != null}");
     Console.WriteLine($"  Second call (cached): Score={secondEmbedding.Score:0.00}, Vector={secondEmbedding.Vector != null}");
-    Console.WriteLine($"  Cache hit: {firstEmbedding.Score == secondEmbedding.Score}");
+    Console.WriteLine($"  Cache hit: {Math.Abs(firstEmbedding.Score - secondEmbedding.Score) < 1e-9}");
     Console.WriteLine();
 
     // 4. New Policy Decision Types
@@ -350,13 +337,11 @@ void DemonstrateNewFeatures()
         .WithActor("user").Action("f").Action("g").Action("h").Action("i").Action("j").Action("k")
         .Build();
     var highFreqIntent = intentModel.Infer(highFrequencySpace);
-    const string rateLimitKey = "sample-console";
-    const int limit = 5;
-    var window = TimeSpan.FromMinutes(1);
+    var rateLimitOptions = new RateLimitOptions("sample-console", 5, TimeSpan.FromMinutes(1));
     for (var i = 0; i < 4; i++)
     {
         var (decision, rateLimitResult) = highFreqIntent.DecideWithRateLimitAsync(
-            policy, rateLimiter, rateLimitKey, limit, window).AsTask().GetAwaiter().GetResult();
+            policy, rateLimiter, rateLimitOptions).AsTask().GetAwaiter().GetResult();
         Console.WriteLine($"  Call {i + 1}: Decision={decision}, Allowed={rateLimitResult?.Allowed}, Count={rateLimitResult?.CurrentCount}/{rateLimitResult?.Limit}");
     }
     Console.WriteLine("  (Policy RateLimit rule + MemoryRateLimiter; over limit requests get Allowed=false.)");

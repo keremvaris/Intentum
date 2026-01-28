@@ -1,7 +1,5 @@
 using Intentum.AI.Caching;
 using Intentum.AI.Embeddings;
-using System.Text.Json;
-using Microsoft.Extensions.Caching.Memory;
 
 namespace Intentum.AI.Caching.FusionCache;
 
@@ -11,21 +9,15 @@ namespace Intentum.AI.Caching.FusionCache;
 /// </summary>
 public sealed class FusionCacheEmbeddingCache : IEmbeddingCache
 {
-    private readonly ZiggyCreatures.FusionCache.IFusionCache _fusionCache;
-    private readonly JsonSerializerOptions _jsonOptions;
+    private readonly ZiggyCreatures.Caching.Fusion.IFusionCache _fusionCache;
 
     /// <summary>
     /// Initializes a new instance of FusionCacheEmbeddingCache.
     /// </summary>
     /// <param name="fusionCache">The FusionCache instance to use.</param>
-    public FusionCacheEmbeddingCache(ZiggyCreatures.FusionCache.IFusionCache fusionCache)
+    public FusionCacheEmbeddingCache(ZiggyCreatures.Caching.Fusion.IFusionCache fusionCache)
     {
         _fusionCache = fusionCache ?? throw new ArgumentNullException(nameof(fusionCache));
-        _jsonOptions = new JsonSerializerOptions
-        {
-            PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
-            WriteIndented = false
-        };
     }
 
     /// <summary>
@@ -34,7 +26,7 @@ public sealed class FusionCacheEmbeddingCache : IEmbeddingCache
     public IntentEmbedding? Get(string behaviorKey)
     {
         var cacheKey = GetCacheKey(behaviorKey);
-        var cached = _fusionCache.Get<IntentEmbeddingDto?>(cacheKey);
+        var cached = _fusionCache.GetOrDefault<IntentEmbeddingDto?>(cacheKey, null);
         return cached?.ToIntentEmbedding();
     }
 
@@ -51,7 +43,7 @@ public sealed class FusionCacheEmbeddingCache : IEmbeddingCache
     /// <summary>
     /// Sets an embedding in the cache with custom options.
     /// </summary>
-    public void Set(string behaviorKey, IntentEmbedding embedding, ZiggyCreatures.FusionCache.FusionCacheEntryOptions options)
+    public void Set(string behaviorKey, IntentEmbedding embedding, ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions options)
     {
         var cacheKey = GetCacheKey(behaviorKey);
         var dto = IntentEmbeddingDto.FromIntentEmbedding(embedding);

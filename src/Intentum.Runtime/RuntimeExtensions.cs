@@ -23,9 +23,7 @@ public static class RuntimeExtensions
         this Intent intent,
         IntentPolicy policy,
         IRateLimiter rateLimiter,
-        string rateLimitKey,
-        int limit,
-        TimeSpan window,
+        RateLimitOptions options,
         out RateLimitResult? rateLimitResult,
         CancellationToken cancellationToken = default)
     {
@@ -33,7 +31,7 @@ public static class RuntimeExtensions
         rateLimitResult = null;
         if (decision != PolicyDecision.RateLimit)
             return decision;
-        var result = rateLimiter.TryAcquireAsync(rateLimitKey, limit, window, cancellationToken).AsTask().GetAwaiter().GetResult();
+        var result = rateLimiter.TryAcquireAsync(options.Key, options.Limit, options.Window, cancellationToken).AsTask().GetAwaiter().GetResult();
         rateLimitResult = result;
         return decision;
     }
@@ -45,15 +43,13 @@ public static class RuntimeExtensions
         this Intent intent,
         IntentPolicy policy,
         IRateLimiter rateLimiter,
-        string rateLimitKey,
-        int limit,
-        TimeSpan window,
+        RateLimitOptions options,
         CancellationToken cancellationToken = default)
     {
         var decision = IntentPolicyEngine.Evaluate(intent, policy);
         if (decision != PolicyDecision.RateLimit)
             return (decision, null);
-        var result = await rateLimiter.TryAcquireAsync(rateLimitKey, limit, window, cancellationToken);
+        var result = await rateLimiter.TryAcquireAsync(options.Key, options.Limit, options.Window, cancellationToken);
         return (decision, result);
     }
 

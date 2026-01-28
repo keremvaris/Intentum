@@ -1,6 +1,11 @@
 namespace Intentum.Runtime.RateLimiting;
 
 /// <summary>
+/// Options for rate limit check (key, limit, window).
+/// </summary>
+public sealed record RateLimitOptions(string Key, int Limit, TimeSpan Window);
+
+/// <summary>
 /// Result of a rate limit check.
 /// </summary>
 public sealed record RateLimitResult(

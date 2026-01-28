@@ -37,7 +37,8 @@ Yani: *davranış → intent → policy kararı*. Sabit senaryo adımları yok; 
 | **PolicyDecision** | Karar enum'u: **Allow**, **Observe**, **Warn**, **Block**, **Escalate**, **RequireAuth**, **RateLimit**. |
 | **IntentPolicyEngine** | Intent’i policy’ye göre değerlendirir; **PolicyDecision** döndürür. |
 | **RuntimeExtensions.Decide** | Extension: `intent.Decide(policy)` — policy’yi çalıştırır ve kararı döndürür. |
-| **RuntimeExtensions.DecideWithRateLimit** / **DecideWithRateLimitAsync** | Karar RateLimit olduğunda **IRateLimiter** ile kontrol eder; **RateLimitResult** (Allowed, CurrentCount, Limit, RetryAfter) döndürür. |
+| **RuntimeExtensions.DecideWithRateLimit** / **DecideWithRateLimitAsync** | Karar RateLimit olduğunda **IRateLimiter** ile kontrol eder; **RateLimitResult** döndürür. **RateLimitOptions** (Key, Limit, Window) geçirin. |
+| **RateLimitOptions** | Key, Limit, Window — DecideWithRateLimit / DecideWithRateLimitAsync ile kullanın. |
 | **IRateLimiter** / **MemoryRateLimiter** | PolicyDecision.RateLimit için rate limiting. **MemoryRateLimiter** = in-memory fixed window; çok node için dağıtık implementasyon kullanın. |
 | **RateLimitResult** | Allowed, CurrentCount, Limit, RetryAfter. |
 | **RuntimeExtensions.ToLocalizedString** | Extension: `decision.ToLocalizedString(localizer)` — insan tarafından okunabilir metin (örn. UI için). |

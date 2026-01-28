@@ -49,8 +49,8 @@ public sealed class IntentClusterer : IIntentClusterer
             return Task.FromResult<IReadOnlyList<IntentCluster>>(Array.Empty<IntentCluster>());
 
         var scores = list.Select(r => r.ConfidenceScore).OrderBy(s => s).ToList();
-        var minScore = scores.First();
-        var maxScore = scores.Last();
+        var minScore = scores[0];
+        var maxScore = scores[^1];
         var range = maxScore - minScore;
         var bucketWidth = range <= 0 ? 1.0 : range / k;
 

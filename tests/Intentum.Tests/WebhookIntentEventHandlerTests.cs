@@ -12,6 +12,8 @@ namespace Intentum.Tests;
 
 public class WebhookIntentEventHandlerTests
 {
+    private static readonly string[] IntentInferredOnly = ["IntentInferred"];
+
     private static IntentEventPayload CreatePayload(string? behaviorSpaceId = "bs-1")
     {
         var intent = new Intent(
@@ -35,7 +37,7 @@ public class WebhookIntentEventHandlerTests
     public void AddWebhook_WithSpecificEvents_OnlyThoseEventTypes()
     {
         var options = new IntentumEventsOptions();
-        options.AddWebhook("https://example.com/hook", new[] { "IntentInferred" });
+        options.AddWebhook("https://example.com/hook", IntentInferredOnly);
         Assert.Single(options.Webhooks);
         Assert.Single(options.Webhooks[0].EventTypes);
         Assert.Contains("IntentInferred", options.Webhooks[0].EventTypes, StringComparer.OrdinalIgnoreCase);
@@ -45,7 +47,7 @@ public class WebhookIntentEventHandlerTests
     public async Task HandleAsync_NoWebhooksMatchingEventType_DoesNotThrow()
     {
         var options = new IntentumEventsOptions();
-        options.AddWebhook("https://example.com/hook", new[] { "IntentInferred" });
+        options.AddWebhook("https://example.com/hook", IntentInferredOnly);
         var handler = new CaptureHttpHandler();
         var handlerFactory = CreateHttpClientFactory(handler);
         var eventHandler = new WebhookIntentEventHandler(handlerFactory, Options.Create(options));
@@ -60,7 +62,7 @@ public class WebhookIntentEventHandlerTests
     public async Task HandleAsync_WebhookConfigured_PostsToUrlWithCorrectBody()
     {
         var options = new IntentumEventsOptions();
-        options.AddWebhook("https://example.com/hook", new[] { "IntentInferred" });
+        options.AddWebhook("https://example.com/hook", IntentInferredOnly);
         var handler = new CaptureHttpHandler();
         var handlerFactory = CreateHttpClientFactory(handler);
         var eventHandler = new WebhookIntentEventHandler(handlerFactory, Options.Create(options));
@@ -88,8 +90,8 @@ public class WebhookIntentEventHandlerTests
     public async Task HandleAsync_MultipleWebhooks_SendsToAllMatching()
     {
         var options = new IntentumEventsOptions();
-        options.AddWebhook("https://a.com/hook", new[] { "IntentInferred" });
-        options.AddWebhook("https://b.com/hook", new[] { "IntentInferred" });
+        options.AddWebhook("https://a.com/hook", IntentInferredOnly);
+        options.AddWebhook("https://b.com/hook", IntentInferredOnly);
         var handler = new CaptureHttpHandler();
         var handlerFactory = CreateHttpClientFactory(handler);
         var eventHandler = new WebhookIntentEventHandler(handlerFactory, Options.Create(options));
@@ -106,7 +108,7 @@ public class WebhookIntentEventHandlerTests
     public async Task HandleAsync_HttpSuccess_CompletesWithoutRetry()
     {
         var options = new IntentumEventsOptions();
-        options.AddWebhook("https://example.com/hook", new[] { "IntentInferred" });
+        options.AddWebhook("https://example.com/hook", IntentInferredOnly);
         var handler = new CaptureHttpHandler { StatusCode = HttpStatusCode.OK };
         var handlerFactory = CreateHttpClientFactory(handler);
         var eventHandler = new WebhookIntentEventHandler(handlerFactory, Options.Create(options));
@@ -128,11 +130,10 @@ public class WebhookIntentEventHandlerTests
         Assert.IsType<WebhookIntentEventHandler>(handler);
     }
 
-    private static IHttpClientFactory CreateHttpClientFactory(CaptureHttpHandler handler)
+    private static MockHttpClientFactory CreateHttpClientFactory(CaptureHttpHandler handler)
     {
         var client = new HttpClient(handler) { BaseAddress = new Uri("https://example.com") };
-        var factory = new MockHttpClientFactory(client);
-        return factory;
+        return new MockHttpClientFactory(client);
     }
 
     private sealed class CaptureHttpHandler : HttpMessageHandler

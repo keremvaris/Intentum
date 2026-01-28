@@ -24,7 +24,7 @@ public sealed class MemoryRateLimiter : IRateLimiter
         var current = _windows.AddOrUpdate(
             windowKey,
             _ => new Window(now, window, 1),
-            (_, w) => w.Tick(now, limit));
+            (_, w) => w.Tick(now));
 
         var allowed = current.Count <= limit;
         TimeSpan? retryAfter = null;
@@ -63,7 +63,7 @@ public sealed class MemoryRateLimiter : IRateLimiter
             Count = count;
         }
 
-        public Window Tick(DateTimeOffset now, int limit)
+        public Window Tick(DateTimeOffset now)
         {
             if (now >= WindowEnd)
                 return new Window(now, Duration, 1);

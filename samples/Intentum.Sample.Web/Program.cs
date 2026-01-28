@@ -19,6 +19,7 @@ using Intentum.Sample.Web.Behaviors;
 using Intentum.Sample.Web.Features.CarbonFootprintCalculation.Commands;
 using Intentum.Sample.Web.Features.CarbonFootprintCalculation.Queries;
 using Intentum.Sample.Web.Features.CarbonFootprintCalculation.Validators;
+using Intentum.Sample.Web.Api;
 using Intentum.Sample.Web.Features.OrderPlacement.Commands;
 using MediatR;
 using Microsoft.Extensions.Caching.Memory;
@@ -175,12 +176,9 @@ app.MapPost("/api/intent/infer", async (
         space.Observe(new BehaviorEvent(e.Actor, e.Action, DateTimeOffset.UtcNow));
 
     var intent = model.Infer(space);
-    const string rateLimitKey = "intent-infer";
-    const int limit = 100;
-    var window = TimeSpan.FromMinutes(1);
-
+    var rateLimitOptions = new RateLimitOptions("intent-infer", 100, TimeSpan.FromMinutes(1));
     var (decision, rateLimitResult) = await intent.DecideWithRateLimitAsync(
-        policy, rateLimiter, rateLimitKey, limit, window);
+        policy, rateLimiter, rateLimitOptions);
 
     var behaviorSpaceId = Guid.NewGuid().ToString();
     var id = await historyRepository.SaveAsync(behaviorSpaceId, intent, decision);
@@ -247,14 +245,3 @@ app.MapGet("/api/intent/analytics/export/csv", async (
 }).WithName("ExportAnalyticsCsv").Produces(200);
 
 await app.RunAsync();
-
-// DTOs for intent infer endpoint
-internal record InferIntentRequest(IReadOnlyList<IntentEventDto> Events);
-internal record IntentEventDto(string Actor, string Action);
-internal record InferIntentResponse(
-    string Decision,
-    string Confidence,
-    bool RateLimitAllowed,
-    int? RateLimitCurrent,
-    int? RateLimitLimit,
-    string HistoryId);

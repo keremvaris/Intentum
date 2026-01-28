@@ -78,7 +78,7 @@ public sealed class IntentExperiment
         return RunAsync(behaviorSpaces).GetAwaiter().GetResult();
     }
 
-    private static int[] NormalizeSplit(IReadOnlyList<int> requested, int variantCount)
+    private static int[] NormalizeSplit(List<int> requested, int variantCount)
     {
         if (requested.Count == variantCount && requested.Sum() == 100)
             return requested.ToArray();

@@ -25,7 +25,7 @@ public sealed class MockEmbeddingProvider : IIntentEmbeddingProvider
     /// <summary>
     /// Generates a deterministic vector from a behavior key for testing purposes.
     /// </summary>
-    private static IReadOnlyList<double> GenerateDeterministicVector(string behaviorKey, int dimension)
+    private static double[] GenerateDeterministicVector(string behaviorKey, int dimension)
     {
         var vector = new double[dimension];
         var hash = behaviorKey.GetHashCode();

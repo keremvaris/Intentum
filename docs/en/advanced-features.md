@@ -170,12 +170,11 @@ if (!result.Allowed)
 ### With policy (DecideWithRateLimitAsync)
 
 ```csharp
+var options = new RateLimitOptions("user-123", 100, TimeSpan.FromMinutes(1));
 var (decision, rateLimitResult) = await intent.DecideWithRateLimitAsync(
     policy,
     rateLimiter,
-    rateLimitKey: "user-123",
-    limit: 100,
-    window: TimeSpan.FromMinutes(1));
+    options);
 
 if (decision == PolicyDecision.RateLimit && rateLimitResult is { Allowed: false })
 {

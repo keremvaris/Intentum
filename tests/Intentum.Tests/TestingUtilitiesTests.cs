@@ -40,7 +40,7 @@ public class TestingUtilitiesTests
     {
         // Arrange & Act
         var space = TestHelpers.CreateSimpleSpace();
-
+        Assert.NotNull(space);
         // Assert
         BehaviorSpaceAssertions.HasEventCount(space, 2);
         BehaviorSpaceAssertions.ContainsActor(space, "user");
@@ -53,7 +53,7 @@ public class TestingUtilitiesTests
     {
         // Arrange & Act
         var space = TestHelpers.CreateSpaceWithRetries(3);
-
+        Assert.NotNull(space);
         // Assert
         BehaviorSpaceAssertions.HasEventCount(space, 5); // login + 3 retries + submit
         BehaviorSpaceAssertions.ContainsAction(space, "retry");
@@ -67,7 +67,7 @@ public class TestingUtilitiesTests
             .WithActor("user")
                 .Action("login")
             .Build();
-
+        Assert.NotNull(space);
         // Act & Assert
         BehaviorSpaceAssertions.ContainsEvent(space, "user", "login");
     }
@@ -92,11 +92,10 @@ public class TestingUtilitiesTests
         var model = TestHelpers.CreateDefaultModel();
         var space = TestHelpers.CreateSimpleSpace();
         var policy = TestHelpers.CreateDefaultPolicy();
-
         // Act
         var intent = model.Infer(space);
+        Assert.NotNull(intent);
         var decision = intent.Decide(policy);
-
         // Assert
         PolicyDecisionAssertions.IsOneOf(decision, PolicyDecision.Allow, PolicyDecision.Observe);
     }

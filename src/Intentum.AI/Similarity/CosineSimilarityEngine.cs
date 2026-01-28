@@ -70,7 +70,8 @@ public sealed class CosineSimilarityEngine : IIntentSimilarityEngine
         magnitude1 = Math.Sqrt(magnitude1);
         magnitude2 = Math.Sqrt(magnitude2);
 
-        if (magnitude1 == 0 || magnitude2 == 0)
+        const double epsilon = 1e-10;
+        if (magnitude1 < epsilon || magnitude2 < epsilon)
             return 0;
 
         // Cosine similarity: dot product / (magnitude1 * magnitude2)

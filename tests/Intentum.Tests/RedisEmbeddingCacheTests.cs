@@ -6,12 +6,14 @@ namespace Intentum.Tests;
 
 public class RedisEmbeddingCacheTests
 {
+    private static readonly double[] TestVector = [0.1, 0.2];
+
     [Fact]
     public void GetSet_WithTestCache_WorksCorrectly()
     {
         var cache = new TestDistributedCache();
         var redisCache = new RedisEmbeddingCache(cache);
-        var embedding = new IntentEmbedding("user:login", 0.85, new[] { 0.1, 0.2 });
+        var embedding = new IntentEmbedding("user:login", 0.85, TestVector);
 
         redisCache.Set("user:login", embedding);
         var retrieved = redisCache.Get("user:login");

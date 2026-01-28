@@ -5,6 +5,11 @@ namespace Intentum.Tests;
 
 public class BehaviorSpaceSimulatorTests
 {
+    private static readonly string[] DefaultActors = ["user", "system"];
+    private static readonly string[] DefaultActions = ["a", "b"];
+    private static readonly string[] SingleActor = ["user"];
+    private static readonly string[] SingleAction = ["a"];
+
     [Fact]
     public void FromSequence_CreatesSpaceWithEvents()
     {
@@ -21,10 +26,8 @@ public class BehaviorSpaceSimulatorTests
     public void GenerateRandom_WithSeed_Reproducible()
     {
         var simulator = new BehaviorSpaceSimulator();
-        var actors = new[] { "user", "system" };
-        var actions = new[] { "a", "b" };
-        var space1 = simulator.GenerateRandom(actors, actions, eventCount: 5, randomSeed: 42);
-        var space2 = simulator.GenerateRandom(actors, actions, eventCount: 5, randomSeed: 42);
+        var space1 = simulator.GenerateRandom(DefaultActors, DefaultActions, eventCount: 5, randomSeed: 42);
+        var space2 = simulator.GenerateRandom(DefaultActors, DefaultActions, eventCount: 5, randomSeed: 42);
         Assert.Equal(5, space1.Events.Count);
         Assert.Equal(5, space2.Events.Count);
         var keys1 = space1.Events.Select(e => $"{e.Actor}:{e.Action}").ToList();
@@ -36,7 +39,7 @@ public class BehaviorSpaceSimulatorTests
     public void GenerateRandom_ZeroEvents_ReturnsEmptySpace()
     {
         var simulator = new BehaviorSpaceSimulator();
-        var space = simulator.GenerateRandom(new[] { "user" }, new[] { "a" }, 0);
+        var space = simulator.GenerateRandom(SingleActor, SingleAction, 0);
         Assert.Empty(space.Events);
     }
 }

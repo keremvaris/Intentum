@@ -26,7 +26,7 @@ Intentum’da **Infer** adımı isteğe bağlı **AI (embedding)** kullanır: da
 | **Similarity** | **Similarity engine** tüm embedding’leri tek bir skora indirger (örn. ortalama). Bu skor güven seviyesine dönüştürülür. |
 | **Intent** | **LlmIntentModel** bu skordan **Intent** (Confidence + Signals) üretir; policy bu intent’e göre Allow / Observe / Warn / Block verir. |
 
-Örneklerde genelde **Mock** kullanılır (API anahtarı yok). Gerçek AI ile denemek için ortam değişkeniyle bir sağlayıcı seçip aynı akışı çalıştırabilirsin; bkz. [Sağlayıcılar](providers.md) ve [Kurulum – gerçek sağlayıcı](setup.md#gerçek-sağlayıcı-kullanımı-örneğin-openai).
+Örneklerde genelde **Mock** kullanılır (API anahtarı yok). Gerçek AI ile denemek için ortam değişkeniyle bir sağlayıcı seçip aynı akışı çalıştırabilirsin; bkz. [Sağlayıcılar](providers.md) ve [Kurulum – gerçek sağlayıcı](setup.md#gerçek-sağlayıcı-kullanımı-örn-openai).
 
 ---
 
