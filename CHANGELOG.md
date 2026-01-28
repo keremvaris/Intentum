@@ -13,7 +13,15 @@ Bu dosya **conventional commit** mesajlarından otomatik üretilir.
 
 ---
 
-## [unreleased]
+## [0.0.7] - 2026-01-28
+
+
+
+### Documentation
+
+- Formalize governance and contribution *(project)*
+
+## [0.0.6] - 2026-01-28
 
 
 
