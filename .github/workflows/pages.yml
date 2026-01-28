@@ -44,6 +44,7 @@ jobs:
           rm -rf docs/api
           mkdir -p docs/api
           cp -R docs/_site/* docs/api/
+      # Requires: repo Settings → Pages → Source = "GitHub Actions"
       - name: Setup Pages
         uses: actions/configure-pages@v5
       - name: Upload artifact
