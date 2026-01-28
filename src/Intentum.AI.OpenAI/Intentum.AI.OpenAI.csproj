@@ -13,8 +13,8 @@
     <TargetFramework>net10.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <PackageId>Intentum.AI.OpenAI</PackageId>
-    <Version>1.0.0</Version>
     <Authors>Intentum Contributors</Authors>
     <Description>OpenAI adapter for Intentum intent inference.</Description>
     <PackageTags>intent;behavior;ai;openai;dotnet</PackageTags>

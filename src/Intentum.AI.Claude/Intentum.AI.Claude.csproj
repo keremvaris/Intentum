@@ -9,8 +9,8 @@
     <TargetFramework>net10.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <PackageId>Intentum.AI.Claude</PackageId>
-    <Version>1.0.0</Version>
     <Authors>Intentum Contributors</Authors>
     <Description>Claude adapter for Intentum intent inference.</Description>
     <PackageTags>intent;behavior;ai;claude;dotnet</PackageTags>

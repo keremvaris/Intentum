@@ -1,0 +1,66 @@
+name: pages
+
+on:
+  push:
+    branches: [ master ]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: "pages"
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+      - name: Restore
+        run: dotnet restore Intentum.slnx
+      - name: Build
+        run: dotnet build Intentum.slnx --no-restore
+      - name: Test with coverage
+        run: dotnet test tests/Intentum.Tests/Intentum.Tests.csproj --no-build \
+          /p:CollectCoverage=true \
+          /p:CoverletOutputFormat=opencover \
+          /p:CoverletOutput=TestResults/coverage/
+      - name: Install ReportGenerator
+        run: dotnet tool install -g dotnet-reportgenerator-globaltool
+      - name: Generate coverage report
+        run: reportgenerator \
+          -reports:TestResults/coverage/coverage.opencover.xml \
+          -targetdir:docs/coverage \
+          -reporttypes:Html;Badges
+      - name: Install DocFX
+        run: dotnet tool install -g docfx
+      - name: Generate API docs
+        run: docfx docs/docfx.json
+      - name: Copy DocFX site into docs/api
+        run: |
+          rm -rf docs/api
+          mkdir -p docs/api
+          cp -R docs/_site/* docs/api/
+      - name: Setup Pages
+        uses: actions/configure-pages@v5
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: docs
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4

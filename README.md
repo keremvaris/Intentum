@@ -2,9 +2,12 @@ Intentum - Intent-Driven Development for the AI Era
 
 [![CI](https://github.com/keremvaris/Intentum/actions/workflows/ci.yml/badge.svg)](https://github.com/keremvaris/Intentum/actions/workflows/ci.yml)
 [![NuGet Intentum.Core](https://img.shields.io/nuget/v/Intentum.Core.svg)](https://www.nuget.org/packages/Intentum.Core)
+[![Coverage](https://keremvaris.github.io/Intentum/coverage/badge_linecoverage.svg)](https://keremvaris.github.io/Intentum/coverage/index.html)
 
 Intentum replaces scenario-based BDD with behavior space inference.
 It focuses on what the user was trying to do, not just what they did.
+
+English | [Türkçe](README.tr.md)
 
 Why Intentum?
 - Non-deterministic flows are now common.
@@ -18,6 +21,13 @@ When not to use
 BDD vs Intentum
 - BDD: Scenario-driven, deterministic, pass/fail
 - Intentum: Behavior-driven, probabilistic, policy decisions
+
+Documentation
+- GitHub Pages (EN/TR): https://keremvaris.github.io/Intentum/
+- English docs: docs/en/index.md
+- Turkish docs: docs/tr/index.md
+  - Enable in GitHub: Settings -> Pages -> Source: GitHub Actions
+- API reference (auto): https://keremvaris.github.io/Intentum/api/
 
 Core Concepts
 Behavior Space
@@ -100,6 +110,16 @@ Packages
 - Intentum.AI.Claude
 - Intentum.AI.Mistral
 - Intentum.AI.AzureOpenAI
+
+Configuration (env vars)
+- OPENAI_API_KEY, OPENAI_EMBEDDING_MODEL, OPENAI_BASE_URL
+- GEMINI_API_KEY, GEMINI_EMBEDDING_MODEL, GEMINI_BASE_URL
+- MISTRAL_API_KEY, MISTRAL_EMBEDDING_MODEL, MISTRAL_BASE_URL
+- AZURE_OPENAI_ENDPOINT, AZURE_OPENAI_API_KEY, AZURE_OPENAI_EMBEDDING_DEPLOYMENT, AZURE_OPENAI_API_VERSION
+
+Security
+- Never commit API keys. Use environment variables or secret managers.
+- Avoid logging raw requests/responses from providers in production.
 
 Note
 AI adapters are deterministic stubs in v1.0. Real HTTP calls are planned for v1.1.

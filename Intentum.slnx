@@ -2,7 +2,14 @@
   <Folder Name="/samples/">
     <Project Path="samples/Intentum.Sample/Intentum.Sample.csproj" />
   </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/Intentum.Tests/Intentum.Tests.csproj" />
+  </Folder>
   <Folder Name="/src/">
+    <Project Path="src/Intentum.AI.AzureOpenAI/Intentum.AI.AzureOpenAI.csproj" />
+    <Project Path="src/Intentum.AI.Claude/Intentum.AI.Claude.csproj" />
+    <Project Path="src/Intentum.AI.Gemini/Intentum.AI.Gemini.csproj" />
+    <Project Path="src/Intentum.AI.Mistral/Intentum.AI.Mistral.csproj" />
     <Project Path="src/Intentum.AI.OpenAI/Intentum.AI.OpenAI.csproj" />
     <Project Path="src/Intentum.AI/Intentum.AI.csproj" />
     <Project Path="src/Intentum.Core/Intentum.Core.csproj" />

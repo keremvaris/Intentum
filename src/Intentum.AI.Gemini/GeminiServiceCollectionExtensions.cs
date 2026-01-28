@@ -11,8 +11,11 @@ public static class GeminiServiceCollectionExtensions
         this IServiceCollection services,
         GeminiOptions options)
     {
+        options.Validate();
         services.AddSingleton(options);
-        services.AddSingleton<IIntentEmbeddingProvider, GeminiEmbeddingProvider>();
+        services.AddSingleton(new HttpClient { BaseAddress = new Uri(options.BaseUrl) });
+        services.AddSingleton<IIntentEmbeddingProvider>(sp =>
+            new GeminiEmbeddingProvider(options, sp.GetRequiredService<HttpClient>()));
         services.AddSingleton<IIntentSimilarityEngine, SimpleAverageSimilarityEngine>();
         services.AddSingleton<IIntentModel, GeminiIntentModel>();
 

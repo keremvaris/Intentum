@@ -1,0 +1,52 @@
+/* Intentum DocFX theme — primary: navy, secondary: purple */
+
+:root,
+[data-bs-theme="light"] {
+  /* Primary: navy (logo background) */
+  --bs-primary: #1e3a5f;
+  --bs-primary-rgb: 30, 58, 95;
+  --bs-primary-bg-subtle: #e8eef5;
+  --bs-primary-border-subtle: #b8c9dc;
+
+  /* Links / accent: purple (logo bar gradient) */
+  --bs-link-color: #6366f1;
+  --bs-link-color-rgb: 99, 102, 241;
+  --bs-link-hover-color: #4f46e5;
+  --bs-link-hover-color-rgb: 79, 70, 229;
+
+  /* Navbar: subtle primary tint */
+  --bs-body-color: #1e293b;
+  --bs-heading-color: #0f172a;
+}
+
+[data-bs-theme="dark"] {
+  --bs-primary: #3b5b8a;
+  --bs-primary-rgb: 59, 91, 138;
+  --bs-primary-bg-subtle: #1e2d42;
+  --bs-primary-border-subtle: #2d4263;
+
+  --bs-link-color: #818cf8;
+  --bs-link-color-rgb: 129, 140, 248;
+  --bs-link-hover-color: #a5b4fc;
+  --bs-link-hover-color-rgb: 165, 180, 252;
+
+  --bs-body-color: #e2e8f0;
+  --bs-heading-color: #f1f5f9;
+}
+
+/* Navbar brand area: align logo + name */
+.navbar-brand {
+  font-weight: 600;
+  letter-spacing: -0.02em;
+}
+
+/* Code blocks: slight primary tint on border */
+pre {
+  border-left: 3px solid var(--bs-primary);
+}
+
+/* Sidebar / TOC active item */
+.affix a.active {
+  color: var(--bs-link-color);
+  font-weight: 500;
+}

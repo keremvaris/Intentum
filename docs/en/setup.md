@@ -1,0 +1,155 @@
+# Setup (EN)
+
+This page walks you through prerequisites, package installation, and a minimal first project so you can run Intentum end-to-end.
+
+---
+
+## Prerequisites
+
+- **.NET SDK 10.x** (or the version your project targets).
+
+---
+
+## Install packages (NuGet)
+
+**Core** (required for behavior space, intent, and policy):
+
+```bash
+dotnet add package Intentum.Core
+dotnet add package Intentum.Runtime
+dotnet add package Intentum.AI
+```
+
+**Providers** (optional; pick one or more for real embedding APIs):
+
+```bash
+dotnet add package Intentum.AI.OpenAI
+dotnet add package Intentum.AI.Gemini
+dotnet add package Intentum.AI.Mistral
+dotnet add package Intentum.AI.AzureOpenAI
+dotnet add package Intentum.AI.Claude
+```
+
+If you don’t add a provider, use **MockEmbeddingProvider** (in Intentum.AI) for local runs — no API key needed.
+
+---
+
+## First project: minimal console app
+
+1. **Create a console app** (if you don’t have one):
+   ```bash
+   dotnet new console -n MyIntentumApp -o MyIntentumApp
+   cd MyIntentumApp
+   ```
+
+2. **Add the core packages** (see above).
+
+3. **Replace `Program.cs`** with a minimal flow:
+
+```csharp
+using Intentum.AI.Mock;
+using Intentum.AI.Models;
+using Intentum.AI.Similarity;
+using Intentum.Core;
+using Intentum.Core.Behavior;
+using Intentum.Runtime.Policy;
+
+// 1) Build behavior: what happened?
+var space = new BehaviorSpace()
+    .Observe("user", "login")
+    .Observe("user", "retry")
+    .Observe("user", "submit");
+
+// 2) Infer intent (mock provider = no API key)
+var model = new LlmIntentModel(
+    new MockEmbeddingProvider(),
+    new SimpleAverageSimilarityEngine());
+var intent = model.Infer(space);
+
+// 3) Decide with a simple policy
+var policy = new IntentPolicy()
+    .AddRule(new PolicyRule(
+        "AllowHigh",
+        i => i.Confidence.Level is "High" or "Certain",
+        PolicyDecision.Allow))
+    .AddRule(new PolicyRule(
+        "ObserveMedium",
+        i => i.Confidence.Level == "Medium",
+        PolicyDecision.Observe));
+
+var decision = intent.Decide(policy);
+
+Console.WriteLine($"Confidence: {intent.Confidence.Level}, Decision: {decision}");
+```
+
+4. **Run**
+   ```bash
+   dotnet run
+   ```
+
+You should see a confidence level and a decision (e.g. Allow or Observe). Next: add more rules in [Scenarios](scenarios.md), switch to a real provider in [Providers](providers.md), and read [API Reference](api.md) for all types.
+
+---
+
+## Using a real provider (e.g. OpenAI)
+
+1. Add the provider package: `dotnet add package Intentum.AI.OpenAI`.
+2. Set environment variables (e.g. `OPENAI_API_KEY`, `OPENAI_EMBEDDING_MODEL`). See [Providers](providers.md).
+3. Replace the mock with the real provider and options:
+
+```csharp
+using Intentum.AI.OpenAI;
+
+var options = OpenAIOptions.FromEnvironment();
+var httpClient = new HttpClient { BaseAddress = new Uri(options.BaseUrl ?? "https://api.openai.com/v1/") };
+// Add auth header, then:
+var embeddingProvider = new OpenAIEmbeddingProvider(options, httpClient);
+var model = new LlmIntentModel(embeddingProvider, new SimpleAverageSimilarityEngine());
+```
+
+For DI (e.g. ASP.NET Core), use `services.AddIntentumOpenAI(options)` and inject the provider. See [Providers](providers.md).
+
+---
+
+## Environment variables (overview)
+
+Set these only when using real HTTP adapters:
+
+| Provider | Main variables |
+|----------|-----------------|
+| OpenAI | `OPENAI_API_KEY`, `OPENAI_EMBEDDING_MODEL`, `OPENAI_BASE_URL` |
+| Gemini | `GEMINI_API_KEY`, `GEMINI_EMBEDDING_MODEL`, `GEMINI_BASE_URL` |
+| Mistral | `MISTRAL_API_KEY`, `MISTRAL_EMBEDDING_MODEL`, `MISTRAL_BASE_URL` |
+| Azure OpenAI | `AZURE_OPENAI_ENDPOINT`, `AZURE_OPENAI_API_KEY`, `AZURE_OPENAI_EMBEDDING_DEPLOYMENT`, `AZURE_OPENAI_API_VERSION` |
+| Claude | `CLAUDE_API_KEY`, `CLAUDE_MODEL`, `CLAUDE_BASE_URL`, etc. |
+
+Details and examples: [Providers](providers.md).
+
+---
+
+## Build and run the repo sample
+
+From the repository root:
+
+```bash
+dotnet build Intentum.slnx
+dotnet run --project samples/Intentum.Sample
+```
+
+The sample runs ESG, Carbon, Sukuk, EU Green Bond, workflow, and classic (payment, support, e‑commerce) scenarios. By default it uses **mock** embedding (no API key); you’ll see `AI: Mock (no API key) → similarity → confidence → policy` in the output.
+
+**To try real AI:** Set the `OPENAI_API_KEY` (and optionally `OPENAI_EMBEDDING_MODEL`) environment variable; the sample will run the same scenarios with **OpenAI embeddings** and print `AI: OpenAI (embedding provider) → ...`. See [Providers](providers.md).
+
+---
+
+## Install from local NuGet (development)
+
+If you’re building Intentum from source and want to reference local packages:
+
+```bash
+dotnet pack Intentum.slnx -c Release
+dotnet nuget add source /path/to/Intentum/src/Intentum.Core/bin/Release -n IntentumLocal
+dotnet add package Intentum.Core --source IntentumLocal
+```
+
+Repeat for other projects (Intentum.Runtime, Intentum.AI, etc.) as needed.

@@ -1,7 +1,4 @@
 ﻿<wpf:ResourceDictionary xml:space="preserve" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:s="clr-namespace:System;assembly=mscorlib" xmlns:ss="urn:shemas-jetbrains-com:settings-storage-xaml" xmlns:wpf="http://schemas.microsoft.com/winfx/2006/xaml/presentation">
 	<s:String x:Key="/Default/Environment/UnitTesting/UnitTestSessionStore/Sessions/=6cd471fa_002D762d_002D4b3c_002Db74d_002Dfa556a546f6b/@EntryIndexedValue">&lt;SessionState ContinuousTestingMode="0" IsActive="True" Name="ComplexScenario_MixedActorsAndDrift_ResolvesDeterministically" xmlns="urn:schemas-jetbrains-com:jetbrains-ut-session"&gt;
-  &lt;TestAncestor&gt;
-    &lt;TestId&gt;xUnit::712AC618-4D3F-4B01-B06C-3834B411CAC6::net10.0::Intentum.Tests.IntentumRuntimeTests.ComplexScenario_MixedActorsAndDrift_ResolvesDeterministically&lt;/TestId&gt;
-    &lt;TestId&gt;xUnit::712AC618-4D3F-4B01-B06C-3834B411CAC6::net10.0::Intentum.Tests.IntentumCoreTests&lt;/TestId&gt;
-  &lt;/TestAncestor&gt;
+  &lt;Project Location="/Users/keremvaris/RiderProjects/Intentum/tests/Intentum.Tests" Presentation="&amp;lt;tests&amp;gt;\&amp;lt;Intentum.Tests&amp;gt;" /&gt;
 &lt;/SessionState&gt;</s:String></wpf:ResourceDictionary>

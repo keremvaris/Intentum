@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFramework>net10.0</TargetFramework>
@@ -22,6 +22,10 @@
     <ProjectReference Include="..\..\src\Intentum.Core\Intentum.Core.csproj" />
     <ProjectReference Include="..\..\src\Intentum.Runtime\Intentum.Runtime.csproj" />
     <ProjectReference Include="..\..\src\Intentum.AI\Intentum.AI.csproj" />
+    <ProjectReference Include="..\..\src\Intentum.AI.OpenAI\Intentum.AI.OpenAI.csproj" />
+    <ProjectReference Include="..\..\src\Intentum.AI.Gemini\Intentum.AI.Gemini.csproj" />
+    <ProjectReference Include="..\..\src\Intentum.AI.Mistral\Intentum.AI.Mistral.csproj" />
+    <ProjectReference Include="..\..\src\Intentum.AI.AzureOpenAI\Intentum.AI.AzureOpenAI.csproj" />
   </ItemGroup>
 
 </Project>
