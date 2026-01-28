@@ -13,6 +13,14 @@ Bu dosya **conventional commit** mesajlarından otomatik üretilir.
 
 ---
 
+## [unreleased]
+
+
+
+### Miscellaneous
+
+- Refactor token passing in CI *(sonarcloud)*
+
 ## [0.0.7] - 2026-01-28
 
 
