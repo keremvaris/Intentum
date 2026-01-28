@@ -40,6 +40,8 @@ Bu dosya **conventional commit** mesajlarından otomatik üretilir.
 
 - Require explicit base URL for AI providers *(config)*
 
+- Introduce RateLimitOptions for rate limit parameters *(rate-limiter)*
+
 
 
 ### Testing
