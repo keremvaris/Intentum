@@ -19,6 +19,13 @@ Bu dosya **conventional commit** mesajlarından otomatik üretilir.
 
 
 
+
+### Documentation
+
+- Add advanced features documentation in English and Turkish *(core)*
+
+
+
 ### Miscellaneous
 
 - Refactor token passing in CI *(sonarcloud)*
