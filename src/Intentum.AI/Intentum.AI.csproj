@@ -13,7 +13,7 @@
     <Authors>Intentum Contributors</Authors>
     <Description>AI abstractions and deterministic mock implementations for intent inference.</Description>
     <PackageTags>intent;behavior;ai;inference;dotnet</PackageTags>
-    <RepositoryUrl>https://github.com/intentum/intentum</RepositoryUrl>
+    <RepositoryUrl>https://github.com/keremvaris/Intentum</RepositoryUrl>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <PackageReadmeFile>README.md</PackageReadmeFile>

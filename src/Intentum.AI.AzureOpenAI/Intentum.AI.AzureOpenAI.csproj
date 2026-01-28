@@ -14,7 +14,7 @@
     <Authors>Intentum Contributors</Authors>
     <Description>Azure OpenAI adapter for Intentum intent inference.</Description>
     <PackageTags>intent;behavior;ai;azure;openai;dotnet</PackageTags>
-    <RepositoryUrl>https://github.com/intentum/intentum</RepositoryUrl>
+    <RepositoryUrl>https://github.com/keremvaris/Intentum</RepositoryUrl>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <PackageReadmeFile>README.md</PackageReadmeFile>

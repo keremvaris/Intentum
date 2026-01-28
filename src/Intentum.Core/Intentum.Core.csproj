@@ -9,7 +9,7 @@
     <Authors>Intentum Contributors</Authors>
     <Description>Intent-driven development core primitives: behavior space, intent inference, confidence.</Description>
     <PackageTags>intent;behavior;bdd;ai;dotnet</PackageTags>
-    <RepositoryUrl>https://github.com/intentum/intentum</RepositoryUrl>
+    <RepositoryUrl>https://github.com/keremvaris/Intentum</RepositoryUrl>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <PackageReadmeFile>README.md</PackageReadmeFile>
