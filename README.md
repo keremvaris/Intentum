@@ -124,5 +124,11 @@ Security
 Note
 AI adapters are deterministic stubs in v1.0. Real HTTP calls are planned for v1.1.
 
+Releasing and versioning
+- **Versioning** is automatic from git tags via [MinVer](https://github.com/adamralph/minver) (`src/Directory.Build.props`). No manual version bump in code: tag `v1.0.1` and build → package version is `1.0.1`. Tag prefix is `v`; minimum major.minor is `1.0`.
+- Pushing a tag like `v1.0.1` triggers GitHub Release and NuGet publish (see `.github/workflows/`).
+- **Release notes** are generated from **conventional commits** via [git-cliff](https://git-cliff.org) (`cliff.toml`). Use prefixes: `feat:`, `fix:`, `docs:`, `chore:`, `ci:`, etc. If none are found, `CHANGELOG.md` is used as fallback.
+- On every push to `master`, the **changelog** workflow updates `CHANGELOG.md` from conventional commits and commits it (with `[skip ci]`).
+
 License
 MIT

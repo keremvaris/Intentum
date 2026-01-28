@@ -1,10 +1,15 @@
 <Project>
   <PropertyGroup>
-    <Version>1.0.0</Version>
     <Authors>Intentum Contributors</Authors>
     <RepositoryUrl>https://github.com/keremvaris/Intentum</RepositoryUrl>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PackageReadmeFile>README.md</PackageReadmeFile>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    <!-- MinVer: sürüm git tag'lerinden (v1.0.0 vb.) türetilir; manuel Version gerekmez -->
+    <MinVerTagPrefix>v</MinVerTagPrefix>
+    <MinVerMinimumMajorMinor>1.0</MinVerMinimumMajorMinor>
   </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="MinVer" Version="7.0.0" PrivateAssets="All" />
+  </ItemGroup>
 </Project>

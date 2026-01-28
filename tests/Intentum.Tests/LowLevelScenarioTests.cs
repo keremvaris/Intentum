@@ -91,11 +91,11 @@ public class LowLevelScenarioTests
     }
 
     [Fact]
-    public void SukukInquiry_ProducesValidIntentAndDecision()
+    public void ECommerce_AddToCart_ProducesValidIntentAndDecision()
     {
         var space = new BehaviorSpace()
-            .Observe("investor", "inquire_sukuk")
-            .Observe("system", "provide_details");
+            .Observe("user", "view_product")
+            .Observe("user", "add_to_cart");
         var model = CreateModel();
         var policy = CreateDefaultPolicy();
 
@@ -105,5 +105,6 @@ public class LowLevelScenarioTests
         Assert.NotNull(intent);
         Assert.InRange(intent.Confidence.Score, 0.0, 1.0);
         Assert.Contains(decision, new[] { PolicyDecision.Allow, PolicyDecision.Observe, PolicyDecision.Warn });
+        Assert.Equal(2, space.Events.Count);
     }
 }

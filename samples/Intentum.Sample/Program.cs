@@ -10,7 +10,7 @@ using Intentum.Runtime.Localization;
 using Intentum.Runtime.Policy;
 
 // ---------------------------------------------------------------------------
-// INTENTUM SAMPLE — Showcase: ESG, Carbon Accounting, Sukuk, Sustainability
+// INTENTUM SAMPLE — Showcase: ESG, Carbon Accounting, Sustainability
 // ---------------------------------------------------------------------------
 // AI pipeline: behavior keys (e.g. user:login) → embedding provider → similarity engine → confidence + signals.
 // - Mock (default): no API key; deterministic hash-based scores.
@@ -68,7 +68,7 @@ var localizer = new DefaultLocalizer("tr");
 
 Console.WriteLine();
 Console.WriteLine("╔══════════════════════════════════════════════════════════════════╗");
-Console.WriteLine("║  INTENTUM SAMPLE — ESG, Carbon, Sukuk, EU Green Bond, Workflows  ║");
+Console.WriteLine("║  INTENTUM SAMPLE — ESG, Carbon, EU Green Bond, Workflows  ║");
 Console.WriteLine("║  + Classic (Payment, Support, E‑commerce) + ProcessStatus flows  ║");
 Console.WriteLine("╚══════════════════════════════════════════════════════════════════╝");
 Console.WriteLine($"  AI: {(useOpenAI ? "OpenAI (embedding provider)" : "Mock (no API key)")} → similarity → confidence → policy");
@@ -81,10 +81,7 @@ RunScenario("Carbon footprint calculation", "Low", "ESG", space => space
     .Observe("system", "report_generated"));
 RunScenario("ESG metric view", "Low", "ESG", space => space
     .Observe("user", "view_esg_metric"));
-RunScenario("Sukuk issuance inquiry", "Low", "Finance", space => space
-    .Observe("investor", "inquire_sukuk")
-    .Observe("system", "provide_details"));
-RunScenario("ICMA compliance check", "Low", "Compliance", space => space
+RunScenario("Compliance check", "Low", "Compliance", space => space
     .Observe("compliance", "check_icma")
     .Observe("system", "validated"));
 
@@ -100,11 +97,6 @@ RunScenario("Carbon verification process", "Medium", "Carbon", space => space
     .Observe("verifier", "request_correction")
     .Observe("analyst", "submit_correction")
     .Observe("verifier", "approve"));
-RunScenario("Sukuk issuance with approvals", "Medium", "Finance", space => space
-    .Observe("issuer", "initiate_sukuk")
-    .Observe("sharia", "review")
-    .Observe("regulator", "approve")
-    .Observe("system", "issue_sukuk"));
 RunScenario("LMA loan compliance check", "Medium", "Compliance", space => space
     .Observe("lender", "check_lma_compliance")
     .Observe("system", "flag_issue")
@@ -127,14 +119,6 @@ RunScenario("Carbon accounting with multiple validators", "High", "Carbon", spac
     .Observe("external_verifier", "request_changes")
     .Observe("analyst", "update")
     .Observe("external_verifier", "certify"));
-RunScenario("Sukuk issuance with sharia and regulatory review", "High", "Finance", space => space
-    .Observe("issuer", "initiate_sukuk")
-    .Observe("sharia", "review")
-    .Observe("sharia", "request_amendment")
-    .Observe("issuer", "amend")
-    .Observe("regulator", "review")
-    .Observe("regulator", "approve")
-    .Observe("system", "issue_sukuk"));
 RunScenario("ESG risk assessment with multiple stakeholders", "High", "ESG", space => space
     .Observe("analyst", "assess_esg_risk")
     .Observe("risk_committee", "review")
@@ -179,25 +163,6 @@ RunScenario("Carbon audit trail", "High", "Carbon", space => space
     .Observe("external_verifier", "verify")
     .Observe("external_verifier", "certify"));
 
-// ---- SECTOR: SUKUK & ISLAMIC FINANCE ----
-PrintSection("SECTOR: SUKUK & ISLAMIC FINANCE");
-RunScenario("Sukuk inquiry flow", "Low", "Finance", space => space
-    .Observe("investor", "inquire_sukuk")
-    .Observe("system", "provide_details"));
-RunScenario("Sukuk issuance with sharia review", "Medium", "Finance", space => space
-    .Observe("issuer", "initiate_sukuk")
-    .Observe("sharia", "review")
-    .Observe("sharia", "approve")
-    .Observe("system", "issue_sukuk"));
-RunScenario("Sukuk compliance with ICMA standards", "High", "Finance", space => space
-    .Observe("issuer", "initiate_sukuk")
-    .Observe("sharia", "review")
-    .Observe("icma", "check_compliance")
-    .Observe("icma", "request_adjustment")
-    .Observe("issuer", "adjust")
-    .Observe("icma", "approve")
-    .Observe("system", "issue_sukuk"));
-
 // ---- SECTOR: EU GREEN BOND ----
 PrintSection("SECTOR: EU GREEN BOND");
 RunScenario("EU Green Bond draft to in-progress", "Low", "EU Green Bond", space => space
@@ -227,13 +192,7 @@ RunScenario("ESG report: Draft → InProgress → UnderReview → Approved", "Me
     .Observe("process", "InProgress")
     .Observe("process", "UnderReview")
     .Observe("process", "Approved"));
-RunScenario("Sukuk issuance: Draft → InProgress → UnderReview → Approved → Completed", "High", "Workflow", space => space
-    .Observe("process", "Draft")
-    .Observe("process", "InProgress")
-    .Observe("process", "UnderReview")
-    .Observe("process", "Approved")
-    .Observe("process", "Completed"));
-RunScenario("ICMA compliance: Draft → InProgress → UnderReview → Rejected", "Medium", "Workflow", space => space
+RunScenario("Compliance workflow: Draft → InProgress → UnderReview → Rejected", "Medium", "Workflow", space => space
     .Observe("process", "Draft")
     .Observe("process", "InProgress")
     .Observe("process", "UnderReview")
@@ -261,6 +220,9 @@ RunScenario("Support escalation", "Medium", "Support", space => space
     .Observe("user", "ask")
     .Observe("user", "ask")
     .Observe("system", "escalate"));
+RunScenario("E‑commerce add to cart / product view", "Low", "E‑commerce", space => space
+    .Observe("user", "view_product")
+    .Observe("user", "add_to_cart"));
 RunScenario("E‑commerce checkout success", "Low", "E‑commerce", space => space
     .Observe("user", "cart")
     .Observe("user", "checkout")
@@ -270,8 +232,15 @@ RunScenario("E‑commerce checkout with retries", "Medium", "E‑commerce", spac
     .Observe("user", "checkout")
     .Observe("user", "retry")
     .Observe("user", "submit"));
+RunScenario("E‑commerce checkout with payment validation", "Medium", "E‑commerce", space => space
+    .Observe("user", "cart")
+    .Observe("user", "checkout")
+    .Observe("user", "payment_attempt")
+    .Observe("user", "retry")
+    .Observe("system", "payment_validate")
+    .Observe("user", "submit"));
 
-Console.WriteLine("Done. See docs/audience.md for ESG, Carbon, Sukuk, EU Green Bond, workflow status, and classic use cases.");
+Console.WriteLine("Done. See docs/audience.md for ESG, Carbon, EU Green Bond, workflow status, e‑commerce, and classic use cases.");
 Console.WriteLine();
 
 void PrintSection(string title)

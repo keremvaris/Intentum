@@ -1,3 +1,6 @@
+# GitHub Release: v* tag push'ta otomatik release. Release notu git-cliff ile conventional commit'lerden üretilir.
+# Conventional commit: feat:, fix:, docs:, chore: vb. kullan; release notusu otomatik oluşur.
+# Fallback: git-cliff çıktısı boşsa CHANGELOG.md kullanılır.
 name: github-release
 
 on:
@@ -8,9 +11,32 @@ on:
 jobs:
   release:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Set version from tag
+        id: version
+        run: echo "version=${GITHUB_REF#refs/tags/v}" >> $GITHUB_OUTPUT
+      - name: Generate release notes (git-cliff)
+        id: changelog
+        uses: orhun/git-cliff-action@v4
+        with:
+          config: cliff.toml
+          args: --latest -o RELEASE_NOTES.md -v
+        env:
+          OUTPUT: RELEASE_NOTES.md
+      - name: Fallback to CHANGELOG.md if empty
+        run: |
+          if [ ! -s RELEASE_NOTES.md ] || [ -z "$(head -20 RELEASE_NOTES.md | tr -d ' \n')" ]; then
+            echo "git-cliff output empty, using CHANGELOG.md"
+            cp CHANGELOG.md RELEASE_NOTES.md 2>/dev/null || echo "No changelog" > RELEASE_NOTES.md
+          fi
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:
-          body_path: CHANGELOG.md
+          name: v${{ steps.version.outputs.version }}
+          body_path: RELEASE_NOTES.md
+          draft: false

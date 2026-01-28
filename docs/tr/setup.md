@@ -136,7 +136,7 @@ dotnet build Intentum.slnx
 dotnet run --project samples/Intentum.Sample
 ```
 
-Sample ESG, Carbon, Sukuk, EU Green Bond, workflow ve klasik (ödeme, destek, e-ticaret) senaryolarını çalıştırır. Varsayılan olarak **mock** embedding kullanır (API anahtarı gerekmez); çıktıda `AI: Mock (no API key) → similarity → confidence → policy` satırını görürsün.
+Sample ESG, Carbon, EU Green Bond, workflow ve klasik (ödeme, destek, e‑ticaret: sepete ekleme, checkout, ödeme doğrulama) senaryolarını çalıştırır. Varsayılan olarak **mock** embedding kullanır (API anahtarı gerekmez); çıktıda `AI: Mock (no API key) → similarity → confidence → policy` satırını görürsün.
 
 **Gerçek AI ile denemek için:** `OPENAI_API_KEY` (ve isteğe bağlı `OPENAI_EMBEDDING_MODEL`) ortam değişkenini ayarla; sample aynı senaryoları **OpenAI embedding** ile çalıştırır ve çıktıda `AI: OpenAI (embedding provider) → ...` yazar. Bkz. [Sağlayıcılar](providers.md).
 

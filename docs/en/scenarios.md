@@ -1,6 +1,6 @@
 # Usage Scenarios (EN)
 
-Intentum does not use Given/When/Then steps. Instead you **Observe** events, **Infer** intent and confidence, and **Decide** with policy rules. This page shows both **classic** (payment, login, support) and **ESG / compliance** scenarios: what behavior you record, how you define the policy, and what outcome to expect.
+Intentum does not use Given/When/Then steps. Instead you **Observe** events, **Infer** intent and confidence, and **Decide** with policy rules. This page shows both **classic** (payment, login, support, e‑commerce) and **ESG / compliance** scenarios: what behavior you record, how you define the policy, and what outcome to expect.
 
 For the replacement of Given/When/Then, see [index](index.md#what-replaced-givenwhenthen). For types and flow, see [API Reference](api.md).
 
@@ -70,6 +70,45 @@ var decision = intent.Decide(policy);
 ```
 
 **Expected outcome:** **Block** when the “excessive retry” rule matches; otherwise Allow or Observe by confidence.
+
+---
+
+## E‑commerce scenarios
+
+### E‑commerce: Add to cart and checkout
+
+**What it is:** The user views a product, adds to cart, then goes to checkout and completes payment (or completes after a few retries). This is normal “e‑commerce shopping” behavior.
+
+**Behavior (Observe):**  
+- **Add to cart (low):** `user:view_product` → `user:add_to_cart`  
+- **Checkout success:** `user:cart` → `user:checkout` → `user:submit`  
+- **Checkout with retries:** `user:cart` → `user:checkout` → `user:retry` → `user:submit`  
+- **Payment validation:** `user:cart` → `user:checkout` → `user:payment_attempt` → `user:retry` → `system:payment_validate` → `user:submit`
+
+**Policy idea:** Allow when confidence is High/Certain; Observe when Medium. Block when retry count is too high (e.g. ≥ 3) — same logic as “Suspicious retries” in payment flows.
+
+**Code (checkout with retries, minimal):**
+
+```csharp
+var space = new BehaviorSpace()
+    .Observe("user", "cart")
+    .Observe("user", "checkout")
+    .Observe("user", "retry")
+    .Observe("user", "submit");
+
+var intent = model.Infer(space);
+var policy = new IntentPolicy()
+    .AddRule(new PolicyRule(
+        "ExcessiveRetryBlock",
+        i => i.Signals.Count(s => s.Description.Contains("retry", StringComparison.OrdinalIgnoreCase)) >= 3,
+        PolicyDecision.Block))
+    .AddRule(new PolicyRule("AllowHigh", i => i.Confidence.Level is "High" or "Certain", PolicyDecision.Allow))
+    .AddRule(new PolicyRule("ObserveMedium", i => i.Confidence.Level == "Medium", PolicyDecision.Observe));
+
+var decision = intent.Decide(policy);
+```
+
+**Expected outcome:** **Allow** or **Observe** when retry count is below the threshold; **Block** when it exceeds. For more examples see the “Classic (E‑commerce)” rows in the sector table in [Audience & use cases](audience.md).
 
 ---
 

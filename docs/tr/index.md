@@ -93,9 +93,9 @@ Kısaca: **Given/When/Then kalktı; yerine Observe (olayları kaydet) → Infer 
 
 ## Nasıl yapılır?
 
-- **İlk senaryoyu nasıl çalıştırırım?** — Sample’ı `dotnet run --project samples/Intentum.Sample` ile çalıştır; mock sağlayıcı kullanır, API anahtarı gerekmez. Örnekler hem klasik (ödeme, giriş, destek, e-ticaret) hem ESG (rapor gönderimi, uyumluluk) akışlarını gösterir.
+- **İlk senaryoyu nasıl çalıştırırım?** — Sample’ı `dotnet run --project samples/Intentum.Sample` ile çalıştır; mock sağlayıcı kullanır, API anahtarı gerekmez. Örnekler hem klasik (ödeme, giriş, destek, e‑ticaret: sepete ekleme, checkout, ödeme doğrulama) hem ESG (rapor gönderimi, uyumluluk) akışlarını gösterir.
 - **Policy nasıl eklenir?** — `IntentPolicy` oluştur, `.AddRule(PolicyRule(...))` ile kuralları **sırayla** ekle (önce Block, sonra Allow). Çıkarımdan sonra `intent.Decide(policy)` çağır. Detay için [Senaryolar](scenarios.md) ve [API Referansı](api.md).
-- **Klasik akışları (ödeme, login, destek) nasıl modellersin?** — Olayları `space.Observe(actor, action)` ile kaydet (örn. `"user"`, `"login"`; `"user"`, `"retry"`; `"user"`, `"submit"`). Model davranıştan intent çıkarır; policy Allow/Observe/Warn/Block verir. [Kullanım Senaryoları](scenarios.md) içinde hem klasik hem ESG örnekleri var.
+- **Klasik akışları (ödeme, login, destek) nasıl modellersin?** — Olayları `space.Observe(actor, action)` ile kaydet (örn. `"user"`, `"login"`; `"user"`, `"retry"`; `"user"`, `"submit"`). Model davranıştan intent çıkarır; policy Allow/Observe/Warn/Block verir. [Kullanım Senaryoları](scenarios.md) içinde hem klasik (ödeme, e‑ticaret) hem ESG örnekleri var.
 - **AI ile senaryo nasıl yazılır?** — Aynı `Observe` akışı Mock veya gerçek sağlayıcı (OpenAI, Gemini vb.) ile çalışır; davranış anahtarlarını anlamlı seç, policy'yi güven + sinyallere dayandır. Detay ve ipuçları: [Senaryolar – AI ile senaryolar](scenarios.md#ai-ile-senaryolar-nasıl-yapılır).
 
 Daha fazla örnek ve kural sıralaması için [Senaryolar](scenarios.md) ve [Kitle ve kullanım örnekleri](audience.md).

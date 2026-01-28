@@ -10,7 +10,7 @@ namespace Intentum.Tests;
 
 /// <summary>
 /// Medium-complexity scenario tests: ESG reporting with retries, carbon verification,
-/// sukuk issuance, compliance checks. Showcase for policy order and signal-based rules.
+/// compliance checks, e‑commerce checkout with payment validation. Showcase for policy order and signal-based rules.
 /// </summary>
 public class MediumLevelScenarioTests
 {
@@ -111,28 +111,35 @@ public class MediumLevelScenarioTests
     }
 
     [Fact]
-    public void SukukIssuanceWithApprovals_ProducesValidDecision()
+    public void ECommerce_CheckoutWithPaymentValidation_ProducesValidDecision()
     {
         var space = new BehaviorSpace()
-            .Observe("issuer", "initiate_sukuk")
-            .Observe("sharia", "review")
-            .Observe("regulator", "approve")
-            .Observe("system", "issue_sukuk");
+            .Observe("user", "cart")
+            .Observe("user", "checkout")
+            .Observe("user", "payment_attempt")
+            .Observe("user", "retry")
+            .Observe("system", "payment_validate")
+            .Observe("user", "submit");
         var model = CreateModel();
         var policy = new IntentPolicy()
             .AddRule(new PolicyRule(
-                "ComplianceRiskBlock",
-                i => i.Signals.Any(s => s.Description.Contains("compliance", StringComparison.OrdinalIgnoreCase) && 
-                                        i.Confidence.Level == "Low"),
+                "ExcessiveRetryBlock",
+                i => i.Signals.Count(s => s.Description.Contains("retry", StringComparison.OrdinalIgnoreCase)) >= 3,
                 PolicyDecision.Block))
             .AddRule(new PolicyRule(
                 "HighConfidenceAllow",
                 i => i.Confidence.Level is "High" or "Certain",
-                PolicyDecision.Allow));
+                PolicyDecision.Allow))
+            .AddRule(new PolicyRule(
+                "MediumConfidenceObserve",
+                i => i.Confidence.Level == "Medium",
+                PolicyDecision.Observe));
 
         var intent = model.Infer(space);
         var decision = intent.Decide(policy);
 
+        Assert.NotEqual(PolicyDecision.Block, decision);
         Assert.Contains(decision, new[] { PolicyDecision.Allow, PolicyDecision.Observe });
+        Assert.Equal(6, space.Events.Count);
     }
 }

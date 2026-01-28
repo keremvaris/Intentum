@@ -93,9 +93,9 @@ In short: **Given/When/Then is gone; in its place you have Observe (record event
 
 ## How to
 
-- **How do I run the first scenario?** — Run the sample with `dotnet run --project samples/Intentum.Sample`; it uses the mock provider and needs no API key. Examples cover both classic flows (payment, login, support, e‑commerce) and ESG (report submission, compliance).
+- **How do I run the first scenario?** — Run the sample with `dotnet run --project samples/Intentum.Sample`; it uses the mock provider and needs no API key. Examples cover both classic flows (payment, login, support, e‑commerce: add to cart, checkout, payment validation) and ESG (report submission, compliance).
 - **How do I add a policy?** — Create an `IntentPolicy`, add rules in **order** with `.AddRule(PolicyRule(...))` (e.g. Block first, then Allow). After inference, call `intent.Decide(policy)`. See [Scenarios](scenarios.md) and [API Reference](api.md) for details.
-- **How do I model classic flows (payment, login, support)?** — Record events with `space.Observe(actor, action)` (e.g. `"user"`, `"login"`; `"user"`, `"retry"`; `"user"`, `"submit"`). The model infers intent from behavior; the policy returns Allow, Observe, Warn, or Block. [Usage Scenarios](scenarios.md) includes both classic and ESG examples.
+- **How do I model classic flows (payment, login, support)?** — Record events with `space.Observe(actor, action)` (e.g. `"user"`, `"login"`; `"user"`, `"retry"`; `"user"`, `"submit"`). The model infers intent from behavior; the policy returns Allow, Observe, Warn, or Block. [Usage Scenarios](scenarios.md) includes both classic (payment, e‑commerce) and ESG examples.
 - **How do I build scenarios with AI?** — The same `Observe` flow works with Mock or a real provider (OpenAI, Gemini, etc.); use meaningful behavior keys and base policy on confidence and signals. Details and tips: [Scenarios – How to build scenarios with AI](scenarios.md#how-to-build-scenarios-with-ai).
 
 For more examples and rule ordering, see [Scenarios](scenarios.md) and [Audience & use cases](audience.md).

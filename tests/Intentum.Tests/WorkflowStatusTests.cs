@@ -10,7 +10,7 @@ namespace Intentum.Tests;
 
 /// <summary>
 /// Workflow process status tests: Draft → InProgress → UnderReview → Approved / Rejected → Completed.
-/// Transitions typical for ICMA, LMA, Sukuk, EU Green Bond and other complex workflows.
+/// Transitions typical for LMA, EU Green Bond, compliance and other complex workflows.
 /// </summary>
 public class WorkflowStatusTests
 {

@@ -10,7 +10,7 @@ namespace Intentum.Tests;
 
 /// <summary>
 /// High-complexity scenario tests: multi-actor ESG compliance, carbon accounting with validators,
-/// sukuk issuance with sharia and regulatory review, ESG risk assessment. Showcase for complex policy and signal combinations.
+/// ESG risk assessment. Showcase for complex policy and signal combinations.
 /// </summary>
 public class HighLevelScenarioTests
 {
@@ -85,39 +85,6 @@ public class HighLevelScenarioTests
         Assert.NotEqual(PolicyDecision.Block, decision);
         Assert.Equal(6, space.Events.Count);
         Assert.InRange(intent.Confidence.Score, 0.0, 1.0);
-    }
-
-    [Fact]
-    public void SukukIssuanceWithShariaAndRegulatoryReview_ProducesValidDecision()
-    {
-        var space = new BehaviorSpace()
-            .Observe("issuer", "initiate_sukuk")
-            .Observe("sharia", "review")
-            .Observe("sharia", "request_amendment")
-            .Observe("issuer", "amend")
-            .Observe("regulator", "review")
-            .Observe("regulator", "approve")
-            .Observe("system", "issue_sukuk");
-        var model = CreateModel();
-        var policy = new IntentPolicy()
-            .AddRule(new PolicyRule(
-                "ComplianceRiskBlock",
-                i => i.Signals.Any(s => s.Description.Contains("compliance", StringComparison.OrdinalIgnoreCase) && 
-                                        i.Confidence.Level == "Low"),
-                PolicyDecision.Block))
-            .AddRule(new PolicyRule(
-                "HighConfidenceAllow",
-                i => i.Confidence.Level is "High" or "Certain",
-                PolicyDecision.Allow))
-            .AddRule(new PolicyRule(
-                "DefaultObserve",
-                _ => true,
-                PolicyDecision.Observe));
-
-        var intent = model.Infer(space);
-        var decision = intent.Decide(policy);
-
-        Assert.Contains(decision, new[] { PolicyDecision.Allow, PolicyDecision.Observe, PolicyDecision.Block });
     }
 
     [Fact]

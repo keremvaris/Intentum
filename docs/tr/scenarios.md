@@ -1,6 +1,6 @@
 # Kullanım Senaryoları (TR)
 
-Intentum Given/When/Then adımları kullanmaz. Bunun yerine olayları **Observe** edersin, **Infer** ile intent ve güven çıkarırsın, policy kurallarıyla **Decide** edersin. Bu sayfa hem **klasik** (ödeme, giriş, destek) hem **ESG / uyumluluk** senaryolarını gösterir: hangi davranışı kaydettiğin, policy’yi nasıl tanımladığın ve ne sonuç bekleyeceğin.
+Intentum Given/When/Then adımları kullanmaz. Bunun yerine olayları **Observe** edersin, **Infer** ile intent ve güven çıkarırsın, policy kurallarıyla **Decide** edersin. Bu sayfa hem **klasik** (ödeme, giriş, destek, e‑ticaret) hem **ESG / uyumluluk** senaryolarını gösterir: hangi davranışı kaydettiğin, policy’yi nasıl tanımladığın ve ne sonuç bekleyeceğin.
 
 Given/When/Then’in yerine ne geldiği için [ana sayfa](index.md#givenwhenthen-yerine-ne-geldi). Tipler ve akış için [API Referansı](api.md).
 
@@ -70,6 +70,45 @@ var decision = intent.Decide(policy);
 ```
 
 **Beklenen sonuç:** “Aşırı retry” kuralı eşleştiğinde **Block**; aksi halde güvene göre Allow veya Observe.
+
+---
+
+## E‑ticaret senaryoları
+
+### E‑ticaret: Sepete ekleme ve checkout
+
+**Ne:** Kullanıcı ürün görüntüler, sepete ekler; sonra checkout’a gider ve ödemeyi tamamlar (veya birkaç retry sonrası tamamlar). Bu normal “e‑ticaret alışverişi” davranışı.
+
+**Davranış (Observe):**  
+- **Sepete ekleme (düşük):** `user:view_product` → `user:add_to_cart`  
+- **Checkout başarılı:** `user:cart` → `user:checkout` → `user:submit`  
+- **Checkout tekrarlı:** `user:cart` → `user:checkout` → `user:retry` → `user:submit`  
+- **Ödeme doğrulama:** `user:cart` → `user:checkout` → `user:payment_attempt` → `user:retry` → `system:payment_validate` → `user:submit`
+
+**Policy fikri:** Güven High/Certain ise Allow; Medium ise Observe. Retry sayısı çok yüksekse (örn. ≥ 3) Block — ödeme akışındaki “Şüpheli tekrarlar” ile aynı mantık.
+
+**Kod (checkout tekrarlı, minimal):**
+
+```csharp
+var space = new BehaviorSpace()
+    .Observe("user", "cart")
+    .Observe("user", "checkout")
+    .Observe("user", "retry")
+    .Observe("user", "submit");
+
+var intent = model.Infer(space);
+var policy = new IntentPolicy()
+    .AddRule(new PolicyRule(
+        "ExcessiveRetryBlock",
+        i => i.Signals.Count(s => s.Description.Contains("retry", StringComparison.OrdinalIgnoreCase)) >= 3,
+        PolicyDecision.Block))
+    .AddRule(new PolicyRule("AllowHigh", i => i.Confidence.Level is "High" or "Certain", PolicyDecision.Allow))
+    .AddRule(new PolicyRule("ObserveMedium", i => i.Confidence.Level == "Medium", PolicyDecision.Observe));
+
+var decision = intent.Decide(policy);
+```
+
+**Beklenen sonuç:** Retry sayısı eşiği aşmıyorsa **Allow** veya **Observe**; aşarsa **Block**. Daha fazla örnek için [Kitle ve kullanım örnekleri](audience.md) sektör tablosundaki “Klasik (E‑ticaret)” satırlarına bak.
 
 ---
 

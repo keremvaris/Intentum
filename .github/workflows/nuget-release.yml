@@ -1,7 +1,14 @@
+# NuGet yayını: Tag push (v1.0.0) ile otomatik sürüm (MinVer) + push.
+# Sürüm git tag'inden türetilir; manuel sürüm dosyası güncellemesi gerekmez.
 name: nuget-release
 
 on:
   workflow_dispatch:
+    inputs:
+      version_override:
+        description: 'Sürüm override (manuel; boş bırakırsan MinVer / son tag kullanılır)'
+        required: false
+        default: ''
   push:
     tags:
       - 'v*'
@@ -11,26 +18,23 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Set package version from tag
-        id: version
-        run: |
-          if [[ "${{ github.ref }}" == refs/tags/v* ]]; then
-            echo "version=${GITHUB_REF#refs/tags/v}" >> $GITHUB_OUTPUT
-          else
-            echo "version=1.0.0" >> $GITHUB_OUTPUT
-          fi
-          echo "Package version: ${{ steps.version.outputs.version }}"
+        with:
+          fetch-depth: 0
       - uses: actions/setup-dotnet@v4
         with:
           dotnet-version: '10.0.x'
       - name: Restore
         run: dotnet restore Intentum.slnx
       - name: Build
-        run: dotnet build Intentum.slnx -c Release --no-restore -p:Version=${{ steps.version.outputs.version }}
+        env:
+          MinVerVersionOverride: ${{ github.event.inputs.version_override }}
+        run: dotnet build Intentum.slnx -c Release --no-restore
       - name: Test
         run: dotnet test tests/Intentum.Tests/Intentum.Tests.csproj -c Release --no-build
       - name: Pack
-        run: dotnet pack Intentum.slnx -c Release --no-build -p:Version=${{ steps.version.outputs.version }}
+        env:
+          MinVerVersionOverride: ${{ github.event.inputs.version_override }}
+        run: dotnet pack Intentum.slnx -c Release --no-build
       - name: Push
         env:
           NUGET_API_KEY: ${{ secrets.NUGET_API_KEY }}
