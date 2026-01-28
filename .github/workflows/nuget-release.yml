@@ -1,5 +1,6 @@
-# NuGet yayını: Tag push (v1.0.0) ile otomatik sürüm (MinVer) + push.
-# Sürüm git tag'inden türetilir; manuel sürüm dosyası güncellemesi gerekmez.
+# NuGet yayını: v* tag push'ta otomatik; veya Actions → Run workflow ile manuel.
+# TETİKLENME: (1) v* tag push (örn. git push origin v1.0.0), (2) Actions sekmesi → nuget-release → Run workflow.
+# Sürüm MinVer ile tag'den türetilir; manuel çalıştırmada version_override ile override edebilirsin.
 name: nuget-release
 
 on:
