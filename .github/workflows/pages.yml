@@ -34,7 +34,7 @@ jobs:
         run: |
           REPORT=$(find TestResults -name 'coverage.cobertura.xml' -print -quit 2>/dev/null)
           if [ -z "$REPORT" ]; then echo "No coverage file found"; find TestResults -type f -name '*.xml' 2>/dev/null | head -10; exit 1; fi
-          reportgenerator -reports:"$REPORT" -targetdir:docs/coverage "-reporttypes:Html;Badges" "-sourcedirs:/Users/keremvaris/RiderProjects/Intentum=${{ github.workspace }}"
+          reportgenerator -reports:"$REPORT" -targetdir:docs/coverage "-reporttypes:Html;Badges"
       - name: Install DocFX
         run: dotnet tool install -g docfx
       - name: Generate API docs
