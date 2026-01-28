@@ -30,6 +30,8 @@ Bu dosya **conventional commit** mesajlarından otomatik üretilir.
 
 - Streamline code and enhance consistency *(internal)*
 
+- Require explicit base URL for AI providers *(config)*
+
 ## [0.0.7] - 2026-01-28
 
 
