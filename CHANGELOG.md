@@ -17,9 +17,16 @@ Bu dosya **conventional commit** mesajlarından otomatik üretilir.
 
 
 
+
 ### Miscellaneous
 
 - Refactor token passing in CI *(sonarcloud)*
+
+
+
+### Refactor
+
+- Use static evaluators and policy engines *(core)*
 
 ## [0.0.7] - 2026-01-28
 
