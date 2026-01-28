@@ -26,10 +26,9 @@ if (useOpenAI)
 {
     var options = OpenAIOptions.FromEnvironment();
     options.Validate();
-    var baseUrl = options.BaseUrl ?? OpenAIOptions.DefaultBaseUrl;
     var httpClient = new HttpClient
     {
-        BaseAddress = new Uri(baseUrl)
+        BaseAddress = new Uri(options.BaseUrl!)
     };
     httpClient.DefaultRequestHeaders.Authorization =
         new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", options.ApiKey);

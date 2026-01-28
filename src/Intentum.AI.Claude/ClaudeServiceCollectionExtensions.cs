@@ -13,7 +13,7 @@ public static class ClaudeServiceCollectionExtensions
     {
         options.Validate();
         services.AddSingleton(options);
-        var httpClient = new HttpClient { BaseAddress = new Uri(options.BaseUrl) };
+        var httpClient = new HttpClient { BaseAddress = new Uri(options.BaseUrl!) };
         httpClient.DefaultRequestHeaders.Add("x-api-key", options.ApiKey);
         httpClient.DefaultRequestHeaders.Add("anthropic-version", options.ApiVersion);
         services.AddSingleton(httpClient);

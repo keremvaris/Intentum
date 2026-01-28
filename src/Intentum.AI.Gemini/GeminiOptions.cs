@@ -2,11 +2,9 @@ namespace Intentum.AI.Gemini;
 
 public sealed class GeminiOptions
 {
-    public const string DefaultBaseUrl = "https://generativelanguage.googleapis.com/v1beta/";
-
     public required string ApiKey { get; init; }
     public string EmbeddingModel { get; init; } = "text-embedding-004";
-    public string BaseUrl { get; init; } = DefaultBaseUrl;
+    public string? BaseUrl { get; init; }
 
     public void Validate()
     {
@@ -23,11 +21,15 @@ public sealed class GeminiOptions
         var apiKey = Environment.GetEnvironmentVariable("GEMINI_API_KEY")
             ?? throw new InvalidOperationException("GEMINI_API_KEY is not set.");
 
+        var baseUrl = Environment.GetEnvironmentVariable("GEMINI_BASE_URL");
+        if (string.IsNullOrWhiteSpace(baseUrl))
+            throw new InvalidOperationException("GEMINI_BASE_URL is not set.");
+
         return new GeminiOptions
         {
             ApiKey = apiKey,
             EmbeddingModel = Environment.GetEnvironmentVariable("GEMINI_EMBEDDING_MODEL") ?? "text-embedding-004",
-            BaseUrl = Environment.GetEnvironmentVariable("GEMINI_BASE_URL") ?? DefaultBaseUrl
+            BaseUrl = baseUrl
         };
     }
 }

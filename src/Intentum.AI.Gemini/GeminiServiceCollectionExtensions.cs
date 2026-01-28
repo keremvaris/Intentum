@@ -13,7 +13,7 @@ public static class GeminiServiceCollectionExtensions
     {
         options.Validate();
         services.AddSingleton(options);
-        services.AddSingleton(new HttpClient { BaseAddress = new Uri(options.BaseUrl) });
+        services.AddSingleton(new HttpClient { BaseAddress = new Uri(options.BaseUrl!) });
         services.AddSingleton<IIntentEmbeddingProvider>(sp =>
             new GeminiEmbeddingProvider(options, sp.GetRequiredService<HttpClient>()));
         services.AddSingleton<IIntentSimilarityEngine, SimpleAverageSimilarityEngine>();

@@ -13,7 +13,7 @@ public static class MistralServiceCollectionExtensions
     {
         options.Validate();
         services.AddSingleton(options);
-        var httpClient = new HttpClient { BaseAddress = new Uri(options.BaseUrl) };
+        var httpClient = new HttpClient { BaseAddress = new Uri(options.BaseUrl!) };
         httpClient.DefaultRequestHeaders.Authorization =
             new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", options.ApiKey);
         services.AddSingleton(httpClient);
