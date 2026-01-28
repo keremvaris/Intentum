@@ -13,7 +13,7 @@ public static class IntentPolicyEngine
         Intent intent,
         IntentPolicy policy)
     {
-        var matchingRule = policy.Rules.Where(rule => rule.Condition(intent)).FirstOrDefault();
+        var matchingRule = policy.Rules.FirstOrDefault(rule => rule.Condition(intent));
         return matchingRule?.Decision ?? PolicyDecision.Observe;
     }
 }

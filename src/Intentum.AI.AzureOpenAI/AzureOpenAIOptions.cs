@@ -10,13 +10,13 @@ public sealed class AzureOpenAIOptions
     public void Validate()
     {
         if (string.IsNullOrWhiteSpace(Endpoint))
-            throw new ArgumentException("AzureOpenAI Endpoint is required.", nameof(Endpoint));
+            throw new ArgumentException("AzureOpenAI Endpoint is required.");
         if (string.IsNullOrWhiteSpace(ApiKey))
-            throw new ArgumentException("AzureOpenAI ApiKey is required.", nameof(ApiKey));
+            throw new ArgumentException("AzureOpenAI ApiKey is required.");
         if (string.IsNullOrWhiteSpace(EmbeddingDeployment))
-            throw new ArgumentException("AzureOpenAI EmbeddingDeployment is required.", nameof(EmbeddingDeployment));
+            throw new ArgumentException("AzureOpenAI EmbeddingDeployment is required.");
         if (string.IsNullOrWhiteSpace(ApiVersion))
-            throw new ArgumentException("AzureOpenAI ApiVersion is required.", nameof(ApiVersion));
+            throw new ArgumentException("AzureOpenAI ApiVersion is required.");
     }
 
     public static AzureOpenAIOptions FromEnvironment()

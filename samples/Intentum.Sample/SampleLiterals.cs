@@ -1,4 +1,6 @@
-static class SampleLiterals
+namespace Intentum.Sample;
+
+internal static class SampleLiterals
 {
     public const string Retry = "retry";
     public const string Compliance = "compliance";

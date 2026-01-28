@@ -2,7 +2,7 @@ namespace Intentum.Runtime.Localization;
 
 public sealed class DefaultLocalizer : IIntentumLocalizer
 {
-    private readonly IReadOnlyDictionary<string, string> _map;
+    private readonly Dictionary<string, string> _map;
 
     public DefaultLocalizer(string languageCode = "en")
     {

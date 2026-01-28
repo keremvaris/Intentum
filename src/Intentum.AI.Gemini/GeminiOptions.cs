@@ -11,11 +11,11 @@ public sealed class GeminiOptions
     public void Validate()
     {
         if (string.IsNullOrWhiteSpace(ApiKey))
-            throw new ArgumentException("Gemini ApiKey is required.", nameof(ApiKey));
+            throw new ArgumentException("Gemini ApiKey is required.");
         if (string.IsNullOrWhiteSpace(EmbeddingModel))
-            throw new ArgumentException("Gemini EmbeddingModel is required.", nameof(EmbeddingModel));
+            throw new ArgumentException("Gemini EmbeddingModel is required.");
         if (string.IsNullOrWhiteSpace(BaseUrl))
-            throw new ArgumentException("Gemini BaseUrl is required.", nameof(BaseUrl));
+            throw new ArgumentException("Gemini BaseUrl is required.");
     }
 
     public static GeminiOptions FromEnvironment()

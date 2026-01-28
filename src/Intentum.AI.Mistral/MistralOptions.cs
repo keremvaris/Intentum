@@ -11,11 +11,11 @@ public sealed class MistralOptions
     public void Validate()
     {
         if (string.IsNullOrWhiteSpace(ApiKey))
-            throw new ArgumentException("Mistral ApiKey is required.", nameof(ApiKey));
+            throw new ArgumentException("Mistral ApiKey is required.");
         if (string.IsNullOrWhiteSpace(EmbeddingModel))
-            throw new ArgumentException("Mistral EmbeddingModel is required.", nameof(EmbeddingModel));
+            throw new ArgumentException("Mistral EmbeddingModel is required.");
         if (string.IsNullOrWhiteSpace(BaseUrl))
-            throw new ArgumentException("Mistral BaseUrl is required.", nameof(BaseUrl));
+            throw new ArgumentException("Mistral BaseUrl is required.");
     }
 
     public static MistralOptions FromEnvironment()

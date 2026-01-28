@@ -4,12 +4,9 @@ namespace Intentum.AI.Claude;
 
 public sealed class ClaudeEmbeddingProvider : IIntentEmbeddingProvider
 {
-    private readonly ClaudeOptions _options;
-
     public ClaudeEmbeddingProvider(ClaudeOptions options)
     {
-        _options = options;
-        _options.Validate();
+        options.Validate();
     }
 
     public IntentEmbedding Embed(string behaviorKey)

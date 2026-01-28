@@ -14,13 +14,13 @@ public sealed class ClaudeOptions
     public void Validate()
     {
         if (string.IsNullOrWhiteSpace(ApiKey))
-            throw new ArgumentException("Claude ApiKey is required.", nameof(ApiKey));
+            throw new ArgumentException("Claude ApiKey is required.");
         if (string.IsNullOrWhiteSpace(Model))
-            throw new ArgumentException("Claude Model is required.", nameof(Model));
+            throw new ArgumentException("Claude Model is required.");
         if (string.IsNullOrWhiteSpace(BaseUrl))
-            throw new ArgumentException("Claude BaseUrl is required.", nameof(BaseUrl));
+            throw new ArgumentException("Claude BaseUrl is required.");
         if (string.IsNullOrWhiteSpace(ApiVersion))
-            throw new ArgumentException("Claude ApiVersion is required.", nameof(ApiVersion));
+            throw new ArgumentException("Claude ApiVersion is required.");
     }
 
     public static ClaudeOptions FromEnvironment()

@@ -8,6 +8,7 @@ using Intentum.Core.Behavior;
 using Intentum.Runtime;
 using Intentum.Runtime.Localization;
 using Intentum.Runtime.Policy;
+using Intentum.Sample;
 
 // ---------------------------------------------------------------------------
 // INTENTUM SAMPLE — Showcase: ESG, Carbon Accounting, Sustainability

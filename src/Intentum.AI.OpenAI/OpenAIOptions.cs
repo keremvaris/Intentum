@@ -11,11 +11,11 @@ public sealed class OpenAIOptions
     public void Validate()
     {
         if (string.IsNullOrWhiteSpace(ApiKey))
-            throw new ArgumentException("OpenAI ApiKey is required.", nameof(ApiKey));
+            throw new ArgumentException("OpenAI ApiKey is required.");
         if (string.IsNullOrWhiteSpace(EmbeddingModel))
-            throw new ArgumentException("OpenAI EmbeddingModel is required.", nameof(EmbeddingModel));
+            throw new ArgumentException("OpenAI EmbeddingModel is required.");
         if (string.IsNullOrWhiteSpace(BaseUrl))
-            throw new ArgumentException("OpenAI BaseUrl is required.", nameof(BaseUrl));
+            throw new ArgumentException("OpenAI BaseUrl is required.");
     }
 
     public static OpenAIOptions FromEnvironment()
