@@ -9,7 +9,7 @@
   ],
   "build": {
     "content": [
-      { "files": [ "**/*.md", "api/*.yml" ] }
+      { "files": [ "**/*.md", "**/toc.yml", "api/*.yml" ] }
     ],
     "resource": [
       { "files": [ "images/**" ] }
@@ -25,7 +25,8 @@
       "_appTitle": "Intentum API",
       "_appLogoPath": "images/logo.png",
       "_appFaviconPath": "images/logo.png",
-      "_disableContribution": true
+      "_disableContribution": true,
+      "_enableSearch": true
     }
   }
 }

@@ -1,0 +1,20 @@
+# Left sidebar — English docs
+items:
+  - name: Home
+    href: index.md
+  - name: Setup
+    href: setup.md
+  - name: Scenarios
+    href: scenarios.md
+  - name: CodeGen
+    href: codegen.md
+  - name: Providers
+    href: providers.md
+  - name: Testing
+    href: testing.md
+  - name: Audience
+    href: audience.md
+  - name: Coverage
+    href: coverage.md
+  - name: API
+    href: api.md

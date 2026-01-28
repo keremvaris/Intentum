@@ -1,0 +1,20 @@
+# Sol menü — Türkçe dokümanlar
+items:
+  - name: Ana Sayfa
+    href: index.md
+  - name: Kurulum
+    href: setup.md
+  - name: Senaryolar
+    href: scenarios.md
+  - name: CodeGen
+    href: codegen.md
+  - name: Sağlayıcılar
+    href: providers.md
+  - name: Test
+    href: testing.md
+  - name: Kitle
+    href: audience.md
+  - name: Kapsam
+    href: coverage.md
+  - name: API
+    href: api.md

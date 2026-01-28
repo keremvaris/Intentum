@@ -34,6 +34,7 @@ Documentation
 CI & SonarCloud (free for public repos)
 - CI runs on push/PR to `master`: build, test, coverage artifact, SonarCloud analysis.
 - To enable **SonarCloud**: sign up at [sonarcloud.io](https://sonarcloud.io), add this repo, then in GitHub → Settings → Secrets and variables → Actions add **Secret** `SONAR_TOKEN` (from SonarCloud → My Account → Security). Project key and org are set in the workflow (`keremvaris_Intentum` / `keremvaris`).
+- **If CI analysis fails** with "Automatic Analysis is enabled": in SonarCloud go to your project → **Administration** → **Analysis Method** → turn **off** "Automatic Analysis" so only CI runs the analysis.
 
 Core Concepts
 Behavior Space
