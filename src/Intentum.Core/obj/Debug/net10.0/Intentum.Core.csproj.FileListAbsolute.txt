@@ -1,0 +1,11 @@
+/Users/keremvaris/RiderProjects/Intentum/src/Intentum.Core/obj/Debug/net10.0/Intentum.Core.GeneratedMSBuildEditorConfig.editorconfig
+/Users/keremvaris/RiderProjects/Intentum/src/Intentum.Core/obj/Debug/net10.0/Intentum.Core.AssemblyInfoInputs.cache
+/Users/keremvaris/RiderProjects/Intentum/src/Intentum.Core/obj/Debug/net10.0/Intentum.Core.AssemblyInfo.cs
+/Users/keremvaris/RiderProjects/Intentum/src/Intentum.Core/obj/Debug/net10.0/Intentum.Core.csproj.CoreCompileInputs.cache
+/Users/keremvaris/RiderProjects/Intentum/src/Intentum.Core/bin/Debug/net10.0/Intentum.Core.deps.json
+/Users/keremvaris/RiderProjects/Intentum/src/Intentum.Core/bin/Debug/net10.0/Intentum.Core.dll
+/Users/keremvaris/RiderProjects/Intentum/src/Intentum.Core/bin/Debug/net10.0/Intentum.Core.pdb
+/Users/keremvaris/RiderProjects/Intentum/src/Intentum.Core/obj/Debug/net10.0/Intentum.Core.dll
+/Users/keremvaris/RiderProjects/Intentum/src/Intentum.Core/obj/Debug/net10.0/refint/Intentum.Core.dll
+/Users/keremvaris/RiderProjects/Intentum/src/Intentum.Core/obj/Debug/net10.0/Intentum.Core.pdb
+/Users/keremvaris/RiderProjects/Intentum/src/Intentum.Core/obj/Debug/net10.0/ref/Intentum.Core.dll

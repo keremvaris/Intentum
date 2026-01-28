@@ -1,0 +1,15 @@
+/Users/keremvaris/RiderProjects/Intentum/src/Intentum.Runtime/bin/Debug/net10.0/Intentum.Runtime.deps.json
+/Users/keremvaris/RiderProjects/Intentum/src/Intentum.Runtime/bin/Debug/net10.0/Intentum.Runtime.dll
+/Users/keremvaris/RiderProjects/Intentum/src/Intentum.Runtime/bin/Debug/net10.0/Intentum.Runtime.pdb
+/Users/keremvaris/RiderProjects/Intentum/src/Intentum.Runtime/bin/Debug/net10.0/Intentum.Core.dll
+/Users/keremvaris/RiderProjects/Intentum/src/Intentum.Runtime/bin/Debug/net10.0/Intentum.Core.pdb
+/Users/keremvaris/RiderProjects/Intentum/src/Intentum.Runtime/obj/Debug/net10.0/Intentum.Runtime.csproj.AssemblyReference.cache
+/Users/keremvaris/RiderProjects/Intentum/src/Intentum.Runtime/obj/Debug/net10.0/Intentum.Runtime.GeneratedMSBuildEditorConfig.editorconfig
+/Users/keremvaris/RiderProjects/Intentum/src/Intentum.Runtime/obj/Debug/net10.0/Intentum.Runtime.AssemblyInfoInputs.cache
+/Users/keremvaris/RiderProjects/Intentum/src/Intentum.Runtime/obj/Debug/net10.0/Intentum.Runtime.AssemblyInfo.cs
+/Users/keremvaris/RiderProjects/Intentum/src/Intentum.Runtime/obj/Debug/net10.0/Intentum.Runtime.csproj.CoreCompileInputs.cache
+/Users/keremvaris/RiderProjects/Intentum/src/Intentum.Runtime/obj/Debug/net10.0/Intentum.BDBB751B.Up2Date
+/Users/keremvaris/RiderProjects/Intentum/src/Intentum.Runtime/obj/Debug/net10.0/Intentum.Runtime.dll
+/Users/keremvaris/RiderProjects/Intentum/src/Intentum.Runtime/obj/Debug/net10.0/refint/Intentum.Runtime.dll
+/Users/keremvaris/RiderProjects/Intentum/src/Intentum.Runtime/obj/Debug/net10.0/Intentum.Runtime.pdb
+/Users/keremvaris/RiderProjects/Intentum/src/Intentum.Runtime/obj/Debug/net10.0/ref/Intentum.Runtime.dll

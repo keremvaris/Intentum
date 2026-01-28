@@ -1,0 +1,22 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <PackageId>Intentum.Core</PackageId>
+    <Version>1.0.0</Version>
+    <Authors>Intentum Contributors</Authors>
+    <Description>Intent-driven development core primitives: behavior space, intent inference, confidence.</Description>
+    <PackageTags>intent;behavior;bdd;ai;dotnet</PackageTags>
+    <RepositoryUrl>https://github.com/intentum/intentum</RepositoryUrl>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Include="../../README.md" Pack="true" PackagePath="" />
+  </ItemGroup>
+
+</Project>

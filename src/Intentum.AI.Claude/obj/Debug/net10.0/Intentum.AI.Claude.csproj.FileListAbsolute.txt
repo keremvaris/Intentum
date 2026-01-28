@@ -1,0 +1,17 @@
+/Users/keremvaris/RiderProjects/Intentum/src/Intentum.AI.Claude/bin/Debug/net10.0/Intentum.AI.Claude.deps.json
+/Users/keremvaris/RiderProjects/Intentum/src/Intentum.AI.Claude/bin/Debug/net10.0/Intentum.AI.Claude.dll
+/Users/keremvaris/RiderProjects/Intentum/src/Intentum.AI.Claude/bin/Debug/net10.0/Intentum.AI.Claude.pdb
+/Users/keremvaris/RiderProjects/Intentum/src/Intentum.AI.Claude/bin/Debug/net10.0/Intentum.AI.dll
+/Users/keremvaris/RiderProjects/Intentum/src/Intentum.AI.Claude/bin/Debug/net10.0/Intentum.Core.dll
+/Users/keremvaris/RiderProjects/Intentum/src/Intentum.AI.Claude/bin/Debug/net10.0/Intentum.AI.pdb
+/Users/keremvaris/RiderProjects/Intentum/src/Intentum.AI.Claude/bin/Debug/net10.0/Intentum.Core.pdb
+/Users/keremvaris/RiderProjects/Intentum/src/Intentum.AI.Claude/obj/Debug/net10.0/Intentum.AI.Claude.csproj.AssemblyReference.cache
+/Users/keremvaris/RiderProjects/Intentum/src/Intentum.AI.Claude/obj/Debug/net10.0/Intentum.AI.Claude.GeneratedMSBuildEditorConfig.editorconfig
+/Users/keremvaris/RiderProjects/Intentum/src/Intentum.AI.Claude/obj/Debug/net10.0/Intentum.AI.Claude.AssemblyInfoInputs.cache
+/Users/keremvaris/RiderProjects/Intentum/src/Intentum.AI.Claude/obj/Debug/net10.0/Intentum.AI.Claude.AssemblyInfo.cs
+/Users/keremvaris/RiderProjects/Intentum/src/Intentum.AI.Claude/obj/Debug/net10.0/Intentum.AI.Claude.csproj.CoreCompileInputs.cache
+/Users/keremvaris/RiderProjects/Intentum/src/Intentum.AI.Claude/obj/Debug/net10.0/Intentum.D4F9C92B.Up2Date
+/Users/keremvaris/RiderProjects/Intentum/src/Intentum.AI.Claude/obj/Debug/net10.0/Intentum.AI.Claude.dll
+/Users/keremvaris/RiderProjects/Intentum/src/Intentum.AI.Claude/obj/Debug/net10.0/refint/Intentum.AI.Claude.dll
+/Users/keremvaris/RiderProjects/Intentum/src/Intentum.AI.Claude/obj/Debug/net10.0/Intentum.AI.Claude.pdb
+/Users/keremvaris/RiderProjects/Intentum/src/Intentum.AI.Claude/obj/Debug/net10.0/ref/Intentum.AI.Claude.dll

@@ -1,0 +1,30 @@
+name: nuget-release
+
+on:
+  workflow_dispatch:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+      - name: Restore
+        run: dotnet restore Intentum.sln
+      - name: Build
+        run: dotnet build Intentum.sln -c Release --no-restore
+      - name: Test
+        run: dotnet test Intentum.sln -c Release --no-build
+      - name: Pack
+        run: dotnet pack Intentum.sln -c Release --no-build
+      - name: Push
+        env:
+          NUGET_API_KEY: ${{ secrets.NUGET_API_KEY }}
+        run: |
+          shopt -s globstar
+          dotnet nuget push src/**/bin/Release/*.nupkg -k "$NUGET_API_KEY" -s https://api.nuget.org/v3/index.json --skip-duplicate

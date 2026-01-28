@@ -1,0 +1,17 @@
+/Users/keremvaris/RiderProjects/Intentum/src/Intentum.AI.Gemini/bin/Debug/net10.0/Intentum.AI.Gemini.deps.json
+/Users/keremvaris/RiderProjects/Intentum/src/Intentum.AI.Gemini/bin/Debug/net10.0/Intentum.AI.Gemini.dll
+/Users/keremvaris/RiderProjects/Intentum/src/Intentum.AI.Gemini/bin/Debug/net10.0/Intentum.AI.Gemini.pdb
+/Users/keremvaris/RiderProjects/Intentum/src/Intentum.AI.Gemini/bin/Debug/net10.0/Intentum.AI.dll
+/Users/keremvaris/RiderProjects/Intentum/src/Intentum.AI.Gemini/bin/Debug/net10.0/Intentum.Core.dll
+/Users/keremvaris/RiderProjects/Intentum/src/Intentum.AI.Gemini/bin/Debug/net10.0/Intentum.AI.pdb
+/Users/keremvaris/RiderProjects/Intentum/src/Intentum.AI.Gemini/bin/Debug/net10.0/Intentum.Core.pdb
+/Users/keremvaris/RiderProjects/Intentum/src/Intentum.AI.Gemini/obj/Debug/net10.0/Intentum.AI.Gemini.csproj.AssemblyReference.cache
+/Users/keremvaris/RiderProjects/Intentum/src/Intentum.AI.Gemini/obj/Debug/net10.0/Intentum.AI.Gemini.GeneratedMSBuildEditorConfig.editorconfig
+/Users/keremvaris/RiderProjects/Intentum/src/Intentum.AI.Gemini/obj/Debug/net10.0/Intentum.AI.Gemini.AssemblyInfoInputs.cache
+/Users/keremvaris/RiderProjects/Intentum/src/Intentum.AI.Gemini/obj/Debug/net10.0/Intentum.AI.Gemini.AssemblyInfo.cs
+/Users/keremvaris/RiderProjects/Intentum/src/Intentum.AI.Gemini/obj/Debug/net10.0/Intentum.AI.Gemini.csproj.CoreCompileInputs.cache
+/Users/keremvaris/RiderProjects/Intentum/src/Intentum.AI.Gemini/obj/Debug/net10.0/Intentum.AA382F3E.Up2Date
+/Users/keremvaris/RiderProjects/Intentum/src/Intentum.AI.Gemini/obj/Debug/net10.0/Intentum.AI.Gemini.dll
+/Users/keremvaris/RiderProjects/Intentum/src/Intentum.AI.Gemini/obj/Debug/net10.0/refint/Intentum.AI.Gemini.dll
+/Users/keremvaris/RiderProjects/Intentum/src/Intentum.AI.Gemini/obj/Debug/net10.0/Intentum.AI.Gemini.pdb
+/Users/keremvaris/RiderProjects/Intentum/src/Intentum.AI.Gemini/obj/Debug/net10.0/ref/Intentum.AI.Gemini.dll
