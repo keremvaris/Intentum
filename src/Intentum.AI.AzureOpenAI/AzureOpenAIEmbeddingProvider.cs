@@ -26,7 +26,7 @@ public sealed class AzureOpenAIEmbeddingProvider(AzureOpenAIOptions options, Htt
             .GetAwaiter()
             .GetResult();
 
-        var values = payload?.Data.FirstOrDefault()?.Embedding ?? [];
+        var values = payload?.Data.FirstOrDefault()?.Embedding ?? new List<double>();
         var score = Normalize(values);
 
         return new IntentEmbedding(
@@ -35,7 +35,7 @@ public sealed class AzureOpenAIEmbeddingProvider(AzureOpenAIOptions options, Htt
         );
     }
 
-    private static double Normalize(IReadOnlyList<double> values)
+    private static double Normalize(List<double> values)
     {
         if (values.Count == 0)
             return 0;

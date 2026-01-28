@@ -1,4 +1,4 @@
-#!/usr/bin/env sh
+#!/usr/bin/env bash
 # Intentum release: son tag + conventional commit'lere göre sürümü otomatik artırır, tag push eder.
 # Kullanım: ./release.sh           → otomatik bump (BREAKING→major, feat→minor, diğer→patch)
 #          ./release.sh 1.2.0      → elle sürüm (otomatik hesaplamayı atla)
@@ -9,7 +9,7 @@ set -e
 
 # Son v* tag'ini bul (yoksa 0.0.0)
 LATEST_TAG=$(git describe --tags --abbrev=0 --match 'v*' 2>/dev/null || true)
-if [ -z "$LATEST_TAG" ]; then
+if [[ -z "$LATEST_TAG" ]]; then
   LATEST_TAG="v0.0.0"
 fi
 
@@ -23,7 +23,7 @@ MINOR=${MINOR:-0}
 PATCH=${PATCH:-0}
 
 # Elle sürüm verilmişse onu kullan
-if [ -n "$1" ]; then
+if [[ -n "$1" ]]; then
   NEXT_TAG="$1"
   case "$NEXT_TAG" in
     v*) ;;
@@ -35,7 +35,7 @@ else
   COMMITS=$(git log "$LATEST_TAG..HEAD" --pretty=format:"%s%n%b" 2>/dev/null || true)
   BUMP="patch"
 
-  if [ -n "$COMMITS" ]; then
+  if [[ -n "$COMMITS" ]]; then
     # BREAKING CHANGE (body) veya feat!: fix!: (subject) → major
     if echo "$COMMITS" | grep -qEi 'BREAKING CHANGE|^[a-zA-Z]*!:'; then
       BUMP="major"
@@ -57,6 +57,9 @@ else
       ;;
     patch)
       PATCH=$((PATCH + 1))
+      ;;
+    *)
+      echo "Unexpected bump value: $BUMP"; exit 1
       ;;
   esac
 

@@ -9,6 +9,7 @@ public sealed class ClaudeEmbeddingProvider : IIntentEmbeddingProvider
     public ClaudeEmbeddingProvider(ClaudeOptions options)
     {
         _options = options;
+        _options.Validate();
     }
 
     public IntentEmbedding Embed(string behaviorKey)

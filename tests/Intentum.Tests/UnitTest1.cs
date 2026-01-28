@@ -30,8 +30,7 @@ public class IntentumCoreTests
         var space = new BehaviorSpace();
         space.Observe(new BehaviorEvent("user", "retry", DateTimeOffset.UtcNow));
 
-        var evaluator = new IntentEvaluator();
-        var result = evaluator.Evaluate("AuthIntent", space);
+        var result = IntentEvaluator.Evaluate("AuthIntent", space);
 
         Assert.Equal("Low", result.Intent.Confidence.Level);
     }
@@ -63,8 +62,7 @@ public class IntentumRuntimeTests
             .AddRule(new PolicyRule("AllowHigh", i => i.Confidence.Level == "High", PolicyDecision.Allow))
             .AddRule(new PolicyRule("WarnLow", i => i.Confidence.Level == "Low", PolicyDecision.Warn));
 
-        var engine = new IntentPolicyEngine();
-        var decision = engine.Evaluate(intent, policy);
+        var decision = IntentPolicyEngine.Evaluate(intent, policy);
 
         Assert.Equal(PolicyDecision.Allow, decision);
     }
@@ -105,8 +103,7 @@ public class IntentumRuntimeTests
                 i => i.Confidence.Level is "High" or "Certain",
                 PolicyDecision.Allow));
 
-        var engine = new IntentPolicyEngine();
-        var decision = engine.Evaluate(intent, policy);
+        var decision = IntentPolicyEngine.Evaluate(intent, policy);
 
         Assert.Equal(PolicyDecision.Block, decision);
         Assert.InRange(intent.Confidence.Score, 0.0, 1.0);

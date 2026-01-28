@@ -25,7 +25,6 @@ public static class IntentumCoreExtensions
         this BehaviorSpace space,
         string intentName)
     {
-        var evaluator = new IntentEvaluator();
-        return evaluator.Evaluate(intentName, space);
+        return IntentEvaluator.Evaluate(intentName, space);
     }
 }

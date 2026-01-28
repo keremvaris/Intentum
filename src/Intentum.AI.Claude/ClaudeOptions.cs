@@ -2,10 +2,12 @@ namespace Intentum.AI.Claude;
 
 public sealed class ClaudeOptions
 {
+    public const string DefaultBaseUrl = "https://api.anthropic.com/v1/";
+
     public required string ApiKey { get; init; }
     public string EmbeddingModel { get; init; } = "claude-embedding-1";
     public string Model { get; init; } = "claude-3-5-sonnet-20240620";
-    public string BaseUrl { get; init; } = "https://api.anthropic.com/v1/";
+    public string BaseUrl { get; init; } = DefaultBaseUrl;
     public string ApiVersion { get; init; } = "2023-06-01";
     public bool UseMessagesScoring { get; init; }
 
@@ -30,7 +32,7 @@ public sealed class ClaudeOptions
         {
             ApiKey = apiKey,
             Model = Environment.GetEnvironmentVariable("CLAUDE_MODEL") ?? "claude-3-5-sonnet-20240620",
-            BaseUrl = Environment.GetEnvironmentVariable("CLAUDE_BASE_URL") ?? "https://api.anthropic.com/v1/",
+            BaseUrl = Environment.GetEnvironmentVariable("CLAUDE_BASE_URL") ?? DefaultBaseUrl,
             ApiVersion = Environment.GetEnvironmentVariable("CLAUDE_API_VERSION") ?? "2023-06-01",
             UseMessagesScoring = (Environment.GetEnvironmentVariable("CLAUDE_USE_MESSAGES_SCORING") ?? "false")
                 .Equals("true", StringComparison.OrdinalIgnoreCase)

@@ -16,7 +16,7 @@ public sealed class DefaultLocalizer : IIntentumLocalizer
     public string Get(string key)
         => _map.TryGetValue(key, out var value) ? value : key;
 
-    private static IReadOnlyDictionary<string, string> English()
+    private static Dictionary<string, string> English()
         => new Dictionary<string, string>
         {
             { LocalizationKeys.DecisionAllow, "Allow" },
@@ -25,7 +25,7 @@ public sealed class DefaultLocalizer : IIntentumLocalizer
             { LocalizationKeys.DecisionBlock, "Block" }
         };
 
-    private static IReadOnlyDictionary<string, string> Turkish()
+    private static Dictionary<string, string> Turkish()
         => new Dictionary<string, string>
         {
             { LocalizationKeys.DecisionAllow, "İzin Ver" },

@@ -11,8 +11,7 @@ public static class RuntimeExtensions
         this Intent intent,
         IntentPolicy policy)
     {
-        var engine = new IntentPolicyEngine();
-        return engine.Evaluate(intent, policy);
+        return IntentPolicyEngine.Evaluate(intent, policy);
     }
 
     public static string ToLocalizedString(

@@ -2,9 +2,11 @@ namespace Intentum.AI.OpenAI;
 
 public sealed class OpenAIOptions
 {
+    public const string DefaultBaseUrl = "https://api.openai.com/v1/";
+
     public required string ApiKey { get; init; }
     public string EmbeddingModel { get; init; } = "text-embedding-3-large";
-    public string BaseUrl { get; init; } = "https://api.openai.com/v1/";
+    public string BaseUrl { get; init; } = DefaultBaseUrl;
 
     public void Validate()
     {
@@ -25,7 +27,7 @@ public sealed class OpenAIOptions
         {
             ApiKey = apiKey,
             EmbeddingModel = Environment.GetEnvironmentVariable("OPENAI_EMBEDDING_MODEL") ?? "text-embedding-3-large",
-            BaseUrl = Environment.GetEnvironmentVariable("OPENAI_BASE_URL") ?? "https://api.openai.com/v1/"
+            BaseUrl = Environment.GetEnvironmentVariable("OPENAI_BASE_URL") ?? DefaultBaseUrl
         };
     }
 }

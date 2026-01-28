@@ -7,10 +7,10 @@ namespace Intentum.Core.Evaluation;
 /// <summary>
 /// Infers intent and confidence from a behavior space.
 /// </summary>
-public sealed class IntentEvaluator
+public static class IntentEvaluator
 {
     /// <summary>Evaluates the given behavior space and returns an intent with confidence and signals.</summary>
-    public IntentEvaluationResult Evaluate(
+    public static IntentEvaluationResult Evaluate(
         string intentName,
         BehaviorSpace behaviorSpace)
     {

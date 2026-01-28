@@ -36,7 +36,7 @@ public sealed class GeminiEmbeddingProvider(GeminiOptions options, HttpClient ht
         );
     }
 
-    private static double Normalize(IReadOnlyList<double> values)
+    private static double Normalize(List<double> values)
     {
         if (values.Count == 0)
             return 0;
