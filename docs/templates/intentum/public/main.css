@@ -40,6 +40,32 @@
   letter-spacing: -0.02em;
 }
 
+/* Logo size: limit height so it doesn’t dominate the page */
+.navbar-brand img,
+img[src*="logo"],
+img[alt*="Intentum"] {
+  max-height: 2rem;
+  width: auto;
+  object-fit: contain;
+}
+
+/* Hero/banner logo (modern template main logo block) */
+.page-header img,
+.hero img,
+[class*="banner"] img {
+  max-height: 3rem;
+  width: auto;
+  object-fit: contain;
+}
+
+/* Main article: first block logo (modern template brand area) */
+.article .content > div:first-child img,
+.article .content > section:first-child img {
+  max-height: 3rem;
+  width: auto;
+  object-fit: contain;
+}
+
 /* Code blocks: slight primary tint on border */
 pre {
   border-left: 3px solid var(--bs-primary);

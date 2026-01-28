@@ -44,6 +44,12 @@ jobs:
           rm -rf docs/api
           mkdir -p docs/api
           cp -R docs/_site/* docs/api/
+      - name: Add api/index.html redirect
+        run: |
+          cat > docs/api/index.html << 'EOF'
+          <!DOCTYPE html>
+          <html><head><meta charset="utf-8"><meta http-equiv="refresh" content="0; url=tr/index.html"><title>Intentum</title><script>location.href="tr/index.html";</script></head><body><p><a href="tr/index.html">Documentation (TR)</a></p></body></html>
+          EOF
       # Requires: repo Settings → Pages → Source = "GitHub Actions"
       - name: Setup Pages
         uses: actions/configure-pages@v5
