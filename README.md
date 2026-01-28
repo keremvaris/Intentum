@@ -128,7 +128,7 @@ Releasing and versioning
 - **Versioning** is automatic from git tags via [MinVer](https://github.com/adamralph/minver) (`src/Directory.Build.props`). No manual version bump in code: tag `v1.0.1` and build → package version is `1.0.1`. Tag prefix is `v`; minimum major.minor is `1.0`.
 - **Release script:** `chmod +x release.sh` then `./release.sh` — version is auto-bumped from the latest tag using conventional commits: **BREAKING** / `feat!:` → major, **feat:** → minor, **fix/docs/chore** → patch. Or run `./release.sh 1.0.1` to set the version manually.
 - Pushing a tag like `v1.0.1` triggers GitHub Release and NuGet publish (see `.github/workflows/`).
-- **Release notes** are generated from **conventional commits** via [git-cliff](https://git-cliff.org) (`cliff.toml`). Use prefixes: `feat:`, `fix:`, `docs:`, `chore:`, `ci:`, etc. If none are found, `CHANGELOG.md` is used as fallback.
+- **Release notes** are generated from **conventional commits** via [git-cliff](https://git-cliff.org) (`cliff.toml`). Use prefixes: `feat:`, `fix:`, `docs:`, `chore:`, `ci:`, etc. If none are found, `CHANGELOG.md` is used as fallback. **Breaking change:** write `feat!: ...` or add `BREAKING CHANGE:` in the commit body so the changelog shows a dedicated "Breaking changes" section and the next release bumps the major version.
 - On every push to `master`, the **changelog** workflow updates `CHANGELOG.md` from conventional commits and commits it (with `[skip ci]`).
 
 License
