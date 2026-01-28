@@ -27,11 +27,18 @@ jobs:
       - name: Build
         run: dotnet build Intentum.slnx --no-restore
       - name: Test with coverage
-        run: dotnet test tests/Intentum.Tests/Intentum.Tests.csproj --no-build -p:CollectCoverage=true -p:CoverletOutputFormat=opencover -p:CoverletOutput=../../TestResults/coverage/
+        run: |
+          mkdir -p TestResults/coverage
+          dotnet test tests/Intentum.Tests/Intentum.Tests.csproj --no-build \
+            -p:CollectCoverage=true \
+            -p:CoverletOutputFormat=opencover \
+            -p:CoverletOutput=${{ github.workspace }}/TestResults/coverage/
       - name: Install ReportGenerator
         run: dotnet tool install -g dotnet-reportgenerator-globaltool
       - name: Generate coverage report
-        run: reportgenerator -reports:TestResults/coverage/*.xml -targetdir:docs/coverage -reporttypes:Html;Badges
+        run: |
+          REPORT=$(find TestResults/coverage -name '*.xml' -print -quit)
+          reportgenerator -reports:"$REPORT" -targetdir:docs/coverage -reporttypes:Html;Badges
       - name: Install DocFX
         run: dotnet tool install -g docfx
       - name: Generate API docs

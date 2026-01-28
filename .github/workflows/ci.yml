@@ -19,7 +19,9 @@ jobs:
       - name: Build
         run: dotnet build Intentum.slnx --no-restore
       - name: Test
-        run: dotnet test tests/Intentum.Tests/Intentum.Tests.csproj --no-build -p:CollectCoverage=true -p:CoverletOutputFormat=opencover -p:CoverletOutput=../../TestResults/coverage/ -p:Threshold=70 -p:ThresholdType=line
+        run: |
+          mkdir -p TestResults/coverage
+          dotnet test tests/Intentum.Tests/Intentum.Tests.csproj --no-build -p:CollectCoverage=true -p:CoverletOutputFormat=opencover -p:CoverletOutput=${{ github.workspace }}/TestResults/coverage/ -p:Threshold=70 -p:ThresholdType=line
       - name: Upload coverage artifact
         uses: actions/upload-artifact@v4
         with:
