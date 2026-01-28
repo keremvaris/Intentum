@@ -11,6 +11,8 @@
 
 - *(release)* Automate versioning, changelog, and GitHub releases
 
+- *(release)* Automate versioning and tagging
+
 
 ### Miscellaneous
 
