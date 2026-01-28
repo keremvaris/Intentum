@@ -1,47 +1,80 @@
+# Changelog
+
+Bu dosya **conventional commit** mesajlarından otomatik üretilir.
+
+| İşaret | Anlam |
+|--------|--------|
+| **[sürüm]** (örn. 0.0.2) | O sürümde yayınlanan değişiklikler. |
+| **Breaking changes** | Geriye dönük uyumsuz değişiklik; kütüphane kullananlar kodu güncellemeli. Major sürüm (1.0.0) atlanır. |
+| **Features** | Yeni özellik (feat:) → minor sürüm artar. |
+| **Bug Fixes** | Hata düzeltme (fix:) → patch artar. |
+| **Documentation** | Doküman (docs:). |
+| **Miscellaneous** | CI, chore, bakım işleri. |
+
+---
+
 ## [unreleased]
+
+
+### Breaking changes (geriye dönük uyumsuz)
+
+- Enhance breaking change representation *(changelog)*
+
+
+## [0.0.3] - 2026-01-28
+
+
 
 ### Miscellaneous
 
-- *(nuget-release)* Enhance NuGet push robustness and API key validation
+- Enhance NuGet push robustness and API key validation *(nuget-release)*
 
 ## [0.0.2] - 2026-01-28
 
+
+
+
+
+
 ### Documentation
 
-- *(pages)* Add documentation redirects and logo styles
+- Add documentation redirects and logo styles *(pages)*
+
 
 
 ### Features
 
-- *(release)* [**breaking**] Integrate real AI providers, docs, and enhanced CI
+- Integrate real AI providers, docs, and enhanced CI *(release)*
 
-- *(release)* Automate versioning, changelog, and GitHub releases
+- Automate versioning, changelog, and GitHub releases *(release)*
 
-- *(release)* Automate versioning and tagging
+- Automate versioning and tagging *(release)*
+
 
 
 ### Miscellaneous
 
-- *(repo)* Improve repository hygiene and project configuration
+- Improve repository hygiene and project configuration *(repo)*
 
-- *(workflows)* Compacts dotnet test commands
+- Compacts dotnet test commands *(workflows)*
 
-- *(coverage)* Improves coverage output and report generation
+- Improves coverage output and report generation *(coverage)*
 
-- *(coverage)* Improves coverage output and report generation
+- Improves coverage output and report generation *(coverage)*
 
-- *(coverage)* Improve coverage report generation
+- Improve coverage report generation *(coverage)*
 
-- *(coverage)* Maps source paths for accurate reports
+- Maps source paths for accurate reports *(coverage)*
 
-- *(coverage)* Maps source paths for accurate reports
+- Maps source paths for accurate reports *(coverage)*
 
-- *(coverage)* Remove hardcoded coverage source path
+- Remove hardcoded coverage source path *(coverage)*
 
-- *(pages)* Add note for GitHub Pages source setting
+- Add note for GitHub Pages source setting *(pages)*
+
 
 
 ### Refactor
 
-- *(codebase)* Modernize C# syntax and refine code coverage
+- Modernize C# syntax and refine code coverage *(codebase)*
 
