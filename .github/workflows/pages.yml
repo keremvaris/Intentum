@@ -27,10 +27,7 @@ jobs:
       - name: Build
         run: dotnet build Intentum.slnx --no-restore
       - name: Test with coverage
-        run: dotnet test tests/Intentum.Tests/Intentum.Tests.csproj --no-build \
-          /p:CollectCoverage=true \
-          /p:CoverletOutputFormat=opencover \
-          /p:CoverletOutput=TestResults/coverage/
+        run: dotnet test tests/Intentum.Tests/Intentum.Tests.csproj --no-build -p:CollectCoverage=true -p:CoverletOutputFormat=opencover -p:CoverletOutput=TestResults/coverage/
       - name: Install ReportGenerator
         run: dotnet tool install -g dotnet-reportgenerator-globaltool
       - name: Generate coverage report
