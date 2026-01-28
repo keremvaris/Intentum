@@ -36,9 +36,14 @@ jobs:
         env:
           MinVerVersionOverride: ${{ github.event.inputs.version_override }}
         run: dotnet pack Intentum.slnx -c Release --no-build
-      - name: Push
+      - name: List packages
+        run: find src -name '*.nupkg' -path '*/Release/*' 2>/dev/null || true
+      - name: Push to NuGet
         env:
           NUGET_API_KEY: ${{ secrets.NUGET_API_KEY }}
         run: |
-          shopt -s globstar
-          dotnet nuget push src/**/bin/Release/*.nupkg -k "$NUGET_API_KEY" -s https://api.nuget.org/v3/index.json --skip-duplicate
+          if [ -z "$NUGET_API_KEY" ]; then
+            echo "::error::NUGET_API_KEY secret tanımlı değil. Repo Settings → Secrets and variables → Actions → New repository secret → Name: NUGET_API_KEY, Value: nuget.org API key"
+            exit 1
+          fi
+          find src -name '*.nupkg' -path '*/Release/*' -exec dotnet nuget push {} -k "$NUGET_API_KEY" -s https://api.nuget.org/v3/index.json --skip-duplicate \;
