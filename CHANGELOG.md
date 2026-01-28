@@ -28,6 +28,8 @@ Bu dosya **conventional commit** mesajlarından otomatik üretilir.
 
 - Use static evaluators and policy engines *(core)*
 
+- Streamline code and enhance consistency *(internal)*
+
 ## [0.0.7] - 2026-01-28
 
 
