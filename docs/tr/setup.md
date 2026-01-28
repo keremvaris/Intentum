@@ -129,16 +129,19 @@ Detay ve örnekler: [Sağlayıcılar](providers.md).
 
 ## Repo sample’ını derle ve çalıştır
 
+Çözüm birçok paket ve iki örnek uygulama içerir: **Çekirdek:** Intentum.Core, Intentum.Runtime, Intentum.AI. **Sağlayıcılar:** Intentum.AI.OpenAI, Gemini, Mistral, AzureOpenAI, Claude. **Uzantılar:** Intentum.AspNetCore, Testing, Observability, Logging, Persistence, Persistence.EntityFramework, Analytics, CodeGen. **Örnekler:** samples/Intentum.Sample (konsol), samples/Intentum.Sample.Web (API + UI, intent infer, analytics, rate limiting).
+
 Reponun kökünden:
 
 ```bash
 dotnet build Intentum.slnx
-dotnet run --project samples/Intentum.Sample
 ```
 
-Sample ESG, Carbon, EU Green Bond, workflow ve klasik (ödeme, destek, e‑ticaret: sepete ekleme, checkout, ödeme doğrulama) senaryolarını çalıştırır. Varsayılan olarak **mock** embedding kullanır (API anahtarı gerekmez); çıktıda `AI: Mock (no API key) → similarity → confidence → policy` satırını görürsün.
+**Konsol örneği:** `dotnet run --project samples/Intentum.Sample`
 
-**Gerçek AI ile denemek için:** `OPENAI_API_KEY` (ve isteğe bağlı `OPENAI_EMBEDDING_MODEL`) ortam değişkenini ayarla; sample aynı senaryoları **OpenAI embedding** ile çalıştırır ve çıktıda `AI: OpenAI (embedding provider) → ...` yazar. Bkz. [Sağlayıcılar](providers.md).
+**Web örneği:** `dotnet run --project samples/Intentum.Sample.Web` — UI ve Scalar docs (http://localhost:5150/), endpoint'ler: `/api/carbon/calculate`, `/api/orders`, `POST /api/intent/infer`, `GET /api/intent/analytics/summary`, `/api/intent/analytics/export/json`, `/api/intent/analytics/export/csv`, `/health`.
+
+Konsol örneği ESG, Carbon, EU Green Bond, workflow ve klasik (ödeme, destek, e‑ticaret) senaryolarını çalıştırır; varsayılan **mock** embedding kullanır (API anahtarı gerekmez). **Gerçek AI:** `OPENAI_API_KEY` ayarla; bkz. [Sağlayıcılar](providers.md).
 
 ---
 

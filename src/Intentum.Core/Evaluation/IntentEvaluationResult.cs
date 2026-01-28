@@ -1,5 +1,3 @@
-using Intentum.Core.Intents;
-
 namespace Intentum.Core.Evaluation;
 
 /// <summary>Result of evaluating a behavior space: the inferred intent and the behavior vector used.</summary>

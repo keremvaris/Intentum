@@ -1,5 +1,4 @@
 using Intentum.Core.Behavior;
-using Intentum.Core.Intents;
 
 namespace Intentum.Core.Contracts;
 

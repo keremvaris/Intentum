@@ -2,6 +2,8 @@
 items:
   - name: Ana Sayfa
     href: index.md
+  - name: Mimari
+    href: architecture.md
   - name: Kurulum
     href: setup.md
   - name: Senaryolar
@@ -18,3 +20,5 @@ items:
     href: coverage.md
   - name: API
     href: api.md
+  - name: Gelişmiş Özellikler
+    href: advanced-features.md

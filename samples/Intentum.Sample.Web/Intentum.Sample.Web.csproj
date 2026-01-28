@@ -19,6 +19,12 @@
     <ProjectReference Include="..\..\src\Intentum.Core\Intentum.Core.csproj" />
     <ProjectReference Include="..\..\src\Intentum.Runtime\Intentum.Runtime.csproj" />
     <ProjectReference Include="..\..\src\Intentum.AI\Intentum.AI.csproj" />
+    <ProjectReference Include="..\..\src\Intentum.AspNetCore\Intentum.AspNetCore.csproj" />
+    <ProjectReference Include="..\..\src\Intentum.Persistence\Intentum.Persistence.csproj" />
+    <ProjectReference Include="..\..\src\Intentum.Persistence.EntityFramework\Intentum.Persistence.EntityFramework.csproj" />
+    <ProjectReference Include="..\..\src\Intentum.Analytics\Intentum.Analytics.csproj" />
+    <ProjectReference Include="..\..\src\Intentum.Explainability\Intentum.Explainability.csproj" />
   </ItemGroup>
+
 
 </Project>

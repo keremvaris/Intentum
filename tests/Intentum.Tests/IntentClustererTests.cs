@@ -1,0 +1,49 @@
+using Intentum.Clustering;
+using Intentum.Persistence.Repositories;
+using Intentum.Runtime.Policy;
+
+namespace Intentum.Tests;
+
+public class IntentClustererTests
+{
+    [Fact]
+    public async Task ClusterByPatternAsync_EmptyRecords_ReturnsEmpty()
+    {
+        var clusterer = new IntentClusterer();
+        var clusters = await clusterer.ClusterByPatternAsync(Array.Empty<IntentHistoryRecord>());
+        Assert.Empty(clusters);
+    }
+
+    [Fact]
+    public async Task ClusterByPatternAsync_Records_GroupsByConfidenceAndDecision()
+    {
+        var records = new List<IntentHistoryRecord>
+        {
+            CreateRecord("1", "High", PolicyDecision.Allow),
+            CreateRecord("2", "High", PolicyDecision.Allow),
+            CreateRecord("3", "Low", PolicyDecision.Block)
+        };
+        var clusterer = new IntentClusterer();
+        var clusters = await clusterer.ClusterByPatternAsync(records);
+        Assert.Equal(2, clusters.Count);
+        Assert.Contains(clusters, c => c.Count == 2 && c.Label.Contains("High"));
+        Assert.Contains(clusters, c => c.Count == 1 && c.Label.Contains("Low"));
+    }
+
+    [Fact]
+    public async Task ClusterByConfidenceScoreAsync_SplitsIntoKBuckets()
+    {
+        var records = new List<IntentHistoryRecord>
+        {
+            CreateRecord("1", "High", PolicyDecision.Allow, 0.9),
+            CreateRecord("2", "Medium", PolicyDecision.Observe, 0.5),
+            CreateRecord("3", "Low", PolicyDecision.Block, 0.2)
+        };
+        var clusterer = new IntentClusterer();
+        var clusters = await clusterer.ClusterByConfidenceScoreAsync(records, k: 3);
+        Assert.Equal(3, clusters.Count);
+    }
+
+    private static IntentHistoryRecord CreateRecord(string id, string level, PolicyDecision decision, double score = 0.5)
+        => new(id, "bs1", "Intent", level, score, decision, DateTimeOffset.UtcNow, null);
+}

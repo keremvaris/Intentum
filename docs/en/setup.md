@@ -127,18 +127,65 @@ Details and examples: [Providers](providers.md).
 
 ---
 
-## Build and run the repo sample
+## Repository structure
+
+The solution contains many packages and two sample applications.
+
+**Core & runtime** (required for behavior space, intent, policy):
+
+- `Intentum.Core` — BehaviorSpace, Intent, BehaviorEvent, BehaviorSpaceBuilder, BatchIntentModel
+- `Intentum.Runtime` — IntentPolicy, IntentPolicyBuilder, PolicyDecision, IRateLimiter, MemoryRateLimiter
+- `Intentum.AI` — LlmIntentModel, embedding cache, similarity engines (SimpleAverage, Cosine, Composite, etc.)
+
+**AI providers** (optional; pick one or more for real embeddings):
+
+- `Intentum.AI.OpenAI`, `Intentum.AI.Gemini`, `Intentum.AI.Mistral`, `Intentum.AI.AzureOpenAI`, `Intentum.AI.Claude`
+
+**Extensions** (optional; add as needed):
+
+- `Intentum.AspNetCore` — Behavior observation middleware, health checks
+- `Intentum.Testing` — TestHelpers, assertions for BehaviorSpace, Intent, PolicyDecision
+- `Intentum.Observability` — OpenTelemetry metrics for inference and policy
+- `Intentum.Logging` — Serilog integration for intent and policy
+- `Intentum.Persistence` — IBehaviorSpaceRepository, IIntentHistoryRepository
+- `Intentum.Persistence.EntityFramework` — EF Core implementation (SQL Server, SQLite, in-memory)
+- `Intentum.Analytics` — IIntentAnalytics: trends, decision distribution, anomaly detection, JSON/CSV export
+- `Intentum.CodeGen` — Scaffold CQRS + Intentum, YAML/JSON spec validation
+
+**Samples:**
+
+- `samples/Intentum.Sample` — Console: ESG, Carbon, EU Green Bond, workflow, classic (payment, support, e‑commerce), fluent API, caching, batch, rate limiting demo
+- `samples/Intentum.Sample.Web` — ASP.NET Core API with Scalar docs and web UI: CQRS (carbon, orders), intent infer (`POST /api/intent/infer`), rate limiting, persistence (in-memory), reporting & analytics (`GET /api/intent/analytics/summary`, `/export/json`, `/export/csv`), health checks
+
+---
+
+## Build and run the repo samples
 
 From the repository root:
 
 ```bash
 dotnet build Intentum.slnx
+```
+
+**Console sample** (scenarios, batch, rate limit demo):
+
+```bash
 dotnet run --project samples/Intentum.Sample
 ```
 
-The sample runs ESG, Carbon, EU Green Bond, workflow, and classic (payment, support, e‑commerce: add to cart, checkout, payment validation) scenarios. By default it uses **mock** embedding (no API key); you’ll see `AI: Mock (no API key) → similarity → confidence → policy` in the output.
+Runs ESG, Carbon, EU Green Bond, workflow, and classic (payment, support, e‑commerce) scenarios. By default it uses **mock** embedding (no API key); you’ll see `AI: Mock (no API key) → similarity → confidence → policy` in the output.
 
-**To try real AI:** Set the `OPENAI_API_KEY` (and optionally `OPENAI_EMBEDDING_MODEL`) environment variable; the sample will run the same scenarios with **OpenAI embeddings** and print `AI: OpenAI (embedding provider) → ...`. See [Providers](providers.md).
+**To try real AI:** Set the `OPENAI_API_KEY` (and optionally `OPENAI_EMBEDDING_MODEL`) environment variable; the sample will use **OpenAI embeddings**. See [Providers](providers.md).
+
+**Web sample** (API + UI, intent infer, analytics, rate limiting):
+
+```bash
+dotnet run --project samples/Intentum.Sample.Web
+```
+
+- **UI:** http://localhost:5150/ (or the port in `launchSettings.json`)
+- **API docs (Scalar):** http://localhost:5150/scalar
+- **Endpoints:** `/api/carbon/calculate`, `/api/carbon/report/{id}`, `/api/orders`, `POST /api/intent/infer` (body: `{ "events": [ { "actor": "user", "action": "login" }, ... ] }`), `GET /api/intent/analytics/summary`, `GET /api/intent/analytics/export/json`, `GET /api/intent/analytics/export/csv`, `/health`
 
 ---
 

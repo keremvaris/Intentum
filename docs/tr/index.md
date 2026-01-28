@@ -63,6 +63,7 @@ Kısaca: **Given/When/Then kalktı; yerine Observe (olayları kaydet) → Infer 
 
 | Sayfa | Ne bulacaksın |
 |-------|----------------|
+| [Mimari](architecture.md) | Temel akış (Observe → Infer → Decide), paket yapısı, inference pipeline, persistence/analytics/rate-limiting/multi-tenancy akışları (Mermaid diyagramları). |
 | [Kitle ve kullanım örnekleri](audience.md) | Proje tipleri, kullanıcı profilleri, düşük/orta/yüksek örnek test senaryoları (AI ve normal), sektör örnekleri. |
 | [Kurulum](setup.md) | Gereksinimler, NuGet kurulumu, ilk proje adımları, env var. |
 | [API Referansı](api.md) | Ana tipler (BehaviorSpace, Intent, Policy, sağlayıcılar) ve nasıl uyumlu oldukları. |
@@ -71,6 +72,7 @@ Kısaca: **Given/When/Then kalktı; yerine Observe (olayları kaydet) → Infer 
 | [CodeGen](codegen.md) | CQRS + Intentum proje iskeleti; test assembly veya YAML spec’ten Features üretme. |
 | [Test](testing.md) | Birim testleri, coverage, hata senaryoları. |
 | [Coverage](coverage.md) | Coverage üretme ve görüntüleme. |
+| [Gelişmiş Özellikler](advanced-features.md) | Similarity engine'ler, fluent API'ler, caching, test utilities, rate limiting, analytics & reporting, middleware, observability, persistence. |
 
 ---
 
@@ -94,7 +96,7 @@ Kısaca: **Given/When/Then kalktı; yerine Observe (olayları kaydet) → Infer 
 
 ## Nasıl yapılır?
 
-- **İlk senaryoyu nasıl çalıştırırım?** — Sample’ı `dotnet run --project samples/Intentum.Sample` ile çalıştır; mock sağlayıcı kullanır, API anahtarı gerekmez. Örnekler hem klasik (ödeme, giriş, destek, e‑ticaret: sepete ekleme, checkout, ödeme doğrulama) hem ESG (rapor gönderimi, uyumluluk) akışlarını gösterir.
+- **İlk senaryoyu nasıl çalıştırırım?** — S“Konsol: dotnet run --project samples/Intentum.Sample; API + intent infer + analytics: dotnet run --project samples/Intentum.Sample.Web. Bkz. Kurulum.” mock sağlayıcı kullanır, API anahtarı gerekmez. Örnekler hem klasik (ödeme, giriş, destek, e‑ticaret: sepete ekleme, checkout, ödeme doğrulama) hem ESG (rapor gönderimi, uyumluluk) akışlarını gösterir.
 - **Policy nasıl eklenir?** — `IntentPolicy` oluştur, `.AddRule(PolicyRule(...))` ile kuralları **sırayla** ekle (önce Block, sonra Allow). Çıkarımdan sonra `intent.Decide(policy)` çağır. Detay için [Senaryolar](scenarios.md) ve [API Referansı](api.md).
 - **Klasik akışları (ödeme, login, destek) nasıl modellersin?** — Olayları `space.Observe(actor, action)` ile kaydet (örn. `"user"`, `"login"`; `"user"`, `"retry"`; `"user"`, `"submit"`). Model davranıştan intent çıkarır; policy Allow/Observe/Warn/Block verir. [Kullanım Senaryoları](scenarios.md) içinde hem klasik (ödeme, e‑ticaret) hem ESG örnekleri var.
 - **AI ile senaryo nasıl yazılır?** — Aynı `Observe` akışı Mock veya gerçek sağlayıcı (OpenAI, Gemini vb.) ile çalışır; davranış anahtarlarını anlamlı seç, policy'yi güven + sinyallere dayandır. Detay ve ipuçları: [Senaryolar – AI ile senaryolar](scenarios.md#ai-ile-senaryolar-nasıl-yapılır).

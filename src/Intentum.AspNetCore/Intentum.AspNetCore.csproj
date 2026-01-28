@@ -1,0 +1,28 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <NoWarn>$(NoWarn);1591</NoWarn>
+    <PackageId>Intentum.AspNetCore</PackageId>
+    <Authors>Intentum Contributors</Authors>
+    <Description>ASP.NET Core middleware and integration for Intentum.</Description>
+    <PackageTags>intent;behavior;ai;aspnetcore;middleware;dotnet</PackageTags>
+    <RepositoryUrl>https://github.com/keremvaris/Intentum</RepositoryUrl>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Intentum.Core\Intentum.Core.csproj" />
+    <ProjectReference Include="..\Intentum.Runtime\Intentum.Runtime.csproj" />
+    <ProjectReference Include="..\Intentum.AI\Intentum.AI.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+  </ItemGroup>
+
+</Project>

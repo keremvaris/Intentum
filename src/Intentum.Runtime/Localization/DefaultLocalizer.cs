@@ -22,7 +22,10 @@ public sealed class DefaultLocalizer : IIntentumLocalizer
             { LocalizationKeys.DecisionAllow, "Allow" },
             { LocalizationKeys.DecisionObserve, "Observe" },
             { LocalizationKeys.DecisionWarn, "Warn" },
-            { LocalizationKeys.DecisionBlock, "Block" }
+            { LocalizationKeys.DecisionBlock, "Block" },
+            { LocalizationKeys.DecisionEscalate, "Escalate" },
+            { LocalizationKeys.DecisionRequireAuth, "Require Authentication" },
+            { LocalizationKeys.DecisionRateLimit, "Rate Limit" }
         };
 
     private static Dictionary<string, string> Turkish()
@@ -31,6 +34,9 @@ public sealed class DefaultLocalizer : IIntentumLocalizer
             { LocalizationKeys.DecisionAllow, "İzin Ver" },
             { LocalizationKeys.DecisionObserve, "İzle" },
             { LocalizationKeys.DecisionWarn, "Uyar" },
-            { LocalizationKeys.DecisionBlock, "Engelle" }
+            { LocalizationKeys.DecisionBlock, "Engelle" },
+            { LocalizationKeys.DecisionEscalate, "Yükselt" },
+            { LocalizationKeys.DecisionRequireAuth, "Kimlik Doğrulama Gerekli" },
+            { LocalizationKeys.DecisionRateLimit, "Hız Sınırı" }
         };
 }

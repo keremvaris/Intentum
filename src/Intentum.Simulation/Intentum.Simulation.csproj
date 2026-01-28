@@ -1,0 +1,22 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <NoWarn>$(NoWarn);1591</NoWarn>
+    <PackageId>Intentum.Simulation</PackageId>
+    <Authors>Intentum Contributors</Authors>
+    <Description>Intent simulation: generate synthetic behavior spaces and sequences for testing.</Description>
+    <PackageTags>intent;behavior;ai;simulation;testing;dotnet</PackageTags>
+    <RepositoryUrl>https://github.com/keremvaris/Intentum</RepositoryUrl>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Intentum.Core\Intentum.Core.csproj" />
+  </ItemGroup>
+
+</Project>

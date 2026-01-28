@@ -27,12 +27,13 @@ BDD vs Intentum
 
 Documentation
 - GitHub Pages (EN/TR): https://keremvaris.github.io/Intentum/
+- **Architecture (EN/TR):** [docs/en/architecture.md](docs/en/architecture.md) — core flow, package layout, inference pipeline, persistence/analytics/rate-limiting/multi-tenancy (Mermaid diagrams).
 - English docs: docs/en/index.md
 - Turkish docs: docs/tr/index.md
   - Enable in GitHub: Settings -> Pages -> Source: GitHub Actions
 - API reference (auto): https://keremvaris.github.io/Intentum/api/
 - **CodeGen (EN/TR):** [docs/en/codegen.md](docs/en/codegen.md) — scaffold CQRS + Intentum, generate Features from test assembly or YAML; dotnet new template; full usage.
-- **Sample.Web:** CQRS + Intentum API with **Scalar** docs and a **web UI** at `/`. Run: `dotnet run --project samples/Intentum.Sample.Web` (UI: http://localhost:5150/, API docs: http://localhost:5150/scalar).
+- **Sample.Web:** CQRS + Intentum API with **Scalar** docs and a **web UI** at `/`. Run: `dotnet run --project samples/Intentum.Sample.Web` (UI: http://localhost:5150/, API docs: http://localhost:5150/scalar). Endpoints: `/api/carbon/calculate`, `/api/orders`, **`POST /api/intent/infer`** (intent + rate limit + history), **`GET /api/intent/analytics/summary`**, **`GET /api/intent/analytics/export/json`**, **`GET /api/intent/analytics/export/csv`**, `/health`.
 
 CI & SonarCloud (free for public repos)
 - CI runs on push/PR to `master`: build, test, coverage artifact, SonarCloud analysis.
@@ -120,6 +121,13 @@ Packages
 - Intentum.AI.Claude
 - Intentum.AI.Mistral
 - Intentum.AI.AzureOpenAI
+- Intentum.Testing (test utilities)
+- Intentum.AspNetCore (middleware, health checks)
+- Intentum.Observability (OpenTelemetry metrics)
+- Intentum.Logging (Serilog integration)
+- Intentum.Persistence (persistence interfaces)
+- Intentum.Persistence.EntityFramework (EF Core implementation)
+- Intentum.Analytics (intent analytics, trends, decision distribution, anomaly detection, JSON/CSV export)
 
 Configuration (env vars)
 - OPENAI_API_KEY, OPENAI_EMBEDDING_MODEL, OPENAI_BASE_URL

@@ -2,6 +2,8 @@
 items:
   - name: Home
     href: index.md
+  - name: Architecture
+    href: architecture.md
   - name: Setup
     href: setup.md
   - name: Scenarios
@@ -18,3 +20,5 @@ items:
     href: coverage.md
   - name: API
     href: api.md
+  - name: Advanced Features
+    href: advanced-features.md

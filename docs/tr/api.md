@@ -8,7 +8,7 @@ Bu sayfa ana tipleri ve birbirleriyle nasıl uyumlu olduklarını açıklar. Tam
 
 1. **Gözlemle** — Kullanıcı veya sistem olaylarını (örn. login, retry, submit) bir **BehaviorSpace** içine kaydedersin.
 2. **Çıkar** — Bir **LlmIntentModel** (embedding sağlayıcı ve similarity engine ile) bu davranışı bir **Intent** ve güven seviyesine (High / Medium / Low / Certain) dönüştürür.
-3. **Karar ver** — **Intent** ve bir **IntentPolicy** (kurallar) ile **Decide** çağırırsın; **Allow**, **Observe**, **Warn** veya **Block** alırsın.
+3. **Karar ver** — **Intent** ve bir **IntentPolicy** (kurallar) ile **Decide** çağırırsın; **Allow**, **Observe**, **Warn**, **Block**, **Escalate**, **RequireAuth** veya **RateLimit** alırsın.
 
 Yani: *davranış → intent → policy kararı*. Sabit senaryo adımları yok; model gözlenen olaylardan intent’i çıkarır.
 
@@ -32,13 +32,33 @@ Yani: *davranış → intent → policy kararı*. Sabit senaryo adımları yok; 
 | Tip | Ne işe yarar |
 |-----|----------------|
 | **IntentPolicy** | Sıralı kural listesi. `.AddRule(PolicyRule(...))` ile kural eklenir. İlk eşleşen kural kazanır. |
-| **PolicyRule** | İsim + koşul (örn. `Intent` üzerinde lambda) + **PolicyDecision** (Allow, Observe, Warn, Block). |
+| **IntentPolicyBuilder** | IntentPolicy oluşturmak için fluent builder. `.Allow(...)`, `.Block(...)`, `.Escalate(...)` vb. metodlar kullanılır. |
+| **PolicyRule** | İsim + koşul (örn. `Intent` üzerinde lambda) + **PolicyDecision** (Allow, Observe, Warn, Block, Escalate, RequireAuth, RateLimit). |
+| **PolicyDecision** | Karar enum'u: **Allow**, **Observe**, **Warn**, **Block**, **Escalate**, **RequireAuth**, **RateLimit**. |
 | **IntentPolicyEngine** | Intent’i policy’ye göre değerlendirir; **PolicyDecision** döndürür. |
 | **RuntimeExtensions.Decide** | Extension: `intent.Decide(policy)` — policy’yi çalıştırır ve kararı döndürür. |
+| **RuntimeExtensions.DecideWithRateLimit** / **DecideWithRateLimitAsync** | Karar RateLimit olduğunda **IRateLimiter** ile kontrol eder; **RateLimitResult** (Allowed, CurrentCount, Limit, RetryAfter) döndürür. |
+| **IRateLimiter** / **MemoryRateLimiter** | PolicyDecision.RateLimit için rate limiting. **MemoryRateLimiter** = in-memory fixed window; çok node için dağıtık implementasyon kullanın. |
+| **RateLimitResult** | Allowed, CurrentCount, Limit, RetryAfter. |
 | **RuntimeExtensions.ToLocalizedString** | Extension: `decision.ToLocalizedString(localizer)` — insan tarafından okunabilir metin (örn. UI için). |
 | **IIntentumLocalizer** / **DefaultLocalizer** | Karar etiketleri için yerelleştirme (örn. "Allow", "Block"). **DefaultLocalizer** culture alır (örn. `"tr"`). |
 
 **Nereden başlanır:** `.AddRule(...)` ile bir `IntentPolicy` oluştur (örn. önce Block kuralları, sonra Allow). Çıkarımdan sonra `intent.Decide(policy)` çağır.
+
+**Fluent API örneği:**
+```csharp
+var policy = new IntentPolicyBuilder()
+    .Block("ExcessiveRetry", i => i.Signals.Count(s => s.Description.Contains("retry")) >= 3)
+    .Escalate("LowConfidence", i => i.Confidence.Level == "Low")
+    .RequireAuth("SensitiveAction", i => i.Signals.Any(s => s.Description.Contains("sensitive")))
+    .Allow("HighConfidence", i => i.Confidence.Level is "High" or "Certain")
+    .Build();
+```
+
+**Yeni karar tipleri:**
+- **Escalate** — Daha yüksek seviyeye yükselt
+- **RequireAuth** — Devam etmeden önce ek kimlik doğrulama gerektir
+- **RateLimit** — Aksiyona hız sınırı uygula
 
 ---
 
@@ -74,6 +94,21 @@ Sağlayıcılar **AddIntentum\*** extension metodları ve options (env var) ile 
 
 ---
 
+## Analytics (`Intentum.Analytics`)
+
+| Tip | Ne işe yarar |
+|-----|----------------|
+| **IIntentAnalytics** | Intent history üzerinde analytics: confidence trendleri, decision dağılımı, anomali tespiti, export. |
+| **IntentAnalytics** | IIntentHistoryRepository kullanan varsayılan implementasyon. |
+| **ConfidenceTrendPoint** | Confidence trendinde bir bucket (BucketStart, BucketEnd, ConfidenceLevel, Count, AverageScore). |
+| **DecisionDistributionReport** | Zaman penceresinde PolicyDecision başına sayı. |
+| **AnomalyReport** | Tespit edilen anomali (Type, Description, Severity, Details). |
+| **AnalyticsSummary** | Dashboard için özet (trends, distribution, anomalies). |
+
+**Nereden başlanır:** `IIntentHistoryRepository` kaydedin (örn. `AddIntentumPersistence`), sonra `AddIntentAnalytics()` ekleyin ve `IIntentAnalytics` inject edin. `GetSummaryAsync()`, `GetConfidenceTrendsAsync()`, `GetDecisionDistributionAsync()`, `DetectAnomaliesAsync()`, `ExportToJsonAsync()`, `ExportToCsvAsync()` kullanın.
+
+---
+
 ## Minimal kod özeti
 
 ```csharp
@@ -89,9 +124,13 @@ var model = new LlmIntentModel(
     new SimpleAverageSimilarityEngine());
 var intent = model.Infer(space);
 
-// 3) Karar ver
-var policy = new IntentPolicy()
-    .AddRule(new PolicyRule("AllowHigh", i => i.Confidence.Level is "High" or "Certain", PolicyDecision.Allow));
+// 3) Karar ver (fluent API ile)
+var policy = new IntentPolicyBuilder()
+    .Block("ExcessiveRetry", i => i.Signals.Count(s => s.Description.Contains("retry")) >= 3)
+    .Escalate("LowConfidence", i => i.Confidence.Level == "Low")
+    .RequireAuth("SensitiveAction", i => i.Signals.Any(s => s.Description.Contains("sensitive")))
+    .Allow("HighConfidence", i => i.Confidence.Level is "High" or "Certain")
+    .Build();
 var decision = intent.Decide(policy);
 ```
 
