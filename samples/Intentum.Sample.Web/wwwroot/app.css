@@ -1,0 +1,97 @@
+:root {
+  --bg: #0f1419;
+  --surface: #1a2332;
+  --border: #2d3a4d;
+  --text: #e6edf3;
+  --muted: #8b949e;
+  --accent: #58a6ff;
+  --success: #3fb950;
+  --error: #f85149;
+}
+
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  line-height: 1.5;
+}
+
+header {
+  padding: 1.5rem 2rem;
+  border-bottom: 1px solid var(--border);
+  background: var(--surface);
+}
+header h1 { margin: 0 0 0.25rem 0; font-size: 1.5rem; }
+header p { margin: 0; color: var(--muted); font-size: 0.95rem; }
+header nav { margin-top: 0.75rem; }
+header a { color: var(--accent); text-decoration: none; }
+header a:hover { text-decoration: underline; }
+
+main {
+  max-width: 42rem;
+  margin: 0 auto;
+  padding: 2rem;
+}
+
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 1.25rem 1.5rem;
+  margin-bottom: 1.5rem;
+}
+.card h2 { margin: 0 0 0.5rem 0; font-size: 1.1rem; }
+.card p { margin: 0 0 1rem 0; color: var(--muted); font-size: 0.9rem; }
+
+form label {
+  display: block;
+  margin-bottom: 0.75rem;
+  font-size: 0.9rem;
+}
+form input {
+  display: block;
+  width: 100%;
+  max-width: 20rem;
+  margin-top: 0.25rem;
+  padding: 0.5rem 0.6rem;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  color: var(--text);
+  font-size: 0.95rem;
+}
+form input:focus {
+  outline: none;
+  border-color: var(--accent);
+}
+form button {
+  margin-top: 0.5rem;
+  padding: 0.5rem 1rem;
+  background: var(--accent);
+  color: var(--bg);
+  border: none;
+  border-radius: 6px;
+  font-weight: 600;
+  cursor: pointer;
+  font-size: 0.9rem;
+}
+form button:hover { opacity: 0.9; }
+form button:disabled { opacity: 0.6; cursor: not-allowed; }
+
+.result {
+  margin: 1rem 0 0 0;
+  padding: 0.75rem 1rem;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  font-size: 0.85rem;
+  white-space: pre-wrap;
+  word-break: break-all;
+  min-height: 2.5rem;
+}
+.result.empty { color: var(--muted); }
+.result.err { color: var(--error); }
+.result.ok { color: var(--success); }

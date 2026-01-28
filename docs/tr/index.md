@@ -68,6 +68,7 @@ Kısaca: **Given/When/Then kalktı; yerine Observe (olayları kaydet) → Infer 
 | [API Referansı](api.md) | Ana tipler (BehaviorSpace, Intent, Policy, sağlayıcılar) ve nasıl uyumlu oldukları. |
 | [Sağlayıcılar](providers.md) | OpenAI, Gemini, Mistral, Azure OpenAI, Claude — env var ve DI kurulumu. |
 | [Kullanım Senaryoları](scenarios.md) | Örnek akışlar (tekrarlı ödeme, şüpheli tekrarlar, policy sırası). |
+| [CodeGen](codegen.md) | CQRS + Intentum proje iskeleti; test assembly veya YAML spec’ten Features üretme. |
 | [Test](testing.md) | Birim testleri, coverage, hata senaryoları. |
 | [Coverage](coverage.md) | Coverage üretme ve görüntüleme. |
 

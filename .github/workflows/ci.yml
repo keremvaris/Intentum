@@ -4,22 +4,65 @@ on:
   push:
     branches: [ master ]
   pull_request:
+    types: [ opened, synchronize, reopened ]
     branches: [ master ]
 
+env:
+  DOTNET_VERSION: '10.0.x'
+  SONAR_ORGANIZATION: keremvaris
+  SONAR_PROJECT_KEY: keremvaris_Intentum
+
 jobs:
-  build:
+  build-and-analyze:
+    name: Build and analyze
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
       - uses: actions/setup-dotnet@v4
         with:
-          dotnet-version: '10.0.x'
+          dotnet-version: ${{ env.DOTNET_VERSION }}
+
+      - name: Cache SonarCloud scanner
+        id: cache-sonar-scanner
+        uses: actions/cache@v4
+        with:
+          path: .sonar/scanner
+          key: ${{ runner.os }}-sonar-scanner
+          restore-keys: ${{ runner.os }}-sonar-scanner-
+
+      - name: Install SonarScanner for .NET
+        if: steps.cache-sonar-scanner.outputs.cache-hit != 'true'
+        run: |
+          mkdir -p .sonar/scanner
+          dotnet tool install dotnet-sonarscanner --tool-path .sonar/scanner
+
+      - name: SonarCloud begin
+        run: |
+          .sonar/scanner/dotnet-sonarscanner begin \
+            /k:"${{ env.SONAR_PROJECT_KEY }}" \
+            /o:"${{ env.SONAR_ORGANIZATION }}" \
+            /d:sonar.token="${{ secrets.SONAR_TOKEN }}" \
+            /d:sonar.host.url="https://sonarcloud.io" \
+            /d:sonar.cs.opencover.reportsPaths="**/coverage.opencover.xml"
+
       - name: Restore
         run: dotnet restore Intentum.slnx
+
       - name: Build
         run: dotnet build Intentum.slnx --no-restore
+
       - name: Test
-        run: dotnet test tests/Intentum.Tests/Intentum.Tests.csproj --no-build --collect:"XPlat Code Coverage" --results-directory TestResults
+        run: >
+          dotnet test tests/Intentum.Tests/Intentum.Tests.csproj --no-build
+          --collect:"XPlat Code Coverage;Format=opencover"
+          --results-directory TestResults
+
+      - name: SonarCloud end
+        run: .sonar/scanner/dotnet-sonarscanner end /d:sonar.token="${{ secrets.SONAR_TOKEN }}"
+
       - name: Upload coverage artifact
         uses: actions/upload-artifact@v4
         with:

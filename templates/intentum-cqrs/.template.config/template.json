@@ -1,0 +1,14 @@
+{
+  "$schema": "http://json.schemastore.org/template",
+  "author": "Intentum",
+  "classifications": [ "Web", "CQRS", "Intentum" ],
+  "identity": "Intentum.Cqrs.Web",
+  "name": "Intentum CQRS Web API",
+  "shortName": "intentum-cqrs",
+  "tags": {
+    "language": "C#",
+    "type": "project"
+  },
+  "sourceName": "Intentum.Cqrs.Web",
+  "preferNameDirectory": true
+}

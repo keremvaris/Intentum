@@ -1,11 +1,13 @@
 <Solution>
   <Folder Name="/samples/">
     <Project Path="samples/Intentum.Sample/Intentum.Sample.csproj" />
+    <Project Path="samples/Intentum.Sample.Web/Intentum.Sample.Web.csproj" />
   </Folder>
   <Folder Name="/tests/">
     <Project Path="tests/Intentum.Tests/Intentum.Tests.csproj" />
   </Folder>
   <Folder Name="/src/">
+    <Project Path="src/Intentum.CodeGen/Intentum.CodeGen.csproj" />
     <Project Path="src/Intentum.AI.AzureOpenAI/Intentum.AI.AzureOpenAI.csproj" />
     <Project Path="src/Intentum.AI.Claude/Intentum.AI.Claude.csproj" />
     <Project Path="src/Intentum.AI.Gemini/Intentum.AI.Gemini.csproj" />

@@ -6,6 +6,9 @@
 **/*.nupkg
 **/*.snupkg
 
+## SonarCloud scanner (CI cache)
+.sonar/
+
 ## IDE / OS
 .idea/
 .vscode/

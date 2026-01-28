@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Intentum Sample Web</title>
+  <link rel="stylesheet" href="/app.css" />
+</head>
+<body>
+  <header>
+    <h1>Intentum Sample Web</h1>
+    <p>CQRS + Intentum API — Carbon, Orders</p>
+    <nav>
+      <a href="/scalar" target="_blank">API docs (Scalar)</a>
+    </nav>
+  </header>
+
+  <main>
+    <section class="card">
+      <h2>Carbon footprint (Intentum)</h2>
+      <p>Observe → Infer → Decide. Actor + Scope.</p>
+      <form id="carbon-form">
+        <label>Actor <input name="actor" value="analyst" required /></label>
+        <label>Scope <input name="scope" value="facility-A" required /></label>
+        <label>Estimated tons CO₂ (optional) <input name="estimatedTonsCo2" type="number" step="0.01" placeholder="e.g. 120" /></label>
+        <button type="submit">Calculate</button>
+      </form>
+      <pre id="carbon-result" class="result"></pre>
+    </section>
+
+    <section class="card">
+      <h2>Get carbon report</h2>
+      <form id="report-form">
+        <label>Report ID <input name="reportId" value="abc1234567" placeholder="min 10 chars" /></label>
+        <button type="submit">Get report</button>
+      </form>
+      <pre id="report-result" class="result"></pre>
+    </section>
+
+    <section class="card">
+      <h2>Place order</h2>
+      <form id="order-form">
+        <label>Product ID <input name="productId" value="PROD-001" required /></label>
+        <label>Quantity <input name="quantity" type="number" value="2" min="1" required /></label>
+        <label>Customer ID <input name="customerId" value="CUST-1" required /></label>
+        <button type="submit">Place order</button>
+      </form>
+      <pre id="order-result" class="result"></pre>
+    </section>
+  </main>
+
+  <script src="/app.js"></script>
+</body>
+</html>

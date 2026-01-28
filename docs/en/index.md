@@ -68,6 +68,7 @@ In short: **Given/When/Then is gone; in its place you have Observe (record event
 | [API Reference](api.md) | Main types (BehaviorSpace, Intent, Policy, providers) and how they fit together. |
 | [Providers](providers.md) | OpenAI, Gemini, Mistral, Azure OpenAI, Claude — env vars and DI setup. |
 | [Usage Scenarios](scenarios.md) | Example flows (payment with retries, suspicious retries, policy order). |
+| [CodeGen](codegen.md) | Scaffold CQRS + Intentum projects; generate Features from test assembly or YAML spec. |
 | [Testing](testing.md) | Unit tests, coverage, error cases. |
 | [Coverage](coverage.md) | How to generate and view coverage. |
 

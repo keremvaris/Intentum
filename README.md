@@ -28,6 +28,12 @@ Documentation
 - Turkish docs: docs/tr/index.md
   - Enable in GitHub: Settings -> Pages -> Source: GitHub Actions
 - API reference (auto): https://keremvaris.github.io/Intentum/api/
+- **CodeGen (EN/TR):** [docs/en/codegen.md](docs/en/codegen.md) — scaffold CQRS + Intentum, generate Features from test assembly or YAML; dotnet new template; full usage.
+- **Sample.Web:** CQRS + Intentum API with **Scalar** docs and a **web UI** at `/`. Run: `dotnet run --project samples/Intentum.Sample.Web` (UI: http://localhost:5150/, API docs: http://localhost:5150/scalar).
+
+CI & SonarCloud (free for public repos)
+- CI runs on push/PR to `master`: build, test, coverage artifact, SonarCloud analysis.
+- To enable **SonarCloud**: sign up at [sonarcloud.io](https://sonarcloud.io), add this repo, then in GitHub → Settings → Secrets and variables → Actions add **Secret** `SONAR_TOKEN` (from SonarCloud → My Account → Security). Project key and org are set in the workflow (`keremvaris_Intentum` / `keremvaris`).
 
 Core Concepts
 Behavior Space
