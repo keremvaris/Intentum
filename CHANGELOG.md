@@ -16,6 +16,14 @@ Bu dosya **conventional commit** mesajlarından otomatik üretilir.
 ## [unreleased]
 
 
+
+### Features
+
+- Introduce CodeGen tool, web sample, and SonarCloud CI
+
+## [0.0.4] - 2026-01-28
+
+
 ### Breaking changes (geriye dönük uyumsuz)
 
 - Enhance breaking change representation *(changelog)*
