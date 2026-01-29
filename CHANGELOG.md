@@ -20,6 +20,13 @@ Bu dosya **conventional commit** mesajlarından otomatik üretilir.
 
 
 
+
+### Bug Fixes
+
+- Clarify PRNG usage in BehaviorSpaceSimulator *(simulation)*
+
+
+
 ### Documentation
 
 - Add advanced features documentation in English and Turkish *(core)*
