@@ -13,6 +13,14 @@ Bu dosya **conventional commit** mesajlarından otomatik üretilir.
 
 ---
 
+## [unreleased]
+
+
+
+### Miscellaneous
+
+- Add check to sync EN and TR doc menus in workflow *(docs)*
+
 ## [0.0.12] - 2026-01-29
 
 
