@@ -37,6 +37,8 @@ Bu dosya **conventional commit** mesajlarından otomatik üretilir.
 
 - Refactor token passing in CI *(sonarcloud)*
 
+- Update GitHub Actions checkout and git-cliff-action versions *(ci)*
+
 
 
 ### Refactor
