@@ -1,35 +1,36 @@
 # Coverage (TR)
 
-Intentum, test projesi için **kod coverage** üretir; böylece birim ve contract testlerinin hangi kod yollarını çalıştırdığını görebilirsin. Coverage %100 değil; odak çekirdek davranış ve sağlayıcı contract’ları üzerinde.
+Intentum, test projesi için **kod coverage** üretir; böylece birim ve contract testlerinin hangi kod yollarını çalıştırdığını görebilirsin. Proje, kütüphane kodu için **en az %80** satır coverage hedefler; eşik test projesindeki Coverlet ayarı ve SonarCloud kalite kapısı ile zorunludur.
 
-Bu sayfa coverage’ı yerelde nasıl üreteceğini, CI’da nasıl üretildiğini ve raporu nerede görüntüleyeceğini anlatır. Neyin test edildiği için [Test](testing.md).
+Bu sayfa coverage'ı yerelde nasıl üreteceğini, CI'da nasıl üretildiğini ve raporu nerede görüntüleyeceğini anlatır. Neyin test edildiği için [Test](testing.md).
 
 ---
 
 ## Mevcut durum
 
-- **Coverage %100 değil.** Proje contract testleri ve ana davranış yollarına (BehaviorSpace, Infer, Decide, sağlayıcı parse) öncelik veriyor.
-- **Kapsanan:** Çekirdek kütüphaneler (Intentum.Core, Intentum.Runtime, Intentum.AI) ve mock HTTP ile sağlayıcı parse. Bazı kenar yollar veya opsiyonel özellikler kapsanmamış olabilir.
-- **CI:** GitHub Actions workflow’u (örn. `pages.yml` veya `ci.yml`) testleri coverage ile çalıştırıp HTML raporunu GitHub Pages’e (örn. `/coverage/index.html`) yayımlayabilir.
+- **Hedef: %80+** satır coverage (kütüphane kodu). Test projesinde `Threshold=80` (Coverlet) tanımlı; SonarCloud kalite kapısı "Coverage on New Code" için aynı eşiği isteyebilir.
+- **Kapsanan:** Çekirdek kütüphaneler (Intentum.Core, Intentum.Runtime, Intentum.AI), sağlayıcı IntentModel'leri (OpenAI, Gemini, Mistral, Azure) mock embedding sağlayıcı ile, policy ve clustering, options doğrulama, mock HTTP ile sağlayıcı parse.
+- **CI:** `ci.yml` testleri `--collect:"XPlat Code Coverage;Format=opencover"` ile çalıştırır, raporu SonarCloud için yükler. `pages.yml` isteğe bağlı HTML raporu GitHub Pages'e yayımlayabilir.
 
 ---
 
 ## Yerelde coverage üretme
 
-Reponun kökünden Coverlet ve OpenCover formatıyla test çalıştır:
+Reponun kökünden coverage ile test çalıştır (SonarCloud ile uyumlu OpenCover formatı):
 
 ```bash
 dotnet test tests/Intentum.Tests/Intentum.Tests.csproj \
-  /p:CollectCoverage=true \
-  /p:CoverletOutputFormat=opencover \
-  /p:CoverletOutput=TestResults/coverage/
+  --collect:"XPlat Code Coverage;Format=opencover" \
+  --results-directory TestResults
 ```
 
-İsteğe bağlı: satır satır coverage görmek için ReportGenerator ile HTML rapor üret:
+Coverage dosyası `TestResults/<run-id>/coverage.opencover.xml` altında yazılır.
+
+İsteğe bağlı: ReportGenerator ile HTML rapor üret:
 
 ```bash
 dotnet tool install -g dotnet-reportgenerator-globaltool
-reportgenerator -reports:TestResults/coverage/coverage.opencover.xml -targetdir:coverage -reporttypes:Html
+reportgenerator -reports:TestResults/**/coverage.opencover.xml -targetdir:coverage -reporttypes:Html
 ```
 
 Sonra tarayıcıda `coverage/index.html` aç.
@@ -38,19 +39,15 @@ Sonra tarayıcıda `coverage/index.html` aç.
 
 ## Son raporu görüntüleme (CI)
 
-Workflow’un coverage’ı GitHub Pages’e yayımlıyorsa:
-
-- **HTML rapor:** `https://<org>.github.io/Intentum/coverage/index.html` (veya Pages workflow’unda tanımlı path).
-- **Badge’ler:** Bazı workflow’lar README’ye coverage badge’i (örn. satır coverage %) ekler; badge rapora gider.
-
-Tam path ve artifact yapısı için `pages.yml` (veya benzeri) dosyana bak.
+- **README badge:** README'deki coverage rozeti **SonarCloud**'dan gelir (her CI analizinden sonra güncellenir). Tıklayınca SonarCloud proje özeti açılır.
+- **GitHub Pages:** `pages.yml` çalıştıysa HTML rapor `https://<org>.github.io/Intentum/coverage/index.html` adresinde olabilir (path workflow'a göre değişir).
 
 ---
 
 ## Notlar
 
-- **ReportGenerator** yerel kullanım için opsiyonel; CI zaten yayımlanan HTML ve badge’ler için kullanıyor olabilir.
-- **Eşikler:** Test veya CI adımında coverage eşiği (örn. satır coverage X%’in altına düşerse build fail) ekleyebilirsin; bu repo varsayılan olarak zorunlu tutmuyor.
-- **Hariç tutma:** Coverage’dan tip veya metot hariç tutmak (örn. üretilen kod) için Coverlet exclude seçenekleri veya proje dosyasında attribute kullan.
+- **SonarCloud hariç tutmalar:** CodeGen (CLI aracı), `*ServiceCollectionExtensions`, `*CachingExtensions`, `MultiTenancyExtensions` ve opsiyonel sağlayıcı (Claude) SonarCloud coverage'dan çıkarılmıştır; "Coverage on New Code" sadece test edilen kütüphaneyi yansıtır. Bkz. `.sonarcloud.properties`.
+- **Eşikler:** Test projesinde (`Intentum.Tests.csproj`) `Threshold=80` ve `ThresholdType=line` ayarlı; SonarCloud kalite kapısı da yeni kod için %80 isteyebilir.
+- **Hariç tutma:** Coverlet ile tip/metot hariç tutmak (örn. üretilen kod) için proje dosyasında Coverlet exclude seçenekleri veya attribute kullan.
 
 Test yapısı ve kapsananlar için [Test](testing.md).

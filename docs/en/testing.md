@@ -34,12 +34,17 @@ dotnet test tests/Intentum.Tests/Intentum.Tests.csproj -v n
 
 | Area | What we test |
 |------|----------------|
-| **BehaviorSpace** | Building a space with `Observe(actor, action)`, event count, and `ToVector()` dimensions. |
-| **Intent inference** | `LlmIntentModel` with mock provider and `SimpleAverageSimilarityEngine`: confidence level and score, signals. |
-| **Policy decisions** | `IntentPolicy` and rule order: first matching rule wins; Allow, Observe, Warn, Block outcomes. |
+| **BehaviorSpace** | Building a space with `Observe(actor, action)`, event count, and `ToVector()` dimensions; `IntentumCoreExtensions` (Observe, EvaluateIntent, IntentEvaluator.Normalize). |
+| **Intent inference** | `LlmIntentModel` with mock provider and `SimpleAverageSimilarityEngine`: confidence level and score, signals; **IntentConfidence** (FromScore for Low/Medium/High/Certain). |
+| **Policy decisions** | `IntentPolicy` and **IntentPolicyEngine**: rule order, first matching rule wins, no rule match, empty policy; Allow, Observe, Warn, Block outcomes; **PolicyDecisionTypes** (ToLocalizedString); **RuntimeExtensions** (DecideWithRateLimit / DecideWithRateLimitAsync with and without rate limit). |
+| **Localization** | **DefaultLocalizer** for decision labels (culture, known/unknown keys). |
+| **Options validation** | **OpenAIOptions**, **AzureOpenAIOptions**, **GeminiOptions**, **MistralOptions** `Validate()`: valid case and invalid (empty API key, embedding model, base URL) throw. |
 | **Provider response parsing** | Each embedding provider (OpenAI, Gemini, Mistral, Azure OpenAI) with a **mock HttpClient** that returns a fixed JSON response; we assert the parsed embedding score (or exception on non-200). |
+| **Provider IntentModels** | **OpenAIIntentModel**, **GeminiIntentModel**, **MistralIntentModel**, **AzureOpenAIIntentModel** with **MockEmbeddingProvider**: infer returns expected confidence and signals. |
+| **Clustering** | **AddIntentClustering** registration; **IntentClusterer** (cluster Id, RecordIds, ClusterSummary average/min/max). |
+| **Testing utilities** | **IntentAssertions** (HasSignalCount, ContainsSignal), **PolicyDecisionAssertions** (IsAllow, IsBlock, IsNotBlock), **TestHelpers.CreateModel**. |
 
-So: we don’t call real APIs; we feed fake JSON and check that the provider and model produce the expected `Intent` and `PolicyDecision`.
+So: we don’t call real APIs; we feed fake JSON or use mock providers and check that the provider and model produce the expected `Intent` and `PolicyDecision`.
 
 ---
 

@@ -1,6 +1,6 @@
 # Coverage (EN)
 
-Intentum generates **code coverage** for the test project so you can see which code paths are exercised by unit and contract tests. Coverage is not 100%; the focus is on core behavior and provider contracts.
+Intentum generates **code coverage** for the test project so you can see which code paths are exercised by unit and contract tests. The project targets **at least 80%** line coverage on the library code; coverage is enforced via the test project’s Coverlet threshold and SonarCloud quality gate.
 
 This page explains how to generate coverage locally, how CI generates it, and where to view the report. For what is tested, see [Testing](testing.md).
 
@@ -8,28 +8,29 @@ This page explains how to generate coverage locally, how CI generates it, and wh
 
 ## Current status
 
-- **Coverage is not 100%.** The project prioritizes contract tests and main behavior paths (BehaviorSpace, Infer, Decide, provider parsing).
-- **Covered:** Core libraries (Intentum.Core, Intentum.Runtime, Intentum.AI) and provider parsing with mock HTTP. Some edge paths or optional features may be uncovered.
-- **CI:** The GitHub Actions workflow (e.g. `pages.yml` or `ci.yml`) can run tests with coverage and publish an HTML report to GitHub Pages (e.g. `/coverage/index.html`).
+- **Target: 80%+** line coverage on library code. The test project sets `Threshold=80` (Coverlet); SonarCloud quality gate can require the same for “Coverage on New Code.”
+- **Covered:** Core libraries (Intentum.Core, Intentum.Runtime, Intentum.AI), provider IntentModels (OpenAI, Gemini, Mistral, Azure) with mock embedding provider, policy and clustering, options validation, and provider HTTP parsing with mock HTTP.
+- **CI:** `ci.yml` runs tests with `--collect:"XPlat Code Coverage;Format=opencover"`, uploads the report for SonarCloud. `pages.yml` can publish an HTML report to GitHub Pages.
 
 ---
 
 ## Generate coverage locally
 
-From the repository root, run tests with Coverlet and OpenCover format:
+From the repository root, run tests with coverage (OpenCover format for SonarCloud):
 
 ```bash
 dotnet test tests/Intentum.Tests/Intentum.Tests.csproj \
-  /p:CollectCoverage=true \
-  /p:CoverletOutputFormat=opencover \
-  /p:CoverletOutput=TestResults/coverage/
+  --collect:"XPlat Code Coverage;Format=opencover" \
+  --results-directory TestResults
 ```
 
-Optional: generate an HTML report with ReportGenerator so you can browse line-by-line coverage:
+The coverage file is written under `TestResults/<run-id>/coverage.opencover.xml`.
+
+Optional: generate an HTML report with ReportGenerator:
 
 ```bash
 dotnet tool install -g dotnet-reportgenerator-globaltool
-reportgenerator -reports:TestResults/coverage/coverage.opencover.xml -targetdir:coverage -reporttypes:Html
+reportgenerator -reports:TestResults/**/coverage.opencover.xml -targetdir:coverage -reporttypes:Html
 ```
 
 Then open `coverage/index.html` in a browser.
@@ -38,19 +39,15 @@ Then open `coverage/index.html` in a browser.
 
 ## View the latest report (CI)
 
-If your workflow publishes coverage to GitHub Pages:
-
-- **HTML report:** `https://<your-org>.github.io/Intentum/coverage/index.html` (or the path configured in your Pages workflow).
-- **Badges:** Some workflows add a coverage badge (e.g. line coverage %) to the README; the badge links to the coverage report.
-
-Check your `pages.yml` (or similar) for the exact path and artifact layout.
+- **README badge:** The coverage badge in the README comes from **SonarCloud** (updated after each CI analysis). Click it to open the SonarCloud project summary.
+- **GitHub Pages:** If `pages.yml` has run, an HTML report may be at `https://<your-org>.github.io/Intentum/coverage/index.html` (path depends on the Pages workflow).
 
 ---
 
 ## Notes
 
-- **ReportGenerator** is optional for local use; CI may already use it to produce the published HTML and badges.
-- **Thresholds:** You can add a coverage threshold (e.g. fail the build if line coverage drops below X%) in your test or CI step; this repo does not enforce one by default.
-- **Excluding code:** To exclude types or methods from coverage (e.g. generated code), use Coverlet’s exclude options or attributes in the project file.
+- **SonarCloud exclusions:** CodeGen (CLI tool), `*ServiceCollectionExtensions`, `*CachingExtensions`, `MultiTenancyExtensions`, and optional provider (Claude) are excluded from coverage in SonarCloud so “Coverage on New Code” reflects the tested library. See `.sonarcloud.properties`.
+- **Thresholds:** The test project (`Intentum.Tests.csproj`) sets `Threshold=80` and `ThresholdType=line` so coverage is enforced; SonarCloud quality gate can also require 80% for new code.
+- **Excluding code:** To exclude types or methods from Coverlet (e.g. generated code), use Coverlet’s exclude options or attributes in the project file.
 
 For test structure and what is covered, see [Testing](testing.md).

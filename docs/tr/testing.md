@@ -34,12 +34,17 @@ dotnet test tests/Intentum.Tests/Intentum.Tests.csproj -v n
 
 | Alan | Neyi test ediyoruz |
 |------|---------------------|
-| **BehaviorSpace** | `Observe(actor, action)` ile space oluşturma, olay sayısı, `ToVector()` boyutları. |
-| **Intent çıkarımı** | Mock sağlayıcı ve `SimpleAverageSimilarityEngine` ile `LlmIntentModel`: güven seviyesi ve skor, sinyaller. |
-| **Policy kararları** | `IntentPolicy` ve kural sırası: ilk eşleşen kural kazanır; Allow, Observe, Warn, Block sonuçları. |
+| **BehaviorSpace** | `Observe(actor, action)` ile space oluşturma, olay sayısı, `ToVector()` boyutları; `IntentumCoreExtensions` (Observe, EvaluateIntent, IntentEvaluator.Normalize). |
+| **Intent çıkarımı** | Mock sağlayıcı ve `SimpleAverageSimilarityEngine` ile `LlmIntentModel`: güven seviyesi ve skor, sinyaller; **IntentConfidence** (FromScore: Low/Medium/High/Certain). |
+| **Policy kararları** | `IntentPolicy` ve **IntentPolicyEngine**: kural sırası, ilk eşleşen kural kazanır, eşleşen kural yok, boş policy; Allow, Observe, Warn, Block sonuçları; **PolicyDecisionTypes** (ToLocalizedString); **RuntimeExtensions** (DecideWithRateLimit / DecideWithRateLimitAsync, rate limit uygulanan/uygulanmayan). |
+| **Yerelleştirme** | **DefaultLocalizer**: karar etiketleri (kültür, bilinen/bilinmeyen anahtarlar). |
+| **Options doğrulama** | **OpenAIOptions**, **AzureOpenAIOptions**, **GeminiOptions**, **MistralOptions** `Validate()`: geçerli durum ve geçersiz (boş API key, embedding model, base URL) throw. |
 | **Sağlayıcı cevap parse** | Her embedding sağlayıcısı (OpenAI, Gemini, Mistral, Azure OpenAI) için **mock HttpClient** ile sabit JSON cevabı; parse edilen embedding skorunu (veya non-200’de exception) assert ediyoruz. |
+| **Sağlayıcı IntentModel'leri** | **OpenAIIntentModel**, **GeminiIntentModel**, **MistralIntentModel**, **AzureOpenAIIntentModel** ile **MockEmbeddingProvider**: infer beklenen confidence ve sinyalleri döndürür. |
+| **Clustering** | **AddIntentClustering** kaydı; **IntentClusterer** (cluster Id, RecordIds, ClusterSummary ortalama/min/max). |
+| **Test yardımcıları** | **IntentAssertions** (HasSignalCount, ContainsSignal), **PolicyDecisionAssertions** (IsAllow, IsBlock, IsNotBlock), **TestHelpers.CreateModel**. |
 
-Yani: gerçek API çağırmıyoruz; sahte JSON veriyoruz ve sağlayıcı ile modelin beklenen `Intent` ve `PolicyDecision` ürettiğini kontrol ediyoruz.
+Yani: gerçek API çağırmıyoruz; sahte JSON veya mock sağlayıcı kullanıyoruz ve sağlayıcı ile modelin beklenen `Intent` ve `PolicyDecision` ürettiğini kontrol ediyoruz.
 
 ---
 
