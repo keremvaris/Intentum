@@ -68,6 +68,8 @@ Bu dosya **conventional commit** mesajlarından otomatik üretilir.
 
 - Update policy decision assertion to include Warn *(testing-utilities)*
 
+- Add extensive unit tests and coverage threshold *(core)*
+
 ## [0.0.7] - 2026-01-28
 
 
