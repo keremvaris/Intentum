@@ -13,6 +13,14 @@ Bu dosya **conventional commit** mesajlarından otomatik üretilir.
 
 ---
 
+## [0.0.12] - 2026-01-29
+
+
+
+### Documentation
+
+- Add detailed overview and usage of extended Intentum packages *(advanced-features)*
+
 ## [0.0.11] - 2026-01-29
 
 
