@@ -49,6 +49,8 @@ Bu dosya **conventional commit** mesajlarından otomatik üretilir.
 
 - Introduce RateLimitOptions for rate limit parameters *(rate-limiter)*
 
+- Replace random generator with deterministic hashing for events *(simulation)*
+
 
 
 ### Testing
