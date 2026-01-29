@@ -55,6 +55,8 @@ Bu dosya **conventional commit** mesajlarından otomatik üretilir.
 
 - Adds explicit base URLs to AI provider tests *(providers)*
 
+- Update policy decision assertion to include Warn *(testing-utilities)*
+
 ## [0.0.7] - 2026-01-28
 
 
