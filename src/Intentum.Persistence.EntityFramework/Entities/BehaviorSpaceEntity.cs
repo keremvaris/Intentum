@@ -11,7 +11,7 @@ public sealed class BehaviorSpaceEntity
     public string Id { get; set; } = Guid.NewGuid().ToString();
     public DateTimeOffset CreatedAt { get; set; } = DateTimeOffset.UtcNow;
     public string MetadataJson { get; set; } = "{}";
-    
+
     public ICollection<BehaviorEventEntity> Events { get; set; } = new List<BehaviorEventEntity>();
 
     public static BehaviorSpaceEntity FromBehaviorSpace(BehaviorSpace behaviorSpace)
@@ -33,9 +33,9 @@ public sealed class BehaviorSpaceEntity
     public BehaviorSpace ToBehaviorSpace()
     {
         var space = new BehaviorSpace();
-        
+
         // Restore metadata
-        var metadata = JsonSerializer.Deserialize<Dictionary<string, object>>(MetadataJson) 
+        var metadata = JsonSerializer.Deserialize<Dictionary<string, object>>(MetadataJson)
             ?? new Dictionary<string, object>();
         foreach (var kvp in metadata)
         {
@@ -75,8 +75,8 @@ public sealed class BehaviorEventEntity
             Action = behaviorEvent.Action,
             OccurredAt = behaviorEvent.OccurredAt,
             Sequence = sequence,
-            MetadataJson = behaviorEvent.Metadata != null 
-                ? JsonSerializer.Serialize(behaviorEvent.Metadata) 
+            MetadataJson = behaviorEvent.Metadata != null
+                ? JsonSerializer.Serialize(behaviorEvent.Metadata)
                 : "{}"
         };
     }

@@ -124,7 +124,7 @@ app.UseIntentumBehaviorObservation(new BehaviorObservationOptions
 {
     Enabled = true,
     IncludeHeaders = false,
-    GetActor = ctx => "http",
+    GetActor = _ => "http",
     GetAction = ctx => $"{ctx.Request.Method.ToLowerInvariant()}_{ctx.Request.Path.Value?.Replace("/", "_")}"
 });
 

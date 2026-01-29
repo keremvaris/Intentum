@@ -23,7 +23,7 @@ public class SimilarityEngineTests
             { "user:retry", 0.5 }        // Retry is less important
         };
         var engine = new WeightedAverageSimilarityEngine(weights);
-        
+
         var embeddings = new List<IntentEmbedding>
         {
             new("user:login", 0.8),
@@ -44,7 +44,7 @@ public class SimilarityEngineTests
     {
         // Arrange
         var engine = new WeightedAverageSimilarityEngine();
-        
+
         var embeddings = new List<IntentEmbedding>
         {
             new("user:login", 0.8),
@@ -81,7 +81,7 @@ public class SimilarityEngineTests
             { "user:login", 2.0 }
         };
         var engine = new WeightedAverageSimilarityEngine(weights, defaultWeight: 0.5);
-        
+
         var embeddings = new List<IntentEmbedding>
         {
             new("user:login", 0.8),
@@ -103,11 +103,11 @@ public class SimilarityEngineTests
         var now = DateTimeOffset.UtcNow;
         var halfLife = TimeSpan.FromHours(1);
         var engine = new TimeDecaySimilarityEngine(halfLife, now);
-        
+
         var space = new BehaviorSpace();
         space.Observe(new BehaviorEvent("user", "login", now - TimeSpan.FromMinutes(10)));      // Recent
         space.Observe(new BehaviorEvent("user", "submit", now - TimeSpan.FromHours(2)));        // Older
-        
+
         var embeddings = new List<IntentEmbedding>
         {
             new("user:login", 0.8),
@@ -131,10 +131,10 @@ public class SimilarityEngineTests
         // Arrange
         var now = DateTimeOffset.UtcNow;
         var engine = new TimeDecaySimilarityEngine(TimeSpan.FromHours(1), now);
-        
+
         var space = new BehaviorSpace();
         space.Observe(new BehaviorEvent("user", "login", now));  // Current time
-        
+
         var embeddings = new List<IntentEmbedding>
         {
             new("user:login", 0.8)
@@ -196,7 +196,7 @@ public class SimilarityEngineTests
         var model = new LlmIntentModel(
             new MockEmbeddingProvider(),
             new WeightedAverageSimilarityEngine(weights));
-        
+
         var space = new BehaviorSpace()
             .Observe("user", "login")
             .Observe("user", "submit");
@@ -216,12 +216,12 @@ public class SimilarityEngineTests
     {
         // Arrange
         var engine = new CosineSimilarityEngine();
-        
+
         // Create embeddings with vectors
         var vector1 = new List<double> { 1.0, 0.0, 0.0 }; // Unit vector along x-axis
         var vector2 = new List<double> { 0.0, 1.0, 0.0 }; // Unit vector along y-axis (orthogonal)
         var vector3 = new List<double> { 1.0, 0.0, 0.0 }; // Same as vector1
-        
+
         var embeddings = new List<IntentEmbedding>
         {
             new("user:login", 0.8, vector1),
@@ -244,7 +244,7 @@ public class SimilarityEngineTests
     {
         // Arrange
         var engine = new CosineSimilarityEngine();
-        
+
         var embeddings = new List<IntentEmbedding>
         {
             new("user:login", 0.8),
@@ -297,7 +297,7 @@ public class SimilarityEngineTests
         var model = new LlmIntentModel(
             new MockEmbeddingProvider(),
             new CosineSimilarityEngine());
-        
+
         var space = new BehaviorSpaceBuilder()
             .WithActor("user")
                 .Action("login")
@@ -321,7 +321,7 @@ public class SimilarityEngineTests
         var engine2 = new WeightedAverageSimilarityEngine();
         IIntentSimilarityEngine[] engines = new IIntentSimilarityEngine[] { engine1, engine2 };
         var composite = new CompositeSimilarityEngine(engines);
-        
+
         var embeddings = new List<IntentEmbedding>
         {
             new("user:login", 0.8),
@@ -349,7 +349,7 @@ public class SimilarityEngineTests
             (engine2, 1.0)
         };
         var composite = new CompositeSimilarityEngine(engines);
-        
+
         var embeddings = new List<IntentEmbedding>
         {
             new("user:login", 0.8),
@@ -401,7 +401,7 @@ public class SimilarityEngineTests
             (engine3, 1.0)
         };
         var composite = new CompositeSimilarityEngine(engines);
-        
+
         var embeddings = new List<IntentEmbedding>
         {
             new("user:login", 0.8),
@@ -428,7 +428,7 @@ public class SimilarityEngineTests
         var model = new LlmIntentModel(
             new MockEmbeddingProvider(),
             composite);
-        
+
         var space = new BehaviorSpaceBuilder()
             .WithActor("user")
                 .Action("login")

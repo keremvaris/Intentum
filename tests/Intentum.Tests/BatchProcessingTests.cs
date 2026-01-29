@@ -103,7 +103,7 @@ public class BatchProcessingTests
         {
             // Expected if cancellation happens
         }
-        
+
         // Test passes if no exception or OperationCanceledException
         Assert.True(true);
     }

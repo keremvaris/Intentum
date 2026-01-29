@@ -30,8 +30,8 @@ public sealed class IntentHistoryEntity
             ConfidenceScore = record.ConfidenceScore,
             Decision = record.Decision.ToString(),
             RecordedAt = record.RecordedAt,
-            MetadataJson = record.Metadata != null 
-                ? JsonSerializer.Serialize(record.Metadata) 
+            MetadataJson = record.Metadata != null
+                ? JsonSerializer.Serialize(record.Metadata)
                 : "{}"
         };
     }

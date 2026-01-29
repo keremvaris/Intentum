@@ -58,7 +58,7 @@ public sealed class TimeDecaySimilarityEngine : IIntentSimilarityEngine
 
             var age = _referenceTime - timestamp;
             var decayFactor = CalculateDecayFactor(age);
-            
+
             totalWeightedScore += embedding.Score * decayFactor;
             totalWeight += decayFactor;
         }

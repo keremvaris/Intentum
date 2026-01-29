@@ -62,6 +62,16 @@ public class PolicyDecisionTypesTests
     }
 
     [Fact]
+    public void PolicyDecision_ToLocalizedString_Allow_Observe_Warn_Block_ReturnsLocalized()
+    {
+        var localizer = new DefaultLocalizer("en");
+        Assert.Equal("Allow", PolicyDecision.Allow.ToLocalizedString(localizer));
+        Assert.Equal("Observe", PolicyDecision.Observe.ToLocalizedString(localizer));
+        Assert.Equal("Warn", PolicyDecision.Warn.ToLocalizedString(localizer));
+        Assert.Equal("Block", PolicyDecision.Block.ToLocalizedString(localizer));
+    }
+
+    [Fact]
     public void PolicyDecision_ToLocalizedString_Escalate_ReturnsLocalized()
     {
         // Arrange

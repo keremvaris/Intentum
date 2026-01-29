@@ -49,8 +49,8 @@ public sealed class BehaviorSpaceRepository : IBehaviorSpaceRepository
             try
             {
                 var metadata = System.Text.Json.JsonSerializer.Deserialize<Dictionary<string, object>>(bs.MetadataJson);
-                return metadata != null && 
-                       metadata.ContainsKey(key) && 
+                return metadata != null &&
+                       metadata.ContainsKey(key) &&
                        metadata[key].ToString() == value.ToString();
             }
             catch

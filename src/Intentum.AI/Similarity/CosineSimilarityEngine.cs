@@ -15,7 +15,7 @@ public sealed class CosineSimilarityEngine : IIntentSimilarityEngine
 
         // Check if all embeddings have vectors
         var allHaveVectors = embeddings.All(e => e.Vector != null && e.Vector.Count > 0);
-        
+
         if (!allHaveVectors)
         {
             // Fallback to simple average if vectors are not available
@@ -77,7 +77,7 @@ public sealed class CosineSimilarityEngine : IIntentSimilarityEngine
         // Cosine similarity: dot product / (magnitude1 * magnitude2)
         // Normalize to 0-1 range for consistency with other engines
         var cosineSimilarity = dotProduct / (magnitude1 * magnitude2);
-        
+
         // Map from [-1, 1] to [0, 1] for consistency
         return (cosineSimilarity + 1) / 2;
     }

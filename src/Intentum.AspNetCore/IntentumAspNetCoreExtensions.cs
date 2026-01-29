@@ -47,7 +47,7 @@ public static class IntentumAspNetCoreExtensions
     {
         services.AddSingleton<HealthChecks.EmbeddingProviderHealthCheck>();
         services.AddSingleton<HealthChecks.PolicyEngineHealthCheck>();
-        
+
         return services.AddHealthChecks()
             .AddCheck<HealthChecks.EmbeddingProviderHealthCheck>(
                 "embedding-provider",
