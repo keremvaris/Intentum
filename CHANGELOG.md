@@ -13,7 +13,15 @@ Bu dosya **conventional commit** mesajlarından otomatik üretilir.
 
 ---
 
-## [unreleased]
+## [0.0.11] - 2026-01-29
+
+
+
+### Refactor
+
+- Migrate to Intentum.Core.Intents namespace *(intent)*
+
+## [0.0.10] - 2026-01-29
 
 
 
