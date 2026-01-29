@@ -17,6 +17,14 @@ Bu dosya **conventional commit** mesajlarından otomatik üretilir.
 
 
 
+### Documentation
+
+- Update coverage documentation with threshold and CI details *(coverage)*
+
+## [0.0.8] - 2026-01-29
+
+
+
 
 
 
