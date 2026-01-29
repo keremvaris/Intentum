@@ -76,6 +76,8 @@ Bu dosya **conventional commit** mesajlarından otomatik üretilir.
 
 - Add enum value containment assertion *(PolicyDecision)*
 
+- Add validation and inference tests for AI options and models *(intent)*
+
 ## [0.0.7] - 2026-01-28
 
 
