@@ -70,6 +70,8 @@ Bu dosya **conventional commit** mesajlarından otomatik üretilir.
 
 - Add extensive unit tests and coverage threshold *(core)*
 
+- Add enum value containment assertion *(PolicyDecision)*
+
 ## [0.0.7] - 2026-01-28
 
 
