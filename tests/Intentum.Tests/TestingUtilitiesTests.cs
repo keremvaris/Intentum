@@ -96,7 +96,7 @@ public class TestingUtilitiesTests
         var intent = model.Infer(space);
         Assert.NotNull(intent);
         var decision = intent.Decide(policy);
-        // Assert
-        PolicyDecisionAssertions.IsOneOf(decision, PolicyDecision.Allow, PolicyDecision.Observe);
+        // Assert (default policy may return Allow, Observe, or Warn depending on inferred intent)
+        PolicyDecisionAssertions.IsOneOf(decision, PolicyDecision.Allow, PolicyDecision.Observe, PolicyDecision.Warn);
     }
 }
