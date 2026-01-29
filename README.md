@@ -2,7 +2,7 @@ Intentum - Intent-Driven Development for the AI Era
 
 [![CI](https://github.com/keremvaris/Intentum/actions/workflows/ci.yml/badge.svg)](https://github.com/keremvaris/Intentum/actions/workflows/ci.yml)
 [![NuGet Intentum.Core](https://img.shields.io/nuget/v/Intentum.Core.svg)](https://www.nuget.org/packages/Intentum.Core)
-[![Coverage](https://keremvaris.github.io/Intentum/coverage/badge_linecoverage.svg)](https://keremvaris.github.io/Intentum/coverage/index.html)
+[![Coverage](https://sonarcloud.io/api/project_badges/measure?project=keremvaris_Intentum&metric=coverage)](https://sonarcloud.io/summary/new_code?id=keremvaris_Intentum)
 [![SonarCloud](https://sonarcloud.io/api/project_badges/measure?project=keremvaris_Intentum&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=keremvaris_Intentum)
 
 Intentum replaces scenario-based BDD with behavior space inference.
