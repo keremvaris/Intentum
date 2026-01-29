@@ -36,6 +36,7 @@ public sealed class BehaviorSpaceSimulator : IBehaviorSpaceSimulator
         if (eventCount < 0)
             throw new ArgumentOutOfRangeException(nameof(eventCount), "Event count must be non-negative.");
 
+        // PRNG used only for synthetic data generation (non-security); deterministic when seed is provided.
         var rnd = randomSeed is { } seed ? new Random(seed) : Random.Shared;
         var space = new BehaviorSpace();
         var time = DateTimeOffset.UtcNow;

@@ -79,7 +79,7 @@ public class TestingUtilitiesTests
         var model = TestHelpers.CreateDefaultModel();
         var space = TestHelpers.CreateSimpleSpace();
         var intent = model.Infer(space);
-
+        Assert.NotNull(intent);
         // Act & Assert
         IntentAssertions.HasConfidenceLevel(intent, intent.Confidence.Level);
         IntentAssertions.HasConfidenceScore(intent, 0.0, 1.0);
