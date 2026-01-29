@@ -1,4 +1,8 @@
 <Solution>
+  <Folder Name="/examples/">
+    <Project Path="examples/fraud-intent/Intentum.Example.FraudIntent.csproj" />
+    <Project Path="examples/ai-fallback-intent/Intentum.Example.AiFallback.csproj" />
+  </Folder>
   <Folder Name="/samples/">
     <Project Path="samples/Intentum.Sample/Intentum.Sample.csproj" />
     <Project Path="samples/Intentum.Sample.Web/Intentum.Sample.Web.csproj" />
@@ -13,6 +17,7 @@
     <Project Path="src/Intentum.AI.Gemini/Intentum.AI.Gemini.csproj" />
     <Project Path="src/Intentum.AI.Mistral/Intentum.AI.Mistral.csproj" />
     <Project Path="src/Intentum.AI.OpenAI/Intentum.AI.OpenAI.csproj" />
+    <Project Path="src/Intentum.Providers/Intentum.Providers.csproj" />
     <Project Path="src/Intentum.AI/Intentum.AI.csproj" />
     <Project Path="src/Intentum.AI.Caching.Redis/Intentum.AI.Caching.Redis.csproj" />
     <Project Path="src/Intentum.Clustering/Intentum.Clustering.csproj" />
@@ -24,5 +29,7 @@
     <Project Path="src/Intentum.Runtime/Intentum.Runtime.csproj" />
     <Project Path="src/Intentum.Simulation/Intentum.Simulation.csproj" />
     <Project Path="src/Intentum.Versioning/Intentum.Versioning.csproj" />
+    <Project Path="src/Intentum.Persistence.Redis/Intentum.Persistence.Redis.csproj" />
+    <Project Path="src/Intentum.Persistence.MongoDB/Intentum.Persistence.MongoDB.csproj" />
   </Folder>
 </Solution>

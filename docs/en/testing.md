@@ -43,6 +43,13 @@ dotnet test tests/Intentum.Tests/Intentum.Tests.csproj -v n
 | **Provider IntentModels** | **OpenAIIntentModel**, **GeminiIntentModel**, **MistralIntentModel**, **AzureOpenAIIntentModel** with **MockEmbeddingProvider**: infer returns expected confidence and signals. |
 | **Clustering** | **AddIntentClustering** registration; **IntentClusterer** (cluster Id, RecordIds, ClusterSummary average/min/max). |
 | **Testing utilities** | **IntentAssertions** (HasSignalCount, ContainsSignal), **PolicyDecisionAssertions** (IsAllow, IsBlock, IsNotBlock), **TestHelpers.CreateModel**. |
+| **Redis embedding cache** | **RedisEmbeddingCache** with in-memory `IDistributedCache` (Get/Set/Remove); no real Redis. |
+| **Webhook / Events** | **WebhookIntentEventHandler**: AddWebhook options, HandleAsync posts to mock HttpClient; **AddIntentumEvents** DI registration. |
+| **Experiments** | **IntentExperiment**: AddVariant, SplitTraffic, RunAsync with mock model/policy. |
+| **Simulation** | **BehaviorSpaceSimulator**: FromSequence, GenerateRandom (with seed). |
+| **Explainability** | **IntentExplainer**: GetSignalContributions, GetExplanation. |
+| **Multi-tenancy** | **TenantAwareBehaviorSpaceRepository**: SaveAsync injects TenantId, GetByIdAsync filters by tenant; uses in-memory repo. |
+| **Versioning** | **PolicyVersionTracker**: Add, Current, Rollback, Rollforward, SetCurrent; **VersionedPolicy**. |
 
 So: we don’t call real APIs; we feed fake JSON or use mock providers and check that the provider and model produce the expected `Intent` and `PolicyDecision`.
 
@@ -74,3 +81,16 @@ Assert.InRange(result.Score, 0.49, 0.51);
 ```
 
 See `ProviderHttpTests` in the repo for real examples. For coverage options (e.g. CollectCoverage, OpenCover), see [Coverage](coverage.md).
+
+---
+
+## What is not covered (yet)
+
+| Area | Status |
+|------|--------|
+| **Intentum.Persistence.MongoDB** | No test project reference; no unit or integration tests for `MongoBehaviorSpaceRepository` / `MongoIntentHistoryRepository`. |
+| **Intentum.Persistence.EntityFramework** | No test project reference; no tests for EF repositories or PostgreSQL/SQL Server. |
+| **Intentum.Persistence.Redis** | No test project reference; no tests for Redis-backed behavior space or intent history repositories. |
+| **Real Redis / MongoDB / PostgreSQL** | All current tests use in-memory or mock implementations. Integration tests against real databases (e.g. Testcontainers) are not in place. |
+
+If you add persistence or run against a real store, consider adding integration tests (e.g. Testcontainers for MongoDB/PostgreSQL/Redis) or at least contract tests with a fake repository that implements the same interface.

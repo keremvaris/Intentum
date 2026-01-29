@@ -1,56 +1,224 @@
-Intentum - Intent-Driven Development for the AI Era
+# Intentum
+
+**Intent-Driven Development for the AI Era**
 
 [![CI](https://github.com/keremvaris/Intentum/actions/workflows/ci.yml/badge.svg)](https://github.com/keremvaris/Intentum/actions/workflows/ci.yml)
 [![NuGet Intentum.Core](https://img.shields.io/nuget/v/Intentum.Core.svg)](https://www.nuget.org/packages/Intentum.Core)
 [![Coverage](https://sonarcloud.io/api/project_badges/measure?project=keremvaris_Intentum&metric=coverage)](https://sonarcloud.io/summary/new_code?id=keremvaris_Intentum)
 [![SonarCloud](https://sonarcloud.io/api/project_badges/measure?project=keremvaris_Intentum&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=keremvaris_Intentum)
 
-Intentum replaces scenario-based BDD with behavior space inference.
-It focuses on what the user was trying to do, not just what they did.
+Most software frameworks ask:
+> *What happened?*
+
+Intentum asks:
+> **What was the system trying to achieve?**
+
+Modern systems are no longer deterministic.
+They adapt, retry, infer, and guess.
+Yet we still test them with linear scenarios.
+
+Intentum replaces scenario-based testing with **intent spaces** —
+where behavior is treated as a signal,
+and correctness is measured by **confidence**, not certainty.
+
+If your system involves:
+- AI or probabilistic logic
+- user ambiguity
+- adaptive workflows
+- non-deterministic outcomes
+
+Then Intentum is not an alternative approach.
+
+It is the next one.
+
+---
+
+> **Software should be judged by intent, not by events.**
 
 English | [Türkçe](README.tr.md)
 
 **License:** [MIT](LICENSE) · **Contributing** — [CONTRIBUTING.md](CONTRIBUTING.md) · [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md) · [SECURITY.md](SECURITY.md)
 
-Why Intentum?
-- Non-deterministic flows are now common.
-- AI-driven systems adapt and drift.
-- Assertions are too rigid; intent is more realistic.
+---
 
-When not to use
-- Fully deterministic, low-variance systems with stable requirements.
-- Small scripts or one-off utilities where behavior drift is irrelevant.
+## The Intentum Manifesto
 
-BDD vs Intentum
-- BDD: Scenario-driven, deterministic, pass/fail
-- Intentum: Behavior-driven, probabilistic, policy decisions
+Intentum is built on eight principles:
 
-Documentation
-- GitHub Pages (EN/TR): https://keremvaris.github.io/Intentum/
-- **Architecture (EN/TR):** [docs/en/architecture.md](docs/en/architecture.md) — core flow, package layout, inference pipeline, persistence/analytics/rate-limiting/multi-tenancy (Mermaid diagrams).
-- English docs: docs/en/index.md
-- Turkish docs: docs/tr/index.md
-  - Enable in GitHub: Settings -> Pages -> Source: GitHub Actions
-- API reference (auto): https://keremvaris.github.io/Intentum/api/
-- **CodeGen (EN/TR):** [docs/en/codegen.md](docs/en/codegen.md) — scaffold CQRS + Intentum, generate Features from test assembly or YAML; dotnet new template; full usage.
-- **Sample.Web:** CQRS + Intentum API with **Scalar** docs and a **web UI** at `/`. Run: `dotnet run --project samples/Intentum.Sample.Web` (UI: http://localhost:5150/, API docs: http://localhost:5150/scalar). Endpoints: `/api/carbon/calculate`, `/api/orders`, **`POST /api/intent/infer`** (intent + rate limit + history), **`GET /api/intent/analytics/summary`**, **`GET /api/intent/analytics/export/json`**, **`GET /api/intent/analytics/export/csv`**, `/health`.
+- Software is no longer deterministic.
+- Behavior is not intent.
+- Scenarios are brittle; intent is resilient.
+- Tests describe spaces, not scripts.
+- AI breaks Given–When–Then.
+- Intent is the new contract.
+- Failures are signals.
+- We design for understanding, not control.
 
-CI & SonarCloud (free for public repos)
-- CI runs on push/PR to `master`: build, test, coverage artifact, SonarCloud analysis.
-- To enable **SonarCloud**: sign up at [sonarcloud.io](https://sonarcloud.io), add this repo, then in GitHub → Settings → Secrets and variables → Actions add **Secret** `SONAR_TOKEN` (from SonarCloud → My Account → Security). Project key and org are set in the workflow (`keremvaris_Intentum` / `keremvaris`).
-- **If CI analysis fails** with "Automatic Analysis is enabled": in SonarCloud go to your project → **Administration** → **Analysis Method** → turn **off** "Automatic Analysis" so only CI runs the analysis.
+**Full text:** [The Intentum Manifesto](docs/en/manifesto.md) (eight principles). Concise rules: [The Intentum Canon](docs/en/intentum-canon.md) (ten principles).
 
-Core Concepts
-Behavior Space
-Observe behavior instead of writing scenarios.
+---
 
-Intent Inference
-Infer intent from the behavior space and compute confidence.
+## Intentum vs existing approaches
 
-Policy Decisions
-Replace pass/fail with policy-driven decisions.
+### Conceptual comparison
 
-Quick Example
+| Approach | Center | Assumption | Fits |
+|----------|--------|------------|------|
+| TDD | Correctness | Deterministic | Algorithms |
+| BDD | Scenario | Linear flow | Business rules |
+| DDD | Model | Stable domain | Enterprise systems |
+| **Intentum** | **Intent** | **Uncertainty** | **AI & adaptive systems** |
+
+### Given–When–Then vs Intentum
+
+| BDD | Intentum |
+|-----|----------|
+| Given (state) | Observed signals |
+| When (action) | Behavior evolution |
+| Then (assertion) | Intent confidence |
+| Boolean result | Probabilistic outcome |
+| Fragile scenarios | Resilient intent spaces |
+
+**BDD answers "Did this happen?"**  
+**Intentum answers "Does this make sense?"**
+
+### Test philosophy
+
+| Question | BDD | Intentum |
+|----------|-----|----------|
+| What does a test represent? | A story | A space |
+| What is failure? | Error | Signal |
+| Retry | Failure | Context |
+| Edge case | Exception | Expected |
+| Resilience to change | Low | High |
+
+---
+
+## Intentum is NOT / is
+
+**Intentum is NOT:**
+- a test framework replacement
+- a BDD extension
+- a rule engine
+- a magic AI wrapper
+
+**Intentum is:**
+- an intent modeling framework
+- a reasoning layer for behavior
+- a foundation for AI-era correctness
+
+---
+
+## Getting Started (5 minutes)
+
+### 1. Install packages
+
+```bash
+dotnet add package Intentum.Core
+dotnet add package Intentum.Runtime
+```
+
+For AI-backed inference (optional):
+
+```bash
+dotnet add package Intentum.AI
+```
+
+### 2. Define observed behavior
+
+In Intentum, a test is not a scenario. It is a set of observed behaviors.
+
+```csharp
+using Intentum.Core;
+using Intentum.Core.Behavior;
+
+var space = new BehaviorSpace()
+    .Observe("user", "login.failed")
+    .Observe("user", "login.retry")
+    .Observe("user", "password.reset.requested")
+    .Observe("user", "login.success");
+```
+
+The question is not "Did login succeed?" but "What was the user trying to achieve?"
+
+### 3. Infer intent
+
+```csharp
+using Intentum.AI.Mock;
+using Intentum.AI.Models;
+using Intentum.AI.Similarity;
+using Intentum.Core;
+using Intentum.Core.Behavior;
+
+var intentModel = new LlmIntentModel(
+    new MockEmbeddingProvider(),
+    new SimpleAverageSimilarityEngine());
+var intent = intentModel.Infer(space);
+```
+
+This call does not follow rules or flows or order. It only interprets behavior signals. (No API key needed with Mock; use a real provider for production.)
+
+### 4. Assert on intent, not steps
+
+Assert on confidence (Level: Low, Medium, High, Certain) and optionally on intent name when using a custom model:
+
+```csharp
+// intent.Confidence.Level is "High" or "Certain"
+// intent.Confidence.Score > 0.75
+// With custom intent models: intent.Name == "AccountAccess"
+```
+
+This is a test — but it does not step through a script, is not brittle, and tolerates alternative paths.
+
+### 5. Why this matters
+
+The same intent can be captured by different behaviors:
+
+```csharp
+var space1 = new BehaviorSpace()
+    .Observe("user", "password.reset")
+    .Observe("user", "email.confirmed")
+    .Observe("user", "login.success");
+// intent = intentModel.Infer(space1);
+```
+
+Or:
+
+```csharp
+var space2 = new BehaviorSpace()
+    .Observe("user", "login.failed")
+    .Observe("user", "login.failed")
+    .Observe("user", "account.locked");
+// intent = intentModel.Infer(space2);
+```
+
+Scenario differs. Intent aligns. BDD breaks here; Intentum starts here.
+
+### 6. Mental model
+
+| Approach | Leads to |
+|----------|----------|
+| Events / Flows / Scenarios | noise / assumptions / fragility |
+| **Intent / Confidence / Space** | meaning / correctness / resilience |
+
+### 7. When to use Intentum
+
+**Use Intentum if:** outcomes vary, retries are normal, AI makes decisions, users don't follow scripts.
+
+**Do NOT use Intentum if:** logic is strictly deterministic, every step must be enforced, failure must always break the system.
+
+### 8. What's next
+
+- Plug in AI models ([Providers](docs/en/providers.md))
+- Build custom intent classifiers
+- Use Intentum alongside existing tests
+
+Intentum does not replace your test suite. It explains what your test suite cannot.
+
+---
+
+## Quick example (with policy)
+
 ```csharp
 using Intentum.AI.Mock;
 using Intentum.AI.Models;
@@ -79,75 +247,82 @@ var policy = new IntentPolicy()
 var decision = intent.Decide(policy);
 ```
 
-Run the sample
+**Run the sample:**
+
 ```bash
 dotnet run --project samples/Intentum.Sample
 ```
 
-Showcase output (trimmed)
-```
-=== INTENTUM SCENARIO: PaymentHappyPath ===
-Events            : 2
-Intent Confidence : High
-Decision          : Allow
-Behavior Vector:
- - user:login = 1
- - user:submit = 1
+**Advanced example (fraud / abuse intent):**
 
-=== INTENTUM SCENARIO: PaymentWithRetries ===
-Events            : 4
-Intent Confidence : Medium
-Decision          : Observe
-Behavior Vector:
- - user:login = 1
- - user:retry = 2
- - user:submit = 1
-
-=== INTENTUM SCENARIO: SuspiciousRetries ===
-Events            : 4
-Intent Confidence : Medium
-Decision          : Block
-Behavior Vector:
- - user:login = 1
- - user:retry = 3
+```bash
+dotnet run --project examples/fraud-intent
 ```
 
-Packages
-- Intentum.Core
-- Intentum.Runtime
-- Intentum.AI
-- Intentum.AI.OpenAI
-- Intentum.AI.Gemini
-- Intentum.AI.Claude
-- Intentum.AI.Mistral
-- Intentum.AI.AzureOpenAI
-- Intentum.Testing (test utilities)
-- Intentum.AspNetCore (middleware, health checks)
-- Intentum.Observability (OpenTelemetry metrics)
-- Intentum.Logging (Serilog integration)
-- Intentum.Persistence (persistence interfaces)
-- Intentum.Persistence.EntityFramework (EF Core implementation)
-- Intentum.Analytics (intent analytics, trends, decision distribution, anomaly detection, JSON/CSV export)
+No API key required. Infers suspicious vs. legitimate behavior, then policy decides Block / Observe / Allow. See [Real-world scenarios — Fraud](docs/en/real-world-scenarios.md#use-case-1-fraud--abuse-intent-detection).
 
-Configuration (env vars)
-- OPENAI_API_KEY, OPENAI_EMBEDDING_MODEL, OPENAI_BASE_URL
-- GEMINI_API_KEY, GEMINI_EMBEDDING_MODEL, GEMINI_BASE_URL
-- MISTRAL_API_KEY, MISTRAL_EMBEDDING_MODEL, MISTRAL_BASE_URL
-- AZURE_OPENAI_ENDPOINT, AZURE_OPENAI_API_KEY, AZURE_OPENAI_EMBEDDING_DEPLOYMENT, AZURE_OPENAI_API_VERSION
+---
 
-Security
-- Never commit API keys. Use environment variables or secret managers.
-- Avoid logging raw requests/responses from providers in production.
+## Documentation
 
-Note
-AI adapters are deterministic stubs in v1.0. Real HTTP calls are planned for v1.1.
+- **GitHub Pages (EN/TR):** https://keremvaris.github.io/Intentum/
+- [Why Intentum](docs/en/why-intentum.md) — name, philosophy, positioning
+- [The Intentum Manifesto](docs/en/manifesto.md) — eight principles
+- [The Intentum Canon](docs/en/intentum-canon.md) — ten principles for Intent-Driven Development
+- [Roadmap](docs/en/roadmap.md) — v1.0 criteria, adoption and depth
+- [Architecture](docs/en/architecture.md) — core flow, packages, inference pipeline
+- [Setup](docs/en/setup.md) — install, first project, env vars
+- [API Reference](https://keremvaris.github.io/Intentum/api/)
+- [CodeGen](docs/en/codegen.md) — scaffold CQRS + Intentum, dotnet new template
+- **Sample.Web:** `dotnet run --project samples/Intentum.Sample.Web` — UI and `POST /api/intent/infer`, analytics, health
+- **Fraud intent (advanced example):** `dotnet run --project examples/fraud-intent` — fraud/abuse intent detection, policy Block/Observe/Allow, no API key
 
-Releasing and versioning
-- **Versioning** is automatic from git tags via [MinVer](https://github.com/adamralph/minver) (`src/Directory.Build.props`). No manual version bump in code: tag `v1.0.1` and build → package version is `1.0.1`. Tag prefix is `v`; minimum major.minor is `1.0`.
-- **Release script:** `chmod +x release.sh` then `./release.sh` — version is auto-bumped from the latest tag using conventional commits: **BREAKING** / `feat!:` → major, **feat:** → minor, **fix/docs/chore** → patch. Or run `./release.sh 1.0.1` to set the version manually.
-- Pushing a tag like `v1.0.1` triggers GitHub Release and NuGet publish (see `.github/workflows/`).
-- **Release notes** are generated from **conventional commits** via [git-cliff](https://git-cliff.org) (`cliff.toml`). Use prefixes: `feat:`, `fix:`, `docs:`, `chore:`, `ci:`, etc. If none are found, `CHANGELOG.md` is used as fallback. **Breaking change:** write `feat!: ...` or add `BREAKING CHANGE:` in the commit body so the changelog shows a dedicated "Breaking changes" section and the next release bumps the major version.
-- On every push to `master`, the **changelog** workflow updates `CHANGELOG.md` from conventional commits and commits it (with `[skip ci]`).
+---
 
-License
+## Taglines
+
+- **Vision:** *Software should be judged by intent, not by events.*
+- **Developer:** *From scenarios to intent spaces.* / *Understand what users meant, not just what they did.*
+- **Short (NuGet/GitHub):** Intentum is an Intent-Driven Development framework that models behavior as intent spaces instead of deterministic scenarios.
+
+---
+
+## Packages
+
+- **Core:** Intentum.Core, Intentum.Runtime, Intentum.AI
+- **AI providers:** Intentum.AI.OpenAI, Intentum.AI.Gemini, Intentum.AI.Claude, Intentum.AI.Mistral, Intentum.AI.AzureOpenAI
+- **Extensions:** Intentum.Testing, Intentum.AspNetCore, Intentum.Observability, Intentum.Logging
+- **Persistence:** Intentum.Persistence, Intentum.Persistence.EntityFramework, Intentum.Analytics
+- **Advanced:** Intentum.AI.Caching.Redis, Intentum.Clustering, Intentum.Events, Intentum.Experiments, Intentum.MultiTenancy, Intentum.Explainability, Intentum.Simulation, Intentum.Versioning — see [Advanced Features](docs/en/advanced-features.md)
+
+---
+
+## Configuration (env vars)
+
+OPENAI_API_KEY, GEMINI_API_KEY, MISTRAL_API_KEY, AZURE_OPENAI_* — see [Setup](docs/en/setup.md) and [Providers](docs/en/providers.md).
+
+---
+
+## Security
+
+Never commit API keys. Use environment variables or secret managers. Avoid logging raw provider requests/responses in production.
+
+---
+
+## Note
+
+AI adapters use deterministic stubs in v1.0. Real HTTP calls are planned for v1.1.
+
+---
+
+## CI & releasing
+
+- **CI** runs on push/PR to `master`: build, test, coverage, SonarCloud. Set `SONAR_TOKEN` in GitHub Secrets to enable analysis.
+- **Versioning** is from git tags via [MinVer](https://github.com/adamralph/minver). Tag `v1.0.1` → package `1.0.1`.
+- **Release:** `./release.sh` or push tag `v1.0.x`; see `.github/workflows/` and [CONTRIBUTING.md](CONTRIBUTING.md).
+
+---
+
+## License
+
 MIT

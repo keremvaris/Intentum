@@ -7,6 +7,7 @@ public sealed class BehaviorSpace
 {
     private readonly List<BehaviorEvent> _events = [];
     private readonly Dictionary<string, object> _metadata = new();
+    private BehaviorVector? _cachedVector;
 
     /// <summary>All observed behavior events in order.</summary>
     public IReadOnlyCollection<BehaviorEvent> Events => _events;
@@ -14,9 +15,12 @@ public sealed class BehaviorSpace
     /// <summary>Metadata associated with this behavior space (e.g., sector, domain, session ID).</summary>
     public IReadOnlyDictionary<string, object> Metadata => _metadata;
 
-    /// <summary>Records a single behavior event (actor and action).</summary>
+    /// <summary>Records a single behavior event (actor and action). Invalidates cached vector.</summary>
     public void Observe(BehaviorEvent behaviorEvent)
-        => _events.Add(behaviorEvent);
+    {
+        _cachedVector = null;
+        _events.Add(behaviorEvent);
+    }
 
     /// <summary>Sets metadata for this behavior space.</summary>
     public void SetMetadata(string key, object value)
@@ -53,9 +57,12 @@ public sealed class BehaviorSpace
         return latest - earliest;
     }
 
-    /// <summary>Builds a behavior vector from observed events (actor:action keys with counts).</summary>
+    /// <summary>Builds a behavior vector from observed events (actor:action keys with counts). Result is cached until Observe is called.</summary>
     public BehaviorVector ToVector()
     {
+        if (_cachedVector != null)
+            return _cachedVector;
+
         var dimensions = new Dictionary<string, double>();
 
         foreach (var evt in _events)
@@ -64,7 +71,8 @@ public sealed class BehaviorSpace
             dimensions[key] = dimensions.GetValueOrDefault(key) + 1;
         }
 
-        return new BehaviorVector(dimensions);
+        _cachedVector = new BehaviorVector(dimensions);
+        return _cachedVector;
     }
 
     /// <summary>Builds a behavior vector from events within a time window.</summary>

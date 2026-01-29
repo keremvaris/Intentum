@@ -18,11 +18,11 @@ public sealed class ClaudeMessageIntentModel : IIntentModel
         _httpClient = httpClient;
     }
 
-    public Intent Infer(BehaviorSpace behaviorSpace)
+    public Intent Infer(BehaviorSpace behaviorSpace, BehaviorVector? precomputedVector = null)
     {
         _options.Validate();
 
-        var vector = behaviorSpace.ToVector();
+        var vector = precomputedVector ?? behaviorSpace.ToVector();
         var behaviors = string.Join(", ", vector.Dimensions.Keys);
 
         var prompt =

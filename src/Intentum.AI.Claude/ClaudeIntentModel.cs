@@ -19,9 +19,9 @@ public sealed class ClaudeIntentModel : IIntentModel
         _similarityEngine = similarityEngine;
     }
 
-    public Intent Infer(BehaviorSpace behaviorSpace)
+    public Intent Infer(BehaviorSpace behaviorSpace, BehaviorVector? precomputedVector = null)
     {
-        var vector = behaviorSpace.ToVector();
+        var vector = precomputedVector ?? behaviorSpace.ToVector();
 
         var embeddings = vector.Dimensions.Keys
             .Select(k => _embeddingProvider.Embed(k))

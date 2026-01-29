@@ -4,6 +4,25 @@ Bu sayfa son versiyonlarda eklenen gelişmiş özellikleri kapsar: similarity en
 
 ---
 
+## Paketler ve özellikler özeti
+
+Core, Runtime, AI ve sağlayıcıların ötesindeki genişletme paketleri ve bu sayfada nerede anlatıldıkları:
+
+| Paket | Nedir | Ne işe yarar | Bölüm |
+|-------|-------|--------------|--------|
+| **Intentum.AI.Caching.Redis** | Redis tabanlı embedding cache | Çok node'lu production için `IEmbeddingCache`; embedding'leri Redis'te saklar | [Embedding Caching](#embedding-caching) (Redis alt bölümü) |
+| **Intentum.Clustering** | Intent gruplama | Intent history'yi pattern tespiti için gruplar; `IIntentClusterer`, `AddIntentClustering` | [Intent Clustering](#intent-clustering) |
+| **Intentum.Events** | Webhook / event sistemi | Intent event'lerini (IntentInferred, PolicyDecisionChanged) HTTP POST ile gönderir; `IIntentEventHandler`, `WebhookIntentEventHandler` | [Webhook / Event Sistemi](#webhook--event-sistemi) |
+| **Intentum.Experiments** | A/B test | Model/policy varyantları arasında traffic split; `IntentExperiment`, `ExperimentResult`, `AddVariant` | [A/B Experiments](#ab-experiments) |
+| **Intentum.MultiTenancy** | Multi-tenancy | Tenant-scoped behavior space repository; `ITenantProvider`, `TenantAwareBehaviorSpaceRepository` | [Multi-tenancy](#multi-tenancy) |
+| **Intentum.Explainability** | Niyet açıklanabilirliği | Sinyal katkı skorları, özet metin; `IIntentExplainer`, `IntentExplainer` | [Intent Explainability](#intent-explainability) |
+| **Intentum.Simulation** | Niyet simülasyonu | Test için sentetik behavior space üretir; `IBehaviorSpaceSimulator`, `BehaviorSpaceSimulator` | [Intent Simulation](#intent-simulation) |
+| **Intentum.Versioning** | Policy versiyonlama | Rollback için policy/model versiyon takibi; `IVersionedPolicy`, `PolicyVersionTracker` | [Policy Versioning](#policy-versioning) |
+
+Çekirdek paketler (Intentum.Core, Intentum.Runtime, Intentum.AI, sağlayıcılar, Testing, AspNetCore, Persistence, Analytics) [Mimari](architecture.md) ve [README](../README.tr.md) içinde listelenir.
+
+---
+
 ## Similarity Engine'ler
 
 Intentum, embedding'leri intent skorlarına dönüştürmek için birden fazla similarity engine sağlar.
@@ -145,6 +164,47 @@ var text = PolicyDecision.Escalate.ToLocalizedString(localizer); // "Yükselt"
 
 ---
 
+## Policy composition
+
+Kuralları tekrarlamadan policy'leri birleştirin veya genişletin.
+
+### Inheritance (WithBase)
+
+Türetilmiş policy'yi base policy'den sonra değerlendirin: önce base kuralları, sonra türetilmiş. İlk eşleşen kural kazanır.
+
+```csharp
+var basePolicy = new IntentPolicyBuilder()
+    .Block("BaseBlock", i => i.Confidence.Level == "Low")
+    .Build();
+var derived = new IntentPolicyBuilder()
+    .Allow("DerivedAllow", i => i.Confidence.Level == "High")
+    .Build();
+var composed = derived.WithBase(basePolicy);
+var decision = intent.Decide(composed);
+```
+
+### Merge (birden fazla policy)
+
+Birden fazla policy'yi tek policy'de birleştirin; ilk policy'nin kuralları önce, sonra ikincinin vb. değerlendirilir.
+
+```csharp
+var merged = IntentPolicy.Merge(policyA, policyB, policyC);
+var decision = intent.Decide(merged);
+```
+
+### A/B policy varyantları (PolicyVariantSet)
+
+Intent'a göre farklı policy kullanın (örn. deney veya güvene göre). Seçici hangi varyant adının kullanılacağını döndürür.
+
+```csharp
+var variants = new PolicyVariantSet(
+    new Dictionary<string, IntentPolicy> { ["control"] = controlPolicy, ["treatment"] = treatmentPolicy },
+    intent => intent.Confidence.Score > 0.8 ? "treatment" : "control");
+var decision = intent.Decide(variants);
+```
+
+---
+
 ## Rate Limiting
 
 Policy **RateLimit** döndüğünde limiti uygulamak için **IRateLimiter** kullanın. **MemoryRateLimiter** in-memory fixed-window limit sağlar (tek node veya geliştirme).
@@ -214,23 +274,34 @@ var model = new LlmIntentModel(cachedProvider, new SimpleAverageSimilarityEngine
 
 ### Redis (Dağıtık) Cache
 
-Çok node'lu production için **Intentum.AI.Caching.Redis** ile embedding'leri Redis'te saklayın:
+**Nedir:** **Intentum.AI.Caching.Redis**, Redis (ve `IDistributedCache`) kullanarak `IEmbeddingCache` uygular. Embedding sonuçları (davranış anahtarı → vektör/skor) Redis’te saklanır; böylece birden fazla uygulama örneği aynı cache’i paylaşır.
+
+**Ne işe yarar:** Birden fazla node (örn. birden fazla web sunucusu veya worker) çalıştırdığınızda kullanın. Bellek cache’i (`MemoryEmbeddingCache`) process bazlıdır; Redis cache paylaşımlıdır, bu yüzden aynı davranış anahtarı için tekrarlayan embedding API çağrıları yapılmaz; maliyet ve gecikme azalır. Tipik kullanım: OpenAI/Gemini/Mistral ile production’da farklı instance’lardan aynı anahtarların istendiği senaryolar.
+
+**Nasıl kullanılır:**
+
+1. Paketi ekleyin: `Intentum.AI.Caching.Redis`.
+2. Redis sunucusunun erişilebilir olduğundan emin olun (yerel veya yönetilen, örn. Azure Cache for Redis).
+3. Cache’i kaydedin ve embedding sağlayıcınızı `CachedEmbeddingProvider` ile sarın:
 
 ```csharp
 builder.Services.AddIntentumRedisCache(options =>
 {
-    options.ConnectionString = "localhost:6379";
+    options.ConnectionString = "localhost:6379";  // veya Redis connection string
+    options.InstanceName = "Intentum:";            // anahtar öneki (varsayılan)
     options.DefaultExpiration = TimeSpan.FromHours(24);
 });
 builder.Services.AddSingleton<IIntentEmbeddingProvider>(sp =>
 {
-    var provider = new MockEmbeddingProvider();
+    var provider = new OpenAIEmbeddingProvider(/* ... */);  // veya herhangi IIntentEmbeddingProvider
     var cache = sp.GetRequiredService<IEmbeddingCache>();
     return new CachedEmbeddingProvider(provider, cache);
 });
 ```
 
-`Intentum.AI.Caching.Redis` paketi ve Redis sunucusu gerekir.
+4. `IIntentEmbeddingProvider` enjekte edip `LlmIntentModel` ile normal şekilde kullanın. Cache hit’ler Redis’ten döner; miss’ler alttaki sağlayıcıyı çağırır ve sonucu cache’e yazar.
+
+**Seçenekler:** `ConnectionString`, `InstanceName` (anahtar öneki), `DefaultExpiration` (cache TTL).
 
 ---
 
@@ -432,11 +503,32 @@ var intents = batchModel.InferBatch(spaces);
 var intentsAsync = await batchModel.InferBatchAsync(spaces, cancellationToken);
 ```
 
+### Streaming: InferMany / InferManyAsync
+
+Birçok behavior space üzerinde lazy veya async stream için `Intentum.AI` extension metodlarını kullanın (bellekte toplu liste tutmadan):
+
+```csharp
+using Intentum.AI;
+
+// Lazy senkron stream: enumerate ederken her space için bir intent üretir
+foreach (var intent in model.InferMany(spaces))
+    Process(intent);
+
+// Async stream: space'ler enumerate edilirken intent'leri üretir (örn. DB veya kuyruktan)
+await foreach (var intent in model.InferManyAsync(SpacesFromDbAsync(), cancellationToken))
+    await ProcessAsync(intent);
+```
+
+### Behavior vektör önbellekleme ve önceden hesaplanmış vektör
+
+- **ToVector() önbelleği:** `BehaviorSpace.ToVector()` bir kez hesaplanır ve tekrar `Observe()` çağrılana kadar önbellekte tutulur; aynı space üzerinde tekrarlayan çıkarım vektörü yeniden kullanır.
+- **Infer'da önceden hesaplanmış vektör:** Zaten bir `BehaviorVector` varsa (örn. persistence veya snapshot'tan), yeniden hesaplamayı önlemek için geçirin: `model.Infer(space, precomputedVector)`.
+
 ---
 
 ## Persistence
 
-Analytics ve auditing için behavior space'leri ve intent history'yi saklayın.
+Analytics ve auditing için behavior space'leri ve intent history'yi saklayın. Implementasyonlar: **Entity Framework Core**, **Redis**, **MongoDB**.
 
 ### Entity Framework Core
 
@@ -476,88 +568,253 @@ var highConfidence = await historyRepository.GetByConfidenceLevelAsync("High");
 var blocked = await historyRepository.GetByDecisionAsync(PolicyDecision.Block);
 ```
 
+### Redis
+
+`Intentum.Persistence.Redis` ekleyin ve Redis bağlantısı ile kaydedin:
+
+```csharp
+using Intentum.Persistence.Redis;
+using StackExchange.Redis;
+
+var redis = ConnectionMultiplexer.Connect("localhost");
+builder.Services.AddIntentumPersistenceRedis(redis, keyPrefix: "intentum:");
+```
+
+### MongoDB
+
+`Intentum.Persistence.MongoDB` ekleyin ve `IMongoDatabase` ile kaydedin:
+
+```csharp
+using Intentum.Persistence.MongoDB;
+using MongoDB.Driver;
+
+var client = new MongoClient(connectionString);
+var database = client.GetDatabase("intentum");
+builder.Services.AddIntentumPersistenceMongoDB(database,
+    behaviorSpaceCollectionName: "behaviorspaces",
+    intentHistoryCollectionName: "intenthistory");
+```
+
 ---
 
 ## Webhook / Event Sistemi
 
-`Intentum.Events` paketi intent event'lerini (IntentInferred, PolicyDecisionChanged) HTTP POST ile webhook URL'lerine retry ile gönderir.
+**Nedir:** **Intentum.Events**, niyet çıkarımı veya policy kararı sonrası intent ile ilgili event’leri dış sistemlere HTTP POST ile göndermenizi sağlar. `IIntentEventHandler` ve yerleşik `WebhookIntentEventHandler` sunar; bu handler, JSON payload’ı bir veya birden fazla webhook URL’ine, yapılandırılabilir retry ile POST eder.
+
+**Ne işe yarar:** Bir niyet çıkarıldığında veya karar verildiğinde başka bir servise bildirim göndermeniz gerektiğinde kullanın (analytics, audit, downstream iş akışları). Tipik kullanım: `intent = model.Infer(space)` ve `decision = intent.Decide(policy)` sonrası `HandleAsync(payload, IntentumEventType.IntentInferred)` çağrısı; webhook endpoint’iniz niyet adı, güven, karar ve zaman damgasını alır.
+
+**Nasıl kullanılır:**
+
+1. Paketi ekleyin: `Intentum.Events`.
+2. Event’leri ve webhook’ları kaydedin:
 
 ```csharp
 builder.Services.AddIntentumEvents(options =>
 {
     options.AddWebhook("https://api.example.com/webhooks/intent", events: new[] { "IntentInferred", "PolicyDecisionChanged" });
-    options.RetryCount = 3;
+    options.RetryCount = 3;  // HTTP hata durumunda yeniden deneme (exponential backoff)
 });
-// IIntentEventHandler enjekte edip inference sonrası HandleAsync(payload, IntentumEventType.IntentInferred) çağırın.
 ```
+
+3. Inference sonrası payload oluşturup handler’ı çağırın:
+
+```csharp
+var intent = model.Infer(space);
+var decision = intent.Decide(policy);
+var payload = new IntentEventPayload(behaviorSpaceId: "id", intent, decision, DateTimeOffset.UtcNow);
+await eventHandler.HandleAsync(payload, IntentumEventType.IntentInferred, cancellationToken);
+```
+
+Webhook, POST ile `BehaviorSpaceId`, `IntentName`, `ConfidenceLevel`, `ConfidenceScore`, `Decision`, `RecordedAt`, `EventType` içeren JSON gövdesini alır. Başarısız POST’lar `RetryCount`’a göre yeniden denenir.
 
 ---
 
 ## Intent Clustering
 
-`Intentum.Clustering` paketi intent history kayıtlarını pattern tespiti için gruplar.
+**Nedir:** **Intentum.Clustering**, intent history kayıtlarını analiz için gruplar. `IIntentClusterer` ile iki strateji sunar: **ClusterByPatternAsync** (güven seviyesi + policy kararına göre gruplama) ve **ClusterByConfidenceScoreAsync** (skora göre k adet kovana bölme). Her cluster’da id, label, kayıt id’leri, sayı ve özet (ortalama/min/max skor) bulunur.
+
+**Ne işe yarar:** Intent history’yi (örn. `IIntentHistoryRepository` ile) sakladığınızda ve pattern görmek istediğinizde kullanın: kaç niyet Allow vs Block ile bitti, güven dağılımı (düşük/orta/yüksek bantlar) nasıl. Tipik kullanım: analytics panoları, anomali tespiti veya policy eşiklerini ayarlama.
+
+**Nasıl kullanılır:**
+
+1. Paketi ekleyin: `Intentum.Clustering`. `IntentHistoryRecord` verisi için **Intentum.Persistence** ve `IIntentHistoryRepository` implementasyonu gerekir.
+2. Clusterer’ı kaydedin:
 
 ```csharp
 builder.Services.AddIntentClustering();
+```
+
+3. `IIntentClusterer` ve `IIntentHistoryRepository` resolve edin. Kayıtları (örn. zaman penceresine göre) alıp cluster’layın:
+
+```csharp
 var clusterer = serviceProvider.GetRequiredService<IIntentClusterer>();
+var historyRepo = serviceProvider.GetRequiredService<IIntentHistoryRepository>();
+var records = await historyRepo.GetByTimeWindowAsync(start, end);
 
-var records = await historyRepository.GetByTimeWindowAsync(start, end);
-var clusters = await clusterer.ClusterByPatternAsync(records);
-foreach (var c in clusters)
-    Console.WriteLine($"{c.Label}: {c.Count} intents");
+// (ConfidenceLevel, Decision) ile grupla — örn. "High / Allow", "Medium / Observe"
+var patternClusters = await clusterer.ClusterByPatternAsync(records);
+foreach (var c in patternClusters)
+    Console.WriteLine($"{c.Label}: {c.Count} niyet (ortalama skor {c.Summary?.AverageConfidenceScore:F2})");
 
+// Güven skoruna göre k kovana böl (örn. düşük / orta / yüksek)
 var scoreClusters = await clusterer.ClusterByConfidenceScoreAsync(records, k: 3);
+foreach (var c in scoreClusters)
+    Console.WriteLine($"{c.Label}: {c.Count} niyet");
 ```
 
 ---
 
 ## Intent Explainability
 
-`Intentum.Explainability` paketi intent'in nasıl çıkarıldığını açıklar (sinyal katkıları, özet metin).
+**Nedir:** **Intentum.Explainability**, bir niyetin nasıl çıkarıldığını açıklar: hangi sinyallerin (davranışların) toplam güvene ne kadar katkı yaptığı. `IIntentExplainer` ve `IntentExplainer` sunar; sinyal katkısı (her sinyalin ağırlığının toplam içindeki yüzdesi) ve okunabilir bir özet metin üretir.
+
+**Ne işe yarar:** Kullanıcılara veya denetçilere *neden* bu niyet/güven döndüğünü göstermeniz gerektiğinde kullanın (örn. “login %60, submit %40 katkı yaptı”). Tipik kullanım: debug UI, uyumluluk veya destek araçları.
+
+**Nasıl kullanılır:**
+
+1. Paketi ekleyin: `Intentum.Explainability`.
+2. Explainer oluşturun (veya DI’da kaydedin); inference sonrası çağırın:
 
 ```csharp
 var explainer = new IntentExplainer();
+
+// Sinyal bazlı katkı (kaynak, açıklama, ağırlık, yüzde)
 var contributions = explainer.GetSignalContributions(intent);
+foreach (var c in contributions)
+    Console.WriteLine($"{c.Description}: {c.ContributionPercent:F0}%");
+
+// Tek cümle özet
 var text = explainer.GetExplanation(intent, maxSignals: 5);
+// örn. "Intent \"AI-Inferred-Intent\" güven High (0.85) ile çıkarıldı. En çok katkı: user:login (%45); user:submit (%35); ..."
 ```
+
+Ek yapılandırma gerekmez; `Intent` ve `Signals` / `Confidence` üzerinden çalışır.
 
 ---
 
 ## Intent Simulation
 
-`Intentum.Simulation` paketi test için sentetik behavior space üretir.
+**Nedir:** **Intentum.Simulation**, test ve demolar için **sentetik behavior space** üretir. `IBehaviorSpaceSimulator` ve `BehaviorSpaceSimulator` ile iki metot sunar: **FromSequence** (sabit bir actor/action listesinden space oluşturur) ve **GenerateRandom** (verilen actor ve action’lardan rastgele event’lerle space oluşturur; tekrarlanabilirlik için seed verilebilir).
+
+**Ne işe yarar:** Testlerde her `BehaviorSpace`’i elle yazmadan çok sayıda space gerektiğinde kullanın (yük testi, property-based test, demo). Tipik kullanım: `model.Infer(space)` veya `experiment.RunAsync(spaces)` besleyen unit testler.
+
+**Nasıl kullanılır:**
+
+1. Paketi ekleyin: `Intentum.Simulation`.
+2. Simulator oluşturup space üretin:
 
 ```csharp
 var simulator = new BehaviorSpaceSimulator();
+
+// Sabit sıra — event’lere 1 saniye arayla timestamp atanır (veya baseTime verin)
 var space = simulator.FromSequence(new[] { ("user", "login"), ("user", "submit") });
-var randomSpace = simulator.GenerateRandom(actors: new[] { "user", "system" }, actions: new[] { "a", "b" }, eventCount: 10, randomSeed: 42);
+
+// Rastgele space — yük testi veya demo; tekrarlanabilir test için randomSeed kullanın
+var randomSpace = simulator.GenerateRandom(
+    actors: new[] { "user", "system" },
+    actions: new[] { "login", "submit", "retry", "cancel" },
+    eventCount: 10,
+    randomSeed: 42);
 ```
+
+3. Dönen `BehaviorSpace`’i `IIntentModel`, policy veya `IntentExperiment` ile normal şekilde kullanın.
 
 ---
 
 ## A/B Experiments
 
-`Intentum.Experiments` paketi model/policy varyantları arasında traffic split ile A/B testi çalıştırır.
+**Nedir:** **Intentum.Experiments**, niyet çıkarımı üzerinde **A/B test** çalıştırır: birden fazla **varyant** (her biri model + policy çifti) tanımlarsınız, **traffic split** (örn. %50 control, %50 test) verirsiniz; bir behavior space listesini deneyden geçirirsiniz. Her space split’e göre bir varyanta atanır; her space için bir `ExperimentResult` (varyant adı, intent, decision) döner.
+
+**Ne işe yarar:** Aynı trafikte iki (veya daha fazla) model veya policy’yi karşılaştırmak istediğinizde kullanın (yeni policy vs mevcut). Tipik kullanım: yeni policy veya modeli yayınlarken varyant bazında Allow/Block/Observe dağılımını ölçmek.
+
+**Nasıl kullanılır:**
+
+1. Paketi ekleyin: `Intentum.Experiments`.
+2. En az iki varyant ve traffic split (yüzdeler toplamı 100 olmalı) ile deneyi kurun:
 
 ```csharp
 var experiment = new IntentExperiment()
     .AddVariant("control", controlModel, controlPolicy)
     .AddVariant("test", testModel, testPolicy)
-    .SplitTraffic(50, 50);
-var results = await experiment.RunAsync(behaviorSpaces);
+    .SplitTraffic(50, 50);  // %50 control, %50 test; verilmezse eşit bölünür
 ```
+
+3. Deneyi bir behavior space listesiyle (örn. production örneklemesi veya simülasyon) çalıştırın:
+
+```csharp
+var results = await experiment.RunAsync(behaviorSpaces, cancellationToken);
+foreach (var r in results)
+    Console.WriteLine($"{r.VariantName}: {r.Intent.Confidence.Level} → {r.Decision}");
+```
+
+Sonuçları `VariantName`’e göre toplayıp control ile test arasında metrikleri (örn. Block oranı, ortalama güven) karşılaştırabilirsiniz.
 
 ---
 
 ## Multi-tenancy
 
-`Intentum.MultiTenancy` paketi tenant-scoped behavior space repository sağlar. `ITenantProvider` ve `AddTenantAwareBehaviorSpaceRepository()` kaydedin; tenant kapsamı gerektiğinde `TenantAwareBehaviorSpaceRepository` enjekte edin.
+**Nedir:** **Intentum.MultiTenancy**, **tenant-scoped behavior space repository** sağlar. `TenantAwareBehaviorSpaceRepository`, herhangi bir `IBehaviorSpaceRepository`’yi sarar: kayıtta mevcut tenant id’yi (`ITenantProvider`’dan) behavior space metadata’sına ekler; okuma/silmede yalnızca o tenant’a ait veriyi döndürür veya siler.
+
+**Ne işe yarar:** Uygulamanız birden fazla tenant’a (örn. organizasyon veya müşteri) hizmet veriyorsa ve behavior space / intent history’yi tenant bazında ayırmak istiyorsanız kullanın. Tipik kullanım: Her istekte tenant context’i olan SaaS backend’leri (HTTP header veya claims’ten).
+
+**Nasıl kullanılır:**
+
+1. Paketi ekleyin: `Intentum.MultiTenancy`.
+2. `ITenantProvider` implemente edin (mevcut tenant id’yi döndürsün; örn. `IHttpContextAccessor`, claims veya ambient context’ten). Kaydedin ve tenant-aware repository’yi ekleyin:
+
+```csharp
+builder.Services.AddSingleton<ITenantProvider, MyTenantProvider>();  // kendi implementasyonunuz
+builder.Services.AddTenantAwareBehaviorSpaceRepository();
+```
+
+3. İç repository’yi (`IBehaviorSpaceRepository`, örn. EF veya MongoDB) normal şekilde kaydedin. Tenant izolasyonu gerektiğinde `IBehaviorSpaceRepository` yerine `TenantAwareBehaviorSpaceRepository` enjekte edin:
+
+```csharp
+// Tenant context’li bir istekte (örn. middleware tenant set eder)
+var repo = serviceProvider.GetRequiredService<TenantAwareBehaviorSpaceRepository>();
+await repo.SaveAsync(space, cancellationToken);   // space metadata’sına "TenantId" = mevcut tenant eklenir
+var list = await repo.GetByTimeWindowAsync(start, end, cancellationToken);  // yalnızca mevcut tenant’ın space’leri
+```
+
+Tenant id metadata’da `TenantId` anahtarıyla saklanır. `GetCurrentTenantId()` null veya boş dönerse wrapper filtre uygulamaz (tüm veri görünür).
 
 ---
 
 ## Policy Versioning
 
-`Intentum.Versioning` paketi policy versiyonlarını rollback için takip eder. `VersionedPolicy(version, policy)`, `PolicyVersionTracker.Add()`, `Rollback()` / `Rollforward()` kullanın.
+**Nedir:** **Intentum.Versioning**, **policy versiyonlarını** takip eder; böylece geri alıp ileri alabilirsiniz. `IVersionedPolicy` (policy + versiyon string’i), `VersionedPolicy` (record implementasyonu) ve `PolicyVersionTracker` sunar; tracker versiyonlu policy listesini ve “mevcut” indeksi tutar. Versiyon ekleyebilir, mevcut’u değiştirebilir, `Rollback()` / `Rollforward()` ile indeksi hareket ettirebilirsiniz.
+
+**Ne işe yarar:** Policy değişikliklerini yayınlayıp hızlıca önceki versiyona dönmek istediğinizde kullanın (yeni kural çok fazla Block üretiyorsa). Tipik kullanım: aktif policy versiyonunu değiştiren admin API veya feature flag.
+
+**Nasıl kullanılır:**
+
+1. Paketi ekleyin: `Intentum.Versioning`.
+2. Policy’leri `VersionedPolicy` ile sarıp tracker’a ekleyin (örn. DI’da singleton):
+
+```csharp
+var tracker = new PolicyVersionTracker();
+tracker.Add(new VersionedPolicy("1.0", policyV1));
+tracker.Add(new VersionedPolicy("2.0", policyV2));  // mevcut artık 2.0
+```
+
+3. Karar verirken tracker’ın mevcut policy’sini kullanın:
+
+```csharp
+var versioned = tracker.Current;
+var policy = versioned?.Policy ?? fallbackPolicy;
+var decision = intent.Decide(policy);
+```
+
+4. Gerektiğinde geri veya ileri alın:
+
+```csharp
+if (tracker.Rollback())   // mevcut bir öncekine iner (örn. 2.0 → 1.0)
+    logger.LogInformation("Geri alındı: {Version}", tracker.Current?.Version);
+if (tracker.Rollforward())  // mevcut bir sonrakine çıkar (örn. 1.0 → 2.0)
+    logger.LogInformation("İleri alındı: {Version}", tracker.Current?.Version);
+```
+
+İsterseniz `SetCurrent(index)` ile belirli bir indekse atlayabilirsiniz. Versiyon string’leri serbesttir (örn. `"1.0"`, `"2024-01-15"`); sıralama için `CompareVersions(a, b)` kullanılabilir.
 
 ---
 

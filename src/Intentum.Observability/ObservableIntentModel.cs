@@ -18,13 +18,13 @@ public sealed class ObservableIntentModel : IIntentModel
         _innerModel = innerModel ?? throw new ArgumentNullException(nameof(innerModel));
     }
 
-    public Intent Infer(BehaviorSpace behaviorSpace)
+    public Intent Infer(BehaviorSpace behaviorSpace, BehaviorVector? precomputedVector = null)
     {
         var stopwatch = Stopwatch.StartNew();
         
         try
         {
-            var intent = _innerModel.Infer(behaviorSpace);
+            var intent = _innerModel.Infer(behaviorSpace, precomputedVector);
             
             IntentumMetrics.RecordIntentInference(intent, stopwatch.Elapsed);
             IntentumMetrics.RecordBehaviorSpaceSize(behaviorSpace);

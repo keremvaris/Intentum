@@ -2,7 +2,7 @@
 
 Intentum, davranışı (örn. `"user:login"`) vektörlere çevirmek için **embedding sağlayıcıları** kullanır; böylece intent modeli güven skorunu çıkarabilir. Yerel çalıştırma ve testler için **mock sağlayıcı** (API anahtarı yok) veya production için **gerçek sağlayıcı** (OpenAI, Gemini, Mistral, Azure OpenAI, Claude) kullanabilirsin.
 
-Bu sayfa her sağlayıcıyı açıklar: ne yapar, env var’lar, minimal kod ve DI kurulumu. Genel akış (Observe → Infer → Decide) için [API Referansı](api.md) ve [Kurulum](setup.md).
+Bu sayfa her sağlayıcıyı açıklar: ne yapar, env var’lar, minimal kod ve DI kurulumu. **Kolay / orta / zor** kullanım örnekleri için [AI sağlayıcılarını kullanma](ai-providers-howto.md) sayfasına bak. Genel akış (Observe → Infer → Decide) için [API Referansı](api.md) ve [Kurulum](setup.md).
 
 ---
 

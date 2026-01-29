@@ -30,7 +30,7 @@ dotnet add package Intentum.AI.AzureOpenAI
 dotnet add package Intentum.AI.Claude
 ```
 
-If you don’t add a provider, use **MockEmbeddingProvider** (in Intentum.AI) for local runs — no API key needed.
+Alternatively, add **Intentum.Providers** to get Core, Runtime, AI, and all providers in one: `dotnet add package Intentum.Providers`. If youadd no provider, use **MockEmbeddingProvider** (in Intentum.AI) for local runs — no API key needed.
 
 ---
 
@@ -149,6 +149,8 @@ The solution contains many packages and two sample applications.
 - `Intentum.Logging` — Serilog integration for intent and policy
 - `Intentum.Persistence` — IBehaviorSpaceRepository, IIntentHistoryRepository
 - `Intentum.Persistence.EntityFramework` — EF Core implementation (SQL Server, SQLite, in-memory)
+- `Intentum.Persistence.Redis` — Redis-backed behavior spaces and intent history; `AddIntentumPersistenceRedis(redis, keyPrefix?)`
+- `Intentum.Persistence.MongoDB` — MongoDB-backed behavior spaces and intent history; `AddIntentumPersistenceMongoDB(database, collectionNames?)`
 - `Intentum.Analytics` — IIntentAnalytics: trends, decision distribution, anomaly detection, JSON/CSV export
 - `Intentum.CodeGen` — Scaffold CQRS + Intentum, YAML/JSON spec validation
 

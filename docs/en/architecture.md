@@ -47,7 +47,7 @@ flowchart TB
   subgraph core [Core]
     CorePkg[Intentum.Core]
     CorePkg --> Behavior[BehaviorSpace, BehaviorEvent, BehaviorSpaceBuilder]
-    CorePkg --> Intent[Intent, IntentConfidence, IntentSignal (Intentum.Core.Intents)]
+    CorePkg --> Intent["Intent, IntentConfidence, IntentSignal (Intentum.Core.Intents)"]
     CorePkg --> Batch[IBatchIntentModel, BatchIntentModel]
     CorePkg --> Model[IIntentModel]
   end
@@ -77,8 +77,12 @@ flowchart TB
   subgraph persistence [Persistence]
     Persist[Intentum.Persistence]
     PersistEF[Intentum.Persistence.EntityFramework]
+    PersistMongo[Intentum.Persistence.MongoDB]
+    PersistRedis[Intentum.Persistence.Redis]
     Persist --> Repos[IBehaviorSpaceRepository, IIntentHistoryRepository]
     PersistEF --> Repos
+    PersistMongo --> Repos
+    PersistRedis --> Repos
   end
 
   subgraph extensions [Extensions]
@@ -87,6 +91,10 @@ flowchart TB
     Clustering[Intentum.Clustering]
     Events[Intentum.Events]
     Experiments[Intentum.Experiments]
+    Explainability[Intentum.Explainability]
+    Simulation[Intentum.Simulation]
+    MultiTenancy[Intentum.MultiTenancy]
+    Versioning[Intentum.Versioning]
     Redis[Intentum.AI.Caching.Redis]
   end
 
@@ -99,8 +107,14 @@ flowchart TB
   core --> Clustering
   core --> Events
   core --> Experiments
+  core --> Explainability
+  core --> Simulation
+  core --> MultiTenancy
+  core --> Versioning
   ai --> Redis
 ```
+
+**All packages (summary):** Core, Runtime, AI, AI providers (OpenAI, Gemini, Mistral, Azure, Claude), Persistence (abstractions + EF, MongoDB, Redis), Analytics, AspNetCore, Clustering, Events, Experiments, Explainability, Simulation, MultiTenancy, Versioning, AI.Caching.Redis. Also Testing, Observability, Logging, CodeGen — see [API Reference](api.md) and [Advanced Features](advanced-features.md).
 
 ---
 
@@ -175,6 +189,8 @@ flowchart TB
     Repo[Repositories]
     Analytics[Analytics]
     Clustering[Clustering]
+    Events[Events/Webhook]
+    Experiments[Experiments]
   end
 
   app --> host

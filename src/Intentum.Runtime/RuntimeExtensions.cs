@@ -16,6 +16,16 @@ public static class RuntimeExtensions
     }
 
     /// <summary>
+    /// Decides using an A/B policy variant set (selector picks which policy applies to this intent).
+    /// </summary>
+    public static PolicyDecision Decide(
+        this Intent intent,
+        PolicyVariantSet variantSet)
+    {
+        return variantSet.Decide(intent);
+    }
+
+    /// <summary>
     /// Decides policy and, when decision is RateLimit, checks the rate limiter.
     /// Returns the policy decision; use <paramref name="rateLimitResult"/> when decision is RateLimit.
     /// </summary>

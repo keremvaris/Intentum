@@ -1,0 +1,26 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <PackageId>Intentum.Providers</PackageId>
+    <Description>Meta-package that references Intentum Core, Runtime, AI, and all AI providers (OpenAI, Gemini, Mistral, Azure OpenAI, Claude). Add this package to get the full set of provider adapters.</Description>
+    <PackageTags>intent;behavior;ai;openai;gemini;mistral;azure;claude;dotnet;meta</PackageTags>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <NoWarn>$(NoWarn);1591</NoWarn>
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Intentum.Core\Intentum.Core.csproj" />
+    <ProjectReference Include="..\Intentum.Runtime\Intentum.Runtime.csproj" />
+    <ProjectReference Include="..\Intentum.AI\Intentum.AI.csproj" />
+    <ProjectReference Include="..\Intentum.AI.OpenAI\Intentum.AI.OpenAI.csproj" />
+    <ProjectReference Include="..\Intentum.AI.Gemini\Intentum.AI.Gemini.csproj" />
+    <ProjectReference Include="..\Intentum.AI.Mistral\Intentum.AI.Mistral.csproj" />
+    <ProjectReference Include="..\Intentum.AI.AzureOpenAI\Intentum.AI.AzureOpenAI.csproj" />
+    <ProjectReference Include="..\Intentum.AI.Claude\Intentum.AI.Claude.csproj" />
+  </ItemGroup>
+
+</Project>

@@ -18,7 +18,7 @@ So: *behavior → intent → policy decision*. No hard-coded scenario steps; the
 
 | Type | What it does |
 |------|----------------|
-| **BehaviorSpace** | Container for observed events. You call `.Observe(actor, action)` (e.g. `"user"`, `"login"`). Use `.ToVector()` to get a behavior vector for inference. |
+| **BehaviorSpace** | Container for observed events. You call `.Observe(actor, action)` (e.g. `"user"`, `"login"`). Use `.ToVector()` to get a behavior vector for inference; the result is cached until you call `Observe` again. |
 | **Intent** | Result of inference: confidence level, score, and signals (contributing behaviors with weights). |
 | **IntentConfidence** | Part of Intent: `Level` (string) and `Score` (0–1). |
 | **IntentSignal** | One signal in an Intent: `Source`, `Description`, `Weight`. |
@@ -26,7 +26,7 @@ So: *behavior → intent → policy decision*. No hard-coded scenario steps; the
 
 **Namespace:** `Intent`, `IntentConfidence`, and `IntentSignal` are in **`Intentum.Core.Intents`**. Use `using Intentum.Core.Intents;` to reference them.
 
-**Where to start:** Create a `BehaviorSpace`, call `.Observe(...)` for each event, then pass the space to your intent model’s `Infer(space)`.
+**Where to start:** Create a `BehaviorSpace`, call `.Observe(...)` for each event, then pass the space to your intent model’s `Infer(space)` (optionally pass a pre-computed `BehaviorVector` as second argument to avoid recomputation).
 
 ---
 
@@ -34,7 +34,8 @@ So: *behavior → intent → policy decision*. No hard-coded scenario steps; the
 
 | Type | What it does |
 |------|----------------|
-| **IntentPolicy** | Ordered list of rules. Add rules with `.AddRule(PolicyRule(...))`. First matching rule wins. |
+| **IntentPolicy** | Ordered list of rules. Add rules with `.AddRule(PolicyRule(...))`. First matching rule wins. Use `.WithBase(basePolicy)` for inheritance; `IntentPolicy.Merge(policy1, policy2, ...)` to combine policies. |
+| **PolicyVariantSet** | A/B policy variants: multiple named policies with a selector (`Func<Intent, string>`). Use `intent.Decide(variantSet)` to evaluate with the selected policy. |
 | **IntentPolicyBuilder** | Fluent builder for creating IntentPolicy instances. Use `.Allow(...)`, `.Block(...)`, `.Escalate(...)`, etc. |
 | **PolicyRule** | Name + condition (e.g. lambda on `Intent`) + **PolicyDecision** (Allow, Observe, Warn, Block, Escalate, RequireAuth, RateLimit). |
 | **PolicyDecision** | Decision enum: **Allow**, **Observe**, **Warn**, **Block**, **Escalate**, **RequireAuth**, **RateLimit**. |
@@ -76,7 +77,8 @@ var policy = new IntentPolicyBuilder()
 | **TimeDecaySimilarityEngine** | Similarity engine that applies time-based decay to embeddings. More recent events have higher influence on intent inference. |
 | **CosineSimilarityEngine** | Similarity engine that uses cosine similarity between embedding vectors. Falls back to simple average if vectors are not available. |
 | **CompositeSimilarityEngine** | Combines multiple similarity engines using weighted combination. Useful for A/B testing. |
-| **LlmIntentModel** | Takes an embedding provider + similarity engine; **Infer(BehaviorSpace)** returns an **Intent** with confidence and signals. |
+| **LlmIntentModel** | Takes an embedding provider + similarity engine; **Infer(BehaviorSpace, BehaviorVector? precomputedVector = null)** returns an **Intent** with confidence and signals. |
+| **IntentModelStreamingExtensions** | **InferMany(model, spaces)** — lazy `IEnumerable<Intent>` over many spaces; **InferManyAsync(model, spaces, ct)** — async stream `IAsyncEnumerable<Intent>`. |
 | **IEmbeddingCache** / **MemoryEmbeddingCache** | Cache interface and memory implementation for embedding results. Use **CachedEmbeddingProvider** to wrap any provider with caching. |
 | **IBatchIntentModel** / **BatchIntentModel** | Batch processing for multiple behavior spaces. Supports async processing with cancellation. |
 
@@ -162,10 +164,85 @@ Register providers via the **AddIntentum\*** extension methods and options (env 
 |------|----------------|
 | **IBehaviorSpaceRepository** | Repository interface for persisting and querying behavior spaces. |
 | **IIntentHistoryRepository** | Repository interface for storing intent inference results and policy decisions. |
-| **BehaviorSpaceRepository** (EF Core) | Entity Framework Core implementation of IBehaviorSpaceRepository. |
-| **IntentHistoryRepository** (EF Core) | Entity Framework Core implementation of IIntentHistoryRepository. |
+| **Intentum.Persistence.EntityFramework** | EF Core implementation; `AddIntentumPersistence()`. |
+| **Intentum.Persistence.Redis** | Redis-backed repositories; `AddIntentumPersistenceRedis(IConnectionMultiplexer, keyPrefix?)`. |
+| **Intentum.Persistence.MongoDB** | MongoDB-backed repositories; `AddIntentumPersistenceMongoDB(IMongoDatabase, behaviorSpaceCollectionName?, intentHistoryCollectionName?)`. |
 
-**Where to start:** Add `Intentum.Persistence.EntityFramework` package, configure DbContext, and use `AddIntentumPersistence()` extension method.
+**Where to start:** Add `Intentum.Persistence.EntityFramework`, `Intentum.Persistence.Redis`, or `Intentum.Persistence.MongoDB`; register with the corresponding `AddIntentumPersistence*` extension method.
+
+---
+
+## Extended packages (API overview)
+
+The following packages add optional capabilities. For detailed usage (what it is, when to use, how to configure), see [Advanced Features](advanced-features.md).
+
+### Redis embedding cache (`Intentum.AI.Caching.Redis`)
+
+| Type | What it does |
+|------|----------------|
+| **RedisEmbeddingCache** | `IEmbeddingCache` implementation using Redis (`IDistributedCache`). |
+| **RedisCachingExtensions.AddIntentumRedisCache** | Registers Redis cache and options (ConnectionString, InstanceName, DefaultExpiration). |
+| **IntentumRedisCacheOptions** | ConnectionString, InstanceName, DefaultExpiration. |
+
+### Clustering (`Intentum.Clustering`)
+
+| Type | What it does |
+|------|----------------|
+| **IIntentClusterer** | Clusters intent history records (pattern or score buckets). |
+| **IntentClusterer** | Default: `ClusterByPatternAsync(records)` (by ConfidenceLevel + Decision), `ClusterByConfidenceScoreAsync(records, k)`. |
+| **IntentCluster** | Id, Label, RecordIds, Count, Summary (ClusterSummary). |
+| **ClusterSummary** | AverageConfidenceScore, MinScore, MaxScore. |
+| **ClusteringExtensions.AddIntentClustering** | Registers `IIntentClusterer` in DI. |
+
+### Events / Webhook (`Intentum.Events`)
+
+| Type | What it does |
+|------|----------------|
+| **IIntentEventHandler** | `HandleAsync(payload, eventType)` — e.g. dispatch to webhook. |
+| **WebhookIntentEventHandler** | POSTs JSON to configured URLs (IntentInferred, PolicyDecisionChanged) with retry. |
+| **IntentEventPayload** | BehaviorSpaceId, Intent, Decision, RecordedAt. |
+| **IntentumEventType** | IntentInferred, PolicyDecisionChanged. |
+| **EventsExtensions.AddIntentumEvents** | Registers event handling; **AddWebhook(url, events?)** on options. |
+| **IntentumEventsOptions** | Webhooks (list of Url + EventTypes), RetryCount. |
+
+### Experiments (`Intentum.Experiments`)
+
+| Type | What it does |
+|------|----------------|
+| **IntentExperiment** | A/B test: `.AddVariant(name, model, policy)`, `.SplitTraffic(percentages)`, `.RunAsync(behaviorSpaces)` / `.Run(behaviorSpaces)`. |
+| **ExperimentResult** | VariantName, Intent, Decision (per behavior space). |
+| **ExperimentVariant** | Name, Model, Policy (internal). |
+
+### Explainability (`Intentum.Explainability`)
+
+| Type | What it does |
+|------|----------------|
+| **IIntentExplainer** | Explains how intent was inferred (signal contributions, text summary). |
+| **IntentExplainer** | `GetSignalContributions(intent)` → list of **SignalContribution** (Source, Description, Weight, ContributionPercent); `GetExplanation(intent, maxSignals?)` → string. |
+| **SignalContribution** | Source, Description, Weight, ContributionPercent. |
+
+### Simulation (`Intentum.Simulation`)
+
+| Type | What it does |
+|------|----------------|
+| **IBehaviorSpaceSimulator** | Generates synthetic behavior spaces. |
+| **BehaviorSpaceSimulator** | `FromSequence((actor, action)[])` — fixed sequence; `GenerateRandom(actors, actions, eventCount, randomSeed?)` — random space. |
+
+### Multi-tenancy (`Intentum.MultiTenancy`)
+
+| Type | What it does |
+|------|----------------|
+| **ITenantProvider** | `GetCurrentTenantId()` — e.g. from HTTP context or claims. |
+| **TenantAwareBehaviorSpaceRepository** | Wraps `IBehaviorSpaceRepository`: injects TenantId on Save, filters by tenant on Get/Delete. |
+| **MultiTenancyExtensions.AddTenantAwareBehaviorSpaceRepository** | Registers tenant-aware repo in DI (requires inner repo + ITenantProvider). |
+
+### Versioning (`Intentum.Versioning`)
+
+| Type | What it does |
+|------|----------------|
+| **IVersionedPolicy** | Version (string) + Policy (IntentPolicy). |
+| **VersionedPolicy** | Record: `new VersionedPolicy(version, policy)`. |
+| **PolicyVersionTracker** | `Add(versionedPolicy)`, `Current`, `Versions`, `Rollback()`, `Rollforward()`, `SetCurrent(index)`, `CompareVersions(a, b)`. |
 
 ---
 

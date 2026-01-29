@@ -2,7 +2,7 @@
 
 Intentum uses **embedding providers** to turn behavior (e.g. `"user:login"`) into vectors so the intent model can infer confidence. You can use a **mock provider** (no API key, for local runs and tests) or a **real provider** (OpenAI, Gemini, Mistral, Azure OpenAI, Claude) for production.
 
-This page explains each provider: what it does, env vars, minimal code, and DI setup. For the overall flow (Observe → Infer → Decide), see [API Reference](api.md) and [Setup](setup.md).
+This page explains each provider: what it does, env vars, minimal code, and DI setup. For **easy / medium / hard** usage examples for every AI provider (Mock, OpenAI, Gemini, Mistral, Azure, Claude), see [How to use AI providers](ai-providers-howto.md). For the overall flow (Observe → Infer → Decide), see [API Reference](api.md) and [Setup](setup.md).
 
 ---
 

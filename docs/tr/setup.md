@@ -30,6 +30,8 @@ dotnet add package Intentum.AI.AzureOpenAI
 dotnet add package Intentum.AI.Claude
 ```
 
+İstersen **Intentum.Providers** ekleyerek Core, Runtime, AI ve tüm sağlayıcı paketlerini tek seferde alabilirsin: `dotnet add package Intentum.Providers`.
+
 Sağlayıcı eklemezsen yerel çalıştırma için **MockEmbeddingProvider** (Intentum.AI içinde) kullan — API anahtarı gerekmez.
 
 ---
@@ -129,7 +131,7 @@ Detay ve örnekler: [Sağlayıcılar](providers.md).
 
 ## Repo sample’ını derle ve çalıştır
 
-Çözüm birçok paket ve iki örnek uygulama içerir: **Çekirdek:** Intentum.Core, Intentum.Runtime, Intentum.AI. **Sağlayıcılar:** Intentum.AI.OpenAI, Gemini, Mistral, AzureOpenAI, Claude. **Uzantılar:** Intentum.AspNetCore, Testing, Observability, Logging, Persistence, Persistence.EntityFramework, Analytics, CodeGen. **Örnekler:** samples/Intentum.Sample (konsol), samples/Intentum.Sample.Web (API + UI, intent infer, analytics, rate limiting).
+Çözüm birçok paket ve iki örnek uygulama içerir: **Çekirdek:** Intentum.Core, Intentum.Runtime, Intentum.AI. **Sağlayıcılar:** Intentum.AI.OpenAI, Gemini, Mistral, AzureOpenAI, Claude. **Uzantılar:** Intentum.AspNetCore, Testing, Observability, Logging, Persistence, Persistence.EntityFramework, Persistence.Redis, Persistence.MongoDB, Analytics, CodeGen. **Örnekler:** samples/Intentum.Sample (konsol), samples/Intentum.Sample.Web (API + UI, intent infer, analytics, rate limiting).
 
 Reponun kökünden:
 

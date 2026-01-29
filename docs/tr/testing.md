@@ -43,8 +43,28 @@ dotnet test tests/Intentum.Tests/Intentum.Tests.csproj -v n
 | **Sağlayıcı IntentModel'leri** | **OpenAIIntentModel**, **GeminiIntentModel**, **MistralIntentModel**, **AzureOpenAIIntentModel** ile **MockEmbeddingProvider**: infer beklenen confidence ve sinyalleri döndürür. |
 | **Clustering** | **AddIntentClustering** kaydı; **IntentClusterer** (cluster Id, RecordIds, ClusterSummary ortalama/min/max). |
 | **Test yardımcıları** | **IntentAssertions** (HasSignalCount, ContainsSignal), **PolicyDecisionAssertions** (IsAllow, IsBlock, IsNotBlock), **TestHelpers.CreateModel**. |
+| **Redis embedding cache** | **RedisEmbeddingCache**: bellek içi `IDistributedCache` ile Get/Set/Remove; gerçek Redis yok. |
+| **Webhook / Events** | **WebhookIntentEventHandler**: AddWebhook seçenekleri, HandleAsync mock HttpClient’a POST; **AddIntentumEvents** DI kaydı. |
+| **Experiments** | **IntentExperiment**: AddVariant, SplitTraffic, RunAsync (mock model/policy ile). |
+| **Simulation** | **BehaviorSpaceSimulator**: FromSequence, GenerateRandom (seed ile). |
+| **Explainability** | **IntentExplainer**: GetSignalContributions, GetExplanation. |
+| **Multi-tenancy** | **TenantAwareBehaviorSpaceRepository**: SaveAsync TenantId ekler, GetByIdAsync tenant’a göre filtreler; bellek içi repo. |
+| **Versioning** | **PolicyVersionTracker**: Add, Current, Rollback, Rollforward, SetCurrent; **VersionedPolicy**. |
 
 Yani: gerçek API çağırmıyoruz; sahte JSON veya mock sağlayıcı kullanıyoruz ve sağlayıcı ile modelin beklenen `Intent` ve `PolicyDecision` ürettiğini kontrol ediyoruz.
+
+---
+
+## Henüz kapsanmayanlar
+
+| Alan | Durum |
+|------|--------|
+| **Intentum.Persistence.MongoDB** | Test projesinde referans yok; `MongoBehaviorSpaceRepository` / `MongoIntentHistoryRepository` için unit veya integration test yok. |
+| **Intentum.Persistence.EntityFramework** | Test projesinde referans yok; EF repository’ler veya PostgreSQL/SQL Server için test yok. |
+| **Intentum.Persistence.Redis** | Test projesinde referans yok; Redis tabanlı behavior space veya intent history repository testi yok. |
+| **Gerçek Redis / MongoDB / PostgreSQL** | Tüm mevcut testler bellek içi veya mock kullanıyor. Gerçek veritabanına karşı integration testler (örn. Testcontainers) yok. |
+
+Persistence ekliyorsanız veya gerçek bir store’a karşı çalıştırıyorsanız, integration test (örn. MongoDB/PostgreSQL/Redis için Testcontainers) veya en azından aynı interface’i implement eden sahte repository ile contract test eklemeyi düşünün.
 
 ---
 

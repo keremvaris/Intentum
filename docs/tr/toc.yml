@@ -2,6 +2,20 @@
 items:
   - name: Ana Sayfa
     href: index.md
+  - name: Neden Intentum
+    href: why-intentum.md
+  - name: Manifesto
+    href: manifesto.md
+  - name: Intentum Canon
+    href: intentum-canon.md
+  - name: Neden Niyet ≠ Log
+    href: why-intent-not-logs.md
+  - name: Niyet Modelleri Tasarlama
+    href: designing-intent-models.md
+  - name: Gerçek Dünya Senaryoları
+    href: real-world-scenarios.md
+  - name: Yol haritası
+    href: roadmap.md
   - name: Mimari
     href: architecture.md
   - name: Kurulum
@@ -12,6 +26,8 @@ items:
     href: codegen.md
   - name: Sağlayıcılar
     href: providers.md
+  - name: AI sağlayıcılarını kullanma
+    href: ai-providers-howto.md
   - name: Test
     href: testing.md
   - name: Kitle

@@ -2,6 +2,20 @@
 items:
   - name: Home
     href: index.md
+  - name: Why Intentum
+    href: why-intentum.md
+  - name: Manifesto
+    href: manifesto.md
+  - name: Intentum Canon
+    href: intentum-canon.md
+  - name: Why Intent ≠ Logs
+    href: why-intent-not-logs.md
+  - name: Designing Intent Models
+    href: designing-intent-models.md
+  - name: Real-world Scenarios
+    href: real-world-scenarios.md
+  - name: Roadmap
+    href: roadmap.md
   - name: Architecture
     href: architecture.md
   - name: Setup
@@ -12,6 +26,8 @@ items:
     href: codegen.md
   - name: Providers
     href: providers.md
+  - name: How to use AI providers
+    href: ai-providers-howto.md
   - name: Testing
     href: testing.md
   - name: Audience

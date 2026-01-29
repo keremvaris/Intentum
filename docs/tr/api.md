@@ -18,7 +18,7 @@ Yani: *davranış → intent → policy kararı*. Sabit senaryo adımları yok; 
 
 | Tip | Ne işe yarar |
 |-----|----------------|
-| **BehaviorSpace** | Gözlenen olayların konteyneri. `.Observe(actor, action)` çağırırsın (örn. `"user"`, `"login"`). Çıkarım için `.ToVector()` ile behavior vektörü alırsın. |
+| **BehaviorSpace** | Gözlenen olayların konteyneri. `.Observe(actor, action)` çağırırsın (örn. `"user"`, `"login"`). Çıkarım için `.ToVector()` ile behavior vektörü alırsın; sonuç bir sonraki `Observe` çağrısına kadar önbellekte tutulur. |
 | **Intent** | Çıkarım sonucu: güven seviyesi, skor ve sinyaller (ağırlıklı davranışlar). |
 | **IntentConfidence** | Intent’in parçası: `Level` (string) ve `Score` (0–1). |
 | **IntentSignal** | Intent'teki bir sinyal: `Source`, `Description`, `Weight`. |
@@ -34,7 +34,8 @@ Yani: *davranış → intent → policy kararı*. Sabit senaryo adımları yok; 
 
 | Tip | Ne işe yarar |
 |-----|----------------|
-| **IntentPolicy** | Sıralı kural listesi. `.AddRule(PolicyRule(...))` ile kural eklenir. İlk eşleşen kural kazanır. |
+| **IntentPolicy** | Sıralı kural listesi. `.AddRule(PolicyRule(...))` ile kural eklenir. İlk eşleşen kural kazanır. Inheritance için `.WithBase(basePolicy)`; birleştirmek için `IntentPolicy.Merge(policy1, policy2, ...)` kullanın. |
+| **PolicyVariantSet** | A/B policy varyantları: seçici (`Func<Intent, string>`) ile birden fazla isimli policy. Seçilen policy ile değerlendirmek için `intent.Decide(variantSet)` kullanın. |
 | **IntentPolicyBuilder** | IntentPolicy oluşturmak için fluent builder. `.Allow(...)`, `.Block(...)`, `.Escalate(...)` vb. metodlar kullanılır. |
 | **PolicyRule** | İsim + koşul (örn. `Intent` üzerinde lambda) + **PolicyDecision** (Allow, Observe, Warn, Block, Escalate, RequireAuth, RateLimit). |
 | **PolicyDecision** | Karar enum'u: **Allow**, **Observe**, **Warn**, **Block**, **Escalate**, **RequireAuth**, **RateLimit**. |
@@ -72,7 +73,14 @@ var policy = new IntentPolicyBuilder()
 |-----|----------------|
 | **IIntentEmbeddingProvider** | Bir behavior anahtarını (örn. `"user:login"`) **IntentEmbedding** (vektör + skor) yapar. Her sağlayıcı (OpenAI, Gemini vb.) veya test için **MockEmbeddingProvider** tarafından uygulanır. |
 | **IIntentSimilarityEngine** | Embedding’leri tek bir similarity skoruna birleştirir. **SimpleAverageSimilarityEngine** varsayılan seçenektir. |
-| **LlmIntentModel** | Embedding sağlayıcı + similarity engine alır; **Infer(BehaviorSpace)** bir **Intent** (güven ve sinyallerle) döndürür. |
+| **WeightedAverageSimilarityEngine** | Kaynağa (actor:action) göre ağırlık uygular. |
+| **TimeDecaySimilarityEngine** | Zamana göre decay; daha yeni olaylar daha yüksek ağırlık. |
+| **CosineSimilarityEngine** | Vektörler arası kosinüs benzerliği; vektör yoksa basit ortalama. |
+| **CompositeSimilarityEngine** | Birden fazla similarity engine'i ağırlıklı birleştirir. |
+| **LlmIntentModel** | Embedding sağlayıcı + similarity engine alır; **Infer(BehaviorSpace, BehaviorVector? precomputedVector = null)** bir **Intent** (güven ve sinyallerle) döndürür. |
+| **IntentModelStreamingExtensions** | **InferMany(model, spaces)** — lazy `IEnumerable<Intent>`; **InferManyAsync(model, spaces, ct)** — async stream. |
+| **IEmbeddingCache** / **MemoryEmbeddingCache** | Embedding sonuçları cache arayüzü ve bellek implementasyonu. **CachedEmbeddingProvider** ile her sağlayıcı cache'lenebilir. |
+| **IBatchIntentModel** / **BatchIntentModel** | Birden fazla behavior space için toplu çıkarım; async ve iptal destekler. |
 
 **Nereden başlanır:** Hızlı yerel çalıştırma için **MockEmbeddingProvider** ve **SimpleAverageSimilarityEngine** kullan; production için gerçek sağlayıcıya geç ([Sağlayıcılar](providers.md)).
 
@@ -98,6 +106,147 @@ Sağlayıcılar **AddIntentum\*** extension metodları ve options (env var) ile 
 
 ---
 
+## Test (`Intentum.Testing`)
+
+| Tip | Ne işe yarar |
+|-----|----------------|
+| **TestHelpers** | Test nesneleri: `CreateDefaultModel()`, `CreateDefaultPolicy()`, `CreateSimpleSpace()` vb. |
+| **BehaviorSpaceAssertions** | BehaviorSpace assert: `ContainsEvent()`, `HasEventCount()`, `ContainsActor()` vb. |
+| **IntentAssertions** | Intent assert: `HasConfidenceLevel()`, `HasConfidenceScore()`, `HasSignals()` vb. |
+| **PolicyDecisionAssertions** | PolicyDecision assert: `IsOneOf()`, `IsAllow()`, `IsBlock()` vb. |
+
+**Nereden başlanır:** Test projesine `Intentum.Testing` ekleyip bu yardımcıları kullanın.
+
+---
+
+## ASP.NET Core (`Intentum.AspNetCore`)
+
+| Tip | Ne işe yarar |
+|-----|----------------|
+| **BehaviorObservationMiddleware** | HTTP istek davranışlarını otomatik BehaviorSpace'e kaydeder. |
+| **IntentumAspNetCoreExtensions** | `AddIntentum()` (DI), `UseIntentumBehaviorObservation()` (middleware). |
+
+**Nereden başlanır:** `Intentum.AspNetCore` ekleyin; `Program.cs`'de `services.AddIntentum()`, sonra `app.UseIntentumBehaviorObservation()`.
+
+---
+
+## Observability (`Intentum.Observability`)
+
+| Tip | Ne işe yarar |
+|-----|----------------|
+| **IntentumMetrics** | OpenTelemetry metrikleri: intent çıkarım sayısı/süresi, güven skorları, policy kararları. |
+| **ObservableIntentModel** | IIntentModel etrafında metrik saran wrapper. |
+| **ObservablePolicyEngine** | `DecideWithMetrics()` — karar + metrik. |
+
+---
+
+## Logging (`Intentum.Logging`)
+
+| Tip | Ne işe yarar |
+|-----|----------------|
+| **IntentumLogger** | Serilog ile yapılandırılmış loglama (intent, policy, behavior). |
+| **LoggingExtensions** | `LogIntentInference()`, `LogPolicyDecision()`, `LogBehaviorSpace()`. |
+
+---
+
+## Persistence (`Intentum.Persistence`)
+
+| Tip | Ne işe yarar |
+|-----|----------------|
+| **IBehaviorSpaceRepository** | Behavior space kaydetme ve sorgulama arayüzü. |
+| **IIntentHistoryRepository** | Intent çıkarım sonuçları ve policy kararlarını saklama arayüzü. |
+| **Intentum.Persistence.EntityFramework** | EF Core implementasyonu; `AddIntentumPersistence()`. |
+| **Intentum.Persistence.Redis** | Redis tabanlı repository'ler; `AddIntentumPersistenceRedis(IConnectionMultiplexer, keyPrefix?)`. |
+| **Intentum.Persistence.MongoDB** | MongoDB tabanlı repository'ler; `AddIntentumPersistenceMongoDB(IMongoDatabase, ...)`. |
+
+**Nereden başlanır:** EF, Redis veya MongoDB paketini ekleyip ilgili `AddIntentumPersistence*` ile kaydedin.
+
+---
+
+## Genişletme paketleri (API özeti)
+
+Aşağıdaki paketler opsiyonel yetenek ekler. Detaylı kullanım (nedir, ne zaman, nasıl) için [Gelişmiş Özellikler](advanced-features.md).
+
+### Redis embedding cache (`Intentum.AI.Caching.Redis`)
+
+| Tip | Ne işe yarar |
+|-----|----------------|
+| **RedisEmbeddingCache** | Redis (`IDistributedCache`) ile `IEmbeddingCache` implementasyonu. |
+| **RedisCachingExtensions.AddIntentumRedisCache** | Redis cache ve options (ConnectionString, InstanceName, DefaultExpiration) kaydı. |
+| **IntentumRedisCacheOptions** | ConnectionString, InstanceName, DefaultExpiration. |
+
+### Clustering (`Intentum.Clustering`)
+
+| Tip | Ne işe yarar |
+|-----|----------------|
+| **IIntentClusterer** | Intent history kayıtlarını cluster'lar (pattern veya skor kovaları). |
+| **IntentClusterer** | `ClusterByPatternAsync(records)` (ConfidenceLevel + Decision), `ClusterByConfidenceScoreAsync(records, k)`. |
+| **IntentCluster** | Id, Label, RecordIds, Count, Summary (ClusterSummary). |
+| **ClusterSummary** | AverageConfidenceScore, MinScore, MaxScore. |
+| **ClusteringExtensions.AddIntentClustering** | DI'da `IIntentClusterer` kaydı. |
+
+### Events / Webhook (`Intentum.Events`)
+
+| Tip | Ne işe yarar |
+|-----|----------------|
+| **IIntentEventHandler** | `HandleAsync(payload, eventType)` — örn. webhook'a gönderim. |
+| **WebhookIntentEventHandler** | IntentInferred, PolicyDecisionChanged ile JSON POST; retry. |
+| **IntentEventPayload** | BehaviorSpaceId, Intent, Decision, RecordedAt. |
+| **IntentumEventType** | IntentInferred, PolicyDecisionChanged. |
+| **EventsExtensions.AddIntentumEvents** | Event handling kaydı; options üzerinde **AddWebhook(url, events?)**. |
+| **IntentumEventsOptions** | Webhooks (Url + EventTypes listesi), RetryCount. |
+
+### Experiments (`Intentum.Experiments`)
+
+| Tip | Ne işe yarar |
+|-----|----------------|
+| **IntentExperiment** | A/B test: `.AddVariant(name, model, policy)`, `.SplitTraffic(yüzdeler)`, `.RunAsync(behaviorSpaces)` / `.Run(behaviorSpaces)`. |
+| **ExperimentResult** | VariantName, Intent, Decision (her behavior space için). |
+
+### Explainability (`Intentum.Explainability`)
+
+| Tip | Ne işe yarar |
+|-----|----------------|
+| **IIntentExplainer** | Intent'in nasıl çıkarıldığını açıklar (sinyal katkıları, metin özeti). |
+| **IntentExplainer** | `GetSignalContributions(intent)` → **SignalContribution** listesi; `GetExplanation(intent, maxSignals?)` → string. |
+| **SignalContribution** | Source, Description, Weight, ContributionPercent. |
+
+### Simulation (`Intentum.Simulation`)
+
+| Tip | Ne işe yarar |
+|-----|----------------|
+| **IBehaviorSpaceSimulator** | Sentetik behavior space üretir. |
+| **BehaviorSpaceSimulator** | `FromSequence((actor, action)[])` — sabit sıra; `GenerateRandom(actors, actions, eventCount, randomSeed?)` — rastgele. |
+
+### Multi-tenancy (`Intentum.MultiTenancy`)
+
+| Tip | Ne işe yarar |
+|-----|----------------|
+| **ITenantProvider** | `GetCurrentTenantId()` — örn. HTTP context veya claims'ten. |
+| **TenantAwareBehaviorSpaceRepository** | `IBehaviorSpaceRepository` saran: Save'de TenantId ekler, Get/Delete'de tenant'a göre filtreler. |
+| **MultiTenancyExtensions.AddTenantAwareBehaviorSpaceRepository** | Tenant-aware repo DI kaydı (iç repo + ITenantProvider gerekir). |
+
+### Versioning (`Intentum.Versioning`)
+
+| Tip | Ne işe yarar |
+|-----|----------------|
+| **IVersionedPolicy** | Version (string) + Policy (IntentPolicy). |
+| **VersionedPolicy** | Record: `new VersionedPolicy(version, policy)`. |
+| **PolicyVersionTracker** | `Add(versionedPolicy)`, `Current`, `Versions`, `Rollback()`, `Rollforward()`, `SetCurrent(index)`, `CompareVersions(a, b)`. |
+
+---
+
+## Batch Processing (`Intentum.Core.Batch`)
+
+| Tip | Ne işe yarar |
+|-----|----------------|
+| **IBatchIntentModel** | Toplu intent çıkarım arayüzü. |
+| **BatchIntentModel** | Birden fazla behavior space'i toplu işler; async ve iptal destekler. |
+
+**Nereden başlanır:** `IIntentModel`'i `BatchIntentModel` ile sarıp `InferBatch()` / `InferBatchAsync()` kullanın.
+
+---
+
 ## Analytics (`Intentum.Analytics`)
 
 | Tip | Ne işe yarar |
@@ -108,6 +257,8 @@ Sağlayıcılar **AddIntentum\*** extension metodları ve options (env var) ile 
 | **DecisionDistributionReport** | Zaman penceresinde PolicyDecision başına sayı. |
 | **AnomalyReport** | Tespit edilen anomali (Type, Description, Severity, Details). |
 | **AnalyticsSummary** | Dashboard için özet (trends, distribution, anomalies). |
+
+**Persistence:** `IBehaviorSpaceRepository` ve `IIntentHistoryRepository` için EF Core (`AddIntentumPersistence`), Redis (`Intentum.Persistence.Redis`, `AddIntentumPersistenceRedis`) veya MongoDB (`Intentum.Persistence.MongoDB`, `AddIntentumPersistenceMongoDB`) kullanılabilir. Detay: [Gelişmiş özellikler](advanced-features.md#persistence).
 
 **Nereden başlanır:** `IIntentHistoryRepository` kaydedin (örn. `AddIntentumPersistence`), sonra `AddIntentAnalytics()` ekleyin ve `IIntentAnalytics` inject edin. `GetSummaryAsync()`, `GetConfidenceTrendsAsync()`, `GetDecisionDistributionAsync()`, `DetectAnomaliesAsync()`, `ExportToJsonAsync()`, `ExportToCsvAsync()` kullanın.
 
