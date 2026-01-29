@@ -1,6 +1,4 @@
-using Intentum.Core.Intent;
 using Intentum.Core.Intents;
-using Intent = Intentum.Core.Intents.Intent;
 
 namespace Intentum.Explainability;
 

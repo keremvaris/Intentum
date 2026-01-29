@@ -16,22 +16,22 @@ public sealed class BatchIntentModel : IBatchIntentModel
         _innerModel = innerModel ?? throw new ArgumentNullException(nameof(innerModel));
     }
 
-    public IReadOnlyList<Intents.Intent> InferBatch(IReadOnlyCollection<BehaviorSpace> behaviorSpaces)
+    public IReadOnlyList<Intent> InferBatch(IReadOnlyCollection<BehaviorSpace>? behaviorSpaces)
     {
         if (behaviorSpaces == null || behaviorSpaces.Count == 0)
-            return Array.Empty<Intents.Intent>();
+            return [];
 
         return behaviorSpaces
             .Select(space => _innerModel.Infer(space))
             .ToList();
     }
 
-    public async Task<IReadOnlyList<Intents.Intent>> InferBatchAsync(
-        IReadOnlyCollection<BehaviorSpace> behaviorSpaces,
+    public async Task<IReadOnlyList<Intent>> InferBatchAsync(
+        IReadOnlyCollection<BehaviorSpace>? behaviorSpaces,
         CancellationToken cancellationToken = default)
     {
         if (behaviorSpaces == null || behaviorSpaces.Count == 0)
-            return Array.Empty<Intents.Intent>();
+            return Array.Empty<Intent>();
 
         var tasks = behaviorSpaces.Select(async space =>
         {

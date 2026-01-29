@@ -1,5 +1,4 @@
 using Intentum.Runtime.RateLimiting;
-using Xunit;
 
 namespace Intentum.Tests;
 

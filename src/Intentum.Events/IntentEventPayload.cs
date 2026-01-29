@@ -1,6 +1,5 @@
-using Intentum.Core.Intents;
 using Intentum.Runtime.Policy;
-using Intent = Intentum.Core.Intents.Intent;
+using Intentum.Core.Intents;
 
 namespace Intentum.Events;
 

@@ -1,10 +1,7 @@
 using Intentum.Analytics;
-using Intentum.Core.Intent;
 using Intentum.Core.Intents;
 using Intentum.Persistence.Repositories;
 using Intentum.Runtime.Policy;
-using Xunit;
-using Intent = Intentum.Core.Intents.Intent;
 
 namespace Intentum.Tests;
 

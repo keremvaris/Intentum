@@ -1,4 +1,3 @@
-using Intentum.Core.Behavior;
 using Intentum.Core.Contracts;
 using Intentum.Runtime.Policy;
 

@@ -1,5 +1,3 @@
-using Intentum.CodeGen;
-
 namespace Intentum.CodeGen;
 
 /// <summary>

@@ -1,5 +1,4 @@
 using System.Text.Json;
-using Intentum.AI.Caching;
 using Intentum.AI.Embeddings;
 using Microsoft.Extensions.Caching.Distributed;
 

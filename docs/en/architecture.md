@@ -47,7 +47,7 @@ flowchart TB
   subgraph core [Core]
     CorePkg[Intentum.Core]
     CorePkg --> Behavior[BehaviorSpace, BehaviorEvent, BehaviorSpaceBuilder]
-    CorePkg --> Intent[Intent, IntentConfidence, IntentSignal]
+    CorePkg --> Intent[Intent, IntentConfidence, IntentSignal (Intentum.Core.Intents)]
     CorePkg --> Batch[IBatchIntentModel, BatchIntentModel]
     CorePkg --> Model[IIntentModel]
   end

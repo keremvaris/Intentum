@@ -1,5 +1,4 @@
 using Intentum.Core.Behavior;
-using Intentum.Core.Intent;
 using Intentum.Core.Intents;
 
 namespace Intentum.Core.Evaluation;
@@ -27,7 +26,7 @@ public static class IntentEvaluator
 
         var confidence = IntentConfidence.FromScore(score);
 
-        var intent = new Intents.Intent(
+        var intent = new Intent(
             intentName,
             signals,
             confidence

@@ -3,7 +3,6 @@ using System.Net.Http.Json;
 using System.Text.Json.Serialization;
 using Intentum.Core.Behavior;
 using Intentum.Core.Contracts;
-using Intentum.Core.Intent;
 using Intentum.Core.Intents;
 
 namespace Intentum.AI.Claude;

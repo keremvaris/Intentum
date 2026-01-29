@@ -2,7 +2,6 @@ using Intentum.AI.Embeddings;
 using Intentum.AI.Similarity;
 using Intentum.Core.Behavior;
 using Intentum.Core.Contracts;
-using Intentum.Core.Intent;
 using Intentum.Core.Intents;
 
 namespace Intentum.AI.Mistral;

@@ -17,7 +17,7 @@ public sealed class WebhookIntentEventHandler : IIntentEventHandler
         WriteIndented = false
     };
 
-    public WebhookIntentEventHandler(IHttpClientFactory httpClientFactory, IOptions<IntentumEventsOptions> options)
+    public WebhookIntentEventHandler(IHttpClientFactory httpClientFactory, IOptions<IntentumEventsOptions>? options)
     {
         _httpClientFactory = httpClientFactory ?? throw new ArgumentNullException(nameof(httpClientFactory));
         _options = options?.Value ?? throw new ArgumentNullException(nameof(options));

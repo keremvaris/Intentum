@@ -1,6 +1,5 @@
 using Intentum.AI.Caching.Redis;
 using Intentum.AI.Embeddings;
-using Microsoft.Extensions.Caching.Distributed;
 
 namespace Intentum.Tests;
 

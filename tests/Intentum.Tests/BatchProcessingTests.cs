@@ -1,7 +1,6 @@
 using Intentum.AI.Mock;
 using Intentum.AI.Models;
 using Intentum.AI.Similarity;
-using Intentum.Core;
 using Intentum.Core.Batch;
 using Intentum.Core.Behavior;
 

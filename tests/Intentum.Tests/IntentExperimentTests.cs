@@ -1,6 +1,4 @@
-using Intentum.Core.Behavior;
 using Intentum.Experiments;
-using Intentum.Runtime.Policy;
 using Intentum.Testing;
 
 namespace Intentum.Tests;

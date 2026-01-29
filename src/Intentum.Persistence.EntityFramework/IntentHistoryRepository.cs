@@ -3,7 +3,6 @@ using Intentum.Persistence.EntityFramework.Entities;
 using Intentum.Persistence.Repositories;
 using Intentum.Runtime.Policy;
 using Microsoft.EntityFrameworkCore;
-using Intent = Intentum.Core.Intents.Intent;
 
 namespace Intentum.Persistence.EntityFramework;
 

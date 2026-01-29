@@ -3,7 +3,6 @@ using Intentum.AI.Models;
 using Intentum.AI.Similarity;
 using Intentum.Core.Behavior;
 using Intentum.Runtime;
-using Intentum.Runtime.Localization;
 using Intentum.Runtime.Policy;
 using Intentum.Runtime.RateLimiting;
 

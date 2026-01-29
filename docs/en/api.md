@@ -21,7 +21,10 @@ So: *behavior → intent → policy decision*. No hard-coded scenario steps; the
 | **BehaviorSpace** | Container for observed events. You call `.Observe(actor, action)` (e.g. `"user"`, `"login"`). Use `.ToVector()` to get a behavior vector for inference. |
 | **Intent** | Result of inference: confidence level, score, and signals (contributing behaviors with weights). |
 | **IntentConfidence** | Part of Intent: `Level` (string) and `Score` (0–1). |
+| **IntentSignal** | One signal in an Intent: `Source`, `Description`, `Weight`. |
 | **IntentEvaluator** | Evaluates intent against criteria; used internally by the model. |
+
+**Namespace:** `Intent`, `IntentConfidence`, and `IntentSignal` are in **`Intentum.Core.Intents`**. Use `using Intentum.Core.Intents;` to reference them.
 
 **Where to start:** Create a `BehaviorSpace`, call `.Observe(...)` for each event, then pass the space to your intent model’s `Infer(space)`.
 

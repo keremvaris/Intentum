@@ -1,4 +1,3 @@
-using Intentum.Core.Intent;
 using Intentum.Core.Intents;
 using Intentum.Runtime.Engine;
 using Intentum.Runtime.Policy;

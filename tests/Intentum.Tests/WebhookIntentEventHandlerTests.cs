@@ -1,12 +1,10 @@
 using System.Net;
 using System.Text.Json;
-using Intentum.Core.Intent;
 using Intentum.Core.Intents;
 using Intentum.Events;
 using Intentum.Runtime.Policy;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
-using Intent = Intentum.Core.Intents.Intent;
 
 namespace Intentum.Tests;
 

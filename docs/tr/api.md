@@ -21,7 +21,10 @@ Yani: *davranış → intent → policy kararı*. Sabit senaryo adımları yok; 
 | **BehaviorSpace** | Gözlenen olayların konteyneri. `.Observe(actor, action)` çağırırsın (örn. `"user"`, `"login"`). Çıkarım için `.ToVector()` ile behavior vektörü alırsın. |
 | **Intent** | Çıkarım sonucu: güven seviyesi, skor ve sinyaller (ağırlıklı davranışlar). |
 | **IntentConfidence** | Intent’in parçası: `Level` (string) ve `Score` (0–1). |
+| **IntentSignal** | Intent'teki bir sinyal: `Source`, `Description`, `Weight`. |
 | **IntentEvaluator** | Intent’i kriterlere göre değerlendirir; model tarafından dahili kullanılır. |
+
+**Namespace:** `Intent`, `IntentConfidence` ve `IntentSignal` **`Intentum.Core.Intents`** ad alanındadır. Kullanmak için `using Intentum.Core.Intents;` ekleyin.
 
 **Nereden başlanır:** Bir `BehaviorSpace` oluştur, her olay için `.Observe(...)` çağır, sonra space’i intent modelinin `Infer(space)` metoduna ver.
 

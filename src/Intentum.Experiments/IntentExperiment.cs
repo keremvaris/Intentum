@@ -1,9 +1,7 @@
 using Intentum.Core.Behavior;
 using Intentum.Core.Contracts;
-using Intentum.Core.Intents;
 using Intentum.Runtime;
 using Intentum.Runtime.Policy;
-using Intent = Intentum.Core.Intents.Intent;
 
 namespace Intentum.Experiments;
 
@@ -28,7 +26,7 @@ public sealed class IntentExperiment
     /// <summary>
     /// Sets traffic split percentages (e.g. 50, 50 for two variants). Must sum to 100 and match variant count.
     /// </summary>
-    public IntentExperiment SplitTraffic(params int[] percentages)
+    public IntentExperiment SplitTraffic(params int[]? percentages)
     {
         _trafficSplit.Clear();
         _trafficSplit.AddRange(percentages ?? Array.Empty<int>());

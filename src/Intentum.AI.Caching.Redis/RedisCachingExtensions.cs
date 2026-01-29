@@ -1,4 +1,3 @@
-using Intentum.AI.Caching;
 using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.DependencyInjection;
 

@@ -1,4 +1,3 @@
-using Intentum.Core.Behavior;
 using Intentum.Simulation;
 
 namespace Intentum.Tests;

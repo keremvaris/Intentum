@@ -1,5 +1,3 @@
-using Intentum.Persistence.Repositories;
-
 namespace Intentum.Clustering;
 
 /// <summary>
