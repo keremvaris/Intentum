@@ -40,6 +40,8 @@ Bu dosya **conventional commit** mesajlarından otomatik üretilir.
 
 - Update GitHub Actions checkout and git-cliff-action versions *(ci)*
 
+- Update SonarCloud coverage exclusions *(ci)*
+
 
 
 ### Refactor
