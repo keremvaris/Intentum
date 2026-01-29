@@ -129,5 +129,6 @@ public class TestingUtilitiesTests
         PolicyDecisionAssertions.IsBlock(PolicyDecision.Block);
         PolicyDecisionAssertions.IsNotBlock(PolicyDecision.Allow);
         PolicyDecisionAssertions.IsNotBlock(PolicyDecision.Observe);
+        Assert.Contains(PolicyDecision.Allow, Enum.GetValues<PolicyDecision>());
     }
 }
