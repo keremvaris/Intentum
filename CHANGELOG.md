@@ -32,6 +32,8 @@ Bu dosya **conventional commit** mesajlarından otomatik üretilir.
 
 - Add advanced features documentation in English and Turkish *(core)*
 
+- Update coverage badge to use SonarCloud *(readme)*
+
 
 
 ### Miscellaneous
