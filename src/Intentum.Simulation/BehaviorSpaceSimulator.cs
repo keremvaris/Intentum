@@ -36,19 +36,30 @@ public sealed class BehaviorSpaceSimulator : IBehaviorSpaceSimulator
         if (eventCount < 0)
             throw new ArgumentOutOfRangeException(nameof(eventCount), "Event count must be non-negative.");
 
-        // PRNG used only for synthetic data generation (non-security); deterministic when seed is provided.
-        var rnd = randomSeed is { } seed ? new Random(seed) : Random.Shared;
+        var seed = randomSeed ?? Environment.TickCount;
         var space = new BehaviorSpace();
         var time = DateTimeOffset.UtcNow;
+        var actorCount = actors.Count;
+        var actionCount = actions.Count;
 
         for (var i = 0; i < eventCount; i++)
         {
-            var actor = actors[rnd.Next(actors.Count)];
-            var action = actions[rnd.Next(actions.Count)];
-            space.Observe(new BehaviorEvent(actor, action, time));
-            time = time.AddSeconds(rnd.Next(1, 60));
+            var actorIndex = Math.Abs(Hash(seed, i, 0)) % actorCount;
+            var actionIndex = Math.Abs(Hash(seed, i, 1)) % actionCount;
+            var timeDelta = 1 + (Math.Abs(Hash(seed, i, 2)) % 59);
+            space.Observe(new BehaviorEvent(actors[actorIndex], actions[actionIndex], time));
+            time = time.AddSeconds(timeDelta);
         }
 
         return space;
+    }
+
+    private static int Hash(int seed, int index, int salt)
+    {
+        unchecked
+        {
+            var h = (seed * 31 + index) * 31 + salt;
+            return h == int.MinValue ? 0 : h;
+        }
     }
 }
