@@ -17,6 +17,14 @@ Bu dosya **conventional commit** mesajlarından otomatik üretilir.
 
 
 
+### Miscellaneous
+
+- Centralize README.md packaging in root props file *(build)*
+
+## [0.0.9] - 2026-01-29
+
+
+
 ### Documentation
 
 - Update coverage documentation with threshold and CI details *(coverage)*
