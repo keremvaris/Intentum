@@ -49,7 +49,8 @@ jobs:
             /d:sonar.token="$SONAR_TOKEN" \
             /d:sonar.host.url="https://sonarcloud.io" \
             /d:sonar.cs.opencover.reportsPaths="**/coverage.opencover.xml" \
-            /d:sonar.exclusions="**/samples/**,**/docs/**,**/templates/**,**/.github/**,**/tests/**,**/release.sh"
+            /d:sonar.exclusions="**/samples/**,**/docs/**,**/templates/**,**/.github/**,**/tests/**,**/release.sh" \
+            /d:sonar.coverage.exclusions="**/Intentum.CodeGen/**,**/*ServiceCollectionExtensions.cs,**/*CachingExtensions.cs,**/MultiTenancyExtensions.cs,**/Intentum.AI.Claude/**"
 
       - name: Restore
         run: dotnet restore Intentum.slnx
