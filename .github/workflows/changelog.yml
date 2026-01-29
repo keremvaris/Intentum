@@ -13,12 +13,12 @@ jobs:
     permissions:
       contents: write
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
         with:
           fetch-depth: 0
           token: ${{ secrets.GITHUB_TOKEN }}
       - name: Generate CHANGELOG (git-cliff)
-        uses: orhun/git-cliff-action@v4
+        uses: orhun/git-cliff-action@e16f179f0be49ecdfe63753837f20b9531642772
         with:
           config: cliff.toml
           args: -o CHANGELOG.md -v
