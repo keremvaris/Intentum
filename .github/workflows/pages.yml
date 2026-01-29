@@ -16,6 +16,15 @@ jobs:
       contents: read
     steps:
       - uses: actions/checkout@v4
+      - name: Verify EN/TR doc menus in sync
+        run: |
+          EN_HREFS=$(grep '^\s*href:' docs/en/toc.yml | sed 's/.*href:\s*//')
+          TR_HREFS=$(grep '^\s*href:' docs/tr/toc.yml | sed 's/.*href:\s*//')
+          if [ "$EN_HREFS" != "$TR_HREFS" ]; then
+            echo "docs/en/toc.yml and docs/tr/toc.yml must have the same hrefs in the same order."
+            diff <(echo "$EN_HREFS") <(echo "$TR_HREFS") || true
+            exit 1
+          fi
       - uses: actions/setup-dotnet@v4
         with:
           dotnet-version: '10.0.x'
