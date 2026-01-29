@@ -21,6 +21,7 @@ Bu dosya **conventional commit** mesajlarından otomatik üretilir.
 
 
 
+
 ### Bug Fixes
 
 - Clarify PRNG usage in BehaviorSpaceSimulator *(simulation)*
@@ -52,6 +53,12 @@ Bu dosya **conventional commit** mesajlarından otomatik üretilir.
 - Introduce RateLimitOptions for rate limit parameters *(rate-limiter)*
 
 - Replace random generator with deterministic hashing for events *(simulation)*
+
+
+
+### Styling
+
+- Clean up whitespace and formatting in test files *(tests)*
 
 
 
