@@ -13,6 +13,16 @@ namespace Intentum.Tests;
 public class FluentApiTests
 {
     [Fact]
+    public void IntentPolicyBuilder_Rule_AddsCustomRule()
+    {
+        var policy = new IntentPolicyBuilder()
+            .Rule("CustomObserve", i => i.Confidence.Level == "Medium", PolicyDecision.Observe)
+            .Build();
+        Assert.Single(policy.Rules);
+        Assert.Equal(PolicyDecision.Observe, policy.Rules.First().Decision);
+    }
+
+    [Fact]
     public void BehaviorSpaceBuilder_WithActorAndActions_BuildsCorrectly()
     {
         // Arrange & Act
@@ -35,6 +45,19 @@ public class FluentApiTests
         Assert.Equal("submit", space.Events.ElementAt(2).Action);
         Assert.Equal("system", space.Events.ElementAt(3).Actor);
         Assert.Equal("validate", space.Events.ElementAt(3).Action);
+    }
+
+    [Fact]
+    public void BehaviorSpaceBuilder_ActionWithMetadata_RecordsEventWithMetadata()
+    {
+        var metadata = new Dictionary<string, object> { ["source"] = "test" };
+        var space = new BehaviorSpaceBuilder()
+            .WithActor("user")
+            .Action("submit", metadata)
+            .Build();
+        Assert.Single(space.Events);
+        Assert.NotNull(space.Events.First().Metadata);
+        Assert.Equal("test", space.Events.First().Metadata!["source"]);
     }
 
     [Fact]

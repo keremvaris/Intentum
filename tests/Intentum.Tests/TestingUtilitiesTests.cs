@@ -26,6 +26,17 @@ public class TestingUtilitiesTests
     }
 
     [Fact]
+    public void TestHelpers_CreateModel_Works()
+    {
+        var provider = new Intentum.AI.Mock.MockEmbeddingProvider();
+        var similarity = new Intentum.AI.Similarity.SimpleAverageSimilarityEngine();
+        var model = TestHelpers.CreateModel(provider, similarity);
+        var space = TestHelpers.CreateSimpleSpace();
+        var intent = model.Infer(space);
+        Assert.NotNull(intent);
+    }
+
+    [Fact]
     public void TestHelpers_CreateDefaultPolicy_Works()
     {
         // Arrange & Act
@@ -86,6 +97,17 @@ public class TestingUtilitiesTests
     }
 
     [Fact]
+    public void IntentAssertions_HasSignalCount_ContainsSignal_Works()
+    {
+        var model = TestHelpers.CreateDefaultModel();
+        var space = TestHelpers.CreateSpaceBuilder().WithActor("user").Action("login").Action("submit").Build();
+        var intent = model.Infer(space);
+        Assert.NotNull(intent);
+        IntentAssertions.HasSignalCount(intent, intent.Signals.Count);
+        IntentAssertions.ContainsSignal(intent, "user:login");
+    }
+
+    [Fact]
     public void PolicyDecisionAssertions_IsOneOf_Works()
     {
         // Arrange
@@ -98,5 +120,14 @@ public class TestingUtilitiesTests
         var decision = intent.Decide(policy);
         // Assert (default policy may return Allow, Observe, or Warn depending on inferred intent)
         PolicyDecisionAssertions.IsOneOf(decision, PolicyDecision.Allow, PolicyDecision.Observe, PolicyDecision.Warn);
+    }
+
+    [Fact]
+    public void PolicyDecisionAssertions_IsAllow_IsBlock_IsNotBlock_Work()
+    {
+        PolicyDecisionAssertions.IsAllow(PolicyDecision.Allow);
+        PolicyDecisionAssertions.IsBlock(PolicyDecision.Block);
+        PolicyDecisionAssertions.IsNotBlock(PolicyDecision.Allow);
+        PolicyDecisionAssertions.IsNotBlock(PolicyDecision.Observe);
     }
 }

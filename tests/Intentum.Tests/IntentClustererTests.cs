@@ -1,4 +1,5 @@
 using Intentum.Clustering;
+using Microsoft.Extensions.DependencyInjection;
 using Intentum.Persistence.Repositories;
 using Intentum.Runtime.Policy;
 
@@ -31,6 +32,27 @@ public class IntentClustererTests
     }
 
     [Fact]
+    public async Task ClusterByPatternAsync_ClusterExposesIdRecordIdsAndSummary()
+    {
+        var records = new List<IntentHistoryRecord>
+        {
+            CreateRecord("r1", "High", PolicyDecision.Allow, 0.9),
+            CreateRecord("r2", "High", PolicyDecision.Allow, 0.85)
+        };
+        var clusterer = new IntentClusterer();
+        var clusters = await clusterer.ClusterByPatternAsync(records);
+        var cluster = Assert.Single(clusters);
+        Assert.Equal("High_Allow", cluster.Id);
+        Assert.Equal(2, cluster.RecordIds.Count);
+        Assert.Contains("r1", cluster.RecordIds);
+        Assert.Contains("r2", cluster.RecordIds);
+        Assert.NotNull(cluster.Summary);
+        Assert.InRange(cluster.Summary.AverageConfidenceScore, 0.8, 1.0);
+        Assert.Equal(0.85, cluster.Summary.MinScore);
+        Assert.Equal(0.9, cluster.Summary.MaxScore);
+    }
+
+    [Fact]
     public async Task ClusterByConfidenceScoreAsync_SplitsIntoKBuckets()
     {
         var records = new List<IntentHistoryRecord>
@@ -42,6 +64,17 @@ public class IntentClustererTests
         var clusterer = new IntentClusterer();
         var clusters = await clusterer.ClusterByConfidenceScoreAsync(records, k: 3);
         Assert.Equal(3, clusters.Count);
+    }
+
+    [Fact]
+    public void AddIntentClustering_RegistersIntentClusterer()
+    {
+        var services = new ServiceCollection();
+        services.AddIntentClustering();
+        var provider = services.BuildServiceProvider();
+        var clusterer = provider.GetService<IIntentClusterer>();
+        Assert.NotNull(clusterer);
+        Assert.IsType<IntentClusterer>(clusterer);
     }
 
     private static IntentHistoryRecord CreateRecord(string id, string level, PolicyDecision decision, double score = 0.5)

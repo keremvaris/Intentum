@@ -41,4 +41,16 @@ public sealed class IntentumCoreExtensionsTests
         Assert.Equal("login_intent", result.Intent.Name);
         Assert.NotNull(result.BehaviorVector);
     }
+
+    [Fact]
+    public void BehaviorSpace_EvaluateIntent_WithManyEvents_NormalizesWeight()
+    {
+        var space = new BehaviorSpace();
+        for (var i = 0; i < 15; i++)
+            space.Observe("user", "repeat");
+        var result = space.EvaluateIntent("repeat_intent");
+        Assert.NotNull(result);
+        Assert.Single(result.Intent.Signals);
+        Assert.InRange(result.Intent.Signals.First().Weight, 0.9, 1.0);
+    }
 }

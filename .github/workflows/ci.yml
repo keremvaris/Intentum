@@ -48,7 +48,8 @@ jobs:
             /o:"${{ env.SONAR_ORGANIZATION }}" \
             /d:sonar.token="$SONAR_TOKEN" \
             /d:sonar.host.url="https://sonarcloud.io" \
-            /d:sonar.cs.opencover.reportsPaths="**/coverage.opencover.xml"
+            /d:sonar.cs.opencover.reportsPaths="**/coverage.opencover.xml" \
+            /d:sonar.exclusions="**/samples/**,**/docs/**,**/templates/**,**/.github/**,**/tests/**,**/release.sh"
 
       - name: Restore
         run: dotnet restore Intentum.slnx
@@ -56,6 +57,8 @@ jobs:
       - name: Build
         run: dotnet build Intentum.slnx --no-restore
 
+      # Coverage: OpenCover report for SonarCloud. 80% target: SonarCloud Quality Gate
+      # (project settings) and/or Intentum.Tests.csproj Coverlet Threshold=80.
       - name: Test
         run: >
           dotnet test tests/Intentum.Tests/Intentum.Tests.csproj --no-build
