@@ -13,6 +13,21 @@ Bu dosya **conventional commit** mesajlarından otomatik üretilir. Commit'te **
 
 ---
 
+## [1.0.2] - 2026-01-30
+
+
+
+### Refactor
+
+- **Move UseCache method before ApplyOptions for clarity** *(core)*
+
+- Relocated private static UseCache method to precede ApplyOptions for better code organization
+- Removed duplicate UseCache definition from earlier location in BehaviorSpace.cs
+- Simplified InferManyAsync method to directly return async iterator without await foreach loop in IntentModelStreamingExtensions.cs
+- Improved readability and maintainability by streamlining async enumerable method implementation
+
+
+
 ## [1.0.1] - 2026-01-30
 
 
