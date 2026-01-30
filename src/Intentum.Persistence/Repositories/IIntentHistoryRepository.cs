@@ -11,10 +11,16 @@ public interface IIntentHistoryRepository
     /// <summary>
     /// Saves an intent inference result with policy decision.
     /// </summary>
+    /// <param name="behaviorSpaceId">Identifier of the behavior space.</param>
+    /// <param name="intent">The inferred intent.</param>
+    /// <param name="decision">The policy decision.</param>
+    /// <param name="metadata">Optional metadata (e.g. EventsSummary, Source) to show where the inference came from.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
     Task<string> SaveAsync(
         string behaviorSpaceId,
         Intent intent,
         PolicyDecision decision,
+        IReadOnlyDictionary<string, object>? metadata = null,
         CancellationToken cancellationToken = default);
 
     /// <summary>

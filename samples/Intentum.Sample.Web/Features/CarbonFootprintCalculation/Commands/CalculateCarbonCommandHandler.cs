@@ -31,11 +31,14 @@ public sealed class CalculateCarbonCommandHandler : IRequestHandler<CalculateCar
 
         return decision switch
         {
-            PolicyDecision.Block => new CalculateCarbonError($"Blocked by policy: {intent.Confidence.Level}"),
+            PolicyDecision.Block => new CalculateCarbonError($"Politika ile engellendi: {intent.Confidence.Level}"),
             PolicyDecision.Warn => new CalculateCarbonOk(Guid.NewGuid(), "Warn", intent.Confidence.Level),
             PolicyDecision.Observe => new CalculateCarbonOk(Guid.NewGuid(), "Observe", intent.Confidence.Level),
             PolicyDecision.Allow => new CalculateCarbonOk(Guid.NewGuid(), "Allow", intent.Confidence.Level),
-            _ => new CalculateCarbonError("Unknown decision")
+            PolicyDecision.Escalate => new CalculateCarbonOk(Guid.NewGuid(), "Escalate", intent.Confidence.Level),
+            PolicyDecision.RequireAuth => new CalculateCarbonError("Ek kimlik doğrulama gerekli (RequireAuth)"),
+            PolicyDecision.RateLimit => new CalculateCarbonError("İstek limiti aşıldı (RateLimit); kısa süre sonra tekrar deneyin."),
+            _ => new CalculateCarbonError("Bilinmeyen karar")
         };
     }
 }

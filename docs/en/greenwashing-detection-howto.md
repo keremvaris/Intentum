@@ -160,8 +160,58 @@ You get flexibility (new signals = new observations), a confidence score instead
 
 ---
 
+## 6. Sample application (Intentum.Sample.Web)
+
+The web sample includes a full greenwashing flow in the UI and HTTP API.
+
+**Run:**
+
+```bash
+dotnet run --project samples/Intentum.Sample.Web
+```
+
+- **UI:** http://localhost:5000/ → **Örnekler** → **Greenwashing tespiti**
+- **API docs:** http://localhost:5000/scalar
+
+**Endpoints:**
+
+| Method | Path | Description |
+|--------|------|-------------|
+| POST | `/api/greenwashing/analyze` | Analyze report text (optional: `sourceType`, `language`, `imageBase64`). Returns intent, decision, signals, suggested actions, `blockchainRef`, `sourceMetadata`, `visualResult`. |
+| GET | `/api/greenwashing/recent?limit=15` | Last greenwashing analyses (in-memory; used by Dashboard). |
+
+**Request body (POST /api/greenwashing/analyze):**
+
+```json
+{
+  "report": "Sustainability report text...",
+  "sourceType": "Report",
+  "language": "tr",
+  "imageBase64": null
+}
+```
+
+`sourceType`: `"Report"`, `"SocialMedia"`, `"PressRelease"`, `"InvestorPresentation"` (mock metadata).  
+`language`: `"tr"`, `"en"`, `"de"` or empty (all pattern sets).  
+`imageBase64`: optional; if set, a green-dominance score is computed and may add `imagery:nature.without.data` to the behavior space.
+
+**Response:** `intentName`, `confidence`, `confidenceScore`, `decision`, `signalDescriptions`, `suggestedActions`, `blockchainRef`, `sourceMetadata` (with optional `scope3Summary`), `visualResult` (when image was sent).
+
+**Demo features in the sample:**
+
+- **Multi-language:** TR, EN, DE pattern sets via `SustainabilityReporter.AnalyzeReport(report, language)`.
+- **Visual (demo):** Image upload → green score; if above threshold, adds imagery signal.
+- **Scope 3 (mock):** Fixed supplier list; `scope3Summary` in metadata for Press/Investor source types.
+- **Blockchain (mock):** Every analysis returns a unique `blockchainRef` (e.g. `0x…`).
+- **Recent analyses:** Dashboard tab shows "Son greenwashing analizleri" from `GET /api/greenwashing/recent`; list refreshes when Dashboard is open; mock entries are added every 30 seconds.
+
+Implementation lives under `samples/Intentum.Sample.Web/Features/GreenwashingDetection/`: `SustainabilityReporter`, `GreenwashingIntentModel`, `SustainabilitySolutionGenerator`, `GreenwashingImageAnalyzer`, `GreenwashingScope3Mock`, `GreenwashingRecentStore`.
+
+---
+
 ## See also
 
 - [Real-world scenarios](real-world-scenarios.md) — Fraud/abuse and AI fallback
 - [Designing intent models](designing-intent-models.md) — Heuristic vs weighted vs LLM
-- Example: [examples/greenwashing-intent](https://github.com/keremvaris/Intentum/tree/master/examples/greenwashing-intent) — Runnable sample in the repository
+- [Setup](setup.md) — Build and run Sample.Web
+- Example: [examples/greenwashing-intent](https://github.com/keremvaris/Intentum/tree/master/examples/greenwashing-intent) — Console greenwashing sample (no API)

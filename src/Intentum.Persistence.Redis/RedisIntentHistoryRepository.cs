@@ -26,6 +26,7 @@ public sealed class RedisIntentHistoryRepository : IIntentHistoryRepository
         string behaviorSpaceId,
         Intent intent,
         PolicyDecision decision,
+        IReadOnlyDictionary<string, object>? metadata = null,
         CancellationToken cancellationToken = default)
     {
         var id = Guid.NewGuid().ToString();
@@ -36,7 +37,8 @@ public sealed class RedisIntentHistoryRepository : IIntentHistoryRepository
             ConfidenceLevel: intent.Confidence.Level,
             ConfidenceScore: intent.Confidence.Score,
             Decision: decision,
-            RecordedAt: DateTimeOffset.UtcNow);
+            RecordedAt: DateTimeOffset.UtcNow,
+            Metadata: metadata);
         var db = _redis.GetDatabase();
         var json = JsonSerializer.Serialize(IntentHistoryDto.From(record), JsonOptions);
         await db.StringSetAsync(_keyPrefix + "record:" + id, json);
@@ -69,8 +71,8 @@ public sealed class RedisIntentHistoryRepository : IIntentHistoryRepository
         var list = new List<IntentHistoryRecord>();
         foreach (var id in ids)
         {
-        var record = await GetByIdAsync(id!);
-        if (record != null && record.ConfidenceLevel == confidenceLevel)
+            var record = await GetByIdAsync(id!);
+            if (record != null && record.ConfidenceLevel == confidenceLevel)
                 list.Add(record);
         }
         return list.OrderByDescending(r => r.RecordedAt).ToList();
@@ -145,6 +147,9 @@ public sealed class RedisIntentHistoryRepository : IIntentHistoryRepository
 
         public IntentHistoryRecord ToRecord()
         {
+            var metadata = string.IsNullOrEmpty(MetadataJson) || MetadataJson == "{}"
+                ? null
+                : JsonSerializer.Deserialize<Dictionary<string, object>>(MetadataJson);
             return new IntentHistoryRecord(
                 Id,
                 BehaviorSpaceId,
@@ -153,7 +158,7 @@ public sealed class RedisIntentHistoryRepository : IIntentHistoryRepository
                 ConfidenceScore,
                 Enum.Parse<PolicyDecision>(Decision),
                 RecordedAt,
-                Metadata: null);
+                Metadata: metadata);
         }
     }
 }

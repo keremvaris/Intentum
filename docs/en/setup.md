@@ -157,7 +157,7 @@ The solution contains many packages and two sample applications.
 **Samples:**
 
 - `samples/Intentum.Sample` — Console: ESG, Carbon, EU Green Bond, workflow, classic (payment, support, e‑commerce), fluent API, caching, batch, rate limiting demo
-- `samples/Intentum.Sample.Web` — ASP.NET Core API with Scalar docs and web UI: CQRS (carbon, orders), intent infer (`POST /api/intent/infer`), rate limiting, persistence (in-memory), reporting & analytics (`GET /api/intent/analytics/summary`, `/export/json`, `/export/csv`), health checks
+- `samples/Intentum.Sample.Web` — ASP.NET Core API with Scalar docs and web UI: CQRS (carbon, orders), intent infer (`POST /api/intent/infer`), intent explain (`POST /api/intent/explain`), **greenwashing detection** (`POST /api/greenwashing/analyze`, `GET /api/greenwashing/recent`), rate limiting, persistence (in-memory), **Dashboard** (analytics, son çıkarımlar, son greenwashing analizleri), reporting & analytics (`GET /api/intent/analytics/summary`, `/api/intent/history`, `/export/json`, `/export/csv`), health checks. See [Greenwashing detection (how-to)](greenwashing-detection-howto.md#6-sample-application-intentumsampleweb) and [samples/Intentum.Sample.Web/README.md](../../samples/Intentum.Sample.Web/README.md).
 
 ---
 
@@ -179,15 +179,21 @@ Runs ESG, Carbon, EU Green Bond, workflow, and classic (payment, support, e‑co
 
 **To try real AI:** Set the `OPENAI_API_KEY` (and optionally `OPENAI_EMBEDDING_MODEL`) environment variable; the sample will use **OpenAI embeddings**. See [Providers](providers.md).
 
-**Web sample** (API + UI, intent infer, analytics, rate limiting):
+**Web sample** (API + UI, intent infer, explain, greenwashing, Dashboard, analytics):
 
 ```bash
 dotnet run --project samples/Intentum.Sample.Web
 ```
 
-- **UI:** http://localhost:5150/ (or the port in `launchSettings.json`)
+- **UI:** http://localhost:5150/ (or the port in `launchSettings.json`) — **Örnekler** (carbon, orders, greenwashing, intent infer, explain) and **Dashboard** (analytics, son çıkarımlar, son greenwashing analizleri)
 - **API docs (Scalar):** http://localhost:5150/scalar
-- **Endpoints:** `/api/carbon/calculate`, `/api/carbon/report/{id}`, `/api/orders`, `POST /api/intent/infer` (body: `{ "events": [ { "actor": "user", "action": "login" }, ... ] }`), `GET /api/intent/analytics/summary`, `GET /api/intent/analytics/export/json`, `GET /api/intent/analytics/export/csv`, `/health`
+- **Endpoints:**
+  - Carbon: `POST /api/carbon/calculate`, `GET /api/carbon/report/{id}`
+  - Orders: `POST /api/orders`
+  - Intent: `POST /api/intent/infer` (body: `{ "events": [ { "actor": "user", "action": "login" }, ... ] }`), `POST /api/intent/explain` (same body; returns signal contributions)
+  - Greenwashing: `POST /api/greenwashing/analyze` (body: `{ "report": "...", "sourceType": "Report", "language": "tr", "imageBase64": null }`), `GET /api/greenwashing/recent?limit=15`
+  - Analytics: `GET /api/intent/analytics/summary`, `GET /api/intent/history`, `GET /api/intent/analytics/export/json`, `GET /api/intent/analytics/export/csv`
+  - Health: `/health`
 
 ---
 

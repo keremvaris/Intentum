@@ -121,7 +121,7 @@ public sealed class IntentAnalytics : IIntentAnalytics
                     new Dictionary<string, object> { ["BlockCount"] = blockCount, ["TotalInBucket"] = bucketRecords.Count }));
             }
 
-            if (avgCountPerBucket > 0 && bucketRecords.Count > avgCountPerBucket * 2.5)
+            if (avgCountPerBucket > 0 && bucketRecords.Count > avgCountPerBucket * 1.8)
             {
                 anomalies.Add(new AnomalyReport(
                     "VolumeSpike",
@@ -131,6 +131,19 @@ public sealed class IntentAnalytics : IIntentAnalytics
                     bucketEnd,
                     Math.Min(1, bucketRecords.Count / (avgCountPerBucket * 4)),
                     new Dictionary<string, object> { ["Count"] = bucketRecords.Count, ["Average"] = avgCountPerBucket }));
+            }
+
+            var lowConfidenceCount = bucketRecords.Count(r => string.Equals(r.ConfidenceLevel, "Low", StringComparison.OrdinalIgnoreCase));
+            if (bucketRecords.Count >= 2 && lowConfidenceCount >= 1 && lowConfidenceCount / (double)bucketRecords.Count >= 0.5)
+            {
+                anomalies.Add(new AnomalyReport(
+                    "LowConfidenceCluster",
+                    $"Low confidence cluster: {lowConfidenceCount}/{bucketRecords.Count} in bucket",
+                    bucketStart,
+                    bucketStart,
+                    bucketEnd,
+                    0.5,
+                    new Dictionary<string, object> { ["LowCount"] = lowConfidenceCount, ["TotalInBucket"] = bucketRecords.Count }));
             }
         }
 

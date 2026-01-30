@@ -268,6 +268,29 @@ Aşağıdaki paketler opsiyonel yetenek ekler. Detaylı kullanım (nedir, ne zam
 
 ---
 
+## Örnek Web HTTP API (`Intentum.Sample.Web`)
+
+Web örneği intent çıkarımı, açıklanabilirlik, greenwashing tespiti ve analytics için HTTP endpoint’leri sunar. `dotnet run --project samples/Intentum.Sample.Web` ile çalıştırın; UI http://localhost:5150/, API dokümanları http://localhost:5150/scalar.
+
+| Method | Path | Açıklama |
+|--------|------|----------|
+| POST | `/api/intent/infer` | Olaylardan intent çıkarır. Body: `{ "events": [ { "actor": "user", "action": "login" }, ... ] }`. Intent adı, güven, karar, sinyaller döner. |
+| POST | `/api/intent/explain` | Infer ile aynı body; sinyal katkıları (kaynak, açıklama, ağırlık, yüzde) ve metin açıklaması döner. |
+| GET | `/api/intent/history` | Sayfalanmış intent geçmişi (örnekte in-memory). Sorgu: `skip`, `take`. |
+| GET | `/api/intent/analytics/summary` | Dashboard özeti: güven trendleri, karar dağılımı, anomali listesi. |
+| GET | `/api/intent/analytics/export/json` | Analytics’i JSON olarak dışa aktarır. |
+| GET | `/api/intent/analytics/export/csv` | Analytics’i CSV olarak dışa aktarır. |
+| POST | `/api/greenwashing/analyze` | Raporu greenwashing için analiz eder. Body: `{ "report": "...", "sourceType": "Report", "language": "tr", "imageBase64": null }`. Intent, karar, sinyaller, önerilen aksiyonlar, `sourceMetadata`, `visualResult` (görsel gönderildiyse) döner. |
+| GET | `/api/greenwashing/recent?limit=15` | Son greenwashing analizleri (in-memory; Dashboard’da kullanılır). |
+| POST | `/api/carbon/calculate` | Karbon ayak izi hesaplama (CQRS örneği). |
+| GET | `/api/carbon/report/{reportId}` | Rapor id’ye göre karbon raporu. |
+| POST | `/api/orders` | Sipariş ver (CQRS örneği). |
+| GET | `/health` | Sağlık kontrolü. |
+
+Detay için [Kurulum](setup.md#repo-sampleını-derle-ve-çalıştır) ve [Greenwashing tespiti (how-to)](greenwashing-detection-howto.md#6-örnek-uygulama-intentumsampleweb).
+
+---
+
 ## Minimal kod özeti
 
 ```csharp

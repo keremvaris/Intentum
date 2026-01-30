@@ -296,6 +296,8 @@ Bu senaryolar için minimal çalıştırılabilir projeler:
 - [examples/time-decay-intent](https://github.com/keremvaris/Intentum/tree/master/examples/time-decay-intent) — Yakın event'ler daha ağır
 - [examples/vector-normalization](https://github.com/keremvaris/Intentum/tree/master/examples/vector-normalization) — Cap, L1, SoftCap
 
-Nasıl çalıştırılacağı için repodaki [examples README](https://github.com/keremvaris/Intentum/tree/master/examples) sayfasına bakın.
+**Web örneği (dolandırıcılık + greenwashing + explain):** [samples/Intentum.Sample.Web](https://github.com/keremvaris/Intentum/tree/master/samples/Intentum.Sample.Web) — tam UI ve HTTP API: intent infer/explain, greenwashing tespiti (çok dilli, opsiyonel görsel, Scope 3/blockchain mock), analytics ve son analizlerle Dashboard. Bkz. [Greenwashing tespiti (how-to)](greenwashing-detection-howto.md#6-örnek-uygulama-intentumsampleweb) ve [Kurulum – Web örneği](setup.md#repo-sampleını-derle-ve-çalıştır).
+
+Konsol örneklerini nasıl çalıştıracağınız için repodaki [examples README](https://github.com/keremvaris/Intentum/tree/master/examples) sayfasına bakın.
 
 Ödeme, destek, ESG gibi daha fazla akış için [Senaryolar](scenarios.md) ve [Kitle ve kullanım alanları](audience.md) sayfalarına bakın.

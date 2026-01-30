@@ -266,6 +266,29 @@ The following packages add optional capabilities. For detailed usage (what it is
 
 ---
 
+## Sample Web HTTP API (`Intentum.Sample.Web`)
+
+The web sample exposes HTTP endpoints for intent inference, explainability, greenwashing detection, and analytics. Run with `dotnet run --project samples/Intentum.Sample.Web`; UI at http://localhost:5150/, API docs at http://localhost:5150/scalar.
+
+| Method | Path | Description |
+|--------|------|-------------|
+| POST | `/api/intent/infer` | Infer intent from events. Body: `{ "events": [ { "actor": "user", "action": "login" }, ... ] }`. Returns intent name, confidence, decision, signals. |
+| POST | `/api/intent/explain` | Same body as infer; returns signal contributions (source, description, weight, contribution percent) and text explanation. |
+| GET | `/api/intent/history` | Paginated intent history (in-memory in sample). Query: `skip`, `take`. |
+| GET | `/api/intent/analytics/summary` | Dashboard summary: confidence trends, decision distribution, anomaly list. |
+| GET | `/api/intent/analytics/export/json` | Export analytics to JSON. |
+| GET | `/api/intent/analytics/export/csv` | Export analytics to CSV. |
+| POST | `/api/greenwashing/analyze` | Analyze report for greenwashing. Body: `{ "report": "...", "sourceType": "Report", "language": "tr", "imageBase64": null }`. Returns intent, decision, signals, suggested actions, `sourceMetadata`, `visualResult` (if image sent). |
+| GET | `/api/greenwashing/recent?limit=15` | Last greenwashing analyses (in-memory; used by Dashboard). |
+| POST | `/api/carbon/calculate` | Carbon footprint calculation (CQRS sample). |
+| GET | `/api/carbon/report/{reportId}` | Get carbon report by id. |
+| POST | `/api/orders` | Place order (CQRS sample). |
+| GET | `/health` | Health check. |
+
+See [Setup](setup.md#build-and-run-the-repo-samples) and [Greenwashing detection (how-to)](greenwashing-detection-howto.md#6-sample-application-intentumsampleweb) for details.
+
+---
+
 ## Batch Processing (`Intentum.Core.Batch`)
 
 | Type | What it does |

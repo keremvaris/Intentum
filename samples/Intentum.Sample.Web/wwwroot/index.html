@@ -1,53 +1,251 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="tr">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Intentum Sample Web</title>
+  <title>Intentum Örnek Uygulama</title>
   <link rel="stylesheet" href="/app.css" />
 </head>
 <body>
   <header>
-    <h1>Intentum Sample Web</h1>
-    <p>CQRS + Intentum API — Carbon, Orders</p>
+    <div class="brand">
+      <h1>Intentum</h1>
+      <span class="tagline">Gerçek hayat senaryoları: dolandırıcılık riski, segmentasyon, sağlık & banka</span>
+    </div>
     <nav>
-      <a href="/scalar" target="_blank">API docs (Scalar)</a>
+      <a href="/scalar" target="_blank" rel="noopener">API</a>
+      <a href="/health" target="_blank" rel="noopener">Sağlık</a>
     </nav>
   </header>
 
-  <main>
-    <section class="card">
-      <h2>Carbon footprint (Intentum)</h2>
-      <p>Observe → Infer → Decide. Actor + Scope.</p>
-      <form id="carbon-form">
-        <label>Actor <input name="actor" value="analyst" required /></label>
-        <label>Scope <input name="scope" value="facility-A" required /></label>
-        <label>Estimated tons CO₂ (optional) <input name="estimatedTonsCo2" type="number" step="0.01" placeholder="e.g. 120" /></label>
-        <button type="submit">Calculate</button>
-      </form>
-      <pre id="carbon-result" class="result"></pre>
-    </section>
+  <div class="top-tabs" role="tablist" aria-label="Ana görünüm">
+    <button type="button" class="top-tab active" id="tab-examples" aria-selected="true" aria-controls="view-examples">Örnekler</button>
+    <button type="button" class="top-tab" id="tab-dashboard" aria-selected="false" aria-controls="view-dashboard">Dashboard</button>
+  </div>
 
-    <section class="card">
-      <h2>Get carbon report</h2>
-      <form id="report-form">
-        <label>Report ID <input name="reportId" value="abc1234567" placeholder="min 10 chars" /></label>
-        <button type="submit">Get report</button>
-      </form>
-      <pre id="report-result" class="result"></pre>
-    </section>
+  <!-- Örnekler görünümü: sidebar + kartlar -->
+  <div id="view-examples" class="view" aria-hidden="false">
+    <div class="app-wrap">
+      <aside class="sidebar" role="navigation" aria-label="Örnek menüsü">
+        <nav class="sidebar-nav">
+          <p class="sidebar-group">Senaryolar</p>
+          <a href="#section-esg" class="sidebar-link">Sürdürülebilirlik (ESG)</a>
+          <span class="sidebar-desc">Karbon raporu hesaplama ve sorgulama</span>
+          <a href="#section-order" class="sidebar-link">E-ticaret siparişi</a>
+          <span class="sidebar-desc">Sipariş, risk / dolandırıcılık</span>
+          <a href="#section-greenwashing" class="sidebar-link">Greenwashing tespiti</a>
+          <span class="sidebar-desc">Sürdürülebilirlik raporu analizi, önerilen aksiyonlar</span>
+          <a href="#section-infer" class="sidebar-link">Dolandırıcılık & risk</a>
+          <span class="sidebar-desc">Niyet çıkarımı: engelle, izle, doğrula</span>
+          <a href="#section-explain" class="sidebar-link">Açıklanabilirlik</a>
+          <span class="sidebar-desc">Karar gerekçesi, sinyal katkıları</span>
+        </nav>
+      </aside>
 
-    <section class="card">
-      <h2>Place order</h2>
-      <form id="order-form">
-        <label>Product ID <input name="productId" value="PROD-001" required /></label>
-        <label>Quantity <input name="quantity" type="number" value="2" min="1" required /></label>
-        <label>Customer ID <input name="customerId" value="CUST-1" required /></label>
-        <button type="submit">Place order</button>
-      </form>
-      <pre id="order-result" class="result"></pre>
-    </section>
-  </main>
+      <main class="main-content">
+        <!-- Sürdürülebilirlik (ESG) - tek blok -->
+        <section id="section-esg" class="card section-card" aria-labelledby="title-esg">
+          <h2 id="title-esg"><span class="esg-icon" aria-hidden="true">♻</span> Sürdürülebilirlik (ESG)</h2>
+          <p class="subtitle">Karbon ayak izi hesaplama ve rapor sorgulama. Aktör ve kapsama göre karar: izin, gözlem veya inceleme.</p>
+          <div class="esg-row">
+            <div class="esg-block">
+              <h3 class="esg-block-title">Hesapla</h3>
+              <form id="carbon-form">
+                <label>Aktör <input name="actor" value="analyst" required placeholder="analyst, auditor" /></label>
+                <label>Kapsam <input name="scope" value="facility-A" required placeholder="facility-A, supply_chain" /></label>
+                <label>Ton CO₂ (opsiyonel) <input name="estimatedTonsCo2" type="number" step="0.01" placeholder="120" /></label>
+                <button type="submit">Hesapla</button>
+              </form>
+              <pre id="carbon-result" class="result empty" aria-live="polite">Sonuç burada görünür.</pre>
+            </div>
+            <div class="esg-block">
+              <h3 class="esg-block-title">Rapor getir</h3>
+              <form id="report-form">
+                <label>Rapor ID <input name="reportId" value="abc1234567" placeholder="min 10 karakter" /></label>
+                <button type="submit">Getir</button>
+              </form>
+              <pre id="report-result" class="result empty" aria-live="polite">Sonuç burada görünür.</pre>
+            </div>
+          </div>
+        </section>
+
+        <section id="section-order" class="card section-card" aria-labelledby="title-order">
+          <h2 id="title-order">E-ticaret siparişi</h2>
+          <p class="subtitle">Sipariş verme; olaylar niyet/risk motoruna gider (yeni hesap, yüksek tutar, hızlı sipariş → dolandırıcılık skoru).</p>
+          <form id="order-form">
+            <label>Ürün ID <input name="productId" value="PROD-001" required /></label>
+            <label>Miktar <input name="quantity" type="number" value="2" min="1" required /></label>
+            <label>Müşteri ID <input name="customerId" value="CUST-1" required /></label>
+            <button type="submit">Sipariş ver</button>
+          </form>
+          <pre id="order-result" class="result empty" aria-live="polite">Sonuç burada görünür.</pre>
+        </section>
+
+        <section id="section-greenwashing" class="card section-card greenwashing-section" aria-labelledby="title-greenwashing">
+          <h2 id="title-greenwashing">Greenwashing tespiti</h2>
+          <p class="subtitle">Sürdürülebilirlik raporu metnini analiz et: niyet (GenuineSustainability → ActiveGreenwashing), politika kararı ve önerilen aksiyonlar. Demo: farklı kaynak türleri (sosyal medya, basın, yatırımcı) mock veriyle.</p>
+          <div class="two-col-layout">
+            <div class="col-form">
+              <div class="preset-scenarios">
+                <span class="preset-label">Hazır raporlar:</span>
+                <button type="button" class="btn-preset-green" data-preset="genuine" data-source="">Genuine (temiz)</button>
+                <button type="button" class="btn-preset-green" data-preset="greenwashing" data-source="">Greenwashing</button>
+                <button type="button" class="btn-preset-green" data-preset="borderline" data-source="">Borderline</button>
+                <button type="button" class="btn-preset-green" data-preset="vague_only" data-source="">Sadece belirsiz iddialar</button>
+              </div>
+              <div class="preset-scenarios preset-sources">
+                <span class="preset-label">Kaynak türü (mock):</span>
+                <button type="button" class="btn-preset-source" data-source="Report" data-preset="">Rapor</button>
+                <button type="button" class="btn-preset-source" data-source="SocialMedia" data-preset="social">Sosyal medya</button>
+                <button type="button" class="btn-preset-source" data-source="PressRelease" data-preset="press">Basın bülteni</button>
+                <button type="button" class="btn-preset-source" data-source="InvestorPresentation" data-preset="investor">Yatırımcı sunumu</button>
+              </div>
+              <form id="greenwashing-form">
+                <input type="hidden" id="greenwashing-source-type" name="sourceType" value="" />
+                <label for="greenwashing-language">Dil (pattern seti)</label>
+                <select id="greenwashing-language" name="language">
+                  <option value="">Otomatik (TR+EN)</option>
+                  <option value="tr">Türkçe</option>
+                  <option value="en">İngilizce</option>
+                  <option value="de">Almanca</option>
+                </select>
+                <label for="greenwashing-report">Rapor / içerik metni</label>
+                <textarea id="greenwashing-report" name="report" rows="8" placeholder="Sürdürülebilirlik raporu veya sosyal medya / basın metnini yapıştırın…"></textarea>
+                <label for="greenwashing-image">Görsel (opsiyonel, yeşillik skoru)</label>
+                <input type="file" id="greenwashing-image" name="image" accept="image/*" />
+                <button type="submit" id="greenwashing-submit">Analiz et</button>
+              </form>
+            </div>
+            <div class="col-result">
+              <h3 class="result-panel-title">Sonuç</h3>
+              <div id="greenwashing-result" class="result-panel" aria-live="polite"></div>
+            </div>
+          </div>
+          <div class="roadmap-card" id="greenwashing-roadmap">
+            <h3 class="roadmap-title">Demo'da uygulanan geliştirmeler</h3>
+            <ul class="roadmap-list">
+              <li><strong>Gerçek zamanlı (mock):</strong> Son analizler listesi; her 30 sn mock kayıt eklenir.</li>
+              <li><strong>Çok dilli destek:</strong> TR, EN, DE ve diğer dillerde greenwashing pattern’leri.</li>
+              <li><strong>Görsel analiz:</strong> “Yeşil” görsellerin otomatik tespiti (doğa imgeleri, renk kullanımı).</li>
+              <li><strong>Scope 3 (mock):</strong> Sabit tedarikçi listesi; X/Y doğrulandı gösterimi.</li>
+              <li><strong>Blockchain (mock):</strong> Her analiz için kayıt ref (0x…); UI'da gösterilir.</li>
+            </ul>
+          </div>
+        </section>
+
+        <section id="section-infer" class="card section-card infer-section" aria-labelledby="title-infer">
+          <h2 id="title-infer">Dolandırıcılık & risk — Niyet çıkarımı</h2>
+          <p class="subtitle">Davranış olaylarından niyet ve politika kararı. Pazarlama segmentasyonu (churn, kampanya), sağlık/banka (işlem anomalisi, KYC) ve gelişmiş dolandırıcılık senaryoları.</p>
+          <div class="two-col-layout">
+            <div class="col-form">
+              <div class="preset-scenarios">
+                <span class="preset-label">Hazır senaryolar:</span>
+                <button type="button" class="btn-preset" data-events='[{"actor":"user","action":"login"},{"actor":"user","action":"submit"}]'>Normal oturum</button>
+                <button type="button" class="btn-preset" data-events='[{"actor":"user","action":"retry"},{"actor":"user","action":"retry"},{"actor":"user","action":"retry"}]'>Şüpheli: çoklu retry</button>
+                <button type="button" class="btn-preset" data-events='[{"actor":"user","action":"sensitive_data_access"}]'>Hassas veri erişimi</button>
+                <button type="button" class="btn-preset" data-events='[{"actor":"customer","action":"support_request"},{"actor":"customer","action":"view_invoice"}]'>Müşteri: destek</button>
+                <button type="button" class="btn-preset" data-events='[{"actor":"customer","action":"add_to_cart"},{"actor":"customer","action":"checkout_start"}]'>Müşteri: satın alma</button>
+                <button type="button" class="btn-preset" data-events='[{"actor":"customer","action":"churn_risk"},{"actor":"customer","action":"campaign_click"},{"actor":"customer","action":"no_login_30d"}]'>Pazarlama: churn riski</button>
+                <button type="button" class="btn-preset" data-events='[{"actor":"tx","action":"high_value"},{"actor":"tx","action":"new_device"},{"actor":"tx","action":"velocity_3m"}]'>Banka: işlem anomalisi</button>
+                <button type="button" class="btn-preset" data-events='[{"actor":"patient","action":"readmission_risk"},{"actor":"patient","action":"no_visit_90d"}]'>Sağlık: tekrarlama riski</button>
+                <button type="button" class="btn-preset btn-preset-ato" data-events='[{"actor":"user","action":"login_failed"},{"actor":"user","action":"login_failed"},{"actor":"user","action":"login_failed"},{"actor":"user","action":"password_reset_request"},{"actor":"user","action":"login_success"},{"actor":"user","action":"profile_change_email"},{"actor":"user","action":"add_payment_method"},{"actor":"user","action":"sensitive_data_access"},{"actor":"tx","action":"high_value"},{"actor":"tx","action":"new_device"},{"actor":"tx","action":"new_country"},{"actor":"user","action":"bulk_export"}]' data-narrative="Senaryo: Ardışık başarısız girişler → şifre sıfırlama → giriş → e-posta değişikliği → ödeme ekleme → hassas veri erişimi → yüksek tutarlı işlem, yeni cihaz/ülke → toplu dışa aktarma. Intentum bu zaman çizelgesinden niyet çıkarır (engelle / izle / doğrula).">Hesap devralma (12 olay)</button>
+              </div>
+              <p class="scenario-narrative muted" id="infer-narrative" aria-live="polite"></p>
+              <form id="infer-form">
+                <ul class="events-list" id="infer-events-list"></ul>
+                <div class="add-event-row">
+                  <button type="button" id="infer-add-event">+ Olay ekle</button>
+                </div>
+                <button type="submit" id="infer-submit">Çıkar</button>
+              </form>
+            </div>
+            <div class="col-result">
+              <h3 class="result-panel-title">Sonuç</h3>
+              <div id="infer-result" class="result-panel" aria-live="polite"></div>
+            </div>
+          </div>
+        </section>
+
+        <section id="section-explain" class="card section-card explain-section" aria-labelledby="title-explain">
+          <h2 id="title-explain">Niyet açıklanabilirliği</h2>
+          <p class="subtitle">Kararın gerekçesi: hangi davranış karara ne kadar katkı yaptı? (kaynak, ağırlık, yüzde). İnceleme ve denetim için.</p>
+          <div class="two-col-layout">
+            <div class="col-form">
+              <form id="explain-form">
+                <ul class="events-list" id="explain-events-list"></ul>
+                <div class="add-event-row">
+                  <button type="button" id="explain-add-event">+ Olay ekle</button>
+                </div>
+                <button type="submit" id="explain-submit">Açıkla</button>
+              </form>
+            </div>
+            <div class="col-result">
+              <h3 class="result-panel-title">Sonuç</h3>
+              <div id="explain-result" class="result-panel" aria-live="polite"></div>
+            </div>
+          </div>
+        </section>
+      </main>
+    </div>
+  </div>
+
+  <!-- Dashboard görünümü: tam sayfa, canlı besleme -->
+  <div id="view-dashboard" class="view view-dashboard" aria-hidden="true" hidden>
+    <div class="dashboard-page">
+      <div class="dashboard-header">
+        <h2>Analytics & Dashboard</h2>
+        <p class="subtitle">Niyet/risk analitiği — canlı güncellenir.</p>
+        <div class="monitoring-toolbar">
+          <label>Başlangıç <input type="datetime-local" id="mon-from" /></label>
+          <label>Bitiş <input type="datetime-local" id="mon-to" /></label>
+          <div class="quick-range">
+            <button type="button" data-range="24">Son 24 saat</button>
+            <button type="button" data-range="168">Son 7 gün</button>
+          </div>
+          <button type="button" id="mon-refresh">Yenile</button>
+          <label class="live-toggle">
+            <input type="checkbox" id="mon-live" />
+            <span>Canlı</span>
+          </label>
+        </div>
+      </div>
+      <div id="mon-loading" class="muted" style="display: none;">Yükleniyor…</div>
+      <div id="mon-content" class="dashboard-content" style="display: none;">
+        <div class="kpi-grid" id="mon-kpi"></div>
+        <h3 class="section-subtitle">Karar dağılımı</h3>
+        <div class="decision-bars" id="mon-decision-bars"></div>
+        <h3 class="section-subtitle">Güven eğilimi</h3>
+        <div class="table-wrap">
+          <table class="trend-table" id="mon-trend-table">
+            <thead><tr><th>Zaman dilimi</th><th>Güven</th><th>Adet</th><th>Ort. skor</th></tr></thead>
+            <tbody></tbody>
+          </table>
+        </div>
+        <h3 class="section-subtitle">Anomaliler</h3>
+        <ul class="anomaly-list" id="mon-anomalies"></ul>
+        <div class="export-buttons">
+          <a href="#" id="export-json">JSON indir</a>
+          <a href="#" id="export-csv">CSV indir</a>
+        </div>
+        <h3 class="section-subtitle">Son çıkarımlar</h3>
+        <div class="table-wrap" id="history-wrap" style="display: none;">
+          <table class="history-table" id="history-table">
+            <thead><tr><th>Id</th><th>Niyet</th><th>Olaylar (kaynak)</th><th>Güven</th><th>Karar</th><th>Kayıt zamanı</th></tr></thead>
+            <tbody></tbody>
+          </table>
+        </div>
+        <div id="history-loading" class="muted" style="display: none;">Yükleniyor…</div>
+        <h3 class="section-subtitle">Son greenwashing analizleri (demo, gerçek zamanlı mock)</h3>
+        <div class="table-wrap">
+          <table class="history-table" id="greenwashing-recent-table">
+            <thead><tr><th>Kayıt ref</th><th>Özet</th><th>Niyet</th><th>Karar</th><th>Kaynak</th><th>Dil</th><th>Zaman</th></tr></thead>
+            <tbody></tbody>
+          </table>
+        </div>
+        <p class="muted">Greenwashing analizleri; her 30 sn mock kayıt eklenir. Analiz yapmak için Örnekler → Greenwashing tespiti.</p>
+      </div>
+    </div>
+  </div>
 
   <script src="/app.js"></script>
 </body>

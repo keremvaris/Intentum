@@ -23,6 +23,7 @@ public sealed class MongoIntentHistoryRepository : IIntentHistoryRepository
         string behaviorSpaceId,
         Intent intent,
         PolicyDecision decision,
+        IReadOnlyDictionary<string, object>? metadata = null,
         CancellationToken cancellationToken = default)
     {
         var id = Guid.NewGuid().ToString();
@@ -33,7 +34,8 @@ public sealed class MongoIntentHistoryRepository : IIntentHistoryRepository
             ConfidenceLevel: intent.Confidence.Level,
             ConfidenceScore: intent.Confidence.Score,
             Decision: decision,
-            RecordedAt: DateTimeOffset.UtcNow);
+            RecordedAt: DateTimeOffset.UtcNow,
+            Metadata: metadata);
         var doc = IntentHistoryDoc.From(record);
         await _collection.InsertOneAsync(doc, cancellationToken: cancellationToken);
         return id;
@@ -116,6 +118,9 @@ public sealed class MongoIntentHistoryRepository : IIntentHistoryRepository
 
         public IntentHistoryRecord ToRecord()
         {
+            var metadata = string.IsNullOrEmpty(MetadataJson) || MetadataJson == "{}"
+                ? null
+                : JsonSerializer.Deserialize<Dictionary<string, object>>(MetadataJson);
             return new IntentHistoryRecord(
                 Id,
                 BehaviorSpaceId,
@@ -124,7 +129,7 @@ public sealed class MongoIntentHistoryRepository : IIntentHistoryRepository
                 ConfidenceScore,
                 Enum.Parse<PolicyDecision>(Decision),
                 RecordedAt,
-                Metadata: null);
+                Metadata: metadata);
         }
     }
 }

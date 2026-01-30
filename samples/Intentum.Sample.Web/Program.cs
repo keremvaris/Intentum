@@ -6,6 +6,7 @@ using Intentum.AI.Mock;
 using Intentum.AI.Models;
 using Intentum.AI.Similarity;
 using Intentum.Analytics;
+using Intentum.Analytics.Models;
 using Intentum.AspNetCore;
 using Intentum.Core.Behavior;
 using Intentum.Core.Contracts;
@@ -20,6 +21,7 @@ using Intentum.Sample.Web.Behaviors;
 using Intentum.Sample.Web.Features.CarbonFootprintCalculation.Commands;
 using Intentum.Sample.Web.Features.CarbonFootprintCalculation.Queries;
 using Intentum.Sample.Web.Features.CarbonFootprintCalculation.Validators;
+using Intentum.Sample.Web.Features.GreenwashingDetection;
 using Intentum.Sample.Web.Features.OrderPlacement.Commands;
 using MediatR;
 using Microsoft.Extensions.Caching.Memory;
@@ -181,7 +183,12 @@ app.MapPost("/api/intent/infer", async (
         policy, rateLimiter, rateLimitOptions);
 
     var behaviorSpaceId = Guid.NewGuid().ToString();
-    var id = await historyRepository.SaveAsync(behaviorSpaceId, intent, decision);
+    var metadata = new Dictionary<string, object>
+    {
+        ["Source"] = "Niyet çıkarımı (form)",
+        ["EventsSummary"] = string.Join(", ", req.Events.Select(e => $"{e.Actor}:{e.Action}"))
+    };
+    var id = await historyRepository.SaveAsync(behaviorSpaceId, intent, decision, metadata);
 
     return Results.Ok(new InferIntentResponse(
         Decision: decision.ToString(),
@@ -219,6 +226,22 @@ app.MapGet("/api/intent/analytics/summary", async (
     var start = from ?? DateTimeOffset.UtcNow.AddDays(-7);
     var end = to ?? DateTimeOffset.UtcNow;
     var summary = await analytics.GetSummaryAsync(start, end, TimeSpan.FromHours(1));
+    if (summary.Anomalies.Count == 0 && summary.TotalInferences > 0)
+    {
+        var now = DateTimeOffset.UtcNow;
+        var mockAnomalies = new List<AnomalyReport>
+        {
+            new AnomalyReport(
+                "Demo",
+                "Hareket var; gerçek anomali eşiği aşılmadı (demo). Block/Volume spike veya Low confidence kümesi yok.",
+                now,
+                start,
+                end,
+                0.3,
+                new Dictionary<string, object> { ["TotalInferences"] = summary.TotalInferences })
+        };
+        summary = summary with { Anomalies = mockAnomalies };
+    }
     return Results.Json(summary);
 }).WithName("GetAnalyticsSummary").Produces(200);
 
@@ -243,5 +266,125 @@ app.MapGet("/api/intent/analytics/export/csv", async (
     var csv = await analytics.ExportToCsvAsync(start, end);
     return Results.Text(csv, "text/csv");
 }).WithName("ExportAnalyticsCsv").Produces(200);
+
+// --- Greenwashing: report text (+ dil, görsel) → behavior space → intent → policy → suggested actions ---
+app.MapPost("/api/greenwashing/analyze", (GreenwashingAnalyzeRequest req) =>
+{
+    var report = req.Report ?? "";
+    var sourceType = req.SourceType ?? "Report";
+    var language = req.Language;
+    var imageBase64 = req.ImageBase64;
+
+    var space = SustainabilityReporter.AnalyzeReport(report, language);
+    GreenwashingVisualResult? visualResult = null;
+    if (!string.IsNullOrWhiteSpace(imageBase64))
+    {
+        var (greenScore, _) = GreenwashingImageAnalyzer.AnalyzeAndAugment(imageBase64, space);
+        visualResult = new GreenwashingVisualResult(greenScore, greenScore >= 0.38 ? "Yeşil baskın (demo)" : "Düşük yeşillik");
+    }
+
+    var model = new GreenwashingIntentModel();
+    var intent = model.Infer(space);
+    var policy = new IntentPolicyBuilder()
+        .Escalate("CriticalGreenwashing", i => i is { Name: "ActiveGreenwashing", Confidence.Score: >= 0.7 })
+        .Warn("NeedsVerification", i => i.Name == "StrategicObfuscation" || i is { Name: "SelectiveDisclosure", Confidence.Score: >= 0.5 })
+        .Observe("Monitor", i => i.Confidence.Score > 0.3)
+        .Allow("LowRisk", _ => true)
+        .Build();
+    var decision = intent.Decide(policy);
+    var actions = SustainabilitySolutionGenerator.Suggest(intent, space, decision);
+
+    var now = DateTimeOffset.UtcNow;
+    var blockchainRef = "0x" + Guid.NewGuid().ToString("N")[..32];
+    var scope3Summary = GreenwashingScope3Mock.Get();
+    GreenwashingSourceMetadata? metadata;
+    if (sourceType is "SocialMedia" or "PressRelease" or "InvestorPresentation")
+    {
+        metadata = sourceType switch
+        {
+            "SocialMedia" => new GreenwashingSourceMetadata(
+                "Sosyal medya (mock)",
+                language ?? "TR",
+                Scope3Verified: false,
+                Scope3Summary: null,
+                blockchainRef,
+                now),
+            "PressRelease" => new GreenwashingSourceMetadata(
+                "Basın bülteni (mock)",
+                language ?? "TR",
+                Scope3Verified: false,
+                Scope3Summary: scope3Summary,
+                blockchainRef,
+                now),
+            "InvestorPresentation" => new GreenwashingSourceMetadata(
+                "Yatırımcı sunumu (mock)",
+                language ?? "EN",
+                Scope3Verified: true,
+                Scope3Summary: scope3Summary,
+                blockchainRef,
+                now),
+            _ => null
+        };
+    }
+    else
+    {
+        metadata = new GreenwashingSourceMetadata(
+            "Rapor",
+            language ?? "TR",
+            false,
+            null,
+            blockchainRef,
+            now);
+    }
+
+    var recentItem = new GreenwashingRecentItem(
+        blockchainRef,
+        report.Length > 80 ? report[..80] + "…" : report,
+        intent.Name,
+        decision.ToString(),
+        sourceType,
+        language,
+        now);
+    GreenwashingRecentStore.Add(recentItem);
+
+    return Results.Ok(new GreenwashingAnalyzeResponse(
+        intent.Name,
+        intent.Confidence.Level,
+        intent.Confidence.Score,
+        decision.ToString(),
+        intent.Signals.Select(s => s.Description).ToList(),
+        actions,
+        blockchainRef,
+        metadata,
+        visualResult));
+}).WithName("AnalyzeGreenwashing").Produces(200);
+
+// --- Greenwashing: son analizler (gerçek zamanlı mock) ---
+app.MapGet("/api/greenwashing/recent", (int? limit) =>
+{
+    var take = Math.Clamp(limit ?? 15, 1, 50);
+    return Results.Json(GreenwashingRecentStore.GetRecent(take));
+}).WithName("GetGreenwashingRecent").Produces(200);
+
+// Periyodik mock analiz (gerçek zamanlı akış hissi)
+var mockTimer = new System.Timers.Timer(30_000) { AutoReset = true };
+mockTimer.Elapsed += (_, _) => GreenwashingRecentStore.AddMockEntry();
+app.Lifetime.ApplicationStarted.Register(() => mockTimer.Start());
+app.Lifetime.ApplicationStopping.Register(() => mockTimer.Stop());
+
+// --- Intent history (for monitoring "recent inferences") ---
+app.MapGet("/api/intent/history", async (
+    DateTimeOffset? from,
+    DateTimeOffset? to,
+    int? limit,
+    IIntentHistoryRepository historyRepository) =>
+{
+    var start = from ?? DateTimeOffset.UtcNow.AddDays(-7);
+    var end = to ?? DateTimeOffset.UtcNow;
+    var records = await historyRepository.GetByTimeWindowAsync(start, end);
+    var take = Math.Clamp(limit ?? 50, 1, 100);
+    var ordered = records.OrderByDescending(r => r.RecordedAt).Take(take).ToList();
+    return Results.Json(ordered);
+}).WithName("GetIntentHistory").Produces(200);
 
 await app.RunAsync();

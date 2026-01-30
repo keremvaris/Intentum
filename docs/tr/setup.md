@@ -129,9 +129,41 @@ Detay ve örnekler: [Sağlayıcılar](providers.md).
 
 ---
 
-## Repo sample’ını derle ve çalıştır
+## Repo yapısı
 
-Çözüm birçok paket ve iki örnek uygulama içerir: **Çekirdek:** Intentum.Core, Intentum.Runtime, Intentum.AI. **Sağlayıcılar:** Intentum.AI.OpenAI, Gemini, Mistral, AzureOpenAI, Claude. **Uzantılar:** Intentum.AspNetCore, Testing, Observability, Logging, Persistence, Persistence.EntityFramework, Persistence.Redis, Persistence.MongoDB, Analytics, CodeGen. **Örnekler:** samples/Intentum.Sample (konsol), samples/Intentum.Sample.Web (API + UI, intent infer, analytics, rate limiting).
+Çözüm birçok paket ve iki örnek uygulama içerir.
+
+**Çekirdek ve runtime** (behavior space, intent, policy için gerekli):
+
+- `Intentum.Core` — BehaviorSpace, Intent (Reasoning ile), BehaviorEvent, BehaviorSpaceBuilder, ToVectorOptions, BatchIntentModel, RuleBasedIntentModel, ChainedIntentModel
+- `Intentum.Runtime` — IntentPolicy, IntentPolicyBuilder, PolicyDecision, IRateLimiter, MemoryRateLimiter
+- `Intentum.AI` — LlmIntentModel, embedding cache, similarity engine'ler (SimpleAverage, TimeDecay, Cosine, Composite), ITimeAwareSimilarityEngine
+
+**AI sağlayıcıları** (opsiyonel; gerçek embedding için bir veya daha fazlası):
+
+- `Intentum.AI.OpenAI`, `Intentum.AI.Gemini`, `Intentum.AI.Mistral`, `Intentum.AI.AzureOpenAI`, `Intentum.AI.Claude`
+
+**Uzantılar** (ihtiyaca göre eklenir):
+
+- `Intentum.AspNetCore` — Davranış gözlem middleware'i, health check'ler
+- `Intentum.Testing` — TestHelpers, BehaviorSpace, Intent, PolicyDecision assertion'ları
+- `Intentum.Observability` — Intentum işlemleri için OpenTelemetry metrikleri
+- `Intentum.Logging` — Intentum için Serilog entegrasyonu
+- `Intentum.Persistence` — IBehaviorSpaceRepository, IIntentHistoryRepository
+- `Intentum.Persistence.EntityFramework` — EF Core implementasyonu (SQL Server, SQLite, in-memory)
+- `Intentum.Persistence.Redis` — Redis tabanlı behavior space ve intent history; `AddIntentumPersistenceRedis(redis, keyPrefix?)`
+- `Intentum.Persistence.MongoDB` — MongoDB tabanlı behavior space ve intent history; `AddIntentumPersistenceMongoDB(database, collectionNames?)`
+- `Intentum.Analytics` — IIntentAnalytics: trendler, karar dağılımı, anomali tespiti, JSON/CSV export
+- `Intentum.CodeGen` — CQRS + Intentum scaffold, YAML/JSON spec doğrulama
+
+**Örnekler:**
+
+- `samples/Intentum.Sample` — Konsol: ESG, Carbon, EU Green Bond, workflow, klasik (ödeme, destek, e‑ticaret), fluent API, caching, batch, rate limiting demo
+- `samples/Intentum.Sample.Web` — ASP.NET Core API ve web UI: CQRS (carbon, orders), intent infer (`POST /api/intent/infer`), intent explain (`POST /api/intent/explain`), **greenwashing tespiti** (`POST /api/greenwashing/analyze`, `GET /api/greenwashing/recent`), rate limiting, persistence (in-memory), **Dashboard** (analytics, son çıkarımlar, son greenwashing analizleri), raporlama ve analytics (`GET /api/intent/analytics/summary`, `/api/intent/history`, `/export/json`, `/export/csv`), health check'ler. Bkz. [Greenwashing tespiti (how-to)](greenwashing-detection-howto.md#6-örnek-uygulama-intentumsampleweb) ve [samples/Intentum.Sample.Web/README.md](../../samples/Intentum.Sample.Web/README.md).
+
+---
+
+## Repo sample'ını derle ve çalıştır
 
 Reponun kökünden:
 
@@ -139,11 +171,31 @@ Reponun kökünden:
 dotnet build Intentum.slnx
 ```
 
-**Konsol örneği:** `dotnet run --project samples/Intentum.Sample`
+**Konsol örneği** (senaryolar, batch, rate limit demo):
 
-**Web örneği:** `dotnet run --project samples/Intentum.Sample.Web` — UI ve Scalar docs (http://localhost:5150/), endpoint'ler: `/api/carbon/calculate`, `/api/orders`, `POST /api/intent/infer`, `GET /api/intent/analytics/summary`, `/api/intent/analytics/export/json`, `/api/intent/analytics/export/csv`, `/health`.
+```bash
+dotnet run --project samples/Intentum.Sample
+```
 
-Konsol örneği ESG, Carbon, EU Green Bond, workflow ve klasik (ödeme, destek, e‑ticaret) senaryolarını çalıştırır; varsayılan **mock** embedding kullanır (API anahtarı gerekmez). **Gerçek AI:** `OPENAI_API_KEY` ayarla; bkz. [Sağlayıcılar](providers.md).
+ESG, Carbon, EU Green Bond, workflow ve klasik (ödeme, destek, e‑ticaret) senaryolarını çalıştırır. Varsayılan **mock** embedding kullanır (API anahtarı gerekmez); çıktıda `AI: Mock (no API key) → similarity → confidence → policy` görürsün.
+
+**Gerçek AI denemek için:** `OPENAI_API_KEY` (ve isteğe bağlı `OPENAI_EMBEDDING_MODEL`) ortam değişkenini ayarla; örnek **OpenAI embedding** kullanır. Bkz. [Sağlayıcılar](providers.md).
+
+**Web örneği** (API + UI, intent infer, explain, greenwashing, Dashboard, analytics):
+
+```bash
+dotnet run --project samples/Intentum.Sample.Web
+```
+
+- **UI:** http://localhost:5150/ (veya `launchSettings.json`'daki port) — **Örnekler** (carbon, orders, greenwashing, intent infer, explain) ve **Dashboard** (analytics, son çıkarımlar, son greenwashing analizleri)
+- **API dokümanları (Scalar):** http://localhost:5150/scalar
+- **Endpoint'ler:**
+  - Carbon: `POST /api/carbon/calculate`, `GET /api/carbon/report/{id}`
+  - Orders: `POST /api/orders`
+  - Intent: `POST /api/intent/infer` (body: `{ "events": [ { "actor": "user", "action": "login" }, ... ] }`), `POST /api/intent/explain` (aynı body; sinyal katkıları döner)
+  - Greenwashing: `POST /api/greenwashing/analyze` (body: `{ "report": "...", "sourceType": "Report", "language": "tr", "imageBase64": null }`), `GET /api/greenwashing/recent?limit=15`
+  - Analytics: `GET /api/intent/analytics/summary`, `GET /api/intent/history`, `GET /api/intent/analytics/export/json`, `GET /api/intent/analytics/export/csv`
+  - Health: `/health`
 
 ---
 

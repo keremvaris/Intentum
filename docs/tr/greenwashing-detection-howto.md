@@ -160,8 +160,58 @@ Yeni sinyaller = yeni gözlemlerle esneklik, ikili bayrak yerine güven skoru ve
 
 ---
 
+## 6. Örnek uygulama (Intentum.Sample.Web)
+
+Web örneği UI ve HTTP API ile tam greenwashing akışı içerir.
+
+**Çalıştırma:**
+
+```bash
+dotnet run --project samples/Intentum.Sample.Web
+```
+
+- **UI:** http://localhost:5150/ → **Örnekler** → **Greenwashing tespiti**
+- **API dokümanları:** http://localhost:5150/scalar
+
+**Endpoint'ler:**
+
+| Method | Path | Açıklama |
+|--------|------|----------|
+| POST | `/api/greenwashing/analyze` | Rapor metnini analiz eder (opsiyonel: `sourceType`, `language`, `imageBase64`). Intent, karar, sinyaller, önerilen aksiyonlar, `blockchainRef`, `sourceMetadata`, `visualResult` döner. |
+| GET | `/api/greenwashing/recent?limit=15` | Son greenwashing analizleri (in-memory; Dashboard'da kullanılır). |
+
+**İstek gövdesi (POST /api/greenwashing/analyze):**
+
+```json
+{
+  "report": "Sürdürülebilirlik raporu metni...",
+  "sourceType": "Report",
+  "language": "tr",
+  "imageBase64": null
+}
+```
+
+`sourceType`: `"Report"`, `"SocialMedia"`, `"PressRelease"`, `"InvestorPresentation"` (mock metadata).  
+`language`: `"tr"`, `"en"`, `"de"` veya boş (tüm pattern setleri).  
+`imageBase64`: opsiyonel; verilirse yeşillik baskınlık skoru hesaplanır ve davranış uzayına `imagery:nature.without.data` eklenebilir.
+
+**Yanıt:** `intentName`, `confidence`, `confidenceScore`, `decision`, `signalDescriptions`, `suggestedActions`, `blockchainRef`, `sourceMetadata` (opsiyonel `scope3Summary` ile), `visualResult` (görsel gönderildiyse).
+
+**Örnekteki demo özellikler:**
+
+- **Çok dilli:** TR, EN, DE pattern setleri `SustainabilityReporter.AnalyzeReport(report, language)` ile.
+- **Görsel (demo):** Görsel yükleme → yeşillik skoru; eşik aşılırsa imagery sinyali eklenir.
+- **Scope 3 (mock):** Sabit tedarikçi listesi; Press/Investor kaynak türlerinde metadata'da `scope3Summary`.
+- **Blockchain (mock):** Her analiz benzersiz `blockchainRef` (örn. `0x…`) döner.
+- **Son analizler:** Dashboard sekmesi `GET /api/greenwashing/recent` ile "Son greenwashing analizleri" gösterir; liste Dashboard açıkken yenilenir; her 30 saniyede mock kayıt eklenir.
+
+Implementasyon: `samples/Intentum.Sample.Web/Features/GreenwashingDetection/` altında — `SustainabilityReporter`, `GreenwashingIntentModel`, `SustainabilitySolutionGenerator`, `GreenwashingImageAnalyzer`, `GreenwashingScope3Mock`, `GreenwashingRecentStore`.
+
+---
+
 ## Ayrıca bakınız
 
 - [Gerçek dünya senaryoları](real-world-scenarios.md) — Dolandırıcılık/kötüye kullanım ve AI yedeklemesi
 - [Niyet modelleri tasarlama](designing-intent-models.md) — Heuristic vs ağırlıklı vs LLM
-- Örnek: [examples/greenwashing-intent](https://github.com/keremvaris/Intentum/tree/master/examples/greenwashing-intent) — Repodaki çalıştırılabilir örnek
+- [Kurulum](setup.md) — Sample.Web derleme ve çalıştırma
+- Örnek: [examples/greenwashing-intent](https://github.com/keremvaris/Intentum/tree/master/examples/greenwashing-intent) — Konsol greenwashing örneği (API yok)

@@ -111,12 +111,12 @@ public sealed class IntentAnalyticsTests
         private readonly List<IntentHistoryRecord> _records = new();
         private int _id;
 
-        public Task<string> SaveAsync(string behaviorSpaceId, Intent intent, PolicyDecision decision, CancellationToken cancellationToken = default)
+        public Task<string> SaveAsync(string behaviorSpaceId, Intent intent, PolicyDecision decision, IReadOnlyDictionary<string, object>? metadata = null, CancellationToken cancellationToken = default)
         {
             var id = (++_id).ToString();
             _records.Add(new IntentHistoryRecord(
                 id, behaviorSpaceId, intent.Name, intent.Confidence.Level, intent.Confidence.Score,
-                decision, DateTimeOffset.UtcNow));
+                decision, DateTimeOffset.UtcNow, metadata));
             return Task.FromResult(id);
         }
 

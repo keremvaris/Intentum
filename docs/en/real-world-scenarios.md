@@ -298,6 +298,8 @@ Minimal runnable projects for these scenarios:
 - [examples/time-decay-intent](https://github.com/keremvaris/Intentum/tree/master/examples/time-decay-intent) — Recent events weigh more
 - [examples/vector-normalization](https://github.com/keremvaris/Intentum/tree/master/examples/vector-normalization) — Cap, L1, SoftCap
 
-See the [examples README](https://github.com/keremvaris/Intentum/tree/master/examples) in the repo for how to run them.
+**Web sample (fraud + greenwashing + explain):** [samples/Intentum.Sample.Web](https://github.com/keremvaris/Intentum/tree/master/samples/Intentum.Sample.Web) — full UI and HTTP API: intent infer/explain, greenwashing detection (multi-language, optional image, Scope 3/blockchain mock), Dashboard with analytics and recent analyses. See [Greenwashing detection (how-to)](greenwashing-detection-howto.md#6-sample-application-intentumsampleweb) and [Setup – Web sample](setup.md#build-and-run-the-repo-samples).
+
+See the [examples README](https://github.com/keremvaris/Intentum/tree/master/examples) in the repo for how to run the console examples.
 
 For more flows (payment, support, ESG), see [Scenarios](scenarios.md) and [Audience & use cases](audience.md).

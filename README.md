@@ -276,7 +276,7 @@ No API key required. Infers suspicious vs. legitimate behavior, then policy deci
 - [Setup](docs/en/setup.md) — install, first project, env vars
 - [API Reference](https://keremvaris.github.io/Intentum/api/)
 - [CodeGen](docs/en/codegen.md) — scaffold CQRS + Intentum, dotnet new template
-- **Sample.Web:** `dotnet run --project samples/Intentum.Sample.Web` — UI and `POST /api/intent/infer`, analytics, health
+- **Sample.Web:** `dotnet run --project samples/Intentum.Sample.Web` — UI, `POST /api/intent/infer`, `POST /api/intent/explain`, greenwashing (`POST /api/greenwashing/analyze`, `GET /api/greenwashing/recent`), Dashboard (analytics, son çıkarımlar, son greenwashing analizleri), analytics export, health. See [docs/setup](docs/en/setup.md) and [samples/Intentum.Sample.Web/README.md](samples/Intentum.Sample.Web/README.md).
 - **Fraud intent (advanced example):** `dotnet run --project examples/fraud-intent` — fraud/abuse intent detection, policy Block/Observe/Allow, no API key
 - **Chained intent:** `dotnet run --project examples/chained-intent` — rule-based first, LLM fallback, intent reasoning
 - **Time decay:** `dotnet run --project examples/time-decay-intent` — recent events weighted higher

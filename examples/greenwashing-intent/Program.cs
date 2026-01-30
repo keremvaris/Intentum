@@ -3,13 +3,13 @@
 // No API key needed (rule-based intent model).
 
 using System.Text.RegularExpressions;
+using GreenwashingExample;
 using Intentum.Core;
 using Intentum.Core.Behavior;
 using Intentum.Core.Contracts;
 using Intentum.Core.Intents;
 using Intentum.Runtime;
 using Intentum.Runtime.Policy;
-using GreenwashingExample;
 
 // Sample sustainability report (vague claims, metrics without proof)
 var report = """
@@ -57,123 +57,123 @@ Console.WriteLine("\nSee docs/en/greenwashing-detection-howto.md and examples/gr
 
 namespace GreenwashingExample
 {
-// --- SustainabilityReporter: report text -> BehaviorSpace ---
-internal static partial class SustainabilityReporter
-{
-    private static readonly string[] VaguePatterns = ["sustainable future", "green transition", "eco-friendly", "clean production", "ecological balance", "carbon neutrality", "respect for nature"];
-
-    [GeneratedRegex(@"%\s*(reduction|increase|improvement)|(\d+\s*(ton|kg|kWh|CO2|CO₂))", RegexOptions.IgnoreCase)]
-    private static partial Regex MetricsPattern();
-
-    [GeneratedRegex(@"(more|less|better|greener)\s+(than|ever)", RegexOptions.IgnoreCase)]
-    private static partial Regex UnsubstantiatedComparisonPattern();
-
-    public static BehaviorSpace AnalyzeReport(string report)
+    // --- SustainabilityReporter: report text -> BehaviorSpace ---
+    internal static partial class SustainabilityReporter
     {
-        var space = new BehaviorSpace();
-        if (string.IsNullOrWhiteSpace(report))
+        private static readonly string[] VaguePatterns = ["sustainable future", "green transition", "eco-friendly", "clean production", "ecological balance", "carbon neutrality", "respect for nature"];
+
+        [GeneratedRegex(@"%\s*(reduction|increase|improvement)|(\d+\s*(ton|kg|kWh|CO2|CO₂))", RegexOptions.IgnoreCase)]
+        private static partial Regex MetricsPattern();
+
+        [GeneratedRegex(@"(more|less|better|greener)\s+(than|ever)", RegexOptions.IgnoreCase)]
+        private static partial Regex UnsubstantiatedComparisonPattern();
+
+        public static BehaviorSpace AnalyzeReport(string report)
+        {
+            var space = new BehaviorSpace();
+            if (string.IsNullOrWhiteSpace(report))
+                return space;
+
+            // Vague claims
+            foreach (var pattern in VaguePatterns)
+            {
+                var count = Regex.Count(report, Regex.Escape(pattern), RegexOptions.IgnoreCase);
+                for (var i = 0; i < count; i++)
+                    space.Observe("language", "claim.vague");
+            }
+
+            // Metrics without proof
+            var hasMetrics = MetricsPattern().IsMatch(report);
+            var hasProof = report.Contains("ISO", StringComparison.OrdinalIgnoreCase) || report.Contains("verified", StringComparison.OrdinalIgnoreCase) || report.Contains("audit", StringComparison.OrdinalIgnoreCase);
+            if (hasMetrics && !hasProof)
+                space.Observe("data", "metrics.without.proof");
+
+            // Unsubstantiated comparison
+            if (UnsubstantiatedComparisonPattern().IsMatch(report))
+                space.Observe("language", "comparison.unsubstantiated");
+
             return space;
-
-        // Vague claims
-        foreach (var pattern in VaguePatterns)
-        {
-            var count = Regex.Count(report, Regex.Escape(pattern), RegexOptions.IgnoreCase);
-            for (var i = 0; i < count; i++)
-                space.Observe("language", "claim.vague");
         }
-
-        // Metrics without proof
-        var hasMetrics = MetricsPattern().IsMatch(report);
-        var hasProof = report.Contains("ISO", StringComparison.OrdinalIgnoreCase) || report.Contains("verified", StringComparison.OrdinalIgnoreCase) || report.Contains("audit", StringComparison.OrdinalIgnoreCase);
-        if (hasMetrics && !hasProof)
-            space.Observe("data", "metrics.without.proof");
-
-        // Unsubstantiated comparison
-        if (UnsubstantiatedComparisonPattern().IsMatch(report))
-            space.Observe("language", "comparison.unsubstantiated");
-
-        return space;
-    }
-}
-
-// --- GreenwashingIntentModel: BehaviorSpace -> Intent ---
-internal sealed class GreenwashingIntentModel : IIntentModel
-{
-    private static readonly Dictionary<string, double> SignalWeights = new(StringComparer.OrdinalIgnoreCase)
-    {
-        ["language:claim.vague"] = 0.15,
-        ["language:comparison.unsubstantiated"] = 0.25,
-        ["data:metrics.without.proof"] = 0.35,
-        ["data:baseline.manipulation"] = 0.45,
-        ["imagery:nature.without.data"] = 0.2
-    };
-
-    private static string GetIntentNameFromScore(double score)
-    {
-        if (score >= 0.8) return "ActiveGreenwashing";
-        if (score >= 0.6) return "StrategicObfuscation";
-        if (score >= 0.4) return "SelectiveDisclosure";
-        if (score >= 0.2) return "UnintentionalMisrepresentation";
-        return "GenuineSustainability";
     }
 
-    public Intent Infer(BehaviorSpace behaviorSpace, BehaviorVector? precomputedVector = null)
+    // --- GreenwashingIntentModel: BehaviorSpace -> Intent ---
+    internal sealed class GreenwashingIntentModel : IIntentModel
     {
-        var vector = precomputedVector ?? behaviorSpace.ToVector();
-        var totalWeight = 0.0;
-        var signalList = new List<IntentSignal>();
-
-        foreach (var (dim, count) in vector.Dimensions)
+        private static readonly Dictionary<string, double> SignalWeights = new(StringComparer.OrdinalIgnoreCase)
         {
-            var weight = SignalWeights.GetValueOrDefault(dim, 0.1) * Math.Min(count, 5);
-            totalWeight += weight;
-            signalList.Add(new IntentSignal("greenwashing", dim, weight));
+            ["language:claim.vague"] = 0.15,
+            ["language:comparison.unsubstantiated"] = 0.25,
+            ["data:metrics.without.proof"] = 0.35,
+            ["data:baseline.manipulation"] = 0.45,
+            ["imagery:nature.without.data"] = 0.2
+        };
+
+        private static string GetIntentNameFromScore(double score)
+        {
+            if (score >= 0.8) return "ActiveGreenwashing";
+            if (score >= 0.6) return "StrategicObfuscation";
+            if (score >= 0.4) return "SelectiveDisclosure";
+            if (score >= 0.2) return "UnintentionalMisrepresentation";
+            return "GenuineSustainability";
         }
 
-        // Normalize score to [0, 1] (cap effect of many signals)
-        var score = Math.Min(1.0, totalWeight / 3.0);
-        var confidence = IntentConfidence.FromScore(score);
-        var name = GetIntentNameFromScore(score);
-        var reasoning = $"{behaviorSpace.Events.Count} signals; weighted score {totalWeight:F2} -> {name}";
+        public Intent Infer(BehaviorSpace behaviorSpace, BehaviorVector? precomputedVector = null)
+        {
+            var vector = precomputedVector ?? behaviorSpace.ToVector();
+            var totalWeight = 0.0;
+            var signalList = new List<IntentSignal>();
 
-        return new Intent(Name: name, Signals: signalList, Confidence: confidence, Reasoning: reasoning);
+            foreach (var (dim, count) in vector.Dimensions)
+            {
+                var weight = SignalWeights.GetValueOrDefault(dim, 0.1) * Math.Min(count, 5);
+                totalWeight += weight;
+                signalList.Add(new IntentSignal("greenwashing", dim, weight));
+            }
+
+            // Normalize score to [0, 1] (cap effect of many signals)
+            var score = Math.Min(1.0, totalWeight / 3.0);
+            var confidence = IntentConfidence.FromScore(score);
+            var name = GetIntentNameFromScore(score);
+            var reasoning = $"{behaviorSpace.Events.Count} signals; weighted score {totalWeight:F2} -> {name}";
+
+            return new Intent(Name: name, Signals: signalList, Confidence: confidence, Reasoning: reasoning);
+        }
     }
-}
 
-// --- Solution generator: intent + space + decision -> action list ---
-internal static class SustainabilitySolutionGenerator
-{
-    public static IReadOnlyList<string> Suggest(Intent intent, BehaviorSpace space, PolicyDecision decision)
+    // --- Solution generator: intent + space + decision -> action list ---
+    internal static class SustainabilitySolutionGenerator
     {
-        var actions = new List<string>();
-
-        if (decision == PolicyDecision.Escalate && intent.Name == "ActiveGreenwashing")
+        public static IReadOnlyList<string> Suggest(Intent intent, BehaviorSpace space, PolicyDecision decision)
         {
-            actions.Add("IMMEDIATE: Suspend environmental marketing claims");
-            actions.Add("IMMEDIATE: Initiate internal review");
-            actions.Add("WITHIN 24H: Prepare public clarification");
+            var actions = new List<string>();
+
+            if (decision == PolicyDecision.Escalate && intent.Name == "ActiveGreenwashing")
+            {
+                actions.Add("IMMEDIATE: Suspend environmental marketing claims");
+                actions.Add("IMMEDIATE: Initiate internal review");
+                actions.Add("WITHIN 24H: Prepare public clarification");
+            }
+
+            if (decision == PolicyDecision.Warn)
+            {
+                actions.Add("Third-party data audit");
+                actions.Add("Methodology review");
+                actions.Add("Stakeholder consultation");
+            }
+
+            if (space.Events.Any(e => e.Action == "metrics.without.proof"))
+                actions.Add("Publish supporting data for all metric claims");
+
+            if (space.Events.Any(e => e.Action == "baseline.manipulation"))
+                actions.Add("Recalculate using industry-standard baseline");
+
+            if (intent.Confidence.Score > 0.3 && actions.Count == 0)
+                actions.Add("Enhanced quarterly monitoring of language and data completeness");
+
+            if (actions.Count == 0)
+                actions.Add("No urgent actions; continue standard disclosure.");
+
+            return actions;
         }
-
-        if (decision == PolicyDecision.Warn)
-        {
-            actions.Add("Third-party data audit");
-            actions.Add("Methodology review");
-            actions.Add("Stakeholder consultation");
-        }
-
-        if (space.Events.Any(e => e.Action == "metrics.without.proof"))
-            actions.Add("Publish supporting data for all metric claims");
-
-        if (space.Events.Any(e => e.Action == "baseline.manipulation"))
-            actions.Add("Recalculate using industry-standard baseline");
-
-        if (intent.Confidence.Score > 0.3 && actions.Count == 0)
-            actions.Add("Enhanced quarterly monitoring of language and data completeness");
-
-        if (actions.Count == 0)
-            actions.Add("No urgent actions; continue standard disclosure.");
-
-        return actions;
     }
-}
 }

@@ -22,6 +22,7 @@ public sealed class IntentHistoryRepository : IIntentHistoryRepository
         string behaviorSpaceId,
         Intent intent,
         PolicyDecision decision,
+        IReadOnlyDictionary<string, object>? metadata = null,
         CancellationToken cancellationToken = default)
     {
         var record = new IntentHistoryRecord(
@@ -31,7 +32,8 @@ public sealed class IntentHistoryRepository : IIntentHistoryRepository
             ConfidenceLevel: intent.Confidence.Level,
             ConfidenceScore: intent.Confidence.Score,
             Decision: decision,
-            RecordedAt: DateTimeOffset.UtcNow);
+            RecordedAt: DateTimeOffset.UtcNow,
+            Metadata: metadata);
 
         var entity = IntentHistoryEntity.FromRecord(record);
         _context.IntentHistory.Add(entity);
