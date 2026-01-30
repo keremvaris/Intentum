@@ -6,7 +6,7 @@
 [![NuGet Intentum.Core](https://img.shields.io/nuget/v/Intentum.Core.svg)](https://www.nuget.org/packages/Intentum.Core)
 [![Coverage](https://sonarcloud.io/api/project_badges/measure?project=keremvaris_Intentum&metric=coverage)](https://sonarcloud.io/summary/new_code?id=keremvaris_Intentum)
 [![SonarCloud](https://sonarcloud.io/api/project_badges/measure?project=keremvaris_Intentum&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=keremvaris_Intentum)
-![visitor badge](https://visitor-badge.laobi.icu/badge?page_id=jwenjian.visitor-badge&left_color=red&right_color=green&left_text=Hello%20Visitors)
+
 Most software frameworks ask:
 > *What happened?*
 
