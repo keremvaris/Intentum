@@ -13,7 +13,7 @@ namespace Intentum.Tests;
 /// </summary>
 public class IntentModelStreamingExtensionsTests
 {
-    private static IIntentModel CreateModel()
+    private static LlmIntentModel CreateModel()
         => new LlmIntentModel(new MockEmbeddingProvider(), new SimpleAverageSimilarityEngine());
 
     [Fact]
@@ -162,7 +162,7 @@ public class IntentModelStreamingExtensionsTests
         }
         catch (Exception ex)
         {
-            Assert.IsAssignableFrom<OperationCanceledException>(ex);
+            Assert.IsType<OperationCanceledException>(ex, exactMatch: false);
         }
     }
 
