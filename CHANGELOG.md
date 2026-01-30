@@ -13,6 +13,19 @@ Bu dosya **conventional commit** mesajlarından otomatik üretilir. Commit'te **
 
 ---
 
+## [unreleased]
+
+
+
+### Testing
+
+- **Update model creation and exception assertion** *(intentmodel)*
+
+- Change CreateModel method return type from IIntentModel to LlmIntentModel
+- Update exception assertion to use Assert.IsType with non-exact match for OperationCanceledException
+
+
+
 ## [1.0.3] - 2026-01-30
 
 
