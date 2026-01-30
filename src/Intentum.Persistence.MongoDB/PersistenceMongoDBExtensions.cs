@@ -25,10 +25,8 @@ public static class PersistenceMongoDBExtensions
         string behaviorSpaceCollectionName = "behaviorspaces",
         string intentHistoryCollectionName = "intenthistory")
     {
-        if (services == null)
-            throw new ArgumentNullException(nameof(services));
-        if (database == null)
-            throw new ArgumentNullException(nameof(database));
+        ArgumentNullException.ThrowIfNull(services);
+        ArgumentNullException.ThrowIfNull(database);
 
         services.AddSingleton<IBehaviorSpaceRepository>(_ =>
             new MongoBehaviorSpaceRepository(database, behaviorSpaceCollectionName));

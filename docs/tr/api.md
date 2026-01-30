@@ -39,7 +39,7 @@ Yani: *davranış → intent → policy kararı*. Sabit senaryo adımları yok; 
 | Tip | Ne işe yarar |
 |-----|----------------|
 | **IntentPolicy** | Sıralı kural listesi. `.AddRule(PolicyRule(...))` ile kural eklenir. İlk eşleşen kural kazanır. Inheritance için `.WithBase(basePolicy)`; birleştirmek için `IntentPolicy.Merge(policy1, policy2, ...)` kullanın. |
-| **PolicyVariantSet** | A/B policy varyantları: seçici (`Func<Intent, string>`) ile birden fazla isimli policy. Seçilen policy ile değerlendirmek için `intent.Decide(variantSet)` kullanın. |
+| **PolicyVariantSet** | A/B policy varyantları: seçici (`Func<Intent, string>`) ile birden fazla isimli policy. Seçilen policy ile değerlendirmek için `intent.Decide(variantSet)` kullanın. Varyant isimleri için `GetVariantNames()` çağrılır. |
 | **IntentPolicyBuilder** | IntentPolicy oluşturmak için fluent builder. `.Allow(...)`, `.Block(...)`, `.Escalate(...)` vb. metodlar kullanılır. |
 | **PolicyRule** | İsim + koşul (örn. `Intent` üzerinde lambda) + **PolicyDecision** (Allow, Observe, Warn, Block, Escalate, RequireAuth, RateLimit). |
 | **PolicyDecision** | Karar enum'u: **Allow**, **Observe**, **Warn**, **Block**, **Escalate**, **RequireAuth**, **RateLimit**. |

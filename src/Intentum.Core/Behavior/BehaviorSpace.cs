@@ -64,11 +64,8 @@ public sealed class BehaviorSpace
     /// <summary>Builds a behavior vector with optional normalization/cap. Result is cached until Observe is called only when options is null.</summary>
     public BehaviorVector ToVector(ToVectorOptions? options)
     {
-        if (options == null || (options.Normalization == VectorNormalization.None && options.CapPerDimension <= 0))
-        {
-            if (_cachedVector != null)
-                return _cachedVector;
-        }
+        if (UseCache(options) && _cachedVector != null)
+            return _cachedVector;
 
         var dimensions = new Dictionary<string, double>();
 
@@ -81,11 +78,14 @@ public sealed class BehaviorSpace
         dimensions = ApplyOptions(dimensions, options);
         var result = new BehaviorVector(dimensions);
 
-        if (options == null || (options.Normalization == VectorNormalization.None && options.CapPerDimension <= 0))
+        if (UseCache(options))
             _cachedVector = result;
 
         return result;
     }
+
+    private static bool UseCache(ToVectorOptions? options)
+        => options == null || options is { Normalization: VectorNormalization.None, CapPerDimension: <= 0 };
 
     /// <summary>Builds a behavior vector from events within a time window.</summary>
     public BehaviorVector ToVector(DateTimeOffset start, DateTimeOffset end)
@@ -109,44 +109,45 @@ public sealed class BehaviorSpace
 
     private static Dictionary<string, double> ApplyOptions(Dictionary<string, double> dimensions, ToVectorOptions? options)
     {
-        if (options == null || (options.Normalization == VectorNormalization.None && options.CapPerDimension <= 0))
+        if (UseCache(options))
             return dimensions;
 
-        var cap = options.CapPerDimension > 0 ? options.CapPerDimension : (double?)null;
+        var cap = options!.CapPerDimension > 0 ? options.CapPerDimension : (double?)null;
 
-        switch (options.Normalization)
+        return options.Normalization switch
         {
-            case VectorNormalization.Cap when cap.HasValue:
-                foreach (var k in dimensions.Keys.ToList())
-                {
-                    if (dimensions[k] > cap.Value)
-                        dimensions[k] = cap.Value;
-                }
-                break;
-            case VectorNormalization.SoftCap when cap.HasValue:
-                foreach (var k in dimensions.Keys.ToList())
-                    dimensions[k] = Math.Min(1.0, dimensions[k] / cap.Value);
-                break;
-            case VectorNormalization.L1:
-                var sum = dimensions.Values.Sum();
-                if (sum > 0)
-                {
-                    foreach (var k in dimensions.Keys.ToList())
-                        dimensions[k] /= sum;
-                }
-                break;
-            default:
-                if (cap.HasValue && options.Normalization == VectorNormalization.None)
-                {
-                    foreach (var k in dimensions.Keys.ToList())
-                    {
-                        if (dimensions[k] > cap.Value)
-                            dimensions[k] = cap.Value;
-                    }
-                }
-                break;
-        }
+            VectorNormalization.Cap when cap.HasValue => ApplyCap(dimensions, cap.Value),
+            VectorNormalization.SoftCap when cap.HasValue => ApplySoftCap(dimensions, cap.Value),
+            VectorNormalization.L1 => ApplyL1(dimensions),
+            _ when cap.HasValue && options.Normalization == VectorNormalization.None => ApplyCap(dimensions, cap.Value),
+            _ => dimensions
+        };
+    }
 
+    private static Dictionary<string, double> ApplyCap(Dictionary<string, double> dimensions, double cap)
+    {
+        foreach (var k in dimensions.Keys.ToList())
+        {
+            if (dimensions[k] > cap)
+                dimensions[k] = cap;
+        }
+        return dimensions;
+    }
+
+    private static Dictionary<string, double> ApplySoftCap(Dictionary<string, double> dimensions, double cap)
+    {
+        foreach (var k in dimensions.Keys.ToList())
+            dimensions[k] = Math.Min(1.0, dimensions[k] / cap);
+        return dimensions;
+    }
+
+    private static Dictionary<string, double> ApplyL1(Dictionary<string, double> dimensions)
+    {
+        var sum = dimensions.Values.Sum();
+        if (sum <= 0)
+            return dimensions;
+        foreach (var k in dimensions.Keys.ToList())
+            dimensions[k] /= sum;
         return dimensions;
     }
 }

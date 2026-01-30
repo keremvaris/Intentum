@@ -23,11 +23,13 @@ public static class IntentModelStreamingExtensions
         this IIntentModel model,
         IEnumerable<BehaviorSpace> spaces)
     {
-        if (model == null)
-            throw new ArgumentNullException(nameof(model));
-        if (spaces == null)
-            throw new ArgumentNullException(nameof(spaces));
+        ArgumentNullException.ThrowIfNull(model);
+        ArgumentNullException.ThrowIfNull(spaces);
+        return InferManyIterator(model, spaces);
+    }
 
+    private static IEnumerable<Intent> InferManyIterator(IIntentModel model, IEnumerable<BehaviorSpace> spaces)
+    {
         foreach (var space in spaces)
             yield return model.Infer(space);
     }
@@ -45,11 +47,17 @@ public static class IntentModelStreamingExtensions
         IAsyncEnumerable<BehaviorSpace> spaces,
         [EnumeratorCancellation] CancellationToken cancellationToken = default)
     {
-        if (model == null)
-            throw new ArgumentNullException(nameof(model));
-        if (spaces == null)
-            throw new ArgumentNullException(nameof(spaces));
+        ArgumentNullException.ThrowIfNull(model);
+        ArgumentNullException.ThrowIfNull(spaces);
+        await foreach (var intent in InferManyAsyncIterator(model, spaces, cancellationToken))
+            yield return intent;
+    }
 
+    private static async IAsyncEnumerable<Intent> InferManyAsyncIterator(
+        IIntentModel model,
+        IAsyncEnumerable<BehaviorSpace> spaces,
+        [EnumeratorCancellation] CancellationToken cancellationToken)
+    {
         await foreach (var space in spaces.WithCancellation(cancellationToken))
         {
             cancellationToken.ThrowIfCancellationRequested();

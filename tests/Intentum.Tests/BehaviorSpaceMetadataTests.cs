@@ -87,7 +87,7 @@ public class BehaviorSpaceMetadataTests
 
         // Assert
         Assert.NotNull(span);
-        Assert.True(span.Value.TotalHours >= 1.9 && span.Value.TotalHours <= 2.1);
+        Assert.True(span.Value.TotalHours is >= 1.9 and <= 2.1);
     }
 
     [Fact]

@@ -40,17 +40,19 @@ Collect signals from the sustainability report and record them as behavior event
 Example: vague claims, unsubstantiated comparisons, metrics without proof, favorable baseline.
 
 ```csharp
+using System.Text.RegularExpressions;
 using Intentum.Core;
 using Intentum.Core.Behavior;
 
 var space = new BehaviorSpace();
+var regexTimeout = TimeSpan.FromSeconds(1);
 
 // Vague sustainability language
 foreach (var pattern in new[] { "sustainable future", "green transition", "eco-friendly", "clean production" })
 {
     if (report.Contains(pattern))
     {
-        var count = Regex.Matches(report, Regex.Escape(pattern)).Count;
+        var count = Regex.Matches(report, Regex.Escape(pattern), RegexOptions.IgnoreCase, regexTimeout).Count;
         for (int i = 0; i < count; i++)
             space.Observe("language", "claim.vague");
     }
@@ -61,7 +63,7 @@ if (HasComparativeClaims(report))
     space.Observe("language", "comparison.unsubstantiated");
 
 // Metrics without verification (ISO, audit, verified)
-var hasMetrics = Regex.IsMatch(report, @"%\s*(reduction|increase)|(\d+\s*(ton|kg|kWh|CO2))");
+var hasMetrics = Regex.IsMatch(report, @"%\s*(reduction|increase)|(\d+\s*(ton|kg|kWh|CO2))", RegexOptions.IgnoreCase, regexTimeout);
 var hasProof = report.Contains("ISO") || report.Contains("verified") || report.Contains("audit");
 if (hasMetrics && !hasProof)
     space.Observe("data", "metrics.without.proof");

@@ -7,12 +7,13 @@ using Intentum.Core.Behavior;
 
 Console.WriteLine("=== Intentum Example: Vector Normalization ===\n");
 
+const string ActionLoginFailed = "login.failed";
 var space = new BehaviorSpace()
-    .Observe("user", "login.failed")
-    .Observe("user", "login.failed")
-    .Observe("user", "login.failed")
-    .Observe("user", "login.failed")
-    .Observe("user", "login.failed")
+    .Observe("user", ActionLoginFailed)
+    .Observe("user", ActionLoginFailed)
+    .Observe("user", ActionLoginFailed)
+    .Observe("user", ActionLoginFailed)
+    .Observe("user", ActionLoginFailed)
     .Observe("user", "password.reset")
     .Observe("user", "captcha.passed");
 

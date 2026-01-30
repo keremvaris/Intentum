@@ -202,7 +202,7 @@ public class SimilarityEngineTests
         Assert.NotNull(intent);
         Assert.NotEmpty(intent.Signals);
         // Weighted average should produce a different confidence than simple average
-        Assert.True(intent.Confidence.Score >= 0 && intent.Confidence.Score <= 1);
+        Assert.True(intent.Confidence.Score is >= 0 and <= 1);
     }
 
     [Fact]
@@ -229,7 +229,7 @@ public class SimilarityEngineTests
         // Assert
         // vector1 and vector3 are identical (cosine = 1), vector1 and vector2 are orthogonal (cosine = 0)
         // After normalization to [0,1]: (1 + 0.5 + 0.5) / 3 = 0.67
-        Assert.True(score >= 0 && score <= 1);
+        Assert.True(score is >= 0 and <= 1);
         Assert.True(score > 0.5); // Should be closer to 1 since two vectors are identical
     }
 
@@ -301,7 +301,7 @@ public class SimilarityEngineTests
         // Assert
         Assert.NotNull(intent);
         Assert.NotEmpty(intent.Signals);
-        Assert.True(intent.Confidence.Score >= 0 && intent.Confidence.Score <= 1);
+        Assert.True(intent.Confidence.Score is >= 0 and <= 1);
     }
 
     [Fact]
@@ -324,7 +324,7 @@ public class SimilarityEngineTests
 
         // Assert
         // Both engines should produce similar results (0.85), composite should be around 0.85
-        Assert.True(score >= 0 && score <= 1);
+        Assert.True(score is >= 0 and <= 1);
         Assert.True(Math.Abs(score - 0.85) < 0.1);
     }
 
@@ -403,7 +403,7 @@ public class SimilarityEngineTests
         var score = composite.CalculateIntentScore(embeddings);
 
         // Assert
-        Assert.True(score >= 0 && score <= 1);
+        Assert.True(score is >= 0 and <= 1);
     }
 
     [Fact]
@@ -432,6 +432,6 @@ public class SimilarityEngineTests
         // Assert
         Assert.NotNull(intent);
         Assert.NotEmpty(intent.Signals);
-        Assert.True(intent.Confidence.Score >= 0 && intent.Confidence.Score <= 1);
+        Assert.True(intent.Confidence.Score is >= 0 and <= 1);
     }
 }

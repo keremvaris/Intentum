@@ -144,7 +144,7 @@ public sealed class RedisBehaviorSpaceRepository : IBehaviorSpaceRepository
         {
             var metadata = JsonSerializer.Deserialize<Dictionary<string, JsonElement>>(MetadataJson);
             object? meta = null;
-            if (metadata != null && metadata.Count > 0)
+            if (metadata is { Count: > 0 })
             {
                 var dict = new Dictionary<string, object>();
                 foreach (var kv in metadata)

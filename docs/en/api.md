@@ -39,7 +39,7 @@ So: *behavior → intent → policy decision*. No hard-coded scenario steps; the
 | Type | What it does |
 |------|----------------|
 | **IntentPolicy** | Ordered list of rules. Add rules with `.AddRule(PolicyRule(...))`. First matching rule wins. Use `.WithBase(basePolicy)` for inheritance; `IntentPolicy.Merge(policy1, policy2, ...)` to combine policies. |
-| **PolicyVariantSet** | A/B policy variants: multiple named policies with a selector (`Func<Intent, string>`). Use `intent.Decide(variantSet)` to evaluate with the selected policy. |
+| **PolicyVariantSet** | A/B policy variants: multiple named policies with a selector (`Func<Intent, string>`). Use `intent.Decide(variantSet)` to evaluate with the selected policy. Call `GetVariantNames()` for the set of variant names. |
 | **IntentPolicyBuilder** | Fluent builder for creating IntentPolicy instances. Use `.Allow(...)`, `.Block(...)`, `.Escalate(...)`, etc. |
 | **PolicyRule** | Name + condition (e.g. lambda on `Intent`) + **PolicyDecision** (Allow, Observe, Warn, Block, Escalate, RequireAuth, RateLimit). |
 | **PolicyDecision** | Decision enum: **Allow**, **Observe**, **Warn**, **Block**, **Escalate**, **RequireAuth**, **RateLimit**. |

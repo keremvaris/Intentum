@@ -38,5 +38,5 @@ public sealed class PolicyVariantSet
     /// <summary>
     /// Returns the variant names in this set.
     /// </summary>
-    public IReadOnlyCollection<string> VariantNames => _variants.Keys.ToList();
+    public IReadOnlyCollection<string> GetVariantNames() => _variants.Keys.ToList();
 }

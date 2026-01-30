@@ -54,7 +54,7 @@ public sealed class RedisIntentHistoryRepository : IIntentHistoryRepository
         var list = new List<IntentHistoryRecord>();
         foreach (var id in ids)
         {
-            var record = await GetByIdAsync(id!, cancellationToken);
+            var record = await GetByIdAsync(id!);
             if (record != null)
                 list.Add(record);
         }
@@ -69,8 +69,8 @@ public sealed class RedisIntentHistoryRepository : IIntentHistoryRepository
         var list = new List<IntentHistoryRecord>();
         foreach (var id in ids)
         {
-            var record = await GetByIdAsync(id!, cancellationToken);
-            if (record != null && record.ConfidenceLevel == confidenceLevel)
+        var record = await GetByIdAsync(id!);
+        if (record != null && record.ConfidenceLevel == confidenceLevel)
                 list.Add(record);
         }
         return list.OrderByDescending(r => r.RecordedAt).ToList();
@@ -84,7 +84,7 @@ public sealed class RedisIntentHistoryRepository : IIntentHistoryRepository
         var list = new List<IntentHistoryRecord>();
         foreach (var id in ids)
         {
-            var record = await GetByIdAsync(id!, cancellationToken);
+            var record = await GetByIdAsync(id!);
             if (record != null && record.Decision == decision)
                 list.Add(record);
         }
@@ -100,14 +100,14 @@ public sealed class RedisIntentHistoryRepository : IIntentHistoryRepository
         var list = new List<IntentHistoryRecord>();
         foreach (var id in ids)
         {
-            var record = await GetByIdAsync(id!, cancellationToken);
+            var record = await GetByIdAsync(id!);
             if (record != null && record.RecordedAt >= start && record.RecordedAt <= end)
                 list.Add(record);
         }
         return list.OrderByDescending(r => r.RecordedAt).ToList();
     }
 
-    private async Task<IntentHistoryRecord?> GetByIdAsync(string id, CancellationToken _)
+    private async Task<IntentHistoryRecord?> GetByIdAsync(string id)
     {
         var db = _redis.GetDatabase();
         var json = await db.StringGetAsync(_keyPrefix + "record:" + id);

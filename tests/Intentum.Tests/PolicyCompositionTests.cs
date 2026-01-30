@@ -116,14 +116,14 @@ public sealed class PolicyCompositionTests
     }
 
     [Fact]
-    public void PolicyVariantSet_VariantNames_ReturnsAllNames()
+    public void PolicyVariantSet_GetVariantNames_ReturnsAllNames()
     {
         var p = new IntentPolicy();
         var variants = new PolicyVariantSet(
             new Dictionary<string, IntentPolicy> { ["a"] = p, ["b"] = p },
             _ => "a");
-        Assert.Equal(2, variants.VariantNames.Count);
-        Assert.Contains("a", variants.VariantNames);
-        Assert.Contains("b", variants.VariantNames);
+        Assert.Equal(2, variants.GetVariantNames().Count);
+        Assert.Contains("a", variants.GetVariantNames());
+        Assert.Contains("b", variants.GetVariantNames());
     }
 }

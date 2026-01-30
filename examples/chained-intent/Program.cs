@@ -12,23 +12,24 @@ using Intentum.Runtime;
 using Intentum.Runtime.Policy;
 
 // Primary: rule-based (fast, deterministic, explainable)
+const string ActionLoginFailed = "login.failed";
 var rules = new List<Func<BehaviorSpace, RuleMatch?>>
 {
     space =>
     {
-        var loginFails = space.Events.Count(e => e.Action == "login.failed");
+        var loginFails = space.Events.Count(e => e.Action == ActionLoginFailed);
         var hasReset = space.Events.Any(e => e.Action == "password.reset");
         var hasSuccess = space.Events.Any(e => e.Action == "login.success");
         if (loginFails >= 2 && hasReset && hasSuccess)
-            return new RuleMatch("AccountRecovery", 0.85, "login.failed>=2 and password.reset and login.success");
+            return new RuleMatch("AccountRecovery", 0.85, $"{ActionLoginFailed}>=2 and password.reset and login.success");
         return null;
     },
     space =>
     {
-        var loginFails = space.Events.Count(e => e.Action == "login.failed");
+        var loginFails = space.Events.Count(e => e.Action == ActionLoginFailed);
         var ipChanged = space.Events.Any(e => e.Action == "ip.changed");
         if (loginFails >= 3 && ipChanged)
-            return new RuleMatch("SuspiciousAccess", 0.9, "login.failed>=3 and ip.changed");
+            return new RuleMatch("SuspiciousAccess", 0.9, $"{ActionLoginFailed}>=3 and ip.changed");
         return null;
     }
 };
@@ -53,8 +54,8 @@ Console.WriteLine("=== Intentum Example: Chained Intent (Rule → LLM Fallback) 
 
 // Scenario 1: Rule matches (AccountRecovery) — no LLM call
 var space1 = new BehaviorSpace()
-    .Observe("user", "login.failed")
-    .Observe("user", "login.failed")
+    .Observe("user", ActionLoginFailed)
+    .Observe("user", ActionLoginFailed)
     .Observe("user", "password.reset")
     .Observe("user", "login.success")
     .Observe("user", "device.verified");
@@ -70,7 +71,7 @@ Console.WriteLine();
 
 // Scenario 2: No rule matches — fallback to LLM
 var space2 = new BehaviorSpace()
-    .Observe("user", "login.failed")
+    .Observe("user", ActionLoginFailed)
     .Observe("user", "captcha.passed")
     .Observe("user", "login.retry");
 

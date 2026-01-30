@@ -23,10 +23,8 @@ public static class PersistenceRedisExtensions
         IConnectionMultiplexer redis,
         string keyPrefix = "intentum:")
     {
-        if (services == null)
-            throw new ArgumentNullException(nameof(services));
-        if (redis == null)
-            throw new ArgumentNullException(nameof(redis));
+        ArgumentNullException.ThrowIfNull(services);
+        ArgumentNullException.ThrowIfNull(redis);
 
         var bsPrefix = keyPrefix.TrimEnd(':') + ":behaviorspace:";
         var ihPrefix = keyPrefix.TrimEnd(':') + ":inthistory:";
