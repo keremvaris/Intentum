@@ -15,7 +15,7 @@ public sealed class DefaultLocalizerTests
     [Fact]
     public void DefaultLocalizer_English_ReturnsAllKeys()
     {
-        var localizer = new DefaultLocalizer("en");
+        var localizer = new DefaultLocalizer();
         Assert.Equal("Allow", localizer.Get(LocalizationKeys.DecisionAllow));
         Assert.Equal("Observe", localizer.Get(LocalizationKeys.DecisionObserve));
         Assert.Equal("Warn", localizer.Get(LocalizationKeys.DecisionWarn));
@@ -41,7 +41,7 @@ public sealed class DefaultLocalizerTests
     [Fact]
     public void DefaultLocalizer_UnknownKey_ReturnsKey()
     {
-        var localizer = new DefaultLocalizer("en");
+        var localizer = new DefaultLocalizer();
         var unknown = "Unknown.Key";
         Assert.Equal(unknown, localizer.Get(unknown));
     }

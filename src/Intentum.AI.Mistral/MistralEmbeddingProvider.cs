@@ -1,27 +1,19 @@
 using System.Net.Http.Json;
 using System.Text.Json.Serialization;
 using Intentum.AI.Embeddings;
+using JetBrains.Annotations;
 
 namespace Intentum.AI.Mistral;
 
-public sealed class MistralEmbeddingProvider : IIntentEmbeddingProvider
+public sealed class MistralEmbeddingProvider(MistralOptions options, HttpClient httpClient) : IIntentEmbeddingProvider
 {
-    private readonly MistralOptions _options;
-    private readonly HttpClient _httpClient;
-
-    public MistralEmbeddingProvider(MistralOptions options, HttpClient httpClient)
-    {
-        _options = options;
-        _httpClient = httpClient;
-    }
-
     public IntentEmbedding Embed(string behaviorKey)
     {
-        _options.Validate();
+        options.Validate();
 
-        var request = new MistralEmbeddingRequest(_options.EmbeddingModel, [behaviorKey]);
+        var request = new MistralEmbeddingRequest(options.EmbeddingModel, [behaviorKey]);
 
-        var response = _httpClient
+        var response = httpClient
             .PostAsJsonAsync("embeddings", request)
             .GetAwaiter()
             .GetResult();
@@ -33,7 +25,7 @@ public sealed class MistralEmbeddingProvider : IIntentEmbeddingProvider
             .GetAwaiter()
             .GetResult();
 
-        var values = payload?.Data?.FirstOrDefault()?.Embedding ?? new List<double>();
+        var values = payload?.Data.FirstOrDefault()?.Embedding ?? new List<double>();
         var score = Normalize(values);
 
         return new IntentEmbedding(
@@ -47,10 +39,11 @@ public sealed class MistralEmbeddingProvider : IIntentEmbeddingProvider
         if (values.Count == 0)
             return 0;
 
-        var avgAbs = values.Average(v => Math.Abs(v));
+        var avgAbs = values.Average(Math.Abs);
         return Math.Clamp(avgAbs, 0.0, 1.0);
     }
 
+    [UsedImplicitly]
     private sealed record MistralEmbeddingRequest(
         [property: JsonPropertyName("model")] string Model,
         [property: JsonPropertyName("input")] IReadOnlyList<string> Input);

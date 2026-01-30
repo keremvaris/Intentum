@@ -6,28 +6,19 @@ using Intentum.Core.Intents;
 
 namespace Intentum.AI.Claude;
 
-public sealed class ClaudeIntentModel : IIntentModel
+public sealed class ClaudeIntentModel(
+    IIntentEmbeddingProvider embeddingProvider,
+    IIntentSimilarityEngine similarityEngine) : IIntentModel
 {
-    private readonly IIntentEmbeddingProvider _embeddingProvider;
-    private readonly IIntentSimilarityEngine _similarityEngine;
-
-    public ClaudeIntentModel(
-        IIntentEmbeddingProvider embeddingProvider,
-        IIntentSimilarityEngine similarityEngine)
-    {
-        _embeddingProvider = embeddingProvider;
-        _similarityEngine = similarityEngine;
-    }
-
     public Intent Infer(BehaviorSpace behaviorSpace, BehaviorVector? precomputedVector = null)
     {
         var vector = precomputedVector ?? behaviorSpace.ToVector();
 
         var embeddings = vector.Dimensions.Keys
-            .Select(k => _embeddingProvider.Embed(k))
+            .Select(k => embeddingProvider.Embed(k))
             .ToList();
 
-        var score = _similarityEngine.CalculateIntentScore(embeddings);
+        var score = similarityEngine.CalculateIntentScore(embeddings);
         var confidence = IntentConfidence.FromScore(score);
 
         var signals = embeddings.Select(e =>

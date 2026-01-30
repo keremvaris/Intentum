@@ -37,6 +37,8 @@ var decision1 = intent1.Decide(policy);
 
 Console.WriteLine("Scenario 1 — Premature classification (rushed, user rephrased, model backtracked)");
 Console.WriteLine($"  Confidence: {intent1.Confidence.Level} (score: {intent1.Confidence.Score:F2})");
+if (intent1.Reasoning != null)
+    Console.WriteLine($"  Reasoning:  {intent1.Reasoning}");
 Console.WriteLine($"  Decision:   {decision1}");
 Console.WriteLine();
 
@@ -52,6 +54,8 @@ var decision2 = intent2.Decide(policy);
 
 Console.WriteLine("Scenario 2 — Careful understanding (clarifying question + explicit reasoning)");
 Console.WriteLine($"  Confidence: {intent2.Confidence.Level} (score: {intent2.Confidence.Score:F2})");
+if (intent2.Reasoning != null)
+    Console.WriteLine($"  Reasoning:  {intent2.Reasoning}");
 Console.WriteLine($"  Decision:   {decision2}");
 Console.WriteLine();
 

@@ -1,3 +1,5 @@
+using JetBrains.Annotations;
+
 namespace Intentum.AI.Claude;
 
 public sealed class ClaudeOptions
@@ -21,6 +23,7 @@ public sealed class ClaudeOptions
             throw new ArgumentException("Claude ApiVersion is required.");
     }
 
+    [UsedImplicitly]
     public static ClaudeOptions FromEnvironment()
     {
         var apiKey = Environment.GetEnvironmentVariable("CLAUDE_API_KEY")

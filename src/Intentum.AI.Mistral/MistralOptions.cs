@@ -1,3 +1,5 @@
+using JetBrains.Annotations;
+
 namespace Intentum.AI.Mistral;
 
 public sealed class MistralOptions
@@ -16,6 +18,7 @@ public sealed class MistralOptions
             throw new ArgumentException("Mistral BaseUrl is required.");
     }
 
+    [UsedImplicitly]
     public static MistralOptions FromEnvironment()
     {
         var apiKey = Environment.GetEnvironmentVariable("MISTRAL_API_KEY")

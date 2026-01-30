@@ -1,5 +1,5 @@
-using Intentum.Core.Behavior;
 using System.Text.Json;
+using Intentum.Core.Behavior;
 
 namespace Intentum.Persistence.EntityFramework.Entities;
 

@@ -1,12 +1,15 @@
 using Intentum.AI.Embeddings;
 using Intentum.AI.Similarity;
 using Intentum.Core.Contracts;
+using JetBrains.Annotations;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace Intentum.AI.Gemini;
 
+[UsedImplicitly]
 public static class GeminiServiceCollectionExtensions
 {
+    [UsedImplicitly]
     public static IServiceCollection AddIntentumGemini(
         this IServiceCollection services,
         GeminiOptions options)

@@ -1,5 +1,6 @@
 using System.Net.Http.Json;
 using System.Text.Json;
+using JetBrains.Annotations;
 using Microsoft.Extensions.Options;
 
 namespace Intentum.Events;
@@ -31,7 +32,7 @@ public sealed class WebhookIntentEventHandler : IIntentEventHandler
     {
         var eventTypeName = eventType.ToString();
         var webhooks = _options.Webhooks
-            .Where(w => w.EventTypes.Contains(eventTypeName, StringComparer.OrdinalIgnoreCase))
+            .Where(w => w.EventTypes.Contains(eventTypeName))
             .ToList();
 
         foreach (var webhook in webhooks)
@@ -72,6 +73,7 @@ public sealed class WebhookIntentEventHandler : IIntentEventHandler
         }
     }
 
+    [UsedImplicitly]
     private sealed record WebhookPayloadDto(
         string? BehaviorSpaceId,
         string IntentName,

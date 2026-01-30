@@ -10,7 +10,7 @@ internal sealed class TestDistributedCache : IDistributedCache
 {
     private readonly ConcurrentDictionary<string, byte[]> _store = new();
 
-    public byte[]? Get(string key) => _store.TryGetValue(key, out var v) ? v : null;
+    public byte[]? Get(string key) => _store.GetValueOrDefault(key);
 
     public Task<byte[]?> GetAsync(string key, CancellationToken token = default)
         => Task.FromResult(Get(key));

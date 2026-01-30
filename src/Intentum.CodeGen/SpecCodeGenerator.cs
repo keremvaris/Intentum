@@ -82,7 +82,7 @@ public static partial class SpecCodeGenerator
             .IgnoreUnmatchedProperties()
             .Build();
         var model = deserializer.Deserialize<SpecModel>(yaml);
-        return model ?? new SpecModel { Features = [] };
+        return model;
     }
 
     private static void EmitFeature(string root, FeatureSpec feature, string ns)
@@ -99,7 +99,7 @@ public static partial class SpecCodeGenerator
 
         foreach (var cmd in feature.Commands ?? [])
         {
-            var cmdName = cmd.Name!.EndsWith(CommandSuffix, StringComparison.Ordinal) ? cmd.Name : cmd.Name + CommandSuffix;
+            var cmdName = cmd.Name.EndsWith(CommandSuffix, StringComparison.Ordinal) ? cmd.Name : cmd.Name + CommandSuffix;
             var resultName = cmdName.Replace(CommandSuffix, ResultSuffix);
             WriteIfMissing(Path.Combine(commandsDir, cmdName + ".cs"), $"""
 using MediatR;
@@ -133,7 +133,7 @@ public sealed class {cmdName}Validator : AbstractValidator<{cmdName}>
 
         foreach (var q in feature.Queries ?? [])
         {
-            var queryName = q.Name!.EndsWith("Query", StringComparison.Ordinal) ? q.Name : q.Name + "Query";
+            var queryName = q.Name.EndsWith("Query", StringComparison.Ordinal) ? q.Name : q.Name + "Query";
             var dtoName = queryName.Replace("Query", "Dto");
             WriteIfMissing(Path.Combine(queriesDir, queryName + ".cs"), $"""
 using MediatR;

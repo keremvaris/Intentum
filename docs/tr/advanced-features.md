@@ -27,9 +27,13 @@ Core, Runtime, AI ve sağlayıcıların ötesindeki genişletme paketleri ve bu 
 
 Intentum, embedding'leri intent skorlarına dönüştürmek için birden fazla similarity engine sağlar.
 
+### Kaynak ağırlıkları (dimension count)
+
+Similarity engine desteklediğinde **LlmIntentModel**, **dimension count** (actor:action başına event sayısı) ağırlık olarak geçirir. Böylece "user:login.failed" 5 kez olunca 1 kezden daha ağır sayılır. `CalculateIntentScore(embeddings, sourceWeights)` overload'ını implement eden engine'ler bu ağırlıkları kullanır; diğerleri yok sayar (örn. simple average).
+
 ### SimpleAverageSimilarityEngine (Varsayılan)
 
-Tüm embedding skorlarını eşit şekilde ortalaması alan varsayılan engine.
+Embedding skorlarını ortalaması alan varsayılan engine; **sourceWeights** (örn. BehaviorVector.Dimensions) verildiğinde weighted average kullanır.
 
 ```csharp
 var engine = new SimpleAverageSimilarityEngine();
@@ -53,12 +57,20 @@ var engine = new WeightedAverageSimilarityEngine(weights, defaultWeight: 1.0);
 
 Embedding'lere zaman bazlı decay uygular. Yakın zamandaki event'ler intent çıkarımında daha yüksek etkiye sahiptir.
 
+**LlmIntentModel** ile kullanıldığında zaman decay otomatik uygulanır: model `ITimeAwareSimilarityEngine` tespit eder ve `CalculateIntentScoreWithTimeDecay(behaviorSpace, embeddings)` çağırır; ekstra bağlama gerek yok.
+
 ```csharp
 var engine = new TimeDecaySimilarityEngine(
     halfLife: TimeSpan.FromHours(1),
     referenceTime: DateTimeOffset.UtcNow);
 
-// Timestamp'lere erişmek için BehaviorSpace ile kullan
+var intentModel = new LlmIntentModel(embeddingProvider, engine);
+var intent = intentModel.Infer(space); // zaman decay otomatik uygulanır
+```
+
+Doğrudan kullanım (örn. özel pipeline) için:
+
+```csharp
 var score = engine.CalculateIntentScoreWithTimeDecay(behaviorSpace, embeddings);
 ```
 
@@ -95,6 +107,67 @@ var compositeWeighted = new CompositeSimilarityEngine(new[]
     (engine3, 1.5)
 });
 ```
+
+---
+
+## Behavior vektör normalizasyonu
+
+Tekrarlayan event'lerin baskın olmaması için behavior vektörlerini normalize edebilirsin (örn. dimension başına cap, L1 norm, soft cap).
+
+**ToVectorOptions** — `Normalization` (None, Cap, L1, SoftCap) ve opsiyonel `CapPerDimension`.
+
+```csharp
+// Ham (varsayılan): actor:action → count
+var raw = space.ToVector();
+
+// Her dimension 3'te cap
+var capped = space.ToVector(new ToVectorOptions(VectorNormalization.Cap, CapPerDimension: 3));
+
+// L1 norm: dimension değerleri toplamı 1 olsun
+var l1 = space.ToVector(new ToVectorOptions(VectorNormalization.L1));
+
+// SoftCap: value / cap, min 1
+var soft = space.ToVector(new ToVectorOptions(VectorNormalization.SoftCap, CapPerDimension: 3));
+```
+
+Zaman pencereli vektör + normalizasyon:
+
+```csharp
+var windowed = space.ToVector(start, end, new ToVectorOptions(VectorNormalization.L1));
+```
+
+Çalışan örnek: [examples/vector-normalization](https://github.com/keremvaris/Intentum/tree/master/examples/vector-normalization).
+
+---
+
+## Kural tabanlı ve zincirli intent modelleri
+
+**RuleBasedIntentModel** — Sadece kurallardan intent çıkarır (LLM yok). Hızlı, deterministik, açıklanabilir. İlk eşleşen kural kazanır; her kural **RuleMatch** (name, score, opsiyonel reasoning) döndürür.
+
+**ChainedIntentModel** — Önce birincil modeli (örn. RuleBasedIntentModel) dener; güven eşiğin altındaysa ikincil modele (örn. LlmIntentModel) düşer. Yüksek güvende ucuz path kullanarak maliyet ve gecikmeyi azaltır.
+
+```csharp
+var rules = new List<Func<BehaviorSpace, RuleMatch?>>
+{
+    space =>
+    {
+        var loginFails = space.Events.Count(e => e.Action == "login.failed");
+        var hasReset = space.Events.Any(e => e.Action == "password.reset");
+        if (loginFails >= 2 && hasReset)
+            return new RuleMatch("AccountRecovery", 0.85, "login.failed>=2 and password.reset");
+        return null;
+    }
+};
+
+var primary = new RuleBasedIntentModel(rules);
+var fallback = new LlmIntentModel(embeddingProvider, new SimpleAverageSimilarityEngine());
+var chained = new ChainedIntentModel(primary, fallback, confidenceThreshold: 0.7);
+
+var intent = chained.Infer(space);
+// intent.Reasoning: "Primary: login.failed>=2 and password.reset" veya "Fallback: LLM (primary confidence below 0.7)"
+```
+
+Çalışan örnek: [examples/chained-intent](https://github.com/keremvaris/Intentum/tree/master/examples/chained-intent).
 
 ---
 

@@ -65,7 +65,6 @@ public class WebhookIntentEventHandlerTests
         var handlerFactory = CreateHttpClientFactory(handler);
         var eventHandler = new WebhookIntentEventHandler(handlerFactory, Options.Create(options));
         var payload = CreatePayload("space-42");
-        var before = DateTimeOffset.UtcNow;
 
         await eventHandler.HandleAsync(payload, IntentumEventType.IntentInferred);
 

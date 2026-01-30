@@ -105,7 +105,7 @@ public sealed class PolicyCompositionTests
     public void PolicyVariantSet_UnknownVariantName_ReturnsObserve()
     {
         var policy = new IntentPolicyBuilder()
-            .Block("B", i => true)
+            .Block("B", _ => true)
             .Build();
         var variants = new PolicyVariantSet(
             new Dictionary<string, IntentPolicy> { ["known"] = policy },

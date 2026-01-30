@@ -1,7 +1,7 @@
+using System.Text.Json;
 using Intentum.Core.Intents;
 using Intentum.Persistence.Repositories;
 using Intentum.Runtime.Policy;
-using System.Text.Json;
 
 namespace Intentum.Persistence.EntityFramework.Entities;
 

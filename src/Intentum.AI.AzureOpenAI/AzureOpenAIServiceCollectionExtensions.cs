@@ -1,12 +1,15 @@
 using Intentum.AI.Embeddings;
 using Intentum.AI.Similarity;
 using Intentum.Core.Contracts;
+using JetBrains.Annotations;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace Intentum.AI.AzureOpenAI;
 
+[UsedImplicitly]
 public static class AzureOpenAIServiceCollectionExtensions
 {
+    [UsedImplicitly]
     public static IServiceCollection AddIntentumAzureOpenAI(
         this IServiceCollection services,
         AzureOpenAIOptions options)

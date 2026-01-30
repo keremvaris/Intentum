@@ -32,8 +32,8 @@ flowchart LR
 
 | Adım | Sorumluluk |
 |------|-------------|
-| **Observe** | Ne olduğunu kaydet: `space.Observe(actor, action)` veya `BehaviorSpaceBuilder`. Olaylar **BehaviorSpace** oluşturur. |
-| **Infer** | **IIntentModel** (örn. LlmIntentModel) embedding + similarity engine kullanır → **Intent** (ad, güven, sinyaller). |
+| **Observe** | Ne olduğunu kaydet: `space.Observe(actor, action)` veya `BehaviorSpaceBuilder`. Olaylar **BehaviorSpace** oluşturur. İsteğe bağlı normalizasyon için **ToVector(options)** (Cap, L1, SoftCap) kullan. |
+| **Infer** | **IIntentModel** (örn. **LlmIntentModel**, **RuleBasedIntentModel** veya **ChainedIntentModel**) **Intent** (ad, güven, sinyaller, opsiyonel **Reasoning**) üretir. LlmIntentModel embedding + similarity engine kullanır; dimension count ağırlık olarak geçer; **ITimeAwareSimilarityEngine** (örn. TimeDecay) kullanıldığında otomatik uygulanır. |
 | **Decide** | **IntentPolicy** kuralları sırayla değerlendirir → **PolicyDecision** (Allow, Observe, Warn, Block, Escalate, RequireAuth, RateLimit). |
 
 ---
@@ -46,10 +46,11 @@ Paketler sorumluluğa göre gruplanır: çekirdek tipler, runtime (policy + rate
 flowchart TB
   subgraph core [Core]
     CorePkg[Intentum.Core]
-    CorePkg --> Behavior[BehaviorSpace, BehaviorEvent, BehaviorSpaceBuilder]
-    CorePkg --> Intent["Intent, IntentConfidence, IntentSignal (Intentum.Core.Intents)"]
+    CorePkg --> Behavior[BehaviorSpace, BehaviorEvent, BehaviorSpaceBuilder, ToVectorOptions]
+    CorePkg --> Intent["Intent, IntentConfidence, IntentSignal, Reasoning (Intentum.Core.Intents)"]
     CorePkg --> Batch[IBatchIntentModel, BatchIntentModel]
     CorePkg --> Model[IIntentModel]
+    CorePkg --> RuleBased[RuleBasedIntentModel, ChainedIntentModel]
   end
 
   subgraph runtime [Runtime]
@@ -62,7 +63,7 @@ flowchart TB
   subgraph ai [AI]
     AIPkg[Intentum.AI]
     AIPkg --> Embeddings[IIntentEmbeddingProvider, LlmIntentModel]
-    AIPkg --> Similarity[IIntentSimilarityEngine, SimpleAverage, Cosine, Composite]
+    AIPkg --> Similarity[IIntentSimilarityEngine, ITimeAwareSimilarityEngine, SimpleAverage, TimeDecay, Cosine, Composite]
     AIPkg --> Cache[IEmbeddingCache, MemoryEmbeddingCache, CachedEmbeddingProvider]
   end
 
@@ -135,7 +136,7 @@ sequenceDiagram
 
   App->>Space: Observe(actor, action)
   App->>Model: Infer(space)
-  Model->>Space: Events / ToVector
+  Model->>Space: Events / ToVector (opsiyonel ToVectorOptions)
   Model->>Embed: Embed(behaviorKey)
   Embed->>Cache: Get(key)
   alt cache miss
@@ -143,9 +144,9 @@ sequenceDiagram
     Embed->>Cache: Set(key, embedding)
   end
   Embed-->>Model: IntentEmbedding
-  Model->>Sim: CalculateIntentScore(embeddings)
+  Model->>Sim: CalculateIntentScore(embeddings, opsiyonel sourceWeights) veya ITimeAwareSimilarityEngine ise CalculateIntentScoreWithTimeDecay(space, embeddings)
   Sim-->>Model: score
-  Model-->>App: Intent
+  Model-->>App: Intent (ad, güven, sinyaller, opsiyonel Reasoning)
   App->>Policy: intent.Decide(policy)
   Policy-->>App: PolicyDecision
   opt decision RateLimit ise
@@ -261,4 +262,4 @@ flowchart TB
 
 - [Kurulum](setup.md) — Repo yapısı ve örnekler
 - [API Referansı](api.md) — Ana tipler ve sözleşmeler
-- [Gelişmiş Özellikler](advanced-features.md) — Caching, clustering, events, analytics
+- [Gelişmiş Özellikler](advanced-features.md) — Similarity engine'ler (time decay, source weights), vektör normalizasyonu, kural tabanlı ve zincirli modeller, caching, clustering, events, analytics

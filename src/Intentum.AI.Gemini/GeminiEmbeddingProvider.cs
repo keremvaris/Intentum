@@ -1,6 +1,7 @@
 using System.Net.Http.Json;
 using System.Text.Json.Serialization;
 using Intentum.AI.Embeddings;
+using JetBrains.Annotations;
 
 namespace Intentum.AI.Gemini;
 
@@ -41,16 +42,19 @@ public sealed class GeminiEmbeddingProvider(GeminiOptions options, HttpClient ht
         if (values.Count == 0)
             return 0;
 
-        var avgAbs = values.Average(v => Math.Abs(v));
+        var avgAbs = values.Average(Math.Abs);
         return Math.Clamp(avgAbs, 0.0, 1.0);
     }
 
+    [UsedImplicitly]
     private sealed record GeminiEmbedRequest(
         [property: JsonPropertyName("content")] GeminiContent Content);
 
+    [UsedImplicitly]
     private sealed record GeminiContent(
         [property: JsonPropertyName("parts")] IReadOnlyList<GeminiPart> Parts);
 
+    [UsedImplicitly]
     private sealed record GeminiPart(
         [property: JsonPropertyName("text")] string Text);
 

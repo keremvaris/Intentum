@@ -8,29 +8,26 @@ namespace Intentum.AI.Models;
 
 /// <summary>
 /// AI-assisted intent inference using embeddings and similarity scoring.
+/// Uses dimension counts as weights when the engine supports it; uses time decay when the engine implements ITimeAwareSimilarityEngine.
 /// </summary>
-public sealed class LlmIntentModel : IIntentModel
+public sealed class LlmIntentModel(
+    IIntentEmbeddingProvider embeddingProvider,
+    IIntentSimilarityEngine similarityEngine) : IIntentModel
 {
-    private readonly IIntentEmbeddingProvider _embeddingProvider;
-    private readonly IIntentSimilarityEngine _similarityEngine;
-
-    public LlmIntentModel(
-        IIntentEmbeddingProvider embeddingProvider,
-        IIntentSimilarityEngine similarityEngine)
-    {
-        _embeddingProvider = embeddingProvider;
-        _similarityEngine = similarityEngine;
-    }
-
     public Intent Infer(BehaviorSpace behaviorSpace, BehaviorVector? precomputedVector = null)
     {
         var vector = precomputedVector ?? behaviorSpace.ToVector();
 
         var embeddings = vector.Dimensions.Keys
-            .Select(k => _embeddingProvider.Embed(k))
+            .Select(embeddingProvider.Embed)
             .ToList();
 
-        var score = _similarityEngine.CalculateIntentScore(embeddings);
+        double score;
+        if (similarityEngine is ITimeAwareSimilarityEngine timeAware)
+            score = timeAware.CalculateIntentScoreWithTimeDecay(behaviorSpace, embeddings);
+        else
+            score = similarityEngine.CalculateIntentScore(embeddings, vector.Dimensions);
+
         var confidence = IntentConfidence.FromScore(score);
 
         var signals = embeddings.Select(e =>
@@ -43,7 +40,8 @@ public sealed class LlmIntentModel : IIntentModel
         return new Intent(
             Name: "AI-Inferred-Intent",
             Signals: signals,
-            Confidence: confidence
+            Confidence: confidence,
+            Reasoning: null
         );
     }
 }

@@ -16,8 +16,7 @@ public sealed class MongoIntentHistoryRepository : IIntentHistoryRepository
 
     public MongoIntentHistoryRepository(IMongoDatabase database, string collectionName = "intenthistory")
     {
-        _collection = database?.GetCollection<IntentHistoryDoc>(collectionName)
-            ?? throw new ArgumentNullException(nameof(database));
+        _collection = database.GetCollection<IntentHistoryDoc>(collectionName);
     }
 
     public async Task<string> SaveAsync(

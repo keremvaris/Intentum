@@ -18,7 +18,7 @@ public class RedisEmbeddingCacheTests
         var retrieved = redisCache.Get("user:login");
 
         Assert.NotNull(retrieved);
-        Assert.Equal(embedding.Source, retrieved!.Source);
+        Assert.Equal(embedding.Source, retrieved.Source);
         Assert.Equal(embedding.Score, retrieved.Score);
     }
 

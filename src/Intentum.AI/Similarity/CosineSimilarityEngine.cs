@@ -14,7 +14,7 @@ public sealed class CosineSimilarityEngine : IIntentSimilarityEngine
             return 0;
 
         // Check if all embeddings have vectors
-        var allHaveVectors = embeddings.All(e => e.Vector != null && e.Vector.Count > 0);
+        var allHaveVectors = embeddings.All(e => e.Vector is { Count: > 0 });
 
         if (!allHaveVectors)
         {

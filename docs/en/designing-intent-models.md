@@ -52,14 +52,17 @@ There are three levels:
 
 ### Level 1 — Heuristic intent models
 
-Simplest and fastest.
+Simplest and fastest. Intentum provides **RuleBasedIntentModel** for this: pass a list of rules (each returns a **RuleMatch** or null); first match wins. Use **ChainedIntentModel** to try rules first, then fall back to an LLM when confidence is below a threshold. Intent can include **Reasoning** (e.g. which rule matched or "Fallback: LLM").
 
 ```csharp
-if (space.Events.Count(e => e.Action == "login.failed") > 2 &&
-    space.Events.Any(e => e.Action == "password.reset"))
+var rules = new List<Func<BehaviorSpace, RuleMatch?>>
 {
-    return new Intent("AccountRecovery", signals, IntentConfidence.FromScore(0.8));
-}
+    space => space.Events.Count(e => e.Action == "login.failed") >= 2 && space.Events.Any(e => e.Action == "password.reset")
+        ? new RuleMatch("AccountRecovery", 0.8, "login.failed>=2 and password.reset")
+        : null
+};
+var model = new RuleBasedIntentModel(rules);
+var intent = model.Infer(space); // intent.Reasoning set when a rule matches
 ```
 
 **Pros:** deterministic, explainable, fast  

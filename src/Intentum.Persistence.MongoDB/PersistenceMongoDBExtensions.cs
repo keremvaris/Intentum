@@ -1,4 +1,5 @@
 using Intentum.Persistence.Repositories;
+using JetBrains.Annotations;
 using Microsoft.Extensions.DependencyInjection;
 using MongoDB.Driver;
 
@@ -7,6 +8,7 @@ namespace Intentum.Persistence.MongoDB;
 /// <summary>
 /// Extension methods for MongoDB persistence.
 /// </summary>
+[UsedImplicitly]
 public static class PersistenceMongoDBExtensions
 {
     /// <summary>
@@ -16,6 +18,7 @@ public static class PersistenceMongoDBExtensions
     /// <param name="database">The MongoDB database instance.</param>
     /// <param name="behaviorSpaceCollectionName">Optional collection name for behavior spaces (default: "behaviorspaces").</param>
     /// <param name="intentHistoryCollectionName">Optional collection name for intent history (default: "intenthistory").</param>
+    [UsedImplicitly]
     public static IServiceCollection AddIntentumPersistenceMongoDB(
         this IServiceCollection services,
         IMongoDatabase database,

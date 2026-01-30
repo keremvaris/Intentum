@@ -26,7 +26,7 @@ In Intentum, the **Infer** step optionally uses **AI (embeddings)**: it turns be
 | **Similarity** | A **similarity engine** aggregates all embeddings into a single score (e.g. average). That score is mapped to a confidence level. |
 | **Intent** | **LlmIntentModel** produces an **Intent** (Confidence + Signals) from this score; the policy returns Allow / Observe / Warn / Block based on that intent. |
 
-Examples usually use **Mock** (no API key). To try real AI, set the right environment variables and use a provider; see [Providers](providers.md), [How to use AI providers](ai-providers-howto.md), and [Setup – real provider](setup.md#using-a-real-provider-eg-openai). **Samples** (`samples/`) are full showcase apps (many scenarios, Web API); **examples** (`examples/`) are minimal single-use-case projects (fraud-intent, ai-fallback-intent).
+Examples usually use **Mock** (no API key). To try real AI, set the right environment variables and use a provider; see [Providers](providers.md), [How to use AI providers](ai-providers-howto.md), and [Setup – real provider](setup.md#using-a-real-provider-eg-openai). **Samples** (`samples/`) are full showcase apps (many scenarios, Web API); **examples** (`examples/`) are minimal single-use-case projects (fraud-intent, ai-fallback-intent, **chained-intent**, **time-decay-intent**, **vector-normalization**). Intent may include optional **Reasoning** (e.g. which rule matched or fallback used).
 
 ---
 
@@ -73,7 +73,7 @@ In short: **Given/When/Then is gone; in its place you have Observe (record event
 | [CodeGen](codegen.md) | Scaffold CQRS + Intentum projects; generate Features from test assembly or YAML spec. |
 | [Testing](testing.md) | Unit tests, coverage, error cases. |
 | [Coverage](coverage.md) | How to generate and view coverage. |
-| [Advanced Features](advanced-features.md) | Similarity engines (WeightedAverage, TimeDecay, Cosine, Composite), fluent APIs, caching, testing utilities, **rate limiting**, **analytics & reporting**, middleware, observability, logging, health checks, batch processing, persistence. |
+| [Advanced Features](advanced-features.md) | Similarity engines (WeightedAverage, TimeDecay, Cosine, Composite), **source weights & time decay in main flow**, **vector normalization** (ToVectorOptions), **rule-based and chained intent models**, fluent APIs, caching, testing utilities, **rate limiting**, **analytics & reporting**, middleware, observability, logging, health checks, batch processing, persistence. |
 
 ---
 

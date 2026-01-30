@@ -27,9 +27,13 @@ Core packages (Intentum.Core, Intentum.Runtime, Intentum.AI, providers, Testing,
 
 Intentum provides multiple similarity engines for combining embeddings into intent scores.
 
+### Source weights (dimension counts)
+
+When the similarity engine supports it, **LlmIntentModel** passes **dimension counts** (event counts per actor:action) as weights. So "user:login.failed" occurring 5 times weighs more than once. Engines that implement the overload `CalculateIntentScore(embeddings, sourceWeights)` use these weights; otherwise they ignore them (e.g. simple average).
+
 ### SimpleAverageSimilarityEngine (Default)
 
-The default engine that averages all embedding scores equally.
+The default engine that averages embedding scores; when `sourceWeights` (e.g. from `BehaviorVector.Dimensions`) are provided, it uses a weighted average.
 
 ```csharp
 var engine = new SimpleAverageSimilarityEngine();
@@ -53,12 +57,20 @@ var engine = new WeightedAverageSimilarityEngine(weights, defaultWeight: 1.0);
 
 Applies time-based decay to embeddings. More recent events have higher influence on intent inference.
 
+When used with **LlmIntentModel**, time decay is applied automatically: the model detects `ITimeAwareSimilarityEngine` and calls `CalculateIntentScoreWithTimeDecay(behaviorSpace, embeddings)` so you do not need to wire it manually.
+
 ```csharp
 var engine = new TimeDecaySimilarityEngine(
     halfLife: TimeSpan.FromHours(1),
     referenceTime: DateTimeOffset.UtcNow);
 
-// Use with BehaviorSpace to access timestamps
+var intentModel = new LlmIntentModel(embeddingProvider, engine);
+var intent = intentModel.Infer(space); // time decay applied automatically
+```
+
+For direct use (e.g. custom pipeline):
+
+```csharp
 var score = engine.CalculateIntentScoreWithTimeDecay(behaviorSpace, embeddings);
 ```
 
@@ -95,6 +107,67 @@ var compositeWeighted = new CompositeSimilarityEngine(new[]
     (engine3, 1.5)
 });
 ```
+
+---
+
+## Behavior vector normalization
+
+You can normalize behavior vectors so repeated events do not dominate (e.g. cap per dimension, L1 norm, or soft cap).
+
+**ToVectorOptions** — `Normalization` (None, Cap, L1, SoftCap) and optional `CapPerDimension`.
+
+```csharp
+// Raw (default): actor:action → count
+var raw = space.ToVector();
+
+// Cap each dimension at 3
+var capped = space.ToVector(new ToVectorOptions(VectorNormalization.Cap, CapPerDimension: 3));
+
+// L1 norm: scale so sum of dimension values = 1
+var l1 = space.ToVector(new ToVectorOptions(VectorNormalization.L1));
+
+// SoftCap: value / cap, min 1
+var soft = space.ToVector(new ToVectorOptions(VectorNormalization.SoftCap, CapPerDimension: 3));
+```
+
+Time-windowed vector with normalization:
+
+```csharp
+var windowed = space.ToVector(start, end, new ToVectorOptions(VectorNormalization.L1));
+```
+
+See [examples/vector-normalization](https://github.com/keremvaris/Intentum/tree/master/examples/vector-normalization) for a runnable example.
+
+---
+
+## Rule-based and chained intent models
+
+**RuleBasedIntentModel** — Infers intent from rules only (no LLM). Fast, deterministic, explainable. First matching rule wins; each rule returns a **RuleMatch** (name, score, optional reasoning).
+
+**ChainedIntentModel** — Tries a primary model (e.g. RuleBasedIntentModel) first; if confidence is below a threshold, falls back to a secondary model (e.g. LlmIntentModel). Reduces cost and latency by using the cheap path when confidence is high.
+
+```csharp
+var rules = new List<Func<BehaviorSpace, RuleMatch?>>
+{
+    space =>
+    {
+        var loginFails = space.Events.Count(e => e.Action == "login.failed");
+        var hasReset = space.Events.Any(e => e.Action == "password.reset");
+        if (loginFails >= 2 && hasReset)
+            return new RuleMatch("AccountRecovery", 0.85, "login.failed>=2 and password.reset");
+        return null;
+    }
+};
+
+var primary = new RuleBasedIntentModel(rules);
+var fallback = new LlmIntentModel(embeddingProvider, new SimpleAverageSimilarityEngine());
+var chained = new ChainedIntentModel(primary, fallback, confidenceThreshold: 0.7);
+
+var intent = chained.Infer(space);
+// intent.Reasoning: "Primary: login.failed>=2 and password.reset" or "Fallback: LLM (primary confidence below 0.7)"
+```
+
+See [examples/chained-intent](https://github.com/keremvaris/Intentum/tree/master/examples/chained-intent) for a runnable example.
 
 ---
 

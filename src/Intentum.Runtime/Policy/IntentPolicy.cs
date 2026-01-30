@@ -15,8 +15,7 @@ public sealed class IntentPolicy
     /// <summary>Creates a policy with the given rules (e.g. for composition).</summary>
     public IntentPolicy(IEnumerable<PolicyRule> rules)
     {
-        if (rules != null)
-            _rules.AddRange(rules);
+        _rules.AddRange(rules);
     }
 
     public IntentPolicy AddRule(PolicyRule rule)
@@ -30,8 +29,7 @@ public sealed class IntentPolicy
     /// </summary>
     public IntentPolicy WithBase(IntentPolicy basePolicy)
     {
-        if (basePolicy == null)
-            throw new ArgumentNullException(nameof(basePolicy));
+        ArgumentNullException.ThrowIfNull(basePolicy);
         return new IntentPolicy(basePolicy.Rules.Concat(_rules));
     }
 
@@ -40,8 +38,8 @@ public sealed class IntentPolicy
     /// </summary>
     public static IntentPolicy Merge(params IntentPolicy[] policies)
     {
-        if (policies == null || policies.Length == 0)
+        if (policies.Length == 0)
             return new IntentPolicy();
-        return new IntentPolicy(policies.SelectMany(p => p?.Rules ?? []));
+        return new IntentPolicy(policies.SelectMany(p => p.Rules));
     }
 }

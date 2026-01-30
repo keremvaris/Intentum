@@ -20,13 +20,14 @@ public static class IntentumLogger
         TimeSpan? duration = null)
     {
         logger.Information(
-            "Intent inferred: {IntentName}, Confidence: {ConfidenceLevel} ({ConfidenceScore}), Signals: {SignalCount}, Events: {EventCount}, Duration: {Duration}ms",
+            "Intent inferred: {IntentName}, Confidence: {ConfidenceLevel} ({ConfidenceScore}), Signals: {SignalCount}, Events: {EventCount}, Duration: {Duration}ms, Reasoning: {Reasoning}",
             intent.Name,
             intent.Confidence.Level,
             intent.Confidence.Score,
             intent.Signals.Count,
             behaviorSpace.Events.Count,
-            duration?.TotalMilliseconds ?? 0);
+            duration?.TotalMilliseconds ?? 0,
+            intent.Reasoning ?? "(none)");
     }
 
     /// <summary>
@@ -39,11 +40,12 @@ public static class IntentumLogger
         PolicyDecision decision)
     {
         logger.Information(
-            "Policy decision: {Decision}, Intent: {IntentName}, Confidence: {ConfidenceLevel}, Rules: {RuleCount}",
+            "Policy decision: {Decision}, Intent: {IntentName}, Confidence: {ConfidenceLevel}, Rules: {RuleCount}, Reasoning: {Reasoning}",
             decision,
             intent.Name,
             intent.Confidence.Level,
-            policy.Rules.Count);
+            policy.Rules.Count,
+            intent.Reasoning ?? "(none)");
     }
 
     /// <summary>

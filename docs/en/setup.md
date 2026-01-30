@@ -133,9 +133,9 @@ The solution contains many packages and two sample applications.
 
 **Core & runtime** (required for behavior space, intent, policy):
 
-- `Intentum.Core` — BehaviorSpace, Intent, BehaviorEvent, BehaviorSpaceBuilder, BatchIntentModel
+- `Intentum.Core` — BehaviorSpace, Intent (with optional Reasoning), BehaviorEvent, BehaviorSpaceBuilder, ToVectorOptions, BatchIntentModel, RuleBasedIntentModel, ChainedIntentModel
 - `Intentum.Runtime` — IntentPolicy, IntentPolicyBuilder, PolicyDecision, IRateLimiter, MemoryRateLimiter
-- `Intentum.AI` — LlmIntentModel, embedding cache, similarity engines (SimpleAverage, Cosine, Composite, etc.)
+- `Intentum.AI` — LlmIntentModel, embedding cache, similarity engines (SimpleAverage, TimeDecay, Cosine, Composite), ITimeAwareSimilarityEngine
 
 **AI providers** (optional; pick one or more for real embeddings):
 

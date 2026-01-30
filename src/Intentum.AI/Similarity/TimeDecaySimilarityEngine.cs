@@ -6,9 +6,9 @@ namespace Intentum.AI.Similarity;
 /// <summary>
 /// Similarity engine that applies time-based decay to embeddings.
 /// More recent events have higher influence on intent inference.
-/// This engine requires access to BehaviorSpace to get timestamps.
+/// When used with LlmIntentModel, time decay is applied automatically (ITimeAwareSimilarityEngine).
 /// </summary>
-public sealed class TimeDecaySimilarityEngine : IIntentSimilarityEngine
+public sealed class TimeDecaySimilarityEngine : ITimeAwareSimilarityEngine
 {
     private readonly TimeSpan _halfLife;
     private readonly DateTimeOffset _referenceTime;

@@ -1,4 +1,5 @@
 using Intentum.AI.Embeddings;
+using JetBrains.Annotations;
 
 namespace Intentum.AI.Caching;
 
@@ -20,10 +21,12 @@ public interface IEmbeddingCache
     /// <summary>
     /// Removes an embedding from the cache.
     /// </summary>
+    [UsedImplicitly]
     void Remove(string behaviorKey);
 
     /// <summary>
     /// Clears all cached embeddings.
     /// </summary>
+    [UsedImplicitly]
     void Clear();
 }

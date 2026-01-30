@@ -36,6 +36,8 @@ var decision1 = intent1.Decide(policy);
 
 Console.WriteLine("Scenario 1 — Suspicious access (failed logins + IP change + captcha)");
 Console.WriteLine($"  Confidence: {intent1.Confidence.Level} (score: {intent1.Confidence.Score:F2})");
+if (intent1.Reasoning != null)
+    Console.WriteLine($"  Reasoning:  {intent1.Reasoning}");
 Console.WriteLine($"  Decision:   {decision1}");
 Console.WriteLine();
 
@@ -51,7 +53,10 @@ var decision2 = intent2.Decide(policy);
 
 Console.WriteLine("Scenario 2 — Account recovery (reset + success + device verified)");
 Console.WriteLine($"  Confidence: {intent2.Confidence.Level} (score: {intent2.Confidence.Score:F2})");
+if (intent2.Reasoning != null)
+    Console.WriteLine($"  Reasoning:  {intent2.Reasoning}");
 Console.WriteLine($"  Decision:   {decision2}");
 Console.WriteLine();
 
 Console.WriteLine("Intentum does not block; it feeds the decision. Use confidence + signals to StepUpAuth(), Allow(), or Monitor().");
+Console.WriteLine("For rule-first + LLM fallback, see examples/chained-intent.");

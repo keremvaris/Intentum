@@ -1,7 +1,7 @@
 using Intentum.Clustering;
-using Microsoft.Extensions.DependencyInjection;
 using Intentum.Persistence.Repositories;
 using Intentum.Runtime.Policy;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace Intentum.Tests;
 
@@ -58,7 +58,7 @@ public class IntentClustererTests
         var records = new List<IntentHistoryRecord>
         {
             CreateRecord("1", "High", PolicyDecision.Allow, 0.9),
-            CreateRecord("2", "Medium", PolicyDecision.Observe, 0.5),
+            CreateRecord("2", "Medium", PolicyDecision.Observe),
             CreateRecord("3", "Low", PolicyDecision.Block, 0.2)
         };
         var clusterer = new IntentClusterer();
@@ -78,5 +78,5 @@ public class IntentClustererTests
     }
 
     private static IntentHistoryRecord CreateRecord(string id, string level, PolicyDecision decision, double score = 0.5)
-        => new(id, "bs1", "Intent", level, score, decision, DateTimeOffset.UtcNow, null);
+        => new(id, "bs1", "Intent", level, score, decision, DateTimeOffset.UtcNow);
 }

@@ -9,6 +9,11 @@
 ## SonarCloud scanner (CI cache)
 .sonar/
 
+## Rider InspectCode output (for AI/Cursor to read)
+inspection-results.xml
+inspection-results.json
+inspection-results.html
+
 ## IDE / OS
 .idea/
 .vscode/

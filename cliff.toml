@@ -1,17 +1,18 @@
 # git-cliff: conventional commit'lardan otomatik CHANGELOG
 # https://git-cliff.org/docs/configuration/
+# Commit mesajında body ve BREAKING CHANGE: kullanırsan CHANGELOG'da detay görünür (bkz. CONTRIBUTING.md).
 
 [changelog]
 # Dosya başında bir kez: CHANGELOG nasıl okunur
 header = """
 # Changelog
 
-Bu dosya **conventional commit** mesajlarından otomatik üretilir.
+Bu dosya **conventional commit** mesajlarından otomatik üretilir. Commit'te **açıklama (body)** veya **BREAKING CHANGE:** eklersen CHANGELOG'da detay ve geriye dönük uyumsuzluk metni görünür. Nasıl yazılır: [CONTRIBUTING.md — Commit messages and CHANGELOG](CONTRIBUTING.md#commit-messages-and-changelog).
 
 | İşaret | Anlam |
 |--------|--------|
 | **[sürüm]** (örn. 0.0.2) | O sürümde yayınlanan değişiklikler. |
-| **Breaking changes** | Geriye dönük uyumsuz değişiklik; kütüphane kullananlar kodu güncellemeli. Major sürüm (1.0.0) atlanır. |
+| **Breaking changes** | Geriye dönük uyumsuz değişiklik; kütüphane kullananlar kodu güncellemeli. **BREAKING CHANGE:** footer'ı veya `feat!:` kullan. |
 | **Features** | Yeni özellik (feat:) → minor sürüm artar. |
 | **Bug Fixes** | Hata düzeltme (fix:) → patch artar. |
 | **Documentation** | Doküman (docs:). |
@@ -21,7 +22,7 @@ Bu dosya **conventional commit** mesajlarından otomatik üretilir.
 
 """
 
-# Her sürüm bloğu: önce Breaking, sonra diğer gruplar; madde metni net
+# Her sürüm bloğu: önce Breaking (açıklama + breaking_description), sonra diğer gruplar (message + body)
 body = """
 {% if version %}\
 ## [{{ version | trim_start_matches(pat="v") }}] - {{ timestamp | date(format="%Y-%m-%d") }}
@@ -32,7 +33,13 @@ body = """
 {% if group == "Breaking" %}
 ### Breaking changes (geriye dönük uyumsuz)
 {% for commit in commits %}
-- {{ commit.message | upper_first }}{% if commit.scope %} *({{ commit.scope }})*{% endif %}
+- **{{ commit.message | upper_first }}**{% if commit.scope %} *({{ commit.scope }})*{% endif %}
+{% if commit.breaking_description %}
+  - **Ne değişti:** {{ commit.breaking_description }}
+{% endif %}\
+{% if commit.body %}
+  - **Açıklama:** {{ commit.body | trim }}
+{% endif %}
 {% endfor %}
 {% endif %}\
 {% endfor %}\
@@ -40,7 +47,12 @@ body = """
 {% if group != "Breaking" %}
 ### {{ group | striptags | trim | upper_first }}
 {% for commit in commits %}
-- {{ commit.message | upper_first }}{% if commit.scope %} *({{ commit.scope }})*{% endif %}
+- **{{ commit.message | upper_first }}**{% if commit.scope %} *({{ commit.scope }})*{% endif %}\
+{% if commit.body %}
+
+  {{ commit.body | trim }}
+{% endif %}
+
 {% endfor %}
 {% endif %}\
 {% endfor %}

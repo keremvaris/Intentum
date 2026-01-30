@@ -1,7 +1,11 @@
 <Solution>
   <Folder Name="/examples/">
+    <Project Path="examples/greenwashing-intent/Intentum.Example.GreenwashingIntent.csproj" />
     <Project Path="examples/fraud-intent/Intentum.Example.FraudIntent.csproj" />
     <Project Path="examples/ai-fallback-intent/Intentum.Example.AiFallback.csproj" />
+    <Project Path="examples/chained-intent/Intentum.Example.ChainedIntent.csproj" />
+    <Project Path="examples/time-decay-intent/Intentum.Example.TimeDecayIntent.csproj" />
+    <Project Path="examples/vector-normalization/Intentum.Example.VectorNormalization.csproj" />
   </Folder>
   <Folder Name="/samples/">
     <Project Path="samples/Intentum.Sample/Intentum.Sample.csproj" />

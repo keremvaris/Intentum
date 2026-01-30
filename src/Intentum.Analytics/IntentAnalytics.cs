@@ -1,8 +1,8 @@
+using System.Text;
+using System.Text.Json;
 using Intentum.Analytics.Models;
 using Intentum.Persistence.Repositories;
 using Intentum.Runtime.Policy;
-using System.Text;
-using System.Text.Json;
 
 namespace Intentum.Analytics;
 

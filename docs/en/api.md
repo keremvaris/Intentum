@@ -18,11 +18,15 @@ So: *behavior → intent → policy decision*. No hard-coded scenario steps; the
 
 | Type | What it does |
 |------|----------------|
-| **BehaviorSpace** | Container for observed events. You call `.Observe(actor, action)` (e.g. `"user"`, `"login"`). Use `.ToVector()` to get a behavior vector for inference; the result is cached until you call `Observe` again. |
-| **Intent** | Result of inference: confidence level, score, and signals (contributing behaviors with weights). |
+| **BehaviorSpace** | Container for observed events. You call `.Observe(actor, action)` (e.g. `"user"`, `"login"`). Use `.ToVector()` or `.ToVector(ToVectorOptions?)` to get a behavior vector for inference; the result is cached until you call `Observe` again. Use **ToVectorOptions** for normalization (Cap, L1, SoftCap). |
+| **ToVectorOptions** | Options for building a behavior vector: `Normalization` (None, Cap, L1, SoftCap) and optional `CapPerDimension`. Use with `BehaviorSpace.ToVector(options)` or `ToVector(start, end, options)`. |
+| **Intent** | Result of inference: confidence level, score, signals (contributing behaviors with weights), and optional **Reasoning** (human-readable explanation, e.g. which rule matched or fallback used). |
 | **IntentConfidence** | Part of Intent: `Level` (string) and `Score` (0–1). |
 | **IntentSignal** | One signal in an Intent: `Source`, `Description`, `Weight`. |
 | **IntentEvaluator** | Evaluates intent against criteria; used internally by the model. |
+| **RuleBasedIntentModel** | Intent model that uses rules only (no LLM). First matching rule wins; returns **RuleMatch** (name, score, reasoning). Fast, deterministic, explainable. |
+| **ChainedIntentModel** | Tries a primary model first; if confidence below threshold, falls back to a secondary model (e.g. LlmIntentModel). Use with RuleBasedIntentModel + LlmIntentModel for rule-first + LLM fallback. |
+| **RuleMatch** | Result of a rule: `Name`, `Score`, optional `Reasoning`. Returned by rules passed to **RuleBasedIntentModel**. |
 
 **Namespace:** `Intent`, `IntentConfidence`, and `IntentSignal` are in **`Intentum.Core.Intents`**. Use `using Intentum.Core.Intents;` to reference them.
 
@@ -72,12 +76,13 @@ var policy = new IntentPolicyBuilder()
 | Type | What it does |
 |------|----------------|
 | **IIntentEmbeddingProvider** | Turns a behavior key (e.g. `"user:login"`) into an **IntentEmbedding** (vector + score). Implemented by each provider (OpenAI, Gemini, etc.) or **MockEmbeddingProvider** for tests. |
-| **IIntentSimilarityEngine** | Combines embeddings into a single similarity score. **SimpleAverageSimilarityEngine** is the built-in option. |
-| **WeightedAverageSimilarityEngine** | Similarity engine that applies weights to embeddings based on their source (actor:action). Useful when certain behaviors should have more influence. |
-| **TimeDecaySimilarityEngine** | Similarity engine that applies time-based decay to embeddings. More recent events have higher influence on intent inference. |
+| **IIntentSimilarityEngine** | Combines embeddings into a single similarity score. Supports optional **sourceWeights** (e.g. dimension counts) via overload `CalculateIntentScore(embeddings, sourceWeights)`. **SimpleAverageSimilarityEngine** is the built-in option. |
+| **ITimeAwareSimilarityEngine** | Similarity engine that can use behavior space timestamps (e.g. time decay). When used with **LlmIntentModel**, the model calls **CalculateIntentScoreWithTimeDecay(behaviorSpace, embeddings)** automatically. |
+| **WeightedAverageSimilarityEngine** | Similarity engine that applies weights to embeddings based on their source (actor:action). Uses **sourceWeights** when provided (e.g. from vector dimensions). |
+| **TimeDecaySimilarityEngine** | Similarity engine that applies time-based decay to embeddings. Implements **ITimeAwareSimilarityEngine**; recent events have higher influence. Used automatically by LlmIntentModel when passed as the engine. |
 | **CosineSimilarityEngine** | Similarity engine that uses cosine similarity between embedding vectors. Falls back to simple average if vectors are not available. |
 | **CompositeSimilarityEngine** | Combines multiple similarity engines using weighted combination. Useful for A/B testing. |
-| **LlmIntentModel** | Takes an embedding provider + similarity engine; **Infer(BehaviorSpace, BehaviorVector? precomputedVector = null)** returns an **Intent** with confidence and signals. |
+| **LlmIntentModel** | Takes an embedding provider + similarity engine; **Infer(BehaviorSpace, BehaviorVector? precomputedVector = null)** returns an **Intent** with confidence and signals. Uses dimension counts as weights when the engine supports it; uses time decay when the engine implements **ITimeAwareSimilarityEngine**. |
 | **IntentModelStreamingExtensions** | **InferMany(model, spaces)** — lazy `IEnumerable<Intent>` over many spaces; **InferManyAsync(model, spaces, ct)** — async stream `IAsyncEnumerable<Intent>`. |
 | **IEmbeddingCache** / **MemoryEmbeddingCache** | Cache interface and memory implementation for embedding results. Use **CachedEmbeddingProvider** to wrap any provider with caching. |
 | **IBatchIntentModel** / **BatchIntentModel** | Batch processing for multiple behavior spaces. Supports async processing with cancellation. |

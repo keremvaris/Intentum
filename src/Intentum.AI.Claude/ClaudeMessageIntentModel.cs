@@ -4,23 +4,15 @@ using System.Text.Json.Serialization;
 using Intentum.Core.Behavior;
 using Intentum.Core.Contracts;
 using Intentum.Core.Intents;
+using JetBrains.Annotations;
 
 namespace Intentum.AI.Claude;
 
-public sealed class ClaudeMessageIntentModel : IIntentModel
+public sealed class ClaudeMessageIntentModel(ClaudeOptions options, HttpClient httpClient) : IIntentModel
 {
-    private readonly ClaudeOptions _options;
-    private readonly HttpClient _httpClient;
-
-    public ClaudeMessageIntentModel(ClaudeOptions options, HttpClient httpClient)
-    {
-        _options = options;
-        _httpClient = httpClient;
-    }
-
     public Intent Infer(BehaviorSpace behaviorSpace, BehaviorVector? precomputedVector = null)
     {
-        _options.Validate();
+        options.Validate();
 
         var vector = precomputedVector ?? behaviorSpace.ToVector();
         var behaviors = string.Join(", ", vector.Dimensions.Keys);
@@ -31,11 +23,11 @@ public sealed class ClaudeMessageIntentModel : IIntentModel
             $"Behavior keys: {behaviors}";
 
         var request = new ClaudeMessageRequest(
-            _options.Model,
+            options.Model,
             32,
             [new ClaudeMessage("user", prompt)]);
 
-        var response = _httpClient
+        var response = httpClient
             .PostAsJsonAsync("messages", request)
             .GetAwaiter()
             .GetResult();
@@ -47,7 +39,7 @@ public sealed class ClaudeMessageIntentModel : IIntentModel
             .GetAwaiter()
             .GetResult();
 
-        var text = payload?.Content?.FirstOrDefault()?.Text ?? "0.5";
+        var text = payload?.Content.FirstOrDefault()?.Text ?? "0.5";
         var score = ParseScore(text);
         var confidence = IntentConfidence.FromScore(score);
 
@@ -76,11 +68,13 @@ public sealed class ClaudeMessageIntentModel : IIntentModel
         return 0.5;
     }
 
+    [UsedImplicitly]
     private sealed record ClaudeMessageRequest(
         [property: JsonPropertyName("model")] string Model,
         [property: JsonPropertyName("max_tokens")] int MaxTokens,
         [property: JsonPropertyName("messages")] IReadOnlyList<ClaudeMessage> Messages);
 
+    [UsedImplicitly]
     private sealed record ClaudeMessage(
         [property: JsonPropertyName("role")] string Role,
         [property: JsonPropertyName("content")] string Content);

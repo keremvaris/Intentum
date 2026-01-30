@@ -20,7 +20,7 @@ public class TenantAwareBehaviorSpaceRepositoryTests
         Assert.NotEmpty(id);
         var saved = await inner.GetByIdAsync(id);
         Assert.NotNull(saved);
-        Assert.True(saved!.Metadata.ContainsKey("TenantId"));
+        Assert.True(saved.Metadata.ContainsKey("TenantId"));
         Assert.Equal("tenant-1", saved.Metadata["TenantId"]);
     }
 
@@ -59,7 +59,7 @@ public class TenantAwareBehaviorSpaceRepositoryTests
         }
 
         public Task<BehaviorSpace?> GetByIdAsync(string id, CancellationToken cancellationToken = default)
-            => Task.FromResult(_store.TryGetValue(id, out var s) ? s : null);
+            => Task.FromResult(_store.GetValueOrDefault(id));
 
         public Task<IReadOnlyList<BehaviorSpace>> GetByMetadataAsync(string key, object value, CancellationToken cancellationToken = default)
             => Task.FromResult<IReadOnlyList<BehaviorSpace>>(_store.Values.Where(s => s.Metadata.TryGetValue(key, out var v) && Equals(v, value)).ToList());

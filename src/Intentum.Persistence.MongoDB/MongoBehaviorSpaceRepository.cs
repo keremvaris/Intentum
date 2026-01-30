@@ -16,8 +16,7 @@ public sealed class MongoBehaviorSpaceRepository : IBehaviorSpaceRepository
 
     public MongoBehaviorSpaceRepository(IMongoDatabase database, string collectionName = "behaviorspaces")
     {
-        _collection = database?.GetCollection<BehaviorSpaceDoc>(collectionName)
-            ?? throw new ArgumentNullException(nameof(database));
+        _collection = database.GetCollection<BehaviorSpaceDoc>(collectionName);
     }
 
     public async Task<string> SaveAsync(BehaviorSpace behaviorSpace, CancellationToken cancellationToken = default)
@@ -89,7 +88,7 @@ public sealed class MongoBehaviorSpaceRepository : IBehaviorSpaceRepository
             if (metadata != null)
             {
                 foreach (var kv in metadata)
-                    space.SetMetadata(kv.Key, kv.Value.ValueKind == JsonValueKind.Number ? (object)kv.Value.GetDouble() : kv.Value.GetString() ?? kv.Value.ToString());
+                    space.SetMetadata(kv.Key, kv.Value.ValueKind == JsonValueKind.Number ? kv.Value.GetDouble() : kv.Value.GetString() ?? kv.Value.ToString());
             }
             foreach (var evt in Events.OrderBy(e => e.OccurredAt))
                 space.Observe(evt.ToBehaviorEvent());
@@ -123,7 +122,7 @@ public sealed class MongoBehaviorSpaceRepository : IBehaviorSpaceRepository
             {
                 var dict = new Dictionary<string, object>();
                 foreach (var kv in metadata)
-                    dict[kv.Key] = kv.Value.ValueKind == JsonValueKind.Number ? (object)kv.Value.GetDouble() : kv.Value.GetString() ?? kv.Value.ToString();
+                    dict[kv.Key] = kv.Value.ValueKind == JsonValueKind.Number ? kv.Value.GetDouble() : kv.Value.GetString() ?? kv.Value.ToString();
                 meta = dict;
             }
             return new BehaviorEvent(Actor, Action, OccurredAt, (IReadOnlyDictionary<string, object>?)meta);

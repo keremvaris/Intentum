@@ -1,3 +1,5 @@
+using JetBrains.Annotations;
+
 namespace Intentum.AI.AzureOpenAI;
 
 public sealed class AzureOpenAIOptions
@@ -19,6 +21,7 @@ public sealed class AzureOpenAIOptions
             throw new ArgumentException("AzureOpenAI ApiVersion is required.");
     }
 
+    [UsedImplicitly]
     public static AzureOpenAIOptions FromEnvironment()
     {
         var endpoint = Environment.GetEnvironmentVariable("AZURE_OPENAI_ENDPOINT")

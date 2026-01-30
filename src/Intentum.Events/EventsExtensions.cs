@@ -1,3 +1,4 @@
+using JetBrains.Annotations;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace Intentum.Events;
@@ -5,6 +6,7 @@ namespace Intentum.Events;
 /// <summary>
 /// Extension methods for registering Intentum events with dependency injection.
 /// </summary>
+[UsedImplicitly]
 public static class EventsExtensions
 {
     /// <summary>
@@ -13,6 +15,7 @@ public static class EventsExtensions
     /// <param name="services">The service collection.</param>
     /// <param name="configure">Action to configure webhooks and retry.</param>
     /// <returns>The service collection for chaining.</returns>
+    [UsedImplicitly]
     public static IServiceCollection AddIntentumEvents(
         this IServiceCollection services,
         Action<IntentumEventsOptions>? configure = null)
@@ -30,6 +33,7 @@ public static class EventsExtensions
     /// <summary>
     /// Adds a webhook to the events options. Call from within Configure(IntentumEventsOptions).
     /// </summary>
+    [UsedImplicitly]
     public static IntentumEventsOptions AddWebhook(
         this IntentumEventsOptions options,
         string url,

@@ -2,12 +2,14 @@ using System.Runtime.CompilerServices;
 using Intentum.Core.Behavior;
 using Intentum.Core.Contracts;
 using Intentum.Core.Intents;
+using JetBrains.Annotations;
 
 namespace Intentum.AI;
 
 /// <summary>
 /// Streaming and batch extensions for <see cref="IIntentModel"/>.
 /// </summary>
+[UsedImplicitly]
 public static class IntentModelStreamingExtensions
 {
     /// <summary>
@@ -16,6 +18,7 @@ public static class IntentModelStreamingExtensions
     /// <param name="model">The intent model.</param>
     /// <param name="spaces">Behavior spaces to infer.</param>
     /// <returns>Sequence of inferred intents in the same order as <paramref name="spaces"/>.</returns>
+    [UsedImplicitly]
     public static IEnumerable<Intent> InferMany(
         this IIntentModel model,
         IEnumerable<BehaviorSpace> spaces)
@@ -36,6 +39,7 @@ public static class IntentModelStreamingExtensions
     /// <param name="spaces">Async sequence of behavior spaces.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>Async sequence of inferred intents in the same order as <paramref name="spaces"/>.</returns>
+    [UsedImplicitly]
     public static async IAsyncEnumerable<Intent> InferManyAsync(
         this IIntentModel model,
         IAsyncEnumerable<BehaviorSpace> spaces,

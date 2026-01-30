@@ -19,7 +19,7 @@ public sealed class RedisIntentHistoryRepository : IIntentHistoryRepository
     public RedisIntentHistoryRepository(IConnectionMultiplexer redis, string keyPrefix = "intentum:inthistory:")
     {
         _redis = redis ?? throw new ArgumentNullException(nameof(redis));
-        _keyPrefix = keyPrefix ?? "intentum:inthistory:";
+        _keyPrefix = keyPrefix;
     }
 
     public async Task<string> SaveAsync(
@@ -107,13 +107,13 @@ public sealed class RedisIntentHistoryRepository : IIntentHistoryRepository
         return list.OrderByDescending(r => r.RecordedAt).ToList();
     }
 
-    private async Task<IntentHistoryRecord?> GetByIdAsync(string id, CancellationToken cancellationToken)
+    private async Task<IntentHistoryRecord?> GetByIdAsync(string id, CancellationToken _)
     {
         var db = _redis.GetDatabase();
         var json = await db.StringGetAsync(_keyPrefix + "record:" + id);
         if (json.IsNullOrEmpty)
             return null;
-        var dto = JsonSerializer.Deserialize<IntentHistoryDto>(json!.ToString()!);
+        var dto = JsonSerializer.Deserialize<IntentHistoryDto>(json!.ToString());
         return dto?.ToRecord();
     }
 

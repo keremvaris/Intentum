@@ -1,3 +1,5 @@
+using Intentum.AI.Mock;
+using Intentum.AI.Similarity;
 using Intentum.Core.Behavior;
 using Intentum.Runtime;
 using Intentum.Runtime.Policy;
@@ -28,8 +30,8 @@ public class TestingUtilitiesTests
     [Fact]
     public void TestHelpers_CreateModel_Works()
     {
-        var provider = new Intentum.AI.Mock.MockEmbeddingProvider();
-        var similarity = new Intentum.AI.Similarity.SimpleAverageSimilarityEngine();
+        var provider = new MockEmbeddingProvider();
+        var similarity = new SimpleAverageSimilarityEngine();
         var model = TestHelpers.CreateModel(provider, similarity);
         var space = TestHelpers.CreateSimpleSpace();
         var intent = model.Infer(space);

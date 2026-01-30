@@ -18,11 +18,15 @@ Yani: *davranış → intent → policy kararı*. Sabit senaryo adımları yok; 
 
 | Tip | Ne işe yarar |
 |-----|----------------|
-| **BehaviorSpace** | Gözlenen olayların konteyneri. `.Observe(actor, action)` çağırırsın (örn. `"user"`, `"login"`). Çıkarım için `.ToVector()` ile behavior vektörü alırsın; sonuç bir sonraki `Observe` çağrısına kadar önbellekte tutulur. |
-| **Intent** | Çıkarım sonucu: güven seviyesi, skor ve sinyaller (ağırlıklı davranışlar). |
+| **BehaviorSpace** | Gözlenen olayların konteyneri. `.Observe(actor, action)` çağırırsın (örn. `"user"`, `"login"`). Çıkarım için `.ToVector()` veya `.ToVector(ToVectorOptions?)` ile behavior vektörü alırsın; sonuç bir sonraki `Observe` çağrısına kadar önbellekte tutulur. Normalizasyon için **ToVectorOptions** kullan. |
+| **ToVectorOptions** | Behavior vektörü seçenekleri: `Normalization` (None, Cap, L1, SoftCap) ve opsiyonel `CapPerDimension`. `BehaviorSpace.ToVector(options)` veya `ToVector(start, end, options)` ile kullan. |
+| **Intent** | Çıkarım sonucu: güven seviyesi, skor, sinyaller (ağırlıklı davranışlar) ve opsiyonel **Reasoning** (hangi kural eşleşti veya fallback kullanıldı). |
 | **IntentConfidence** | Intent’in parçası: `Level` (string) ve `Score` (0–1). |
 | **IntentSignal** | Intent'teki bir sinyal: `Source`, `Description`, `Weight`. |
 | **IntentEvaluator** | Intent’i kriterlere göre değerlendirir; model tarafından dahili kullanılır. |
+| **RuleBasedIntentModel** | Sadece kurallarla intent çıkarır (LLM yok). İlk eşleşen kural kazanır; **RuleMatch** (name, score, reasoning) döndürür. Hızlı, deterministik, açıklanabilir. |
+| **ChainedIntentModel** | Önce birincil modeli dener; güven eşiğin altındaysa ikincil modele (örn. LlmIntentModel) düşer. RuleBasedIntentModel + LlmIntentModel ile kural-öncelikli + LLM fallback. |
+| **RuleMatch** | Kural sonucu: `Name`, `Score`, opsiyonel `Reasoning`. **RuleBasedIntentModel** kuralları tarafından döndürülür. |
 
 **Namespace:** `Intent`, `IntentConfidence` ve `IntentSignal` **`Intentum.Core.Intents`** ad alanındadır. Kullanmak için `using Intentum.Core.Intents;` ekleyin.
 
@@ -73,11 +77,11 @@ var policy = new IntentPolicyBuilder()
 |-----|----------------|
 | **IIntentEmbeddingProvider** | Bir behavior anahtarını (örn. `"user:login"`) **IntentEmbedding** (vektör + skor) yapar. Her sağlayıcı (OpenAI, Gemini vb.) veya test için **MockEmbeddingProvider** tarafından uygulanır. |
 | **IIntentSimilarityEngine** | Embedding’leri tek bir similarity skoruna birleştirir. **SimpleAverageSimilarityEngine** varsayılan seçenektir. |
-| **WeightedAverageSimilarityEngine** | Kaynağa (actor:action) göre ağırlık uygular. |
-| **TimeDecaySimilarityEngine** | Zamana göre decay; daha yeni olaylar daha yüksek ağırlık. |
+| **WeightedAverageSimilarityEngine** | Kaynağa (actor:action) göre ağırlık uygular. **sourceWeights** verildiğinde (örn. vektör dimension'ları) kullanır. |
+| **TimeDecaySimilarityEngine** | Zamana göre decay; daha yeni olaylar daha yüksek ağırlık. **ITimeAwareSimilarityEngine** implement eder; LlmIntentModel engine olarak verildiğinde otomatik kullanır. |
 | **CosineSimilarityEngine** | Vektörler arası kosinüs benzerliği; vektör yoksa basit ortalama. |
 | **CompositeSimilarityEngine** | Birden fazla similarity engine'i ağırlıklı birleştirir. |
-| **LlmIntentModel** | Embedding sağlayıcı + similarity engine alır; **Infer(BehaviorSpace, BehaviorVector? precomputedVector = null)** bir **Intent** (güven ve sinyallerle) döndürür. |
+| **LlmIntentModel** | Embedding sağlayıcı + similarity engine alır; **Infer(BehaviorSpace, BehaviorVector? precomputedVector = null)** bir **Intent** (güven ve sinyallerle) döndürür. Engine desteklediğinde dimension count ağırlık olarak kullanılır; engine **ITimeAwareSimilarityEngine** ise zaman decay uygulanır. |
 | **IntentModelStreamingExtensions** | **InferMany(model, spaces)** — lazy `IEnumerable<Intent>`; **InferManyAsync(model, spaces, ct)** — async stream. |
 | **IEmbeddingCache** / **MemoryEmbeddingCache** | Embedding sonuçları cache arayüzü ve bellek implementasyonu. **CachedEmbeddingProvider** ile her sağlayıcı cache'lenebilir. |
 | **IBatchIntentModel** / **BatchIntentModel** | Birden fazla behavior space için toplu çıkarım; async ve iptal destekler. |

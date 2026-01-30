@@ -246,12 +246,57 @@ It is:
 
 ---
 
+## Use case 3: Chained intent (Rule → LLM fallback)
+
+Use rules first; call the LLM only when no rule matches or confidence is below a threshold. Reduces cost and latency; keeps high-confidence rule hits deterministic and explainable.
+
+### The idea
+
+1. **Primary model** — RuleBasedIntentModel: e.g. "login.failed >= 2 and password.reset and login.success" → AccountRecovery (0.85).
+2. **Fallback model** — LlmIntentModel when no rule matches or primary confidence &lt; threshold.
+3. **ChainedIntentModel** — `ChainedIntentModel(primary, fallback, confidenceThreshold: 0.7)`.
+
+### Code
+
+```csharp
+var rules = new List<Func<BehaviorSpace, RuleMatch?>>
+{
+    space =>
+    {
+        var loginFails = space.Events.Count(e => e.Action == "login.failed");
+        var hasReset = space.Events.Any(e => e.Action == "password.reset");
+        var hasSuccess = space.Events.Any(e => e.Action == "login.success");
+        if (loginFails >= 2 && hasReset && hasSuccess)
+            return new RuleMatch("AccountRecovery", 0.85, "login.failed>=2 and password.reset and login.success");
+        return null;
+    }
+};
+
+var primary = new RuleBasedIntentModel(rules);
+var fallback = new LlmIntentModel(embeddingProvider, new SimpleAverageSimilarityEngine());
+var chained = new ChainedIntentModel(primary, fallback, confidenceThreshold: 0.7);
+
+var intent = chained.Infer(space);
+// intent.Reasoning: "Primary: ..." or "Fallback: LLM (primary confidence below 0.7)"
+```
+
+### Explainability
+
+Each intent includes **Reasoning** (e.g. which rule matched, or that the fallback was used). Use it for logging, debugging, and "why did we get this decision?"
+
+See [examples/chained-intent](https://github.com/keremvaris/Intentum/tree/master/examples/chained-intent) for a runnable example.
+
+---
+
 ## Runnable examples
 
 Minimal runnable projects for these scenarios:
 
 - [examples/fraud-intent](https://github.com/keremvaris/Intentum/tree/master/examples/fraud-intent)
 - [examples/ai-fallback-intent](https://github.com/keremvaris/Intentum/tree/master/examples/ai-fallback-intent)
+- [examples/chained-intent](https://github.com/keremvaris/Intentum/tree/master/examples/chained-intent) — Rule → LLM fallback
+- [examples/time-decay-intent](https://github.com/keremvaris/Intentum/tree/master/examples/time-decay-intent) — Recent events weigh more
+- [examples/vector-normalization](https://github.com/keremvaris/Intentum/tree/master/examples/vector-normalization) — Cap, L1, SoftCap
 
 See the [examples README](https://github.com/keremvaris/Intentum/tree/master/examples) in the repo for how to run them.
 

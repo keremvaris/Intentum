@@ -10,7 +10,6 @@ public sealed class IntentAnalyticsTests
     private static async Task<IIntentAnalytics> CreateAnalyticsWithSampleDataAsync()
     {
         var repo = new InMemoryIntentHistoryRepository();
-        var baseTime = new DateTimeOffset(2025, 1, 1, 0, 0, 0, TimeSpan.Zero);
 
         await repo.SaveAsync("bs1", CreateIntent("High", 0.9), PolicyDecision.Allow);
         await repo.SaveAsync("bs1", CreateIntent("Medium", 0.5), PolicyDecision.Observe);
@@ -21,7 +20,7 @@ public sealed class IntentAnalyticsTests
         return new IntentAnalytics(repo);
     }
 
-    private static Intent CreateIntent(string level, double score)
+    private static Intent CreateIntent(string _, double score)
     {
         return new Intent(
             "Test",
@@ -117,7 +116,7 @@ public sealed class IntentAnalyticsTests
             var id = (++_id).ToString();
             _records.Add(new IntentHistoryRecord(
                 id, behaviorSpaceId, intent.Name, intent.Confidence.Level, intent.Confidence.Score,
-                decision, DateTimeOffset.UtcNow, null));
+                decision, DateTimeOffset.UtcNow));
             return Task.FromResult(id);
         }
 

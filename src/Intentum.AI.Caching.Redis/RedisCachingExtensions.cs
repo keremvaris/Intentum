@@ -1,3 +1,4 @@
+using JetBrains.Annotations;
 using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -6,6 +7,7 @@ namespace Intentum.AI.Caching.Redis;
 /// <summary>
 /// Extension methods for registering Redis embedding cache with dependency injection.
 /// </summary>
+[UsedImplicitly]
 public static class RedisCachingExtensions
 {
     /// <summary>
@@ -15,6 +17,7 @@ public static class RedisCachingExtensions
     /// <param name="services">The service collection.</param>
     /// <param name="configure">Action to configure Redis cache options (connection string, instance name, etc.).</param>
     /// <returns>The service collection for chaining.</returns>
+    [UsedImplicitly]
     public static IServiceCollection AddIntentumRedisCache(
         this IServiceCollection services,
         Action<IntentumRedisCacheOptions>? configure = null)

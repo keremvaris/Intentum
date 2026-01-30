@@ -1,8 +1,8 @@
 using Intentum.AI.AzureOpenAI;
 using Intentum.AI.Embeddings;
 using Intentum.AI.Gemini;
-using Intentum.AI.Mock;
 using Intentum.AI.Mistral;
+using Intentum.AI.Mock;
 using Intentum.AI.OpenAI;
 using Intentum.AI.Similarity;
 using Intentum.Core.Behavior;

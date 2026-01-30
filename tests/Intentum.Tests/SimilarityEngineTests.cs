@@ -24,11 +24,11 @@ public class SimilarityEngineTests
         };
         var engine = new WeightedAverageSimilarityEngine(weights);
 
-        var embeddings = new List<IntentEmbedding>
+        var embeddings = new[]
         {
-            new("user:login", 0.8),
-            new("user:submit", 0.9),
-            new("user:retry", 0.6)
+            new IntentEmbedding("user:login", 0.8),
+            new IntentEmbedding("user:submit", 0.9),
+            new IntentEmbedding("user:retry", 0.6)
         };
 
         // Act
@@ -45,10 +45,10 @@ public class SimilarityEngineTests
         // Arrange
         var engine = new WeightedAverageSimilarityEngine();
 
-        var embeddings = new List<IntentEmbedding>
+        var embeddings = new[]
         {
-            new("user:login", 0.8),
-            new("user:submit", 0.9)
+            new IntentEmbedding("user:login", 0.8),
+            new IntentEmbedding("user:submit", 0.9)
         };
 
         // Act
@@ -63,7 +63,7 @@ public class SimilarityEngineTests
     {
         // Arrange
         var engine = new WeightedAverageSimilarityEngine();
-        var embeddings = new List<IntentEmbedding>();
+        var embeddings = Array.Empty<IntentEmbedding>();
 
         // Act
         var score = engine.CalculateIntentScore(embeddings);
@@ -82,10 +82,10 @@ public class SimilarityEngineTests
         };
         var engine = new WeightedAverageSimilarityEngine(weights, defaultWeight: 0.5);
 
-        var embeddings = new List<IntentEmbedding>
+        var embeddings = new[]
         {
-            new("user:login", 0.8),
-            new("user:unknown", 0.6)  // Uses defaultWeight 0.5
+            new IntentEmbedding("user:login", 0.8),
+            new IntentEmbedding("user:unknown", 0.6)  // Uses defaultWeight 0.5
         };
 
         // Act
@@ -108,10 +108,10 @@ public class SimilarityEngineTests
         space.Observe(new BehaviorEvent("user", "login", now - TimeSpan.FromMinutes(10)));      // Recent
         space.Observe(new BehaviorEvent("user", "submit", now - TimeSpan.FromHours(2)));        // Older
 
-        var embeddings = new List<IntentEmbedding>
+        var embeddings = new[]
         {
-            new("user:login", 0.8),
-            new("user:submit", 0.9)
+            new IntentEmbedding("user:login", 0.8),
+            new IntentEmbedding("user:submit", 0.9)
         };
 
         // Act
@@ -135,10 +135,7 @@ public class SimilarityEngineTests
         var space = new BehaviorSpace();
         space.Observe(new BehaviorEvent("user", "login", now));  // Current time
 
-        var embeddings = new List<IntentEmbedding>
-        {
-            new("user:login", 0.8)
-        };
+        var embeddings = new[] { new IntentEmbedding("user:login", 0.8) };
 
         // Act
         var score = engine.CalculateIntentScoreWithTimeDecay(space, embeddings);
@@ -154,10 +151,7 @@ public class SimilarityEngineTests
         // Arrange
         var engine = new TimeDecaySimilarityEngine();
         var space = new BehaviorSpace();
-        var embeddings = new List<IntentEmbedding>
-        {
-            new("user:login", 0.8)
-        };
+        var embeddings = new[] { new IntentEmbedding("user:login", 0.8) };
 
         // Act
         var score = engine.CalculateIntentScoreWithTimeDecay(space, embeddings);
@@ -171,10 +165,10 @@ public class SimilarityEngineTests
     {
         // Arrange
         var engine = new TimeDecaySimilarityEngine();
-        var embeddings = new List<IntentEmbedding>
+        var embeddings = new[]
         {
-            new("user:login", 0.8),
-            new("user:submit", 0.9)
+            new IntentEmbedding("user:login", 0.8),
+            new IntentEmbedding("user:submit", 0.9)
         };
 
         // Act
@@ -222,11 +216,11 @@ public class SimilarityEngineTests
         var vector2 = new List<double> { 0.0, 1.0, 0.0 }; // Unit vector along y-axis (orthogonal)
         var vector3 = new List<double> { 1.0, 0.0, 0.0 }; // Same as vector1
 
-        var embeddings = new List<IntentEmbedding>
+        var embeddings = new[]
         {
-            new("user:login", 0.8, vector1),
-            new("user:submit", 0.9, vector2),
-            new("user:retry", 0.7, vector3)
+            new IntentEmbedding("user:login", 0.8, vector1),
+            new IntentEmbedding("user:submit", 0.9, vector2),
+            new IntentEmbedding("user:retry", 0.7, vector3)
         };
 
         // Act
@@ -245,10 +239,10 @@ public class SimilarityEngineTests
         // Arrange
         var engine = new CosineSimilarityEngine();
 
-        var embeddings = new List<IntentEmbedding>
+        var embeddings = new[]
         {
-            new("user:login", 0.8),
-            new("user:submit", 0.9)
+            new IntentEmbedding("user:login", 0.8),
+            new IntentEmbedding("user:submit", 0.9)
         };
 
         // Act
@@ -263,7 +257,7 @@ public class SimilarityEngineTests
     {
         // Arrange
         var engine = new CosineSimilarityEngine();
-        var embeddings = new List<IntentEmbedding>();
+        var embeddings = Array.Empty<IntentEmbedding>();
 
         // Act
         var score = engine.CalculateIntentScore(embeddings);
@@ -278,10 +272,7 @@ public class SimilarityEngineTests
         // Arrange
         var engine = new CosineSimilarityEngine();
         var vector = new List<double> { 1.0, 0.0, 0.0 };
-        var embeddings = new List<IntentEmbedding>
-        {
-            new("user:login", 0.8, vector)
-        };
+        var embeddings = new[] { new IntentEmbedding("user:login", 0.8, vector) };
 
         // Act
         var score = engine.CalculateIntentScore(embeddings);
@@ -322,10 +313,10 @@ public class SimilarityEngineTests
         IIntentSimilarityEngine[] engines = new IIntentSimilarityEngine[] { engine1, engine2 };
         var composite = new CompositeSimilarityEngine(engines);
 
-        var embeddings = new List<IntentEmbedding>
+        var embeddings = new[]
         {
-            new("user:login", 0.8),
-            new("user:submit", 0.9)
+            new IntentEmbedding("user:login", 0.8),
+            new IntentEmbedding("user:submit", 0.9)
         };
 
         // Act
@@ -350,10 +341,10 @@ public class SimilarityEngineTests
         };
         var composite = new CompositeSimilarityEngine(engines);
 
-        var embeddings = new List<IntentEmbedding>
+        var embeddings = new[]
         {
-            new("user:login", 0.8),
-            new("user:submit", 0.9)
+            new IntentEmbedding("user:login", 0.8),
+            new IntentEmbedding("user:submit", 0.9)
         };
 
         // Act
@@ -377,7 +368,7 @@ public class SimilarityEngineTests
         // Arrange
         var engines = new[] { new SimpleAverageSimilarityEngine() };
         var composite = new CompositeSimilarityEngine(engines);
-        var embeddings = new List<IntentEmbedding>();
+        var embeddings = Array.Empty<IntentEmbedding>();
 
         // Act
         var score = composite.CalculateIntentScore(embeddings);
@@ -402,10 +393,10 @@ public class SimilarityEngineTests
         };
         var composite = new CompositeSimilarityEngine(engines);
 
-        var embeddings = new List<IntentEmbedding>
+        var embeddings = new[]
         {
-            new("user:login", 0.8),
-            new("user:submit", 0.9)
+            new IntentEmbedding("user:login", 0.8),
+            new IntentEmbedding("user:submit", 0.9)
         };
 
         // Act

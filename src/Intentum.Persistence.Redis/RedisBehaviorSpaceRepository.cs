@@ -18,7 +18,7 @@ public sealed class RedisBehaviorSpaceRepository : IBehaviorSpaceRepository
     public RedisBehaviorSpaceRepository(IConnectionMultiplexer redis, string keyPrefix = "intentum:behaviorspace:")
     {
         _redis = redis ?? throw new ArgumentNullException(nameof(redis));
-        _keyPrefix = keyPrefix ?? "intentum:behaviorspace:";
+        _keyPrefix = keyPrefix;
     }
 
     public async Task<string> SaveAsync(BehaviorSpace behaviorSpace, CancellationToken cancellationToken = default)
@@ -39,7 +39,7 @@ public sealed class RedisBehaviorSpaceRepository : IBehaviorSpaceRepository
         var json = await db.StringGetAsync(_keyPrefix + id);
         if (json.IsNullOrEmpty)
             return null;
-        var dto = JsonSerializer.Deserialize<BehaviorSpaceDto>(json!.ToString()!);
+        var dto = JsonSerializer.Deserialize<BehaviorSpaceDto>(json!.ToString());
         return dto?.ToBehaviorSpace();
     }
 
@@ -148,7 +148,7 @@ public sealed class RedisBehaviorSpaceRepository : IBehaviorSpaceRepository
             {
                 var dict = new Dictionary<string, object>();
                 foreach (var kv in metadata)
-                    dict[kv.Key] = kv.Value.ValueKind == JsonValueKind.Number ? (object)kv.Value.GetDouble() : kv.Value.GetString() ?? kv.Value.ToString();
+                    dict[kv.Key] = kv.Value.ValueKind == JsonValueKind.Number ? kv.Value.GetDouble() : kv.Value.GetString() ?? kv.Value.ToString();
                 meta = dict;
             }
             return new BehaviorEvent(Actor, Action, OccurredAt, (IReadOnlyDictionary<string, object>?)meta);

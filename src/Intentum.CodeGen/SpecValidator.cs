@@ -13,9 +13,9 @@ public static class SpecValidator
         var errors = new List<string>();
         if (string.IsNullOrWhiteSpace(spec.Namespace))
             errors.Add("Namespace is required");
-        if (spec.Features == null || spec.Features.Count == 0)
+        if (spec.Features.Count == 0)
             errors.Add("At least one feature is required");
-        foreach (var feature in spec.Features ?? [])
+        foreach (var feature in spec.Features)
         {
             ValidateFeature(feature, errors);
         }

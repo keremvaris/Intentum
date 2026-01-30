@@ -244,12 +244,57 @@ Intentum:
 
 ---
 
+## Kullanım senaryosu 3: Zincirli intent (Kural → LLM fallback)
+
+Önce kuralları dene; kural eşleşmezse veya güven eşiğin altındaysa LLM çağır. Maliyet ve gecikmeyi azaltır; yüksek güvenli kural eşleşmelerini deterministik ve açıklanabilir tutar.
+
+### Fikir
+
+1. **Birincil model** — RuleBasedIntentModel: örn. "login.failed >= 2 ve password.reset ve login.success" → AccountRecovery (0.85).
+2. **Fallback model** — Hiç kural eşleşmezse veya birincil güven eşiğin altındaysa LlmIntentModel.
+3. **ChainedIntentModel** — `ChainedIntentModel(primary, fallback, confidenceThreshold: 0.7)`.
+
+### Kod
+
+```csharp
+var rules = new List<Func<BehaviorSpace, RuleMatch?>>
+{
+    space =>
+    {
+        var loginFails = space.Events.Count(e => e.Action == "login.failed");
+        var hasReset = space.Events.Any(e => e.Action == "password.reset");
+        var hasSuccess = space.Events.Any(e => e.Action == "login.success");
+        if (loginFails >= 2 && hasReset && hasSuccess)
+            return new RuleMatch("AccountRecovery", 0.85, "login.failed>=2 and password.reset and login.success");
+        return null;
+    }
+};
+
+var primary = new RuleBasedIntentModel(rules);
+var fallback = new LlmIntentModel(embeddingProvider, new SimpleAverageSimilarityEngine());
+var chained = new ChainedIntentModel(primary, fallback, confidenceThreshold: 0.7);
+
+var intent = chained.Infer(space);
+// intent.Reasoning: "Primary: ..." veya "Fallback: LLM (primary confidence below 0.7)"
+```
+
+### Açıklanabilirlik
+
+Her intent **Reasoning** içerir (hangi kural eşleşti veya fallback kullanıldı). Log, debug ve "neden bu karar?" için kullanılır.
+
+Çalışan örnek: [examples/chained-intent](https://github.com/keremvaris/Intentum/tree/master/examples/chained-intent).
+
+---
+
 ## Çalıştırılabilir örnekler
 
 Bu senaryolar için minimal çalıştırılabilir projeler:
 
 - [examples/fraud-intent](https://github.com/keremvaris/Intentum/tree/master/examples/fraud-intent)
 - [examples/ai-fallback-intent](https://github.com/keremvaris/Intentum/tree/master/examples/ai-fallback-intent)
+- [examples/chained-intent](https://github.com/keremvaris/Intentum/tree/master/examples/chained-intent) — Kural → LLM fallback
+- [examples/time-decay-intent](https://github.com/keremvaris/Intentum/tree/master/examples/time-decay-intent) — Yakın event'ler daha ağır
+- [examples/vector-normalization](https://github.com/keremvaris/Intentum/tree/master/examples/vector-normalization) — Cap, L1, SoftCap
 
 Nasıl çalıştırılacağı için repodaki [examples README](https://github.com/keremvaris/Intentum/tree/master/examples) sayfasına bakın.
 

@@ -1,6 +1,7 @@
 using System.Net.Http.Json;
 using System.Text.Json.Serialization;
 using Intentum.AI.Embeddings;
+using JetBrains.Annotations;
 
 namespace Intentum.AI.AzureOpenAI;
 
@@ -44,6 +45,7 @@ public sealed class AzureOpenAIEmbeddingProvider(AzureOpenAIOptions options, Htt
         return Math.Clamp(avgAbs, 0.0, 1.0);
     }
 
+    [UsedImplicitly]
     private sealed record AzureEmbeddingRequest(
         [property: JsonPropertyName("input")] string Input);
 

@@ -1,4 +1,5 @@
 using Intentum.Persistence.Repositories;
+using JetBrains.Annotations;
 
 namespace Intentum.Clustering;
 
@@ -14,6 +15,7 @@ public interface IIntentClusterer
     /// <param name="records">Intent history records to cluster.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>List of clusters, each containing records with the same (ConfidenceLevel, Decision).</returns>
+    [UsedImplicitly]
     Task<IReadOnlyList<IntentCluster>> ClusterByPatternAsync(
         IReadOnlyList<IntentHistoryRecord> records,
         CancellationToken cancellationToken = default);
@@ -26,6 +28,7 @@ public interface IIntentClusterer
     /// <param name="k">Number of clusters (buckets).</param>
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>List of k clusters ordered by score range.</returns>
+    [UsedImplicitly]
     Task<IReadOnlyList<IntentCluster>> ClusterByConfidenceScoreAsync(
         IReadOnlyList<IntentHistoryRecord> records,
         int k = 3,

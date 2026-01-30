@@ -26,7 +26,7 @@ Intentum’da **Infer** adımı isteğe bağlı **AI (embedding)** kullanır: da
 | **Similarity** | **Similarity engine** tüm embedding’leri tek bir skora indirger (örn. ortalama). Bu skor güven seviyesine dönüştürülür. |
 | **Intent** | **LlmIntentModel** bu skordan **Intent** (Confidence + Signals) üretir; policy bu intent’e göre Allow / Observe / Warn / Block verir. |
 
-Örneklerde genelde **Mock** kullanılır (API anahtarı yok). Gerçek AI ile denemek için ortam değişkeniyle bir sağlayıcı seçip aynı akışı çalıştırabilirsin; bkz. [Sağlayıcılar](providers.md) ve [Kurulum – gerçek sağlayıcı](setup.md#gerçek-sağlayıcı-kullanımı-örn-openai).
+Örneklerde genelde **Mock** kullanılır (API anahtarı yok). Gerçek AI ile denemek için ortam değişkeniyle bir sağlayıcı seçip aynı akışı çalıştırabilirsin; bkz. [Sağlayıcılar](providers.md) ve [Kurulum – gerçek sağlayıcı](setup.md#gerçek-sağlayıcı-kullanımı-örn-openai). **examples** içinde fraud-intent, ai-fallback-intent, **chained-intent**, **time-decay-intent**, **vector-normalization** var. Intent opsiyonel **Reasoning** (hangi kural eşleşti veya fallback) içerebilir.
 
 ---
 
@@ -72,7 +72,7 @@ Kısaca: **Given/When/Then kalktı; yerine Observe (olayları kaydet) → Infer 
 | [CodeGen](codegen.md) | CQRS + Intentum proje iskeleti; test assembly veya YAML spec’ten Features üretme. |
 | [Test](testing.md) | Birim testleri, coverage, hata senaryoları. |
 | [Coverage](coverage.md) | Coverage üretme ve görüntüleme. |
-| [Gelişmiş Özellikler](advanced-features.md) | Similarity engine'ler, fluent API'ler, caching, test utilities, rate limiting, analytics & reporting, middleware, observability, persistence. |
+| [Gelişmiş Özellikler](advanced-features.md) | Similarity engine'ler (WeightedAverage, TimeDecay, Cosine, Composite), **ana akışta source weights ve time decay**, **vektör normalizasyonu** (ToVectorOptions), **kural tabanlı ve zincirli intent modelleri**, fluent API'ler, caching, test utilities, rate limiting, analytics & reporting, middleware, observability, persistence. |
 
 ---
 

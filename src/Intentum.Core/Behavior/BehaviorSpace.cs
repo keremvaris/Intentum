@@ -59,9 +59,16 @@ public sealed class BehaviorSpace
 
     /// <summary>Builds a behavior vector from observed events (actor:action keys with counts). Result is cached until Observe is called.</summary>
     public BehaviorVector ToVector()
+        => ToVector(null);
+
+    /// <summary>Builds a behavior vector with optional normalization/cap. Result is cached until Observe is called only when options is null.</summary>
+    public BehaviorVector ToVector(ToVectorOptions? options)
     {
-        if (_cachedVector != null)
-            return _cachedVector;
+        if (options == null || (options.Normalization == VectorNormalization.None && options.CapPerDimension <= 0))
+        {
+            if (_cachedVector != null)
+                return _cachedVector;
+        }
 
         var dimensions = new Dictionary<string, double>();
 
@@ -71,12 +78,21 @@ public sealed class BehaviorSpace
             dimensions[key] = dimensions.GetValueOrDefault(key) + 1;
         }
 
-        _cachedVector = new BehaviorVector(dimensions);
-        return _cachedVector;
+        dimensions = ApplyOptions(dimensions, options);
+        var result = new BehaviorVector(dimensions);
+
+        if (options == null || (options.Normalization == VectorNormalization.None && options.CapPerDimension <= 0))
+            _cachedVector = result;
+
+        return result;
     }
 
     /// <summary>Builds a behavior vector from events within a time window.</summary>
     public BehaviorVector ToVector(DateTimeOffset start, DateTimeOffset end)
+        => ToVector(start, end, null);
+
+    /// <summary>Builds a behavior vector from events within a time window with optional normalization.</summary>
+    public BehaviorVector ToVector(DateTimeOffset start, DateTimeOffset end, ToVectorOptions? options)
     {
         var dimensions = new Dictionary<string, double>();
         var eventsInWindow = GetEventsInWindow(start, end);
@@ -87,6 +103,50 @@ public sealed class BehaviorSpace
             dimensions[key] = dimensions.GetValueOrDefault(key) + 1;
         }
 
+        dimensions = ApplyOptions(dimensions, options);
         return new BehaviorVector(dimensions);
+    }
+
+    private static Dictionary<string, double> ApplyOptions(Dictionary<string, double> dimensions, ToVectorOptions? options)
+    {
+        if (options == null || (options.Normalization == VectorNormalization.None && options.CapPerDimension <= 0))
+            return dimensions;
+
+        var cap = options.CapPerDimension > 0 ? options.CapPerDimension : (double?)null;
+
+        switch (options.Normalization)
+        {
+            case VectorNormalization.Cap when cap.HasValue:
+                foreach (var k in dimensions.Keys.ToList())
+                {
+                    if (dimensions[k] > cap.Value)
+                        dimensions[k] = cap.Value;
+                }
+                break;
+            case VectorNormalization.SoftCap when cap.HasValue:
+                foreach (var k in dimensions.Keys.ToList())
+                    dimensions[k] = Math.Min(1.0, dimensions[k] / cap.Value);
+                break;
+            case VectorNormalization.L1:
+                var sum = dimensions.Values.Sum();
+                if (sum > 0)
+                {
+                    foreach (var k in dimensions.Keys.ToList())
+                        dimensions[k] /= sum;
+                }
+                break;
+            default:
+                if (cap.HasValue && options.Normalization == VectorNormalization.None)
+                {
+                    foreach (var k in dimensions.Keys.ToList())
+                    {
+                        if (dimensions[k] > cap.Value)
+                            dimensions[k] = cap.Value;
+                    }
+                }
+                break;
+        }
+
+        return dimensions;
     }
 }

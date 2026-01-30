@@ -28,6 +28,8 @@ items:
     href: providers.md
   - name: How to use AI providers
     href: ai-providers-howto.md
+  - name: Greenwashing detection (how-to)
+    href: greenwashing-detection-howto.md
   - name: Testing
     href: testing.md
   - name: Audience

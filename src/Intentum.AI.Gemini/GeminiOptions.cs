@@ -1,3 +1,5 @@
+using JetBrains.Annotations;
+
 namespace Intentum.AI.Gemini;
 
 public sealed class GeminiOptions
@@ -16,6 +18,7 @@ public sealed class GeminiOptions
             throw new ArgumentException("Gemini BaseUrl is required.");
     }
 
+    [UsedImplicitly]
     public static GeminiOptions FromEnvironment()
     {
         var apiKey = Environment.GetEnvironmentVariable("GEMINI_API_KEY")

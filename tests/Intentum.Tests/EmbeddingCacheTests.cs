@@ -27,7 +27,7 @@ public class EmbeddingCacheTests
 
         // Assert
         Assert.NotNull(retrieved);
-        Assert.Equal(embedding.Source, retrieved!.Source);
+        Assert.Equal(embedding.Source, retrieved.Source);
         Assert.Equal(embedding.Score, retrieved.Score);
     }
 

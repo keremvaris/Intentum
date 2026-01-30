@@ -25,6 +25,10 @@ public sealed class WeightedAverageSimilarityEngine : IIntentSimilarityEngine
     }
 
     public double CalculateIntentScore(IReadOnlyCollection<IntentEmbedding> embeddings)
+        => CalculateIntentScore(embeddings, null);
+
+    /// <inheritdoc />
+    public double CalculateIntentScore(IReadOnlyCollection<IntentEmbedding> embeddings, IReadOnlyDictionary<string, double>? sourceWeights)
     {
         if (embeddings.Count == 0)
             return 0;
@@ -34,7 +38,8 @@ public sealed class WeightedAverageSimilarityEngine : IIntentSimilarityEngine
 
         foreach (var embedding in embeddings)
         {
-            var weight = _weights.GetValueOrDefault(embedding.Source, _defaultWeight);
+            var weight = sourceWeights?.GetValueOrDefault(embedding.Source, _defaultWeight)
+                ?? _weights.GetValueOrDefault(embedding.Source, _defaultWeight);
             totalWeightedScore += embedding.Score * weight;
             totalWeight += weight;
         }

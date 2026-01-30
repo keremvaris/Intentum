@@ -1,26 +1,18 @@
 using System.Net.Http.Json;
 using System.Text.Json.Serialization;
 using Intentum.AI.Embeddings;
+using JetBrains.Annotations;
 
 namespace Intentum.AI.OpenAI;
 
-public sealed class OpenAIEmbeddingProvider : IIntentEmbeddingProvider
+public sealed class OpenAIEmbeddingProvider(OpenAIOptions options, HttpClient httpClient) : IIntentEmbeddingProvider
 {
-    private readonly OpenAIOptions _options;
-    private readonly HttpClient _httpClient;
-
-    public OpenAIEmbeddingProvider(OpenAIOptions options, HttpClient httpClient)
-    {
-        _options = options;
-        _httpClient = httpClient;
-    }
-
     public IntentEmbedding Embed(string behaviorKey)
     {
-        _options.Validate();
+        options.Validate();
 
-        var request = new OpenAIEmbeddingRequest(_options.EmbeddingModel, behaviorKey);
-        var response = _httpClient
+        var request = new OpenAIEmbeddingRequest(options.EmbeddingModel, behaviorKey);
+        var response = httpClient
             .PostAsJsonAsync("embeddings", request)
             .GetAwaiter()
             .GetResult();
@@ -32,7 +24,7 @@ public sealed class OpenAIEmbeddingProvider : IIntentEmbeddingProvider
             .GetAwaiter()
             .GetResult();
 
-        var values = payload?.Data?.FirstOrDefault()?.Embedding ?? new List<double>();
+        var values = payload?.Data.FirstOrDefault()?.Embedding ?? new List<double>();
         var score = Normalize(values);
 
         return new IntentEmbedding(
@@ -46,10 +38,11 @@ public sealed class OpenAIEmbeddingProvider : IIntentEmbeddingProvider
         if (values.Count == 0)
             return 0;
 
-        var avgAbs = values.Average(v => Math.Abs(v));
+        var avgAbs = values.Average(Math.Abs);
         return Math.Clamp(avgAbs, 0.0, 1.0);
     }
 
+    [UsedImplicitly]
     private sealed record OpenAIEmbeddingRequest(
         [property: JsonPropertyName("model")] string Model,
         [property: JsonPropertyName("input")] string Input);

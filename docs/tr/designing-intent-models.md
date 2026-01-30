@@ -52,7 +52,7 @@ Intentum tek bir yöntem dayatmaz.
 
 ### Seviye 1 — Heuristik niyet modelleri
 
-En basit, en hızlı.
+En basit, en hızlı. Intentum bunun için **RuleBasedIntentModel** sağlar: kurallar listesi verilir (her biri **RuleMatch** veya null döner); ilk eşleşen kazanır. Önce kuralları denemek, güven eşiğin altında LLM fallback için **ChainedIntentModel** kullan. Intent opsiyonel **Reasoning** içerebilir (hangi kural eşleşti veya "Fallback: LLM").
 
 **Artıları:** deterministik, açıklanabilir, hızlı  
 **Eksileri:** ölçeklenmez, örüntü çeşitliliği sınırlı

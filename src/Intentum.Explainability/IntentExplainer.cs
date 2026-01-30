@@ -10,7 +10,7 @@ public sealed class IntentExplainer : IIntentExplainer
     /// <inheritdoc />
     public IReadOnlyList<SignalContribution> GetSignalContributions(Intent intent)
     {
-        if (intent?.Signals is null || intent.Signals.Count == 0)
+        if (intent.Signals.Count == 0)
             return Array.Empty<SignalContribution>();
 
         var total = intent.Signals.Sum(s => s.Weight);
@@ -30,9 +30,6 @@ public sealed class IntentExplainer : IIntentExplainer
     /// <inheritdoc />
     public string GetExplanation(Intent intent, int maxSignals = 5)
     {
-        if (intent is null)
-            return "No intent.";
-
         var level = intent.Confidence.Level;
         var score = intent.Confidence.Score;
         var contributions = GetSignalContributions(intent).Take(maxSignals).ToList();

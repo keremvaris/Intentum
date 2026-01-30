@@ -261,6 +261,8 @@ dotnet run --project examples/fraud-intent
 
 No API key required. Infers suspicious vs. legitimate behavior, then policy decides Block / Observe / Allow. See [Real-world scenarios — Fraud](docs/en/real-world-scenarios.md#use-case-1-fraud--abuse-intent-detection).
 
+**More examples:** [chained-intent](examples/chained-intent) (rule → LLM fallback, reasoning), [time-decay-intent](examples/time-decay-intent) (recent events weigh more), [vector-normalization](examples/vector-normalization) (Cap, L1, SoftCap). See [examples/README.md](examples/README.md).
+
 ---
 
 ## Documentation
@@ -276,6 +278,9 @@ No API key required. Infers suspicious vs. legitimate behavior, then policy deci
 - [CodeGen](docs/en/codegen.md) — scaffold CQRS + Intentum, dotnet new template
 - **Sample.Web:** `dotnet run --project samples/Intentum.Sample.Web` — UI and `POST /api/intent/infer`, analytics, health
 - **Fraud intent (advanced example):** `dotnet run --project examples/fraud-intent` — fraud/abuse intent detection, policy Block/Observe/Allow, no API key
+- **Chained intent:** `dotnet run --project examples/chained-intent` — rule-based first, LLM fallback, intent reasoning
+- **Time decay:** `dotnet run --project examples/time-decay-intent` — recent events weighted higher
+- **Vector normalization:** `dotnet run --project examples/vector-normalization` — Cap, L1, SoftCap for behavior vectors
 
 ---
 

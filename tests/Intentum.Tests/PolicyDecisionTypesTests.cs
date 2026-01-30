@@ -64,7 +64,7 @@ public class PolicyDecisionTypesTests
     [Fact]
     public void PolicyDecision_ToLocalizedString_Allow_Observe_Warn_Block_ReturnsLocalized()
     {
-        var localizer = new DefaultLocalizer("en");
+        var localizer = new DefaultLocalizer();
         Assert.Equal("Allow", PolicyDecision.Allow.ToLocalizedString(localizer));
         Assert.Equal("Observe", PolicyDecision.Observe.ToLocalizedString(localizer));
         Assert.Equal("Warn", PolicyDecision.Warn.ToLocalizedString(localizer));
@@ -75,7 +75,7 @@ public class PolicyDecisionTypesTests
     public void PolicyDecision_ToLocalizedString_Escalate_ReturnsLocalized()
     {
         // Arrange
-        var localizer = new DefaultLocalizer("en");
+        var localizer = new DefaultLocalizer();
 
         // Act
         var result = PolicyDecision.Escalate.ToLocalizedString(localizer);
@@ -88,7 +88,7 @@ public class PolicyDecisionTypesTests
     public void PolicyDecision_ToLocalizedString_RequireAuth_ReturnsLocalized()
     {
         // Arrange
-        var localizer = new DefaultLocalizer("en");
+        var localizer = new DefaultLocalizer();
 
         // Act
         var result = PolicyDecision.RequireAuth.ToLocalizedString(localizer);
@@ -101,7 +101,7 @@ public class PolicyDecisionTypesTests
     public void PolicyDecision_ToLocalizedString_RateLimit_ReturnsLocalized()
     {
         // Arrange
-        var localizer = new DefaultLocalizer("en");
+        var localizer = new DefaultLocalizer();
 
         // Act
         var result = PolicyDecision.RateLimit.ToLocalizedString(localizer);

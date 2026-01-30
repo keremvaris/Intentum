@@ -28,6 +28,8 @@ items:
     href: providers.md
   - name: AI sağlayıcılarını kullanma
     href: ai-providers-howto.md
+  - name: Greenwashing tespiti (how-to)
+    href: greenwashing-detection-howto.md
   - name: Test
     href: testing.md
   - name: Kitle
