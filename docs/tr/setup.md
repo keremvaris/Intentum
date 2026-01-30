@@ -127,6 +127,8 @@ Sadece gerçek HTTP adapter kullanırken ayarla:
 
 Detay ve örnekler: [Sağlayıcılar](providers.md).
 
+**Yerel geliştirme** (örn. entegrasyon testleri) için OpenAI ile `.env` kullanabilirsiniz: `.env.example`'ı `.env` olarak kopyalayın, `OPENAI_API_KEY` set edin ve `./scripts/run-integration-tests.sh` çalıştırın. Bkz. [Yerel entegrasyon testleri](local-integration-tests.md). `.env` asla commit edilmez; `.gitignore`'dadır.
+
 ---
 
 ## Repo yapısı
@@ -210,3 +212,11 @@ dotnet add package Intentum.Core --source IntentumLocal
 ```
 
 Diğer projeler (Intentum.Runtime, Intentum.AI vb.) için gerekirse tekrarla.
+
+---
+
+## Testler ve benchmark'lar
+
+- **Birim ve contract testleri:** Repo kökünden `dotnet test tests/Intentum.Tests/Intentum.Tests.csproj`. Bkz. [Test](testing.md).
+- **OpenAI entegrasyon testleri (yalnızca yerel):** `OPENAI_API_KEY` set edin (örn. `.env` ile) ve `./scripts/run-integration-tests.sh` çalıştırın. Bkz. [Yerel entegrasyon testleri](local-integration-tests.md).
+- **Benchmark'lar:** Gecikme ve throughput için `dotnet run --project benchmarks/Intentum.Benchmarks/Intentum.Benchmarks.csproj -c Release` çalıştırın. Sonuçlar `BenchmarkDotNet.Artifacts/results/` altına yazılır. Bkz. [benchmarks/README.md](../../benchmarks/README.md) ve [Case studies](../case-studies/README.md).

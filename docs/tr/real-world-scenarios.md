@@ -290,8 +290,10 @@ Her intent **Reasoning** içerir (hangi kural eşleşti veya fallback kullanıld
 
 Bu senaryolar için minimal çalıştırılabilir projeler:
 
-- [examples/fraud-intent](https://github.com/keremvaris/Intentum/tree/master/examples/fraud-intent)
-- [examples/ai-fallback-intent](https://github.com/keremvaris/Intentum/tree/master/examples/ai-fallback-intent)
+- [examples/fraud-intent](https://github.com/keremvaris/Intentum/tree/master/examples/fraud-intent) — Dolandırıcılık / kötüye kullanım intent, policy → StepUpAuth / Allow / Monitor
+- [examples/customer-intent](https://github.com/keremvaris/Intentum/tree/master/examples/customer-intent) — Müşteri intent (satın alma, destek), policy → Allow / Observe / intent'e göre yönlendirme
+- [examples/greenwashing-intent](https://github.com/keremvaris/Intentum/tree/master/examples/greenwashing-intent) — Rapor metninden greenwashing tespiti
+- [examples/ai-fallback-intent](https://github.com/keremvaris/Intentum/tree/master/examples/ai-fallback-intent) — AI karar yedeklemesi (PrematureClassification / CarefulUnderstanding)
 - [examples/chained-intent](https://github.com/keremvaris/Intentum/tree/master/examples/chained-intent) — Kural → LLM fallback
 - [examples/time-decay-intent](https://github.com/keremvaris/Intentum/tree/master/examples/time-decay-intent) — Yakın event'ler daha ağır
 - [examples/vector-normalization](https://github.com/keremvaris/Intentum/tree/master/examples/vector-normalization) — Cap, L1, SoftCap

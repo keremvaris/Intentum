@@ -44,6 +44,15 @@ Then open `coverage/index.html` in a browser.
 
 ---
 
+## SonarCloud: findings and quality gate
+
+- **Where to see results:** After CI runs, open [SonarCloud](https://sonarcloud.io) and select the Intentum project. The README badges (Coverage, SonarCloud alert status) link to the project summary.
+- **Quality gate:** SonarCloud evaluates "Coverage on New Code", "Duplications", "Maintainability", "Reliability", "Security". The **alert status** badge is green when the quality gate passes. Fix new issues (bugs, vulnerabilities, code smells) so the gate stays green.
+- **Coverage on New Code:** Only *new* code is required to meet the 80% line coverage target in the gate. Existing code is reported but does not fail the gate. Excluded paths (see below) are not counted.
+- **Finding and fixing issues:** In SonarCloud, open "Issues" to see bugs, vulnerabilities, and code smells. Address new issues before merging; use "Why is this an issue?" for guidance. Common fixes: use `await` for async, avoid redundant conditions, prefer constants for repeated literals, add null checks where required.
+
+---
+
 ## Notes
 
 - **SonarCloud exclusions:** CodeGen (CLI tool), `*ServiceCollectionExtensions`, `*CachingExtensions`, `MultiTenancyExtensions`, and optional provider (Claude) are excluded from coverage in SonarCloud so “Coverage on New Code” reflects the tested library. See `.sonarcloud.properties`.

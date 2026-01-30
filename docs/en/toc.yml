@@ -28,10 +28,26 @@ items:
     href: providers.md
   - name: How to use AI providers
     href: ai-providers-howto.md
+  - name: Embedding API error handling
+    href: embedding-api-errors.md
+  - name: Production readiness
+    href: production-readiness.md
+  - name: Observability
+    href: observability.md
+  - name: Clustering and Experiments use cases
+    href: clustering-and-experiments-use-cases.md
   - name: Greenwashing detection (how-to)
     href: greenwashing-detection-howto.md
+  - name: Domain intent templates
+    href: domain-intent-templates.md
+  - name: Explainability
+    href: explainability.md
+  - name: Benchmarks
+    href: benchmarks.md
   - name: Testing
     href: testing.md
+  - name: Local integration tests
+    href: local-integration-tests.md
   - name: Audience
     href: audience.md
   - name: Coverage
@@ -40,3 +56,5 @@ items:
     href: api.md
   - name: Advanced Features
     href: advanced-features.md
+  - name: Agent framework integration
+    href: agent-framework-integration.md

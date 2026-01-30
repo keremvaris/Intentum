@@ -9,7 +9,9 @@ Minimal runnable examples for real-world use cases. Each example focuses on **on
 
 | Example | Description |
 |--------|-------------|
-| [fraud-intent](fraud-intent/) | Fraud / abuse intent detection: infer risk from login failures, IP change, retries, captcha, password reset; policy → StepUpAuth / Allow / Monitor. |
+| [fraud-intent](fraud-intent/) | Fraud / abuse intent detection: infer risk from login failures, IP change, retries, captcha, password reset; policy → StepUpAuth / Allow / Monitor. See [Domain intent templates — Fraud](docs/en/domain-intent-templates.md#fraud--security). |
+| [customer-intent](customer-intent/) | Customer intent (purchase, info gathering, support): infer from browse, cart, checkout, search, FAQ, contact; policy → Allow / Observe / route by intent. See [Domain intent templates — Customer](docs/en/domain-intent-templates.md#customer-intent). |
+| [greenwashing-intent](greenwashing-intent/) | Greenwashing detection: infer from report text and signals; policy for ESG/claims. See [Greenwashing detection how-to](docs/en/greenwashing-detection-howto.md). |
 | [ai-fallback-intent](ai-fallback-intent/) | AI decision fallback: infer whether the model rushed (PrematureClassification) or was careful (CarefulUnderstanding); policy → RouteToHuman / AllowAutoDecision. |
 | [chained-intent](chained-intent/) | Chained intent: rule-based first, LLM fallback when no rule matches or confidence below threshold; shows Reasoning. |
 | [time-decay-intent](time-decay-intent/) | Time decay: recent events weigh more (TimeDecaySimilarityEngine with LlmIntentModel). |
@@ -21,13 +23,15 @@ From the repo root:
 
 ```bash
 dotnet run --project examples/fraud-intent
+dotnet run --project examples/customer-intent
+dotnet run --project examples/greenwashing-intent
 dotnet run --project examples/ai-fallback-intent
 dotnet run --project examples/chained-intent
 dotnet run --project examples/time-decay-intent
 dotnet run --project examples/vector-normalization
 ```
 
-No API keys required for fraud, ai-fallback, chained, time-decay, or vector-normalization (Mock or Core only).
+No API keys required for these examples (Mock or Core only).
 
 ## Documentation
 

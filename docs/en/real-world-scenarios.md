@@ -292,8 +292,10 @@ See [examples/chained-intent](https://github.com/keremvaris/Intentum/tree/master
 
 Minimal runnable projects for these scenarios:
 
-- [examples/fraud-intent](https://github.com/keremvaris/Intentum/tree/master/examples/fraud-intent)
-- [examples/ai-fallback-intent](https://github.com/keremvaris/Intentum/tree/master/examples/ai-fallback-intent)
+- [examples/fraud-intent](https://github.com/keremvaris/Intentum/tree/master/examples/fraud-intent) — Fraud / abuse intent, policy → StepUpAuth / Allow / Monitor
+- [examples/customer-intent](https://github.com/keremvaris/Intentum/tree/master/examples/customer-intent) — Customer intent (purchase, support), policy → Allow / Observe / route by intent
+- [examples/greenwashing-intent](https://github.com/keremvaris/Intentum/tree/master/examples/greenwashing-intent) — Greenwashing detection from report text
+- [examples/ai-fallback-intent](https://github.com/keremvaris/Intentum/tree/master/examples/ai-fallback-intent) — AI decision fallback (PrematureClassification / CarefulUnderstanding)
 - [examples/chained-intent](https://github.com/keremvaris/Intentum/tree/master/examples/chained-intent) — Rule → LLM fallback
 - [examples/time-decay-intent](https://github.com/keremvaris/Intentum/tree/master/examples/time-decay-intent) — Recent events weigh more
 - [examples/vector-normalization](https://github.com/keremvaris/Intentum/tree/master/examples/vector-normalization) — Cap, L1, SoftCap

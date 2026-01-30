@@ -30,7 +30,7 @@ dotnet add package Intentum.AI.AzureOpenAI
 dotnet add package Intentum.AI.Claude
 ```
 
-Alternatively, add **Intentum.Providers** to get Core, Runtime, AI, and all providers in one: `dotnet add package Intentum.Providers`. If youadd no provider, use **MockEmbeddingProvider** (in Intentum.AI) for local runs — no API key needed.
+Alternatively, add **Intentum.Providers** to get Core, Runtime, AI, and all providers in one: `dotnet add package Intentum.Providers`. If you add no provider, use **MockEmbeddingProvider** (in Intentum.AI) for local runs — no API key needed.
 
 ---
 
@@ -125,6 +125,8 @@ Set these only when using real HTTP adapters:
 
 Details and examples: [Providers](providers.md).
 
+For **local development** with OpenAI (e.g. running integration tests), you can use a `.env` file: copy `.env.example` to `.env`, set `OPENAI_API_KEY`, and run `./scripts/run-integration-tests.sh`. See [Local integration tests](local-integration-tests.md). Never commit `.env`; it is in `.gitignore`.
+
 ---
 
 ## Repository structure
@@ -208,3 +210,11 @@ dotnet add package Intentum.Core --source IntentumLocal
 ```
 
 Repeat for other projects (Intentum.Runtime, Intentum.AI, etc.) as needed.
+
+---
+
+## Tests and benchmarks
+
+- **Unit and contract tests:** From repo root, `dotnet test tests/Intentum.Tests/Intentum.Tests.csproj`. See [Testing](testing.md).
+- **OpenAI integration tests (local only):** Set `OPENAI_API_KEY` (e.g. via `.env`) and run `./scripts/run-integration-tests.sh`. See [Local integration tests](local-integration-tests.md).
+- **Benchmarks:** Run `dotnet run --project benchmarks/Intentum.Benchmarks/Intentum.Benchmarks.csproj -c Release` for latency and throughput. Results go to `BenchmarkDotNet.Artifacts/results/`. See [benchmarks/README.md](../../benchmarks/README.md) and [Case studies](../case-studies/README.md).

@@ -12,6 +12,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="ClosedXML" Version="0.104.2" />
     <PackageReference Include="coverlet.collector" Version="6.0.4" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.14.1" />
     <PackageReference Include="xunit" Version="2.9.3" />
@@ -41,6 +42,7 @@
     <ProjectReference Include="..\..\src\Intentum.MultiTenancy\Intentum.MultiTenancy.csproj" />
     <ProjectReference Include="..\..\src\Intentum.Simulation\Intentum.Simulation.csproj" />
     <ProjectReference Include="..\..\src\Intentum.Versioning\Intentum.Versioning.csproj" />
+    <ProjectReference Include="..\..\samples\Intentum.Sample.Web\Intentum.Sample.Web.csproj" />
   </ItemGroup>
 
 </Project>

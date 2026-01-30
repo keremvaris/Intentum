@@ -19,7 +19,7 @@ Core, Runtime, AI ve sağlayıcıların ötesindeki genişletme paketleri ve bu 
 | **Intentum.Simulation** | Niyet simülasyonu | Test için sentetik behavior space üretir; `IBehaviorSpaceSimulator`, `BehaviorSpaceSimulator` | [Intent Simulation](#intent-simulation) |
 | **Intentum.Versioning** | Policy versiyonlama | Rollback için policy/model versiyon takibi; `IVersionedPolicy`, `PolicyVersionTracker` | [Policy Versioning](#policy-versioning) |
 
-Çekirdek paketler (Intentum.Core, Intentum.Runtime, Intentum.AI, sağlayıcılar, Testing, AspNetCore, Persistence, Analytics) [Mimari](architecture.md) ve [README](../README.tr.md) içinde listelenir.
+Çekirdek paketler (Intentum.Core, Intentum.Runtime, Intentum.AI, sağlayıcılar, Testing, AspNetCore, Persistence, Analytics) [Mimari](architecture.md) ve [README](../../README.tr.md) içinde listelenir.
 
 ---
 
@@ -137,6 +137,8 @@ var windowed = space.ToVector(start, end, new ToVectorOptions(VectorNormalizatio
 ```
 
 Çalışan örnek: [examples/vector-normalization](https://github.com/keremvaris/Intentum/tree/master/examples/vector-normalization).
+
+**LlmIntentModel ile ToVectorOptions:** Extension `model.Infer(space, toVectorOptions)` (örn. `new ToVectorOptions(CapPerDimension: 20)`) ile vektörü cap’li hesaplayıp tek çağrıda infer edebilirsin — daha az boyut = daha az embedding çağrısı ve bellek. Bkz. [Benchmark'lar — İyileştirme fırsatları](benchmarks.md#iyileştirme-fırsatları-ve-önerilen-çözümler).
 
 ---
 

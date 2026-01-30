@@ -28,10 +28,26 @@ items:
     href: providers.md
   - name: AI sağlayıcılarını kullanma
     href: ai-providers-howto.md
+  - name: Embedding API hata yönetimi
+    href: embedding-api-errors.md
+  - name: Üretim hazırlığı
+    href: production-readiness.md
+  - name: Gözlemlenebilirlik
+    href: observability.md
+  - name: Clustering ve Experiments kullanım senaryoları
+    href: clustering-and-experiments-use-cases.md
   - name: Greenwashing tespiti (how-to)
     href: greenwashing-detection-howto.md
+  - name: Domain intent şablonları
+    href: domain-intent-templates.md
+  - name: Açıklanabilirlik
+    href: explainability.md
+  - name: Benchmark'lar
+    href: benchmarks.md
   - name: Test
     href: testing.md
+  - name: Yerel entegrasyon testleri
+    href: local-integration-tests.md
   - name: Kitle
     href: audience.md
   - name: Kapsam
@@ -40,3 +56,5 @@ items:
     href: api.md
   - name: Gelişmiş Özellikler
     href: advanced-features.md
+  - name: Agent framework entegrasyonu
+    href: agent-framework-integration.md

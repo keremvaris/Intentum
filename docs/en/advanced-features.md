@@ -19,7 +19,7 @@ Extended packages (beyond Core, Runtime, AI, and providers) and where they are d
 | **Intentum.Simulation** | Intent simulation | Synthetic behavior spaces for testing; `IBehaviorSpaceSimulator`, `BehaviorSpaceSimulator` | [Intent Simulation](#intent-simulation) |
 | **Intentum.Versioning** | Policy versioning | Policy/model version tracking for rollback; `IVersionedPolicy`, `PolicyVersionTracker` | [Policy Versioning](#policy-versioning) |
 
-Core packages (Intentum.Core, Intentum.Runtime, Intentum.AI, providers, Testing, AspNetCore, Persistence, Analytics) are listed in [Architecture](architecture.md) and [README](../README.md).
+Core packages (Intentum.Core, Intentum.Runtime, Intentum.AI, providers, Testing, AspNetCore, Persistence, Analytics) are listed in [Architecture](architecture.md) and [README](../../README.md).
 
 ---
 
@@ -137,6 +137,8 @@ var windowed = space.ToVector(start, end, new ToVectorOptions(VectorNormalizatio
 ```
 
 See [examples/vector-normalization](https://github.com/keremvaris/Intentum/tree/master/examples/vector-normalization) for a runnable example.
+
+**LlmIntentModel with ToVectorOptions:** Use the extension `model.Infer(space, toVectorOptions)` (e.g. `new ToVectorOptions(CapPerDimension: 20)`) to build the vector with a cap and infer in one call — fewer dimensions mean fewer embedding calls and less memory. See [Benchmarks — Improvement opportunities](benchmarks.md#improvement-opportunities-and-suggested-solutions).
 
 ---
 

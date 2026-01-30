@@ -44,9 +44,18 @@ Sonra tarayıcıda `coverage/index.html` aç.
 
 ---
 
+## SonarCloud: bulgular ve kalite kapısı
+
+- **Sonuçları nerede görürsünüz:** CI çalıştıktan sonra [SonarCloud](https://sonarcloud.io) açıp Intentum projesini seçin. README rozetleri (Coverage, SonarCloud alert status) proje özetine gider.
+- **Kalite kapısı:** SonarCloud "Coverage on New Code", "Duplications", "Maintainability", "Reliability", "Security" değerlendirir. **Alert status** rozeti kalite kapısı geçtiğinde yeşil olur. Kapının yeşil kalması için yeni bulguları (bug, güvenlik açığı, code smell) giderin.
+- **Coverage on New Code:** Kalite kapısında yalnızca *yeni* kodun %80 satır coverage hedefini karşılaması istenir. Mevcut kod raporlanır ama kapıyı düşürmez. Hariç tutulan yollar (aşağıya bakın) sayılmaz.
+- **Bulguları bulma ve giderme:** SonarCloud'da "Issues" ile bug, güvenlik açığı ve code smell'leri görün. Merge öncesi yeni bulguları giderin; rehber için "Why is this an issue?" kullanın. Sık düzeltmeler: async için `await` kullanın, gereksiz koşullardan kaçının, tekrarlayan sabitler için sabit tercih edin, gerekli yerde null kontrolü ekleyin.
+
+---
+
 ## Notlar
 
-- **SonarCloud hariç tutmalar:** CodeGen (CLI aracı), `*ServiceCollectionExtensions`, `*CachingExtensions`, `MultiTenancyExtensions` ve opsiyonel sağlayıcı (Claude) SonarCloud coverage'dan çıkarılmıştır; "Coverage on New Code" sadece test edilen kütüphaneyi yansıtır. Bkz. `.sonarcloud.properties`.
+- **SonarCloud hariç tutmalar:** CodeGen (CLI aracı), `*ServiceCollectionExtensions`, `*CachingExtensions`, `MultiTenancyExtensions` ve opsiyonel sağlayıcı (Claude) SonarCloud coverage'dan çıkarılmıştır; "Coverage on New Code" sadece test edilen kütüphaneyi yansıtır. Persistence adaptörleri (MongoDB, Redis) de hariç tutulabilir. Bkz. `.sonarcloud.properties` ve CI workflow `sonar.coverage.exclusions`.
 - **Eşikler:** Test projesinde (`Intentum.Tests.csproj`) `Threshold=80` ve `ThresholdType=line` ayarlı; SonarCloud kalite kapısı da yeni kod için %80 isteyebilir.
 - **Hariç tutma:** Coverlet ile tip/metot hariç tutmak (örn. üretilen kod) için proje dosyasında Coverlet exclude seçenekleri veya attribute kullan.
 

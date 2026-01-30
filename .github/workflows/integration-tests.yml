@@ -1,0 +1,31 @@
+# Optional: run real OpenAI API integration tests.
+# Trigger manually via Actions → integration-tests → Run workflow.
+# Requires repository secret OPENAI_API_KEY (and optionally OPENAI_BASE_URL, OPENAI_EMBEDDING_MODEL).
+name: integration-tests
+
+on:
+  workflow_dispatch:
+
+jobs:
+  openai-integration:
+    name: OpenAI real API
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Restore
+        run: dotnet restore Intentum.slnx
+
+      - name: Build
+        run: dotnet build Intentum.slnx --no-restore
+
+      - name: Run OpenAI integration tests
+        env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          OPENAI_BASE_URL: ${{ secrets.OPENAI_BASE_URL }}
+          OPENAI_EMBEDDING_MODEL: ${{ secrets.OPENAI_EMBEDDING_MODEL }}
+        run: dotnet test tests/Intentum.Tests/Intentum.Tests.csproj --no-build --filter "FullyQualifiedName~OpenAIIntegrationTests"

@@ -44,6 +44,8 @@ public sealed class IntentExplainer : IIntentExplainer
                 $"{c.Description} ({c.ContributionPercent:F0}%)"));
             parts.Add($"Top contributors: {top}.");
         }
+        if (!string.IsNullOrWhiteSpace(intent.Reasoning))
+            parts.Add($"Reasoning: {intent.Reasoning}");
         return string.Join(" ", parts);
     }
 }

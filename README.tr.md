@@ -274,7 +274,12 @@ API anahtarı gerekmez. Şüpheli vs. meşru davranışı çıkarır; policy Blo
 - [API Referansı](https://keremvaris.github.io/Intentum/api/)
 - [CodeGen](docs/tr/codegen.md) — CQRS + Intentum iskeleti, dotnet new şablonu
 - **Sample.Web:** `dotnet run --project samples/Intentum.Sample.Web` — UI ve `POST /api/intent/infer`, analytics, health
-- **Dolandırıcılık niyeti (gelişmiş örnek):** `dotnet run --project examples/fraud-intent` — dolandırıcılık/kötüye kullanım niyet tespiti, policy Block/Observe/Allow, API anahtarı yok
+- **Dolandırıcılık niyeti:** `dotnet run --project examples/fraud-intent` — dolandırıcılık/kötüye kullanım niyeti, policy Block/Observe/Allow
+- **Müşteri niyeti:** `dotnet run --project examples/customer-intent` — satın alma, destek, intent'e göre yönlendirme
+- **Greenwashing niyeti:** `dotnet run --project examples/greenwashing-intent` — ESG/rapor tespiti
+- **Zincirli niyet:** `dotnet run --project examples/chained-intent` — önce kural tabanlı, LLM yedek, intent reasoning
+- **Zaman azalması:** `dotnet run --project examples/time-decay-intent` — yakın event'ler daha ağır
+- **Vektör normalizasyonu:** `dotnet run --project examples/vector-normalization` — Cap, L1, SoftCap
 
 ---
 
@@ -293,6 +298,14 @@ API anahtarı gerekmez. Şüpheli vs. meşru davranışı çıkarır; policy Blo
 - **Eklentiler:** Intentum.Testing, Intentum.AspNetCore, Intentum.Observability, Intentum.Logging
 - **Persistence:** Intentum.Persistence, Intentum.Persistence.EntityFramework, Intentum.Analytics
 - **Gelişmiş:** Intentum.AI.Caching.Redis, Intentum.Clustering, Intentum.Events, Intentum.Experiments, Intentum.MultiTenancy, Intentum.Explainability, Intentum.Simulation, Intentum.Versioning — bkz. [Gelişmiş Özellikler](docs/tr/advanced-features.md)
+
+---
+
+## Testler ve benchmark'lar
+
+- **Birim testleri:** `dotnet test tests/Intentum.Tests/Intentum.Tests.csproj` — bkz. [Test](docs/tr/testing.md), [Kapsam](docs/tr/coverage.md), [SonarCloud](https://sonarcloud.io/summary/new_code?id=keremvaris_Intentum).
+- **OpenAI entegrasyon testleri (yerel):** `cp .env.example .env`, `OPENAI_API_KEY` set et, ardından `./scripts/run-integration-tests.sh` — bkz. [Yerel entegrasyon testleri](docs/tr/local-integration-tests.md).
+- **Benchmark'lar:** `dotnet run --project benchmarks/Intentum.Benchmarks/Intentum.Benchmarks.csproj -c Release` — ToVector, Infer, PolicyEngine için gecikme/throughput. Doküman güncelleme: `./scripts/run-benchmarks.sh` → [Case studies — Benchmark sonuçları](docs/case-studies/benchmark-results.md). Bkz. [Benchmark'lar](docs/tr/benchmarks.md).
 
 ---
 

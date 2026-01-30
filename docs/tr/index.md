@@ -26,7 +26,7 @@ Intentum’da **Infer** adımı isteğe bağlı **AI (embedding)** kullanır: da
 | **Similarity** | **Similarity engine** tüm embedding’leri tek bir skora indirger (örn. ortalama). Bu skor güven seviyesine dönüştürülür. |
 | **Intent** | **LlmIntentModel** bu skordan **Intent** (Confidence + Signals) üretir; policy bu intent’e göre Allow / Observe / Warn / Block verir. |
 
-Örneklerde genelde **Mock** kullanılır (API anahtarı yok). Gerçek AI ile denemek için ortam değişkeniyle bir sağlayıcı seçip aynı akışı çalıştırabilirsin; bkz. [Sağlayıcılar](providers.md) ve [Kurulum – gerçek sağlayıcı](setup.md#gerçek-sağlayıcı-kullanımı-örn-openai). **examples** içinde fraud-intent, ai-fallback-intent, **chained-intent**, **time-decay-intent**, **vector-normalization** var. Intent opsiyonel **Reasoning** (hangi kural eşleşti veya fallback) içerebilir.
+Örneklerde genelde **Mock** kullanılır (API anahtarı yok). Gerçek AI ile denemek için ortam değişkeniyle bir sağlayıcı seçip aynı akışı çalıştırabilirsin; bkz. [Sağlayıcılar](providers.md) ve [Kurulum – gerçek sağlayıcı](setup.md#gerçek-sağlayıcı-kullanımı-örn-openai). **examples** içinde fraud-intent, **customer-intent**, ai-fallback-intent, **chained-intent**, **time-decay-intent**, **vector-normalization**, **greenwashing-intent** var. Intent opsiyonel **Reasoning** (hangi kural eşleşti veya fallback) içerebilir.
 
 ---
 
@@ -71,7 +71,9 @@ Kısaca: **Given/When/Then kalktı; yerine Observe (olayları kaydet) → Infer 
 | [Kullanım Senaryoları](scenarios.md) | Örnek akışlar (tekrarlı ödeme, şüpheli tekrarlar, policy sırası). |
 | [CodeGen](codegen.md) | CQRS + Intentum proje iskeleti; test assembly veya YAML spec’ten Features üretme. |
 | [Test](testing.md) | Birim testleri, coverage, hata senaryoları. |
-| [Coverage](coverage.md) | Coverage üretme ve görüntüleme. |
+| [Yerel entegrasyon testleri](local-integration-tests.md) | `.env` ve `./scripts/run-integration-tests.sh` ile OpenAI entegrasyon testlerini yerelde çalıştırma. |
+| [Coverage](coverage.md) | Coverage üretme ve görüntüleme; SonarCloud bulguları ve kalite kapısı. |
+| [Benchmark'lar](benchmarks.md) | BenchmarkDotNet: ToVector, Infer, PolicyEngine; çalıştırma ve `./scripts/run-benchmarks.sh` ile doküman güncelleme. |
 | [Gelişmiş Özellikler](advanced-features.md) | Similarity engine'ler (WeightedAverage, TimeDecay, Cosine, Composite), **ana akışta source weights ve time decay**, **vektör normalizasyonu** (ToVectorOptions), **kural tabanlı ve zincirli intent modelleri**, fluent API'ler, caching, test utilities, rate limiting, analytics & reporting, middleware, observability, persistence. |
 
 ---
@@ -96,7 +98,7 @@ Kısaca: **Given/When/Then kalktı; yerine Observe (olayları kaydet) → Infer 
 
 ## Nasıl yapılır?
 
-- **İlk senaryoyu nasıl çalıştırırım?** — S“Konsol: dotnet run --project samples/Intentum.Sample; API + intent infer + analytics: dotnet run --project samples/Intentum.Sample.Web. Bkz. Kurulum.” mock sağlayıcı kullanır, API anahtarı gerekmez. Örnekler hem klasik (ödeme, giriş, destek, e‑ticaret: sepete ekleme, checkout, ödeme doğrulama) hem ESG (rapor gönderimi, uyumluluk) akışlarını gösterir.
+- **İlk senaryoyu nasıl çalıştırırım?** — Konsol örneği: `dotnet run --project samples/Intentum.Sample` (mock sağlayıcı, API anahtarı gerekmez). Tam API için `dotnet run --project samples/Intentum.Sample.Web`; repo yapısı ve endpoint'ler için [Kurulum](setup.md)'a bakın. Örnekler hem klasik (ödeme, giriş, destek, e‑ticaret: sepete ekleme, checkout, ödeme doğrulama) hem ESG (rapor gönderimi, uyumluluk) akışlarını gösterir.
 - **Policy nasıl eklenir?** — `IntentPolicy` oluştur, `.AddRule(PolicyRule(...))` ile kuralları **sırayla** ekle (önce Block, sonra Allow). Çıkarımdan sonra `intent.Decide(policy)` çağır. Detay için [Senaryolar](scenarios.md) ve [API Referansı](api.md).
 - **Klasik akışları (ödeme, login, destek) nasıl modellersin?** — Olayları `space.Observe(actor, action)` ile kaydet (örn. `"user"`, `"login"`; `"user"`, `"retry"`; `"user"`, `"submit"`). Model davranıştan intent çıkarır; policy Allow/Observe/Warn/Block verir. [Kullanım Senaryoları](scenarios.md) içinde hem klasik (ödeme, e‑ticaret) hem ESG örnekleri var.
 - **AI ile senaryo nasıl yazılır?** — Aynı `Observe` akışı Mock veya gerçek sağlayıcı (OpenAI, Gemini vb.) ile çalışır; davranış anahtarlarını anlamlı seç, policy'yi güven + sinyallere dayandır. Detay ve ipuçları: [Senaryolar – AI ile senaryolar](scenarios.md#ai-ile-senaryolar-nasıl-yapılır).

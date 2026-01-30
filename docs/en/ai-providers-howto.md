@@ -72,6 +72,8 @@ var intent = model.Infer(space);
 
 **Env vars:** `OPENAI_API_KEY`, `OPENAI_EMBEDDING_MODEL` (optional), `OPENAI_BASE_URL` (e.g. `https://api.openai.com/v1/`).
 
+**Error handling:** On HTTP errors (e.g. 401, 429, 500) the provider throws. There is no built-in retry or timeout; configure `HttpClient.Timeout` and use Polly or a custom handler for retry/rate-limit. See [Embedding API error handling](embedding-api-errors.md).
+
 ### Easy scenario
 
 **What:** You want to try without an API key.

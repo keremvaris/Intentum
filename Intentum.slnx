@@ -6,6 +6,7 @@
     <Project Path="examples/chained-intent/Intentum.Example.ChainedIntent.csproj" />
     <Project Path="examples/time-decay-intent/Intentum.Example.TimeDecayIntent.csproj" />
     <Project Path="examples/vector-normalization/Intentum.Example.VectorNormalization.csproj" />
+    <Project Path="examples/customer-intent/Intentum.Example.CustomerIntent.csproj" />
   </Folder>
   <Folder Name="/samples/">
     <Project Path="samples/Intentum.Sample/Intentum.Sample.csproj" />
@@ -13,6 +14,9 @@
   </Folder>
   <Folder Name="/tests/">
     <Project Path="tests/Intentum.Tests/Intentum.Tests.csproj" />
+  </Folder>
+  <Folder Name="/benchmarks/">
+    <Project Path="benchmarks/Intentum.Benchmarks/Intentum.Benchmarks.csproj" />
   </Folder>
   <Folder Name="/src/">
     <Project Path="src/Intentum.CodeGen/Intentum.CodeGen.csproj" />

@@ -261,7 +261,7 @@ dotnet run --project examples/fraud-intent
 
 No API key required. Infers suspicious vs. legitimate behavior, then policy decides Block / Observe / Allow. See [Real-world scenarios — Fraud](docs/en/real-world-scenarios.md#use-case-1-fraud--abuse-intent-detection).
 
-**More examples:** [chained-intent](examples/chained-intent) (rule → LLM fallback, reasoning), [time-decay-intent](examples/time-decay-intent) (recent events weigh more), [vector-normalization](examples/vector-normalization) (Cap, L1, SoftCap). See [examples/README.md](examples/README.md).
+**More examples:** [customer-intent](examples/customer-intent) (purchase, support), [greenwashing-intent](examples/greenwashing-intent) (ESG/report), [chained-intent](examples/chained-intent) (rule → LLM fallback, reasoning), [time-decay-intent](examples/time-decay-intent) (recent events weigh more), [vector-normalization](examples/vector-normalization) (Cap, L1, SoftCap). See [examples/README.md](examples/README.md).
 
 ---
 
@@ -277,7 +277,9 @@ No API key required. Infers suspicious vs. legitimate behavior, then policy deci
 - [API Reference](https://keremvaris.github.io/Intentum/api/)
 - [CodeGen](docs/en/codegen.md) — scaffold CQRS + Intentum, dotnet new template
 - **Sample.Web:** `dotnet run --project samples/Intentum.Sample.Web` — UI, `POST /api/intent/infer`, `POST /api/intent/explain`, greenwashing (`POST /api/greenwashing/analyze`, `GET /api/greenwashing/recent`), Dashboard (analytics, son çıkarımlar, son greenwashing analizleri), analytics export, health. See [docs/setup](docs/en/setup.md) and [samples/Intentum.Sample.Web/README.md](samples/Intentum.Sample.Web/README.md).
-- **Fraud intent (advanced example):** `dotnet run --project examples/fraud-intent` — fraud/abuse intent detection, policy Block/Observe/Allow, no API key
+- **Fraud intent:** `dotnet run --project examples/fraud-intent` — fraud/abuse intent, policy Block/Observe/Allow
+- **Customer intent:** `dotnet run --project examples/customer-intent` — purchase, support, route by intent
+- **Greenwashing intent:** `dotnet run --project examples/greenwashing-intent` — ESG/report detection
 - **Chained intent:** `dotnet run --project examples/chained-intent` — rule-based first, LLM fallback, intent reasoning
 - **Time decay:** `dotnet run --project examples/time-decay-intent` — recent events weighted higher
 - **Vector normalization:** `dotnet run --project examples/vector-normalization` — Cap, L1, SoftCap for behavior vectors
@@ -299,6 +301,14 @@ No API key required. Infers suspicious vs. legitimate behavior, then policy deci
 - **Extensions:** Intentum.Testing, Intentum.AspNetCore, Intentum.Observability, Intentum.Logging
 - **Persistence:** Intentum.Persistence, Intentum.Persistence.EntityFramework, Intentum.Analytics
 - **Advanced:** Intentum.AI.Caching.Redis, Intentum.Clustering, Intentum.Events, Intentum.Experiments, Intentum.MultiTenancy, Intentum.Explainability, Intentum.Simulation, Intentum.Versioning — see [Advanced Features](docs/en/advanced-features.md)
+
+---
+
+## Tests and benchmarks
+
+- **Unit tests:** `dotnet test tests/Intentum.Tests/Intentum.Tests.csproj` — see [Testing](docs/en/testing.md), [Coverage](docs/en/coverage.md), [SonarCloud](https://sonarcloud.io/summary/new_code?id=keremvaris_Intentum).
+- **OpenAI integration tests (local):** `cp .env.example .env`, set `OPENAI_API_KEY`, then `./scripts/run-integration-tests.sh` — see [Local integration tests](docs/en/local-integration-tests.md).
+- **Benchmarks:** `dotnet run --project benchmarks/Intentum.Benchmarks/Intentum.Benchmarks.csproj -c Release` — latency/throughput for ToVector, Infer, PolicyEngine. Refresh docs: `./scripts/run-benchmarks.sh` → [Case studies — Benchmark results](docs/case-studies/benchmark-results.md). See [Benchmarks](docs/en/benchmarks.md).
 
 ---
 

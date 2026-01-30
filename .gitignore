@@ -14,6 +14,16 @@ inspection-results.xml
 inspection-results.json
 inspection-results.html
 
+## Local secrets (API keys, .env — never commit)
+.env
+.env.local
+*.env.local
+
+# .env.example is committed as a safe template (no secrets). Only .env is ignored.
+
+# Greenwashing case study: optional downloaded HTML (re-fetch with scripts/download-greenwashing-sources.sh)
+docs/case-studies/downloaded/
+
 ## IDE / OS
 .idea/
 .vscode/
