@@ -13,6 +13,80 @@ Bu dosya **conventional commit** mesajlarından otomatik üretilir. Commit'te **
 
 ---
 
+## [1.0.1] - 2026-01-30
+
+
+
+### Refactor
+
+- **Improve BehaviorVector normalization and caching logic** *(core)*
+
+- Consolidate cache usage checks into a reusable method UseCache
+- Refactor ApplyOptions to use switch expressions for normalization modes
+- Extract ApplyCap, ApplySoftCap, and ApplyL1 helper functions for clarity
+- Simplify cached vector retrieval in ToVector method
+- Ensure consistent dictionary mutation and return in normalization helpers
+
+feat(api): add GetVariantNames method to PolicyVariantSet
+
+- Replace VariantNames property with GetVariantNames() method
+- Update usages and tests to call GetVariantNames()
+
+fix(tests): update assertions to use pattern matching syntax
+
+- Change range checks to use 'is >= x and <= y' syntax in tests
+- Replace simple boolean expressions with improved range patterns
+
+feat(extensions): replace null checks with ArgumentNullException.ThrowIfNull
+
+- Update multiple methods to use modern null argument validation
+- Remove explicit null if-checks in persistence and streaming code
+
+feat(intent-model): add safer streaming extension methods
+
+- Simplify IIntentModel extensions with private enumerator methods
+- Use async iterators with cancellation support and argument validation
+
+chore(providers): add PackageId constant and XML doc to MetaPackage
+
+- Add XML documentation summarizing the meta-package purpose
+- Introduce public const string PackageId = "Intentum.Providers"
+
+feat(greenwashing): improve regex usage and simplify intent scoring
+
+- Use GeneratedRegex attributes for repeated metric and comparison patterns
+- Replace explicit regex options with Regex.Count and compiled partial methods
+- Extract intent naming logic into GetIntentNameFromScore helper
+- Refactor pattern matching in policy escalation rules for clarity
+- Encapsulate greenwashing logic into internal partial classes and structs
+
+refactor(logging): use constants for repeated event strings
+
+- Define ActionLoginFailed constant and use it for all "login.failed" events
+- Improve code clarity in chained-intent and vector-normalization examples
+
+style(code): minor cleanup and consistent pattern usage in deserialization
+
+- Use pattern matching 'is { Count: > 0 }' for dictionary null/empty check
+- Remove redundant CancellationToken parameters where unused
+
+perf(regex): add timeout and ignore case for regex operations
+
+- Introduce regexTimeout of 1 second in relevant greenwashing example code
+- Add RegexOptions.IgnoreCase and match timeout to Regex.Matches calls
+
+fix(redis, mongo): fix null checks and await expression placements
+
+- Correct condition syntax to use C# pattern matching form
+- Remove unused CancellationToken parameters from async calls in redis repo
+
+test(policy): rename test method to reflect new GetVariantNames usage
+
+- Rename PolicyVariantSet_VariantNames_ReturnsAllNames to PolicyVariantSet_GetVariantNames_ReturnsAllNames
+- Update assert calls for new method usage in tests
+
+
+
 ## [1.0.0] - 2026-01-30
 
 
