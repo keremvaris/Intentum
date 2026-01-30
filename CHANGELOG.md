@@ -13,6 +13,28 @@ Bu dosya **conventional commit** mesajlarından otomatik üretilir. Commit'te **
 
 ---
 
+## [1.0.3] - 2026-01-30
+
+
+
+### Features
+
+- **Add sample web HTTP API docs and redesign sample web app UI** *(api, ui)*
+
+- Document HTTP endpoints for intent inference, explainability, greenwashing detection,
+  and analytics in English and Turkish API docs
+- Add detailed descriptions of API methods with example request/response data
+- Redesign sample web app with modern, softer dark theme and sustainability accent colors
+- Introduce new CSS variables for colors, typography, and shadows with responsive layout
+- Implement sticky header, tab navigation for example and dashboard views
+- Enhance forms and result panels with improved styles and animated fade-in effect
+- Add dynamic UI elements including live toggle, preset scenarios, and badges for decisions
+- Improve event list, signal contributions table and monitoring dashboard components
+- Refactor JavaScript for API calls to disable POST caching and support loading states
+- Implement tab switching logic with ARIA and accessibility attributes for better UX
+
+
+
 ## [1.0.2] - 2026-01-30
 
 
