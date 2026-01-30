@@ -13,7 +13,7 @@ Bu dosya **conventional commit** mesajlarından otomatik üretilir. Commit'te **
 
 ---
 
-## [unreleased]
+## [1.0.4] - 2026-01-30
 
 
 
@@ -23,6 +23,15 @@ Bu dosya **conventional commit** mesajlarından otomatik üretilir. Commit'te **
 
 - Change CreateModel method return type from IIntentModel to LlmIntentModel
 - Update exception assertion to use Assert.IsType with non-exact match for OperationCanceledException
+
+
+
+- **Add adversarial intent and cross-LLM consistency tests** *(intentum)*
+
+- Add AdversarialIntentTests class to verify policy blocks and decisions for malicious event sequences
+- Cover scenarios including excessive retries, many failed logins, suspicious velocities, and mixed benign/suspicious events
+- Add CrossLLMConsistencyTests to check consistency of intents across different embedding providers using mocks
+- Ensure pipeline produces valid intents with fixed score embeddings for cross-provider scenarios
 
 
 
