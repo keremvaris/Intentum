@@ -84,9 +84,6 @@ public sealed class BehaviorSpace
         return result;
     }
 
-    private static bool UseCache(ToVectorOptions? options)
-        => options == null || options is { Normalization: VectorNormalization.None, CapPerDimension: <= 0 };
-
     /// <summary>Builds a behavior vector from events within a time window.</summary>
     public BehaviorVector ToVector(DateTimeOffset start, DateTimeOffset end)
         => ToVector(start, end, null);
@@ -106,6 +103,9 @@ public sealed class BehaviorSpace
         dimensions = ApplyOptions(dimensions, options);
         return new BehaviorVector(dimensions);
     }
+
+    private static bool UseCache(ToVectorOptions? options)
+        => options == null || options is { Normalization: VectorNormalization.None, CapPerDimension: <= 0 };
 
     private static Dictionary<string, double> ApplyOptions(Dictionary<string, double> dimensions, ToVectorOptions? options)
     {

@@ -42,15 +42,14 @@ public static class IntentModelStreamingExtensions
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>Async sequence of inferred intents in the same order as <paramref name="spaces"/>.</returns>
     [UsedImplicitly]
-    public static async IAsyncEnumerable<Intent> InferManyAsync(
+    public static IAsyncEnumerable<Intent> InferManyAsync(
         this IIntentModel model,
         IAsyncEnumerable<BehaviorSpace> spaces,
-        [EnumeratorCancellation] CancellationToken cancellationToken = default)
+        CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(model);
         ArgumentNullException.ThrowIfNull(spaces);
-        await foreach (var intent in InferManyAsyncIterator(model, spaces, cancellationToken))
-            yield return intent;
+        return InferManyAsyncIterator(model, spaces, cancellationToken);
     }
 
     private static async IAsyncEnumerable<Intent> InferManyAsyncIterator(
