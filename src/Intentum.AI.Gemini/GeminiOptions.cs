@@ -22,17 +22,16 @@ public sealed class GeminiOptions
     public static GeminiOptions FromEnvironment()
     {
         var apiKey = Environment.GetEnvironmentVariable("GEMINI_API_KEY")
-            ?? throw new InvalidOperationException("GEMINI_API_KEY is not set.");
+            ?? throw new InvalidOperationException("GEMINI_API_KEY is not set. Copy .env.example to .env and set GEMINI_API_KEY, or run from repo root so .env is loaded.");
 
-        var baseUrl = Environment.GetEnvironmentVariable("GEMINI_BASE_URL");
-        if (string.IsNullOrWhiteSpace(baseUrl))
-            throw new InvalidOperationException("GEMINI_BASE_URL is not set.");
+        var baseUrl = Environment.GetEnvironmentVariable("GEMINI_BASE_URL")
+            ?? "https://generativelanguage.googleapis.com/v1beta/";
 
         return new GeminiOptions
         {
             ApiKey = apiKey,
             EmbeddingModel = Environment.GetEnvironmentVariable("GEMINI_EMBEDDING_MODEL") ?? "text-embedding-004",
-            BaseUrl = baseUrl
+            BaseUrl = baseUrl.TrimEnd('/') + "/"
         };
     }
 }

@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
-# Loads .env (repo root) and runs OpenAI integration tests.
-# .env: OPENAI_API_KEY (and optionally OPENAI_BASE_URL, OPENAI_EMBEDDING_MODEL).
+# Loads .env (repo root) and runs Gemini integration tests.
+# .env: GEMINI_API_KEY (and optionally GEMINI_BASE_URL, GEMINI_EMBEDDING_MODEL).
 # Create from .env.example; .env is gitignored.
 set -e
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -13,5 +13,5 @@ if [[ -f "$ENV_FILE" ]]; then
   set +a
 fi
 cd "$REPO_ROOT"
-echo "Running OpenAI integration tests..."
-dotnet test tests/Intentum.Tests/Intentum.Tests.csproj --filter "FullyQualifiedName~OpenAIIntegrationTests" "$@"
+echo "Running Gemini integration tests..."
+dotnet test tests/Intentum.Tests/Intentum.Tests.csproj --filter "FullyQualifiedName~GeminiIntegrationTests" "$@"

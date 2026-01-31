@@ -303,8 +303,9 @@ API anahtarı gerekmez. Şüpheli vs. meşru davranışı çıkarır; policy Blo
 
 ## Testler ve benchmark'lar
 
-- **Birim testleri:** `dotnet test tests/Intentum.Tests/Intentum.Tests.csproj` — bkz. [Test](docs/tr/testing.md), [Kapsam](docs/tr/coverage.md), [SonarCloud](https://sonarcloud.io/summary/new_code?id=keremvaris_Intentum).
-- **OpenAI entegrasyon testleri (yerel):** `cp .env.example .env`, `OPENAI_API_KEY` set et, ardından `./scripts/run-integration-tests.sh` — bkz. [Yerel entegrasyon testleri](docs/tr/local-integration-tests.md).
+- **Birim testleri:** `dotnet test tests/Intentum.Tests/Intentum.Tests.csproj` (CI `Category=Integration` hariç) — bkz. [Test](docs/tr/testing.md), [Kapsam](docs/tr/coverage.md), [SonarCloud](https://sonarcloud.io/summary/new_code?id=keremvaris_Intentum).
+- **VerifyAI (yerel):** `cp .env.example .env`, en az bir sağlayıcı anahtarı set et, ardından `dotnet run --project samples/Intentum.VerifyAI` — bkz. [Yerel entegrasyon testleri](docs/tr/local-integration-tests.md).
+- **Sağlayıcı bazlı entegrasyon testleri (yerel):** `./scripts/run-integration-tests.sh` (OpenAI), `run-mistral-integration-tests.sh`, `run-gemini-integration-tests.sh`, `run-azure-integration-tests.sh`.
 - **Benchmark'lar:** `dotnet run --project benchmarks/Intentum.Benchmarks/Intentum.Benchmarks.csproj -c Release` — ToVector, Infer, PolicyEngine için gecikme/throughput. Doküman güncelleme: `./scripts/run-benchmarks.sh` → [Case studies — Benchmark sonuçları](docs/case-studies/benchmark-results.md). Bkz. [Benchmark'lar](docs/tr/benchmarks.md).
 
 ---

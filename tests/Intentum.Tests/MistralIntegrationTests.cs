@@ -1,6 +1,6 @@
 using System.Net;
 using Intentum.AI.Models;
-using Intentum.AI.OpenAI;
+using Intentum.AI.Mistral;
 using Intentum.AI.Similarity;
 using Intentum.Core;
 using Intentum.Core.Behavior;
@@ -10,39 +10,39 @@ using Intentum.Runtime.Policy;
 namespace Intentum.Tests;
 
 /// <summary>
-/// Real OpenAI API integration tests. Run when OPENAI_API_KEY is set (e.g. via .env or scripts/run-integration-tests.sh).
-/// Fails with a clear message when the key is missing so we don't silently skip and think tests passed.
+/// Real Mistral API integration tests. Run when MISTRAL_API_KEY is set (e.g. via .env or scripts/run-mistral-integration-tests.sh).
+/// Fails with a clear message when the key is missing.
 /// </summary>
 [Trait("Category", "Integration")]
-public class OpenAIIntegrationTests
+public class MistralIntegrationTests
 {
     private static bool HasRealApiKey => !string.IsNullOrWhiteSpace(
-        Environment.GetEnvironmentVariable("OPENAI_API_KEY"));
+        Environment.GetEnvironmentVariable("MISTRAL_API_KEY"));
 
     private const string MissingKeyMessage =
-        "OPENAI_API_KEY is not set. Copy .env.example to .env and set OPENAI_API_KEY (or run ./scripts/run-integration-tests.sh which loads .env). " +
-        "To exclude these tests: --filter \"FullyQualifiedName!=Intentum.Tests.OpenAIIntegrationTests\".";
+        "MISTRAL_API_KEY is not set. Copy .env.example to .env and set MISTRAL_API_KEY (and optionally MISTRAL_BASE_URL). " +
+        "Run: ./scripts/run-mistral-integration-tests.sh. To exclude: --filter \"FullyQualifiedName!=Intentum.Tests.MistralIntegrationTests\".";
 
     [Fact]
-    public void OpenAIEmbeddingProvider_RealApi_ReturnsValidScore()
+    public void MistralEmbeddingProvider_RealApi_ReturnsValidScore()
     {
         Assert.True(HasRealApiKey, MissingKeyMessage);
 
         try
         {
-            var baseUrl = Environment.GetEnvironmentVariable("OPENAI_BASE_URL")
-                ?? "https://api.openai.com/v1/";
-            var options = new OpenAIOptions
+            var baseUrl = Environment.GetEnvironmentVariable("MISTRAL_BASE_URL")
+                ?? "https://api.mistral.ai/v1/";
+            var options = new MistralOptions
             {
-                ApiKey = Environment.GetEnvironmentVariable("OPENAI_API_KEY")!,
-                EmbeddingModel = Environment.GetEnvironmentVariable("OPENAI_EMBEDDING_MODEL") ?? "text-embedding-3-small",
+                ApiKey = Environment.GetEnvironmentVariable("MISTRAL_API_KEY")!,
+                EmbeddingModel = Environment.GetEnvironmentVariable("MISTRAL_EMBEDDING_MODEL") ?? "mistral-embed",
                 BaseUrl = baseUrl.TrimEnd('/') + "/"
             };
             using var httpClient = new HttpClient();
             httpClient.BaseAddress = new Uri(options.BaseUrl!);
             httpClient.DefaultRequestHeaders.Add("Authorization", "Bearer " + options.ApiKey);
 
-            var provider = new OpenAIEmbeddingProvider(options, httpClient);
+            var provider = new MistralEmbeddingProvider(options, httpClient);
             var result = provider.Embed("user:login");
 
             Assert.NotNull(result);
@@ -51,30 +51,30 @@ public class OpenAIIntegrationTests
         }
         catch (HttpRequestException ex) when (ex.StatusCode == HttpStatusCode.TooManyRequests)
         {
-            // Skip: free tier rate limit; run again later or use paid tier
+            // Skip: rate limit; run again later
         }
     }
 
     [Fact]
-    public void LlmIntentModel_RealOpenAI_FullPipeline_ProducesIntent()
+    public void LlmIntentModel_RealMistral_FullPipeline_ProducesIntent()
     {
         Assert.True(HasRealApiKey, MissingKeyMessage);
 
         try
         {
-            var baseUrl = Environment.GetEnvironmentVariable("OPENAI_BASE_URL")
-                ?? "https://api.openai.com/v1/";
-            var options = new OpenAIOptions
+            var baseUrl = Environment.GetEnvironmentVariable("MISTRAL_BASE_URL")
+                ?? "https://api.mistral.ai/v1/";
+            var options = new MistralOptions
             {
-                ApiKey = Environment.GetEnvironmentVariable("OPENAI_API_KEY")!,
-                EmbeddingModel = Environment.GetEnvironmentVariable("OPENAI_EMBEDDING_MODEL") ?? "text-embedding-3-small",
+                ApiKey = Environment.GetEnvironmentVariable("MISTRAL_API_KEY")!,
+                EmbeddingModel = Environment.GetEnvironmentVariable("MISTRAL_EMBEDDING_MODEL") ?? "mistral-embed",
                 BaseUrl = baseUrl.TrimEnd('/') + "/"
             };
             using var httpClient = new HttpClient();
             httpClient.BaseAddress = new Uri(options.BaseUrl!);
             httpClient.DefaultRequestHeaders.Add("Authorization", "Bearer " + options.ApiKey);
 
-            var embeddingProvider = new OpenAIEmbeddingProvider(options, httpClient);
+            var embeddingProvider = new MistralEmbeddingProvider(options, httpClient);
             var similarityEngine = new SimpleAverageSimilarityEngine();
             var model = new LlmIntentModel(embeddingProvider, similarityEngine);
 
@@ -98,7 +98,7 @@ public class OpenAIIntegrationTests
         }
         catch (HttpRequestException ex) when (ex.StatusCode == HttpStatusCode.TooManyRequests)
         {
-            // Skip: free tier rate limit; run again later or use paid tier
+            // Skip: rate limit; run again later
         }
     }
 }

@@ -19,7 +19,7 @@ When the embedding API fails (timeout, 429, 5xx):
 ## Cost control
 
 - **Cap embedding calls:** For large behavior spaces, the number of dimensions (unique actor:action) equals the number of embedding calls. Use [ToVectorOptions](api.md) (e.g. CapPerDimension, normalization) to limit dimension count, or **sample** dimensions (e.g. top N by count) before calling the model.
-- **Cache:** Use [CachedEmbeddingProvider](api.md) (or Redis/FusionCache adapters) so repeated behavior keys do not call the API. Reduces cost and latency.
+- **Cache:** Use [CachedEmbeddingProvider](api.md) (or Redis adapter) so repeated behavior keys do not call the API. Reduces cost and latency.
 - **Benchmark:** Run the [benchmarks](../../benchmarks/README.md) to see latency and throughput; use that to size timeouts and rate limits.
 
 ## Summary

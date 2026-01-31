@@ -1,3 +1,4 @@
+using DotNetEnv;
 using Intentum.AI.Caching;
 using Intentum.AI.Embeddings;
 using Intentum.AI.Mock;
@@ -22,6 +23,9 @@ using Microsoft.Extensions.Caching.Memory;
 // - Real AI: set OPENAI_API_KEY (and optionally OPENAI_EMBEDDING_MODEL) to use OpenAI embeddings.
 // Run: dotnet run --project samples/Intentum.Sample
 // ---------------------------------------------------------------------------
+
+// Load .env from repo root so OPENAI_API_KEY is available when running from IDE or dotnet run
+Env.TraversePath().Load();
 
 IIntentEmbeddingProvider embeddingProvider;
 // ReSharper disable once InconsistentNaming

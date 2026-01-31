@@ -6,8 +6,8 @@ using JetBrains.Annotations;
 namespace Intentum.AI.OpenAI;
 
 /// <summary>
-/// OpenAI embedding provider. Calls the OpenAI embeddings API; on non-2xx response throws <see cref="HttpRequestException"/>.
-/// No built-in timeout (use <see cref="HttpClient.Timeout"/>), retry, or circuit breaker; see docs on embedding API error handling.
+/// OpenAI embedding provider. Calls the OpenAI embeddings API; on 429 after retries throws <see cref="OpenAIRateLimitException"/> with optional Retry-After; other non-2xx throw <see cref="HttpRequestException"/>.
+/// Built-in retry for 429 (up to 5 attempts, respects Retry-After). No timeout (use <see cref="HttpClient.Timeout"/>).
 /// </summary>
 public sealed class OpenAIEmbeddingProvider(OpenAIOptions options, HttpClient httpClient) : IIntentEmbeddingProvider
 {
@@ -29,7 +29,14 @@ public sealed class OpenAIEmbeddingProvider(OpenAIOptions options, HttpClient ht
 
             if (response.IsSuccessStatusCode)
                 break;
-            if (response.StatusCode != System.Net.HttpStatusCode.TooManyRequests || attempt == maxAttempts)
+            if (response.StatusCode == System.Net.HttpStatusCode.TooManyRequests && attempt == maxAttempts)
+            {
+                var retryAfterSec = response.Headers.RetryAfter?.Delta?.TotalSeconds;
+                var body = response.Content.ReadAsStringAsync().GetAwaiter().GetResult();
+                response.Dispose();
+                throw new OpenAIRateLimitException(retryAfterSec, body);
+            }
+            if (response.StatusCode != System.Net.HttpStatusCode.TooManyRequests)
                 response.EnsureSuccessStatusCode();
 
             var delay = TimeSpan.FromSeconds(5 * attempt);

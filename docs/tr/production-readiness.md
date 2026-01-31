@@ -19,7 +19,7 @@ Embedding API başarısız olduğunda (timeout, 429, 5xx):
 ## Maliyet kontrolü
 
 - **Embedding çağrılarını sınırla:** Büyük davranış uzaylarında boyut sayısı (benzersiz actor:action) embedding çağrı sayısına eşittir. Boyut sayısını sınırlamak için [ToVectorOptions](api.md) (örn. CapPerDimension, normalizasyon) kullanın veya modele çağırmadan önce **örnekleme** (örn. sayıya göre ilk N) yapın.
-- **Önbellek:** Tekrarlayan davranış anahtarları API'yi tekrar çağırmasın diye [CachedEmbeddingProvider](api.md) (veya Redis/FusionCache adaptörleri) kullanın. Maliyet ve gecikmeyi azaltır.
+- **Önbellek:** Tekrarlayan davranış anahtarları API'yi tekrar çağırmasın diye [CachedEmbeddingProvider](api.md) (veya Redis adaptörü) kullanın. Maliyet ve gecikmeyi azaltır.
 - **Benchmark:** Gecikme ve throughput için [benchmarks](../../benchmarks/README.md) çalıştırın; timeout ve rate limit boyutlandırmasında bunu kullanın.
 
 ## Özet

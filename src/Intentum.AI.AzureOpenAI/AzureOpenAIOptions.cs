@@ -25,13 +25,13 @@ public sealed class AzureOpenAIOptions
     public static AzureOpenAIOptions FromEnvironment()
     {
         var endpoint = Environment.GetEnvironmentVariable("AZURE_OPENAI_ENDPOINT")
-            ?? throw new InvalidOperationException("AZURE_OPENAI_ENDPOINT is not set.");
+            ?? throw new InvalidOperationException("AZURE_OPENAI_ENDPOINT is not set. Copy .env.example to .env and set AZURE_OPENAI_ENDPOINT and AZURE_OPENAI_API_KEY, or run from repo root so .env is loaded.");
         var apiKey = Environment.GetEnvironmentVariable("AZURE_OPENAI_API_KEY")
-            ?? throw new InvalidOperationException("AZURE_OPENAI_API_KEY is not set.");
+            ?? throw new InvalidOperationException("AZURE_OPENAI_API_KEY is not set. Copy .env.example to .env and set AZURE_OPENAI_API_KEY, or run from repo root so .env is loaded.");
 
         return new AzureOpenAIOptions
         {
-            Endpoint = endpoint,
+            Endpoint = endpoint.TrimEnd('/') + "/",
             ApiKey = apiKey,
             EmbeddingDeployment = Environment.GetEnvironmentVariable("AZURE_OPENAI_EMBEDDING_DEPLOYMENT") ?? "embedding",
             ApiVersion = Environment.GetEnvironmentVariable("AZURE_OPENAI_API_VERSION") ?? "2023-05-15"

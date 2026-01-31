@@ -22,17 +22,16 @@ public sealed class MistralOptions
     public static MistralOptions FromEnvironment()
     {
         var apiKey = Environment.GetEnvironmentVariable("MISTRAL_API_KEY")
-            ?? throw new InvalidOperationException("MISTRAL_API_KEY is not set.");
+            ?? throw new InvalidOperationException("MISTRAL_API_KEY is not set. Copy .env.example to .env and set MISTRAL_API_KEY, or run from repo root so .env is loaded.");
 
-        var baseUrl = Environment.GetEnvironmentVariable("MISTRAL_BASE_URL");
-        if (string.IsNullOrWhiteSpace(baseUrl))
-            throw new InvalidOperationException("MISTRAL_BASE_URL is not set.");
+        var baseUrl = Environment.GetEnvironmentVariable("MISTRAL_BASE_URL")
+            ?? "https://api.mistral.ai/v1/";
 
         return new MistralOptions
         {
             ApiKey = apiKey,
             EmbeddingModel = Environment.GetEnvironmentVariable("MISTRAL_EMBEDDING_MODEL") ?? "mistral-embed",
-            BaseUrl = baseUrl
+            BaseUrl = baseUrl.TrimEnd('/') + "/"
         };
     }
 }

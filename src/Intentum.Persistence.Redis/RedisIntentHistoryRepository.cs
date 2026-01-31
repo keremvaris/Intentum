@@ -1,6 +1,7 @@
 using System.Text.Json;
 using Intentum.Core.Intents;
 using Intentum.Persistence.Repositories;
+using Intentum.Persistence.Serialization;
 using Intentum.Runtime.Policy;
 using StackExchange.Redis;
 
@@ -14,7 +15,6 @@ public sealed class RedisIntentHistoryRepository : IIntentHistoryRepository
 {
     private readonly IConnectionMultiplexer _redis;
     private readonly string _keyPrefix;
-    private static readonly JsonSerializerOptions JsonOptions = new() { PropertyNamingPolicy = JsonNamingPolicy.CamelCase };
 
     public RedisIntentHistoryRepository(IConnectionMultiplexer redis, string keyPrefix = "intentum:inthistory:")
     {
@@ -31,7 +31,8 @@ public sealed class RedisIntentHistoryRepository : IIntentHistoryRepository
     {
         var record = IntentHistoryRecord.Create(behaviorSpaceId, intent, decision, metadata);
         var db = _redis.GetDatabase();
-        var json = JsonSerializer.Serialize(IntentHistoryDto.From(record), JsonOptions);
+        var doc = IntentHistoryDocument.From(record);
+        var json = JsonSerializer.Serialize(doc, IntentHistorySerialization.JsonOptions);
         await db.StringSetAsync(_keyPrefix + "record:" + record.Id, json);
         await db.SetAddAsync(_keyPrefix + "bybehaviorspace:" + behaviorSpaceId, record.Id);
         await db.SetAddAsync(_keyPrefix + "ids", record.Id);
@@ -106,50 +107,7 @@ public sealed class RedisIntentHistoryRepository : IIntentHistoryRepository
         var json = await db.StringGetAsync(_keyPrefix + "record:" + id);
         if (json.IsNullOrEmpty)
             return null;
-        var dto = JsonSerializer.Deserialize<IntentHistoryDto>(json!.ToString());
-        return dto?.ToRecord();
-    }
-
-    private sealed class IntentHistoryDto
-    {
-        public string Id { get; set; } = "";
-        public string BehaviorSpaceId { get; set; } = "";
-        public string IntentName { get; set; } = "";
-        public string ConfidenceLevel { get; set; } = "";
-        public double ConfidenceScore { get; set; }
-        public string Decision { get; set; } = "";
-        public DateTimeOffset RecordedAt { get; set; }
-        public string MetadataJson { get; set; } = "{}";
-
-        public static IntentHistoryDto From(IntentHistoryRecord record)
-        {
-            return new IntentHistoryDto
-            {
-                Id = record.Id,
-                BehaviorSpaceId = record.BehaviorSpaceId,
-                IntentName = record.IntentName,
-                ConfidenceLevel = record.ConfidenceLevel,
-                ConfidenceScore = record.ConfidenceScore,
-                Decision = record.Decision.ToString(),
-                RecordedAt = record.RecordedAt,
-                MetadataJson = record.Metadata != null ? JsonSerializer.Serialize(record.Metadata, JsonOptions) : "{}"
-            };
-        }
-
-        public IntentHistoryRecord ToRecord()
-        {
-            var metadata = string.IsNullOrEmpty(MetadataJson) || MetadataJson == "{}"
-                ? null
-                : JsonSerializer.Deserialize<Dictionary<string, object>>(MetadataJson);
-            return new IntentHistoryRecord(
-                Id,
-                BehaviorSpaceId,
-                IntentName,
-                ConfidenceLevel,
-                ConfidenceScore,
-                Enum.Parse<PolicyDecision>(Decision),
-                RecordedAt,
-                Metadata: metadata);
-        }
+        var doc = JsonSerializer.Deserialize<IntentHistoryDocument>(json!.ToString(), IntentHistorySerialization.JsonOptions);
+        return doc?.ToRecord();
     }
 }

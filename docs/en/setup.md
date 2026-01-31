@@ -125,7 +125,7 @@ Set these only when using real HTTP adapters:
 
 Details and examples: [Providers](providers.md).
 
-For **local development** with OpenAI (e.g. running integration tests), you can use a `.env` file: copy `.env.example` to `.env`, set `OPENAI_API_KEY`, and run `./scripts/run-integration-tests.sh`. See [Local integration tests](local-integration-tests.md). Never commit `.env`; it is in `.gitignore`.
+For **local development** (e.g. running integration tests or VerifyAI), you can use a `.env` file: copy `.env.example` to `.env`, set at least one provider’s key (OpenAI, Mistral, Gemini, Azure), and run `dotnet run --project samples/Intentum.VerifyAI` or the per-provider scripts (`./scripts/run-integration-tests.sh`, `run-mistral-integration-tests.sh`, etc.). See [Local integration tests](local-integration-tests.md). Never commit `.env`; it is in `.gitignore`.
 
 ---
 
@@ -216,5 +216,5 @@ Repeat for other projects (Intentum.Runtime, Intentum.AI, etc.) as needed.
 ## Tests and benchmarks
 
 - **Unit and contract tests:** From repo root, `dotnet test tests/Intentum.Tests/Intentum.Tests.csproj`. See [Testing](testing.md).
-- **OpenAI integration tests (local only):** Set `OPENAI_API_KEY` (e.g. via `.env`) and run `./scripts/run-integration-tests.sh`. See [Local integration tests](local-integration-tests.md).
+- **Integration tests and VerifyAI (local only):** Set at least one provider’s key in `.env` (see `.env.example`), then run `dotnet run --project samples/Intentum.VerifyAI` or per-provider scripts (`./scripts/run-integration-tests.sh`, `run-mistral-integration-tests.sh`, `run-gemini-integration-tests.sh`, `run-azure-integration-tests.sh`). See [Local integration tests](local-integration-tests.md).
 - **Benchmarks:** Run `dotnet run --project benchmarks/Intentum.Benchmarks/Intentum.Benchmarks.csproj -c Release` for latency and throughput. Results go to `BenchmarkDotNet.Artifacts/results/`. See [benchmarks/README.md](../../benchmarks/README.md) and [Case studies](../case-studies/README.md).

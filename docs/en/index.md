@@ -72,7 +72,7 @@ In short: **Given/When/Then is gone; in its place you have Observe (record event
 | [Usage Scenarios](scenarios.md) | Example flows (payment with retries, suspicious retries, policy order). |
 | [CodeGen](codegen.md) | Scaffold CQRS + Intentum projects; generate Features from test assembly or YAML spec. |
 | [Testing](testing.md) | Unit tests, coverage, error cases. |
-| [Local integration tests](local-integration-tests.md) | Run OpenAI integration tests locally with `.env` and `./scripts/run-integration-tests.sh`. |
+| [Local integration tests](local-integration-tests.md) | Run VerifyAI (all providers) or per-provider integration tests locally with `.env` and scripts. |
 | [Coverage](coverage.md) | How to generate and view coverage; SonarCloud findings and quality gate. |
 | [Benchmarks](benchmarks.md) | BenchmarkDotNet: ToVector, Infer, PolicyEngine; run and refresh docs with `./scripts/run-benchmarks.sh`. |
 | [Advanced Features](advanced-features.md) | Similarity engines (WeightedAverage, TimeDecay, Cosine, Composite), **source weights & time decay in main flow**, **vector normalization** (ToVectorOptions), **rule-based and chained intent models**, fluent APIs, caching, testing utilities, **rate limiting**, **analytics & reporting**, middleware, observability, logging, health checks, batch processing, persistence. |

@@ -19,17 +19,16 @@ public sealed class OpenAIOptions
     public static OpenAIOptions FromEnvironment()
     {
         var apiKey = Environment.GetEnvironmentVariable("OPENAI_API_KEY")
-            ?? throw new InvalidOperationException("OPENAI_API_KEY is not set.");
+            ?? throw new InvalidOperationException("OPENAI_API_KEY is not set. Copy .env.example to .env and set OPENAI_API_KEY, or run from repo root so .env is loaded.");
 
-        var baseUrl = Environment.GetEnvironmentVariable("OPENAI_BASE_URL");
-        if (string.IsNullOrWhiteSpace(baseUrl))
-            throw new InvalidOperationException("OPENAI_BASE_URL is not set.");
+        var baseUrl = Environment.GetEnvironmentVariable("OPENAI_BASE_URL")
+            ?? "https://api.openai.com/v1/";
 
         return new OpenAIOptions
         {
             ApiKey = apiKey,
             EmbeddingModel = Environment.GetEnvironmentVariable("OPENAI_EMBEDDING_MODEL") ?? "text-embedding-3-large",
-            BaseUrl = baseUrl
+            BaseUrl = baseUrl.TrimEnd('/') + "/"
         };
     }
 }

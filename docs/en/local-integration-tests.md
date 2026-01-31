@@ -1,52 +1,134 @@
-# Local integration tests (OpenAI)
+# Local integration tests and VerifyAI
 
-The **OpenAI integration tests** (`OpenAIIntegrationTests`) call the real OpenAI API when `OPENAI_API_KEY` is set. They are **not** run in CI by default; use them only on your machine.
+This page describes how to run **real API integration tests** (OpenAI, Mistral, Gemini, Azure OpenAI) and the **VerifyAI** app locally. These require API keys and are **not** run in CI by default (CI excludes `Category=Integration`); use them on your machine only.
 
-## Rules (güvenlik)
+---
 
-- **Never** commit your API key. Do not put it in any file under version control.
-- **Never** push a file that contains the key. `.env` is in `.gitignore` and will never be committed.
-- Use the key **only** in this repo, on your machine, for running tests.
+## VerifyAI (single app: all providers, embedding + full pipeline)
 
-## One-time setup: secret file
+**VerifyAI** is the single entry point to verify that Intentum works with any provider you have a key for. It runs **embedding** and **full pipeline** (BehaviorSpace → Infer → Policy) for each provider configured in `.env`.
 
-1. Copy the template to `.env` (in the repo root):
+### One-time setup
+
+1. Copy the template to `.env` (repo root):
    ```bash
    cp .env.example .env
    ```
-2. Edit `.env` and set your key:
-   ```
-   OPENAI_API_KEY=sk-your-key-here
-   ```
-   Optionally set `OPENAI_BASE_URL` and `OPENAI_EMBEDDING_MODEL`. Save and close. `.env` is gitignored.
+2. Edit `.env` and set at least one provider’s key (see `.env.example` for variable names):
+   - **OpenAI:** `OPENAI_API_KEY`, optionally `OPENAI_BASE_URL`, `OPENAI_EMBEDDING_MODEL`
+   - **Mistral:** `MISTRAL_API_KEY`, optionally `MISTRAL_BASE_URL`, `MISTRAL_EMBEDDING_MODEL`
+   - **Gemini:** `GEMINI_API_KEY`, optionally `GEMINI_BASE_URL`, `GEMINI_EMBEDDING_MODEL`
+   - **Azure OpenAI:** `AZURE_OPENAI_ENDPOINT`, `AZURE_OPENAI_API_KEY`, optionally `AZURE_OPENAI_EMBEDDING_DEPLOYMENT`, `AZURE_OPENAI_API_VERSION`
 
-## Run integration tests (every time)
+### Run VerifyAI
 
 From the repo root:
 
 ```bash
-./scripts/run-integration-tests.sh
+dotnet run --project samples/Intentum.VerifyAI
 ```
 
-Or with bash: `bash scripts/run-integration-tests.sh`
+The app loads `.env`, then for each provider with a key: (1) calls the embedding API, (2) runs the full intent pipeline (Infer + Policy), and prints `[OK] ProviderName` or `[FAIL]` / `[SKIP]` with a message.
 
-The script loads `.env` and runs the OpenAI integration tests. You do not need to `export` anything each time.
+### Run only specific providers
 
-## Alternative: environment variable in the terminal
+To avoid unnecessary API calls, run only the providers you care about. Set `VERIFY_AI_PROVIDERS` to a comma-separated list: `OpenAI`, `Azure`, `Gemini`, `Mistral`.
 
-If you prefer not to use a file, set the variable in the terminal and run the tests:
+Example — Mistral only:
 
 ```bash
-export OPENAI_API_KEY='sk-your-key-here'
-dotnet test tests/Intentum.Tests/Intentum.Tests.csproj --filter "FullyQualifiedName~OpenAIIntegrationTests"
+VERIFY_AI_PROVIDERS=Mistral dotnet run --project samples/Intentum.VerifyAI
 ```
 
-Optional variables in `.env`: `OPENAI_BASE_URL` (default `https://api.openai.com/v1/`), `OPENAI_EMBEDDING_MODEL` (default `text-embedding-3-small`).
+Example — Mistral and OpenAI:
+
+```bash
+VERIFY_AI_PROVIDERS=Mistral,OpenAI dotnet run --project samples/Intentum.VerifyAI
+```
+
+If unset, **all** providers with a key in `.env` are run.
+
+### Verbose: see request/response bodies
+
+To log HTTP request and response bodies (e.g. for debugging), use `VERIFY_AI_VERBOSE=1`. To see only one provider’s request/response data, combine with `VERIFY_AI_PROVIDERS`:
+
+```bash
+VERIFY_AI_PROVIDERS=Mistral VERIFY_AI_VERBOSE=1 dotnet run --project samples/Intentum.VerifyAI
+```
+
+Verbose for all providers:
+
+```bash
+VERIFY_AI_VERBOSE=1 dotnet run --project samples/Intentum.VerifyAI
+```
+
+Or add `VERIFY_AI_VERBOSE=1` to your `.env`.
+
+---
+
+## Integration tests (xUnit, per provider)
+
+Integration test classes call the real API when the corresponding env vars are set. They **fail with a clear message** when the key is missing (no silent skip). CI excludes them with `--filter "Category!=Integration"`.
+
+| Provider        | Env vars (required) | Script |
+|----------------|---------------------|--------|
+| OpenAI         | `OPENAI_API_KEY`    | `./scripts/run-integration-tests.sh` |
+| Mistral        | `MISTRAL_API_KEY`   | `./scripts/run-mistral-integration-tests.sh` |
+| Gemini         | `GEMINI_API_KEY`    | `./scripts/run-gemini-integration-tests.sh` |
+| Azure OpenAI   | `AZURE_OPENAI_ENDPOINT`, `AZURE_OPENAI_API_KEY` | `./scripts/run-azure-integration-tests.sh` |
+
+Each script loads `.env` from the repo root (if present) and runs only that provider’s integration tests.
+
+### Run integration tests (every time)
+
+From the repo root, after setting the right keys in `.env`:
+
+```bash
+# OpenAI
+./scripts/run-integration-tests.sh
+
+# Mistral
+./scripts/run-mistral-integration-tests.sh
+
+# Gemini
+./scripts/run-gemini-integration-tests.sh
+
+# Azure OpenAI
+./scripts/run-azure-integration-tests.sh
+```
+
+Or with `dotnet test` and a filter (without loading `.env` yourself, set the vars in the shell or use the script):
+
+```bash
+dotnet test tests/Intentum.Tests/Intentum.Tests.csproj --filter "FullyQualifiedName~OpenAIIntegrationTests"
+dotnet test tests/Intentum.Tests/Intentum.Tests.csproj --filter "FullyQualifiedName~MistralIntegrationTests"
+dotnet test tests/Intentum.Tests/Intentum.Tests.csproj --filter "FullyQualifiedName~GeminiIntegrationTests"
+dotnet test tests/Intentum.Tests/Intentum.Tests.csproj --filter "FullyQualifiedName~AzureOpenAIIntegrationTests"
+```
+
+To **exclude all integration tests** (e.g. when you have no keys):
+
+```bash
+dotnet test tests/Intentum.Tests/Intentum.Tests.csproj --filter "Category!=Integration"
+```
+
+---
+
+## Rules (security)
+
+- **Never** commit your API keys. Do not put them in any file under version control.
+- **Never** push a file that contains a key. `.env` is in `.gitignore` and will never be committed.
+- Use keys **only** in this repo, on your machine, for running tests or VerifyAI.
+
+---
 
 ## Summary
 
 | Step | Action |
 |------|--------|
-| One-time | `cp .env.example .env` → edit `.env`, set `OPENAI_API_KEY=sk-...` |
-| Every time | `./scripts/run-integration-tests.sh` (script loads `.env` and runs tests) |
+| One-time | `cp .env.example .env` → edit `.env`, set at least one provider’s key (see `.env.example`) |
+| Verify all (recommended) | `dotnet run --project samples/Intentum.VerifyAI` (embedding + full pipeline per provider) |
+| Verbose | `VERIFY_AI_VERBOSE=1 dotnet run --project samples/Intentum.VerifyAI` |
+| Per-provider tests | `./scripts/run-integration-tests.sh` (OpenAI), `run-mistral-integration-tests.sh`, `run-gemini-integration-tests.sh`, `run-azure-integration-tests.sh` |
+| Exclude integration tests | `dotnet test ... --filter "Category!=Integration"` |
 | Never commit | `.env` is in `.gitignore`; do not add or push it. |

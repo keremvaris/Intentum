@@ -71,7 +71,7 @@ Kısaca: **Given/When/Then kalktı; yerine Observe (olayları kaydet) → Infer 
 | [Kullanım Senaryoları](scenarios.md) | Örnek akışlar (tekrarlı ödeme, şüpheli tekrarlar, policy sırası). |
 | [CodeGen](codegen.md) | CQRS + Intentum proje iskeleti; test assembly veya YAML spec’ten Features üretme. |
 | [Test](testing.md) | Birim testleri, coverage, hata senaryoları. |
-| [Yerel entegrasyon testleri](local-integration-tests.md) | `.env` ve `./scripts/run-integration-tests.sh` ile OpenAI entegrasyon testlerini yerelde çalıştırma. |
+| [Yerel entegrasyon testleri](local-integration-tests.md) | `.env` ve script'lerle VerifyAI (tüm sağlayıcılar) veya sağlayıcı bazlı entegrasyon testlerini yerelde çalıştırma. |
 | [Coverage](coverage.md) | Coverage üretme ve görüntüleme; SonarCloud bulguları ve kalite kapısı. |
 | [Benchmark'lar](benchmarks.md) | BenchmarkDotNet: ToVector, Infer, PolicyEngine; çalıştırma ve `./scripts/run-benchmarks.sh` ile doküman güncelleme. |
 | [Gelişmiş Özellikler](advanced-features.md) | Similarity engine'ler (WeightedAverage, TimeDecay, Cosine, Composite), **ana akışta source weights ve time decay**, **vektör normalizasyonu** (ToVectorOptions), **kural tabanlı ve zincirli intent modelleri**, fluent API'ler, caching, test utilities, rate limiting, analytics & reporting, middleware, observability, persistence. |

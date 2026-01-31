@@ -60,9 +60,11 @@ jobs:
 
       # Coverage: OpenCover report for SonarCloud. 80% target: SonarCloud Quality Gate
       # (project settings) and/or Intentum.Tests.csproj Coverlet Threshold=80.
+      # Exclude Integration tests (Category=Integration): require API keys, run locally or via integration-tests workflow.
       - name: Test
         run: >
           dotnet test tests/Intentum.Tests/Intentum.Tests.csproj --no-build
+          --filter "Category!=Integration"
           --collect:"XPlat Code Coverage;Format=opencover"
           --results-directory TestResults
 

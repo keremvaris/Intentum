@@ -70,7 +70,7 @@ Benchmark sonuçlarına göre (LlmIntentModel bellek ve gecikme event/boyut say�
 | Amaç | Çözüm |
 |------|--------|
 | **Büyük event setlerinde LlmIntentModel işini azaltmak** | `space.ToVector(new ToVectorOptions(CapPerDimension: N))` çağırıp sonucu geçir: `model.Infer(space, vector)`. Böylece benzersiz boyutlar sınırlanır, embedding çağrıları azalır. Veya `Infer(space, toVectorOptions)` extension’ını kullanın; bkz. [Gelişmiş Özellikler](advanced-features.md). |
-| **Bellek ve API maliyetini düşürmek** | **CachedEmbeddingProvider** (veya Redis/FusionCache) kullanın; tekrarlayan behavior key’ler API’yi tekrar çağırmaz; daha az allocation ve gecikme. |
+| **Bellek ve API maliyetini düşürmek** | **CachedEmbeddingProvider** (veya Redis) kullanın; tekrarlayan behavior key’ler API’yi tekrar çağırmaz; daha az allocation ve gecikme. |
 | **Production’da inference gecikmesini düşük tutmak** | **ChainedIntentModel** (önce kural tabanlı, LLM yedek) ile yüksek güvenli yollar LLM’e girmeden çözülsün; ToVectorOptions ile boyutları cap’leyin; aynı space birden çok değerlendiriliyorsa vektörü önceden hesaplayıp tekrar kullanın. |
 | **Production’da daha büyük veri setleri** | Gerçekçi payload boyutlarıyla yük testi (örn. [Yük testi: infer endpoint](../case-studies/load-test-infer.md)); p95 artıyorsa boyut cap’i veya cache ekleyin. |
 | **PolicyEngine** | Değişiklik gerekmez; zaten onlarca nanosaniye seviyesinde. |

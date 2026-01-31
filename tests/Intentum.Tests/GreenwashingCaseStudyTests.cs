@@ -118,11 +118,8 @@ public partial class GreenwashingCaseStudyTests
     public void GreenwashingCaseStudy_OnDownloadedHtml_ComputesAccuracyAndF1()
     {
         var (csvPath, downloadedDir) = ResolveCaseStudyPaths();
-        if (csvPath == null || downloadedDir == null || !File.Exists(csvPath) || !Directory.Exists(downloadedDir))
-        {
-            _output.WriteLine("Skipping: run from repo root and run ./scripts/download-greenwashing-sources.sh to populate docs/case-studies/downloaded/");
-            return;
-        }
+        Assert.True(csvPath != null && downloadedDir != null && File.Exists(csvPath) && Directory.Exists(downloadedDir),
+            "Downloaded HTML data missing. Run from repo root and run ./scripts/download-greenwashing-sources.sh to populate docs/case-studies/downloaded/. To exclude: --filter \"FullyQualifiedName!=Intentum.Tests.GreenwashingCaseStudyTests.GreenwashingCaseStudy_OnDownloadedHtml_ComputesAccuracyAndF1\".");
 
         var rows = ParseLabeledCsv(csvPath);
         var model = new GreenwashingIntentModel();
@@ -142,11 +139,8 @@ public partial class GreenwashingCaseStudyTests
             examples.Add((expected, intent.Name));
         }
 
-        if (examples.Count == 0)
-        {
-            _output.WriteLine("Skipping: no ClientEarth HTML files found in downloaded/ (run ./scripts/download-greenwashing-sources.sh)");
-            return;
-        }
+        Assert.True(examples.Count > 0,
+            "No ClientEarth HTML files found in downloaded/ (run ./scripts/download-greenwashing-sources.sh).");
 
         var correct = examples.Count(e => string.Equals(e.expectedLabel, e.predictedLabel, StringComparison.OrdinalIgnoreCase));
         var accuracy = (double)correct / examples.Count;
@@ -383,18 +377,12 @@ public partial class GreenwashingCaseStudyTests
     public void GreenwashingCaseStudy_OnMendeleyExcel_ComputesAccuracyAndF1()
     {
         var dataGreenwashDir = ResolveDataGreenwashPath();
-        if (dataGreenwashDir == null || !Directory.Exists(dataGreenwashDir))
-        {
-            _output.WriteLine("Skipping: DataGreenwash not found (unpack Mendeley dataset to docs/case-studies/downloaded/DataGreenwash/)");
-            return;
-        }
+        Assert.True(dataGreenwashDir != null && Directory.Exists(dataGreenwashDir),
+            "DataGreenwash not found. Unpack Mendeley dataset to docs/case-studies/downloaded/DataGreenwash/. To exclude: --filter \"FullyQualifiedName!=Intentum.Tests.GreenwashingCaseStudyTests.GreenwashingCaseStudy_OnMendeleyExcel_ComputesAccuracyAndF1\".");
 
         var rows = ReadLabeledRowsFromMendeleyExcel(dataGreenwashDir, _output);
-        if (rows.Count == 0)
-        {
-            _output.WriteLine("Skipping: no labeled rows with text found in DataGreenwash *greenwash*.xlsx files");
-            return;
-        }
+        Assert.True(rows.Count > 0,
+            "No labeled rows with text found in DataGreenwash *greenwash*.xlsx files.");
         const int maxRows = 500;
         if (rows.Count > maxRows)
         {

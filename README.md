@@ -306,8 +306,9 @@ No API key required. Infers suspicious vs. legitimate behavior, then policy deci
 
 ## Tests and benchmarks
 
-- **Unit tests:** `dotnet test tests/Intentum.Tests/Intentum.Tests.csproj` — see [Testing](docs/en/testing.md), [Coverage](docs/en/coverage.md), [SonarCloud](https://sonarcloud.io/summary/new_code?id=keremvaris_Intentum).
-- **OpenAI integration tests (local):** `cp .env.example .env`, set `OPENAI_API_KEY`, then `./scripts/run-integration-tests.sh` — see [Local integration tests](docs/en/local-integration-tests.md).
+- **Unit tests:** `dotnet test tests/Intentum.Tests/Intentum.Tests.csproj` (CI excludes `Category=Integration`) — see [Testing](docs/en/testing.md), [Coverage](docs/en/coverage.md), [SonarCloud](https://sonarcloud.io/summary/new_code?id=keremvaris_Intentum).
+- **VerifyAI (local):** `cp .env.example .env`, set at least one provider key, then `dotnet run --project samples/Intentum.VerifyAI` — see [Local integration tests](docs/en/local-integration-tests.md).
+- **Per-provider integration tests (local):** `./scripts/run-integration-tests.sh` (OpenAI), `run-mistral-integration-tests.sh`, `run-gemini-integration-tests.sh`, `run-azure-integration-tests.sh`.
 - **Benchmarks:** `dotnet run --project benchmarks/Intentum.Benchmarks/Intentum.Benchmarks.csproj -c Release` — latency/throughput for ToVector, Infer, PolicyEngine. Refresh docs: `./scripts/run-benchmarks.sh` → [Case studies — Benchmark results](docs/case-studies/benchmark-results.md). See [Benchmarks](docs/en/benchmarks.md).
 
 ---

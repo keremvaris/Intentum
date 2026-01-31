@@ -11,6 +11,7 @@
   <Folder Name="/samples/">
     <Project Path="samples/Intentum.Sample/Intentum.Sample.csproj" />
     <Project Path="samples/Intentum.Sample.Web/Intentum.Sample.Web.csproj" />
+    <Project Path="samples/Intentum.VerifyAI/Intentum.VerifyAI.csproj" />
   </Folder>
   <Folder Name="/tests/">
     <Project Path="tests/Intentum.Tests/Intentum.Tests.csproj" />

@@ -70,7 +70,7 @@ Based on benchmark results (LlmIntentModel allocation and latency scale with eve
 | Goal | Solution |
 |------|----------|
 | **Reduce LlmIntentModel work for large event sets** | Call `space.ToVector(new ToVectorOptions(CapPerDimension: N))` and pass the result: `model.Infer(space, vector)`. That caps unique dimensions and reduces embedding calls. Or use the extension `model.Infer(space, toVectorOptions)` (see [Advanced Features](advanced-features.md)). |
-| **Lower memory and API cost** | Use **CachedEmbeddingProvider** (or Redis/FusionCache) so repeated behavior keys do not call the API again; fewer allocations and latency for repeated dimensions. |
+| **Lower memory and API cost** | Use **CachedEmbeddingProvider** (or Redis) so repeated behavior keys do not call the API again; fewer allocations and latency for repeated dimensions. |
 | **Keep inference latency low in production** | Use **ChainedIntentModel** (rule-based first, LLM fallback) so high-confidence paths skip the LLM; cap dimensions with ToVectorOptions; precompute and reuse vectors where the same space is evaluated multiple times. |
 | **Larger datasets in production** | Run load tests (e.g. [Load test: infer endpoint](../case-studies/load-test-infer.md)) with realistic payload sizes; if p95 grows, cap dimensions or add caching before increasing capacity. |
 | **PolicyEngine** | No change needed; already in the tens of nanoseconds. |
