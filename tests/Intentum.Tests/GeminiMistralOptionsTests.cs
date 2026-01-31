@@ -45,6 +45,19 @@ public sealed class GeminiMistralOptionsTests
     }
 
     [Fact]
+    public void GeminiOptions_Validate_WhenBaseUrlEmpty_Throws()
+    {
+        var options = new GeminiOptions
+        {
+            ApiKey = "k",
+            EmbeddingModel = "m",
+            BaseUrl = ""
+        };
+        var ex = Assert.Throws<ArgumentException>(() => options.Validate());
+        Assert.Contains("BaseUrl", ex.Message);
+    }
+
+    [Fact]
     public void MistralOptions_Validate_WhenValid_DoesNotThrow()
     {
         var options = new MistralOptions
@@ -81,5 +94,18 @@ public sealed class GeminiMistralOptionsTests
         };
         var ex = Assert.Throws<ArgumentException>(() => options.Validate());
         Assert.Contains("BaseUrl", ex.Message);
+    }
+
+    [Fact]
+    public void MistralOptions_Validate_WhenEmbeddingModelEmpty_Throws()
+    {
+        var options = new MistralOptions
+        {
+            ApiKey = "k",
+            EmbeddingModel = "",
+            BaseUrl = "https://x/"
+        };
+        var ex = Assert.Throws<ArgumentException>(() => options.Validate());
+        Assert.Contains("EmbeddingModel", ex.Message);
     }
 }

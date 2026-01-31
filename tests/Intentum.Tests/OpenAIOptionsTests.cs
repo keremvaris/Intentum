@@ -72,4 +72,32 @@ public sealed class OpenAIOptionsTests
         var ex = Assert.Throws<ArgumentException>(() => options.Validate());
         Assert.Contains("BaseUrl", ex.Message);
     }
+
+    [Fact]
+    public void Validate_WhenBaseUrlNull_Throws()
+    {
+        var options = new OpenAIOptions
+        {
+            ApiKey = "sk-test",
+            EmbeddingModel = "text-embedding-3-large",
+            BaseUrl = null
+        };
+
+        var ex = Assert.Throws<ArgumentException>(() => options.Validate());
+        Assert.Contains("BaseUrl", ex.Message);
+    }
+
+    [Fact]
+    public void Validate_WhenBaseUrlWhitespace_Throws()
+    {
+        var options = new OpenAIOptions
+        {
+            ApiKey = "sk-test",
+            EmbeddingModel = "text-embedding-3-large",
+            BaseUrl = "   "
+        };
+
+        var ex = Assert.Throws<ArgumentException>(() => options.Validate());
+        Assert.Contains("BaseUrl", ex.Message);
+    }
 }
