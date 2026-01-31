@@ -54,7 +54,7 @@ This document summarizes the **greenwashing intent** case study: transformation 
 | **Macro F1** | 0.00   |
 | **N**        | 9 (ClientEarth company profiles with local HTML) |
 
-*(Run: `./scripts/download-greenwashing-sources.sh` then `dotnet test tests/Intentum.Tests/Intentum.Tests.csproj --filter GreenwashingCaseStudy_OnDownloadedHtml_ComputesAccuracyAndF1`. All 9 rows are human-labeled ActiveGreenwashing; model predictions on stripped HTML differ — pattern-based signal extraction may need tuning for NGO article content.)*
+*(Run: `./scripts/download-greenwashing-sources.sh` then `dotnet test tests/Intentum.Tests.Integration/Intentum.Tests.Integration.csproj --filter GreenwashingCaseStudy_OnDownloadedHtml_ComputesAccuracyAndF1`. All 9 rows are human-labeled ActiveGreenwashing; model predictions on stripped HTML differ — pattern-based signal extraction may need tuning for NGO article content.)*
 
 ### Public data (Mendeley DataGreenwash Excel)
 
@@ -64,7 +64,7 @@ This document summarizes the **greenwashing intent** case study: transformation 
 | **Macro F1** | 0.00   |
 | **N**        | 500 (capped; *greenwash*.xlsx rows with ENTITY + columns as text) |
 
-*(Run: unpack Mendeley dataset to `docs/case-studies/downloaded/DataGreenwash/`, then `dotnet test tests/Intentum.Tests/Intentum.Tests.csproj --filter GreenwashingCaseStudy_OnMendeleyExcel_ComputesAccuracyAndF1`. Excel files are tabular (ENTITY + scores), not report text; all rows default to ActiveGreenwashing. Results indicative; for report-style text use CSV+HTML or synthetic set.)*
+*(Run: unpack Mendeley dataset to `docs/case-studies/downloaded/DataGreenwash/`, then `dotnet test tests/Intentum.Tests.Integration/Intentum.Tests.Integration.csproj --filter GreenwashingCaseStudy_OnMendeleyExcel_ComputesAccuracyAndF1`. Excel files are tabular (ENTITY + scores), not report text; all rows default to ActiveGreenwashing. Results indicative; for report-style text use CSV+HTML or synthetic set.)*
 
 ## Public data sources (URL + label)
 
@@ -74,7 +74,7 @@ This document summarizes the **greenwashing intent** case study: transformation 
 
 ## How to reproduce / extend
 
-- **Synthetic (19 examples):** `dotnet test tests/Intentum.Tests/Intentum.Tests.csproj --filter GreenwashingCaseStudy_ComputesAccuracyAndF1`. Update the "Synthetic labeled set" table above with the printed accuracy and macro F1.
+- **Synthetic (19 examples):** `dotnet test tests/Intentum.Tests.Integration/Intentum.Tests.Integration.csproj --filter GreenwashingCaseStudy_ComputesAccuracyAndF1`. Update the "Synthetic labeled set" table above with the printed accuracy and macro F1.
 - **Public data (downloaded HTML):** Run `./scripts/download-greenwashing-sources.sh`, then `dotnet test ... --filter GreenwashingCaseStudy_OnDownloadedHtml_ComputesAccuracyAndF1`. Update the "Public data (downloaded HTML)" table with the printed values.
 - **Public data (Mendeley Excel):** Unpack Mendeley dataset to `docs/case-studies/downloaded/DataGreenwash/`, then `dotnet test ... --filter GreenwashingCaseStudy_OnMendeleyExcel_ComputesAccuracyAndF1`. Update the "Public data (Mendeley DataGreenwash Excel)" table with the printed values.
 - **Extend the labeled set:** Add rows to [greenwashing-labeled-sources.csv](greenwashing-labeled-sources.csv); if you add more download targets to the script or provide local text/counts, re-run the public-data test and update this page with the new accuracy/F1.

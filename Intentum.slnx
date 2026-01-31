@@ -15,6 +15,7 @@
   </Folder>
   <Folder Name="/tests/">
     <Project Path="tests/Intentum.Tests/Intentum.Tests.csproj" />
+    <Project Path="tests/Intentum.Tests.Integration/Intentum.Tests.Integration.csproj" />
   </Folder>
   <Folder Name="/benchmarks/">
     <Project Path="benchmarks/Intentum.Benchmarks/Intentum.Benchmarks.csproj" />

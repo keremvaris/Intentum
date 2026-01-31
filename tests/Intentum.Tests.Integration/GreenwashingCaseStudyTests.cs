@@ -5,7 +5,7 @@ using Intentum.Core.Behavior;
 using Intentum.Sample.Web.Features.GreenwashingDetection;
 using Xunit.Abstractions;
 
-namespace Intentum.Tests;
+namespace Intentum.Tests.Integration;
 
 /// <summary>
 /// Greenwashing case study: labeled behavior spaces, transformation rule, and accuracy/F1.
@@ -121,7 +121,7 @@ public partial class GreenwashingCaseStudyTests
     {
         var (csvPath, downloadedDir) = ResolveCaseStudyPaths();
         Assert.True(csvPath != null && downloadedDir != null && File.Exists(csvPath) && Directory.Exists(downloadedDir),
-            "Downloaded HTML data missing. Run from repo root and run ./scripts/download-greenwashing-sources.sh to populate docs/case-studies/downloaded/. To exclude: --filter \"FullyQualifiedName!=Intentum.Tests.GreenwashingCaseStudyTests.GreenwashingCaseStudy_OnDownloadedHtml_ComputesAccuracyAndF1\".");
+            "Downloaded HTML data missing. Run from repo root and run ./scripts/download-greenwashing-sources.sh to populate docs/case-studies/downloaded/. To exclude: --filter \"FullyQualifiedName!=Intentum.Tests.Integration.GreenwashingCaseStudyTests.GreenwashingCaseStudy_OnDownloadedHtml_ComputesAccuracyAndF1\".");
 
         var rows = ParseLabeledCsv(csvPath);
         var model = new GreenwashingIntentModel();
@@ -380,7 +380,7 @@ public partial class GreenwashingCaseStudyTests
     {
         var dataGreenwashDir = ResolveDataGreenwashPath();
         Assert.True(dataGreenwashDir != null && Directory.Exists(dataGreenwashDir),
-            "DataGreenwash not found. Unpack Mendeley dataset to docs/case-studies/downloaded/DataGreenwash/. To exclude: --filter \"FullyQualifiedName!=Intentum.Tests.GreenwashingCaseStudyTests.GreenwashingCaseStudy_OnMendeleyExcel_ComputesAccuracyAndF1\".");
+            "DataGreenwash not found. Unpack Mendeley dataset to docs/case-studies/downloaded/DataGreenwash/. To exclude: --filter \"FullyQualifiedName!=Intentum.Tests.Integration.GreenwashingCaseStudyTests.GreenwashingCaseStudy_OnMendeleyExcel_ComputesAccuracyAndF1\".");
 
         var rows = ReadLabeledRowsFromMendeleyExcel(dataGreenwashDir, _output);
         Assert.True(rows.Count > 0,

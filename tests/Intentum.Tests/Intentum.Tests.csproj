@@ -5,7 +5,7 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <IsPackable>false</IsPackable>
-    <!-- CI: fail build if line coverage drops below 80% (Coverage on New Code target) -->
+    <!-- CI: fail build if line coverage drops below 80% (Coverage on New Code target). Unit tests only; Sample.Web/Integration tests in Intentum.Tests.Integration. -->
     <Threshold>80</Threshold>
     <ThresholdType>line</ThresholdType>
     <ThresholdStat>total</ThresholdStat>
@@ -46,7 +46,6 @@
     <ProjectReference Include="..\..\src\Intentum.MultiTenancy\Intentum.MultiTenancy.csproj" />
     <ProjectReference Include="..\..\src\Intentum.Simulation\Intentum.Simulation.csproj" />
     <ProjectReference Include="..\..\src\Intentum.Versioning\Intentum.Versioning.csproj" />
-    <ProjectReference Include="..\..\samples\Intentum.Sample.Web\Intentum.Sample.Web.csproj" />
   </ItemGroup>
 
 </Project>
