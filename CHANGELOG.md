@@ -70,6 +70,9 @@ Bu dosya **conventional commit** mesajlarından otomatik üretilir. Commit'te **
 
 
 
+- **Update sonar coverage exclusions with new exception and edge cases** *(ci)*
+
+
 
 
 ### Refactor
