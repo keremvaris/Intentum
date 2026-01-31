@@ -13,6 +13,21 @@ Bu dosya **conventional commit** mesajlarından otomatik üretilir. Commit'te **
 
 ---
 
+## [unreleased]
+
+
+
+### Miscellaneous
+
+- **Exclude samples, docs, tests from analysis and coverage** *(sonar)*
+
+- Remove sonar.inclusions focusing only on src/ directory
+- Add sonar.exclusions to exclude samples, examples, docs, templates, GitHub files, tests, and release script
+- Update CI workflow to remove explicit sonar.inclusions parameter
+- Apply sonar.exclusions and coverage exclusions consistently in CI configuration
+
+
+
 ## [1.0.10] - 2026-01-31
 
 
