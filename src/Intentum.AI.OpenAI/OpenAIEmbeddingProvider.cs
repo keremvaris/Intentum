@@ -47,21 +47,12 @@ public sealed class OpenAIEmbeddingProvider(OpenAIOptions options, HttpClient ht
             .GetResult();
 
         var values = payload?.Data.FirstOrDefault()?.Embedding ?? new List<double>();
-        var score = Normalize(values);
+        var score = EmbeddingScore.Normalize(values);
 
         return new IntentEmbedding(
             Source: behaviorKey,
             Score: score
         );
-    }
-
-    private static double Normalize(List<double> values)
-    {
-        if (values.Count == 0)
-            return 0;
-
-        var avgAbs = values.Average(Math.Abs);
-        return Math.Clamp(avgAbs, 0.0, 1.0);
     }
 
     [UsedImplicitly]

@@ -65,4 +65,23 @@ public sealed record IntentHistoryRecord(
     PolicyDecision Decision,
     DateTimeOffset RecordedAt,
     IReadOnlyDictionary<string, object>? Metadata = null
-);
+)
+{
+    /// <summary>
+    /// Creates a new record with a generated ID and current UTC time. Use when saving to any store (Mongo, Redis, etc.).
+    /// </summary>
+    public static IntentHistoryRecord Create(
+        string behaviorSpaceId,
+        Intent intent,
+        PolicyDecision decision,
+        IReadOnlyDictionary<string, object>? metadata = null) =>
+        new(
+            Id: Guid.NewGuid().ToString(),
+            BehaviorSpaceId: behaviorSpaceId,
+            IntentName: intent.Name,
+            ConfidenceLevel: intent.Confidence.Level,
+            ConfidenceScore: intent.Confidence.Score,
+            Decision: decision,
+            RecordedAt: DateTimeOffset.UtcNow,
+            Metadata: metadata);
+}

@@ -26,19 +26,10 @@ public sealed class MongoIntentHistoryRepository : IIntentHistoryRepository
         IReadOnlyDictionary<string, object>? metadata = null,
         CancellationToken cancellationToken = default)
     {
-        var id = Guid.NewGuid().ToString();
-        var record = new IntentHistoryRecord(
-            Id: id,
-            BehaviorSpaceId: behaviorSpaceId,
-            IntentName: intent.Name,
-            ConfidenceLevel: intent.Confidence.Level,
-            ConfidenceScore: intent.Confidence.Score,
-            Decision: decision,
-            RecordedAt: DateTimeOffset.UtcNow,
-            Metadata: metadata);
+        var record = IntentHistoryRecord.Create(behaviorSpaceId, intent, decision, metadata);
         var doc = IntentHistoryDoc.From(record);
         await _collection.InsertOneAsync(doc, cancellationToken: cancellationToken);
-        return id;
+        return record.Id;
     }
 
     public async Task<IReadOnlyList<IntentHistoryRecord>> GetByBehaviorSpaceIdAsync(

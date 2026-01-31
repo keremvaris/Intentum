@@ -29,22 +29,13 @@ public sealed class RedisIntentHistoryRepository : IIntentHistoryRepository
         IReadOnlyDictionary<string, object>? metadata = null,
         CancellationToken cancellationToken = default)
     {
-        var id = Guid.NewGuid().ToString();
-        var record = new IntentHistoryRecord(
-            Id: id,
-            BehaviorSpaceId: behaviorSpaceId,
-            IntentName: intent.Name,
-            ConfidenceLevel: intent.Confidence.Level,
-            ConfidenceScore: intent.Confidence.Score,
-            Decision: decision,
-            RecordedAt: DateTimeOffset.UtcNow,
-            Metadata: metadata);
+        var record = IntentHistoryRecord.Create(behaviorSpaceId, intent, decision, metadata);
         var db = _redis.GetDatabase();
         var json = JsonSerializer.Serialize(IntentHistoryDto.From(record), JsonOptions);
-        await db.StringSetAsync(_keyPrefix + "record:" + id, json);
-        await db.SetAddAsync(_keyPrefix + "bybehaviorspace:" + behaviorSpaceId, id);
-        await db.SetAddAsync(_keyPrefix + "ids", id);
-        return id;
+        await db.StringSetAsync(_keyPrefix + "record:" + record.Id, json);
+        await db.SetAddAsync(_keyPrefix + "bybehaviorspace:" + behaviorSpaceId, record.Id);
+        await db.SetAddAsync(_keyPrefix + "ids", record.Id);
+        return record.Id;
     }
 
     public async Task<IReadOnlyList<IntentHistoryRecord>> GetByBehaviorSpaceIdAsync(
