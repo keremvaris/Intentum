@@ -13,6 +13,22 @@ Bu dosya **conventional commit** mesajlarından otomatik üretilir. Commit'te **
 
 ---
 
+## [1.0.10] - 2026-01-31
+
+
+
+### Miscellaneous
+
+- **Refine SonarCloud analysis scope and suppress warnings in samples** *(ci)*
+
+- Limit SonarCloud analysis to source files under src/** only
+- Add sonar.inclusions property in sonarcloud configuration and CI workflow
+- Suppress specific Sonar warnings in sample project files to avoid CI noise
+- Adjust .editorconfig to disable Sonar S1075 warnings for intentional constants
+- Simplify dictionary population logic in IntentAnalytics.cs for policy decision counts
+
+
+
 ## [1.0.9] - 2026-01-31
 
 
