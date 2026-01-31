@@ -13,7 +13,8 @@ Bu dosya **conventional commit** mesajlarından otomatik üretilir. Commit'te **
 
 ---
 
-## [unreleased]
+## [1.0.5] - 2026-01-31
+
 
 
 
@@ -27,6 +28,22 @@ Bu dosya **conventional commit** mesajlarından otomatik üretilir. Commit'te **
 - Refactored string replacements in GreenwashingCaseStudyTests for better performance using generated Regex
 - Renamed default export function in load-test-infer.js to inferLoadTest for clarity
 - Removed redundant returns in OpenAIIntegrationTests catch blocks for HttpRequestException with 429 status code
+
+
+
+
+
+### Refactor
+
+- **Unify intent model implementations into a shared base class** *(models)*
+
+- Introduce ProviderLlmIntentModelBase as a common base for all provider-specific intent models
+- Replace individual Infer method implementations in OpenAI, Claude, Gemini, Mistral, and Azure OpenAI models with inheritance from the base class
+- Simplify intent model classes to constructors that call the base with provider source names
+- Extract embedding score normalization logic into a shared EmbeddingScore helper class
+- Update all embedding providers to use EmbeddingScore.Normalize and remove duplicated normalization methods
+- Add IntentHistoryRecord.Create factory method to standardize creation with new ID and UTC timestamp
+- Refactor MongoDB and Redis intent history repositories to use the new creation method and consistent ID handling
 
 
 
