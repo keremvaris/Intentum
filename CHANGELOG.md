@@ -42,6 +42,14 @@ Bu dosya **conventional commit** mesajlarından otomatik üretilir. Commit'te **
 
 
 
+- **Update exclusions for SonarCloud analysis** *(sonar)*
+
+- Add benchmarks, BenchmarkDotNet.Artifacts, and scripts folders to sonar exclusions
+- Reflect exclusion changes in .sonarcloud.properties and GitHub Actions CI workflow
+- Ensure analysis and coverage metrics exclude additional non-production code paths
+
+
+
 ## [1.0.10] - 2026-01-31
 
 
