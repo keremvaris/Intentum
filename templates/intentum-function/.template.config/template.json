@@ -1,0 +1,14 @@
+{
+  "$schema": "http://json.schemastore.org/template",
+  "author": "Intentum",
+  "classifications": [ "Azure", "Functions", "Intentum" ],
+  "identity": "Intentum.Function",
+  "name": "Intentum Azure Function",
+  "shortName": "intentum-function",
+  "tags": {
+    "language": "C#",
+    "type": "project"
+  },
+  "sourceName": "Intentum.Function",
+  "preferNameDirectory": true
+}

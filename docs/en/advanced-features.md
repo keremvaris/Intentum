@@ -18,6 +18,15 @@ Extended packages (beyond Core, Runtime, AI, and providers) and where they are d
 | **Intentum.Explainability** | Intent explainability | Signal contribution scores, human-readable summary; `IIntentExplainer`, `IntentExplainer` | [Intent Explainability](#intent-explainability) |
 | **Intentum.Simulation** | Intent simulation | Synthetic behavior spaces for testing; `IBehaviorSpaceSimulator`, `BehaviorSpaceSimulator` | [Intent Simulation](#intent-simulation) |
 | **Intentum.Versioning** | Policy versioning | Policy/model version tracking for rollback; `IVersionedPolicy`, `PolicyVersionTracker` | [Policy Versioning](#policy-versioning) |
+| **Intentum.Runtime.PolicyStore** | Declarative policy store | Load policies from JSON/file with hot-reload; `IPolicyStore`, `FilePolicyStore`, `SafeConditionBuilder` | [Policy Store](#policy-store) |
+| **Intentum.Explainability** (extended) | Intent decision tree | Explain policy path as a tree; `IIntentTreeExplainer`, `IntentTreeExplainer` | [Intent Tree](#intent-tree) |
+| **Intentum.Analytics** (extended) | Intent timeline, pattern detector | Entity timeline, behavior patterns, anomalies; `GetIntentTimelineAsync`, `IBehaviorPatternDetector` | [Intent Timeline](#intent-timeline), [Behavior Pattern Detector](#behavior-pattern-detector) |
+| **Intentum.Simulation** (extended) | Scenario runner | Run defined scenarios through model + policy; `IScenarioRunner`, `IntentScenarioRunner` | [Scenario Runner](#scenario-runner) |
+| **Intentum.Core** (extended) | Multi-stage model, context-aware policy | Chain models with thresholds; policy with context; `MultiStageIntentModel`, `ContextAwarePolicyEngine` | [Multi-Stage Intent](#multi-stage-intent-model), [Context-Aware Policy](#context-aware-policy-engine) |
+| **Intentum.Core.Streaming** | Real-time intent stream | Consume behavior event batches; `IBehaviorStreamConsumer`, `MemoryBehaviorStreamConsumer` | [Stream Processing](#real-time-intent-stream-processing) |
+| **Intentum.Observability** (extended) | OpenTelemetry tracing | Spans for infer and policy.evaluate; `IntentumActivitySource` | [Observability](observability.md#opentelemetry-tracing) |
+
+**Templates:** `dotnet new intentum-webapi`, `intentum-backgroundservice`, `intentum-function` — see [Setup – Create from template](setup.md#create-from-template-dotnet-new). **Sample Web** also exposes Playground (compare models): `POST /api/intent/playground/compare`, and Intent Tree: `POST /api/intent/explain-tree`.
 
 Core packages (Intentum.Core, Intentum.Runtime, Intentum.AI, providers, Testing, AspNetCore, Persistence, Analytics) are listed in [Architecture](architecture.md) and [README](../../README.md).
 
@@ -890,6 +899,86 @@ if (tracker.Rollforward())  // current moves to next (e.g. 1.0 → 2.0)
 ```
 
 You can also `SetCurrent(index)` to jump to a specific version by index. Version strings are arbitrary (e.g. `"1.0"`, `"2024-01-15"`); `CompareVersions(a, b)` is provided for ordering.
+
+---
+
+## Intent Timeline
+
+**What it is:** **Intentum.Analytics** extends intent history with **entity-scoped timeline**: `IIntentHistoryRepository.GetByEntityIdAsync(entityId, start, end)` and `IIntentAnalytics.GetIntentTimelineAsync(entityId, start, end)` return time-ordered points (intent name, confidence, decision) for a given entity.
+
+**What it's for:** When you attach an optional `EntityId` to intent history records, you can answer "how did this user/session's intent evolve over time?" — useful for dashboards, support tools, or auditing.
+
+**How to use:** Persist intent history with `EntityId` (e.g. via your repository implementation). Register `IIntentAnalytics` with `AddIntentAnalytics()`. Call `GetIntentTimelineAsync(entityId, start, end)`. Sample Web: `GET /api/intent/analytics/timeline/{entityId}`.
+
+---
+
+## Intent Tree
+
+**What it is:** **Intentum.Explainability** provides **IIntentTreeExplainer**: given an inferred intent and a policy, it builds a **decision tree** (which rule matched, signal nodes, intent summary). Use `ExplainTree(intent, policy, behaviorSpace?)` to get `IntentDecisionTree`.
+
+**What it's for:** Explain *why* a policy returned Allow/Block: show the path (rule name, condition, signals) in a tree form for UI or audit.
+
+**How to use:** Add **Intentum.Explainability**, register with `AddIntentTreeExplainer()`. After inference and policy evaluation, call `treeExplainer.ExplainTree(intent, policy, space)`. Sample Web: `POST /api/intent/explain-tree` (same body as infer).
+
+---
+
+## Context-Aware Policy Engine
+
+**What it is:** **ContextAwarePolicyEngine** and **ContextAwareIntentPolicy** evaluate rules with a **PolicyContext** (intent, system load, region, recent intents, custom key-value). Rules are `Func<Intent, PolicyContext, bool>`.
+
+**What it's for:** Decisions that depend on more than the current intent (e.g. "block if load &gt; 0.8" or "escalate if same intent repeated 3 times").
+
+**How to use:** Build a `ContextAwareIntentPolicy` with context-aware rules. Create `ContextAwarePolicyEngine` and call `Evaluate(intent, context, policy)`. Extension: `intent.Decide(context, policy)` (RuntimeExtensions).
+
+---
+
+## Policy Store
+
+**What it is:** **Intentum.Runtime.PolicyStore** provides **IPolicyStore** (e.g. **FilePolicyStore**) to load **declarative policies** from JSON: rules with conditions expressed as property/operator/value (e.g. `intent.confidence.level` eq `"High"`). **SafeConditionBuilder** turns these into `Func<Intent, bool>`. Supports hot-reload from file.
+
+**What it's for:** Non-developers can edit policy rules in JSON; no code deploy for rule changes.
+
+**How to use:** Add **Intentum.Runtime.PolicyStore**, register with `AddFilePolicyStore(path)`. Load policy with `await policyStore.LoadAsync()`. See repository for JSON schema (PolicyDocument, PolicyRuleDocument, PolicyConditionDocument).
+
+---
+
+## Behavior Pattern Detector
+
+**What it is:** **Intentum.Analytics** provides **IBehaviorPatternDetector**: analyze intent history for **behavior patterns**, **pattern anomalies**, and **template matching** (`GetBehaviorPatternsAsync`, `GetPatternAnomaliesAsync`, `MatchTemplates`).
+
+**What it's for:** Discover recurring intent clusters and flag anomalies (e.g. sudden spike in Block rate or unusual confidence distribution).
+
+**How to use:** Register with `AddBehaviorPatternDetector()`. Inject `IBehaviorPatternDetector` and call the methods with a time window and optional template intents.
+
+---
+
+## Multi-Stage Intent Model
+
+**What it is:** **MultiStageIntentModel** (in **Intentum.Core**) chains multiple **IIntentModel** instances with confidence thresholds. The first model that returns confidence above its threshold wins; otherwise the last model's result is returned.
+
+**What it's for:** E.g. rule-based → lightweight LLM → heavy LLM, so you only pay for expensive inference when confidence is low.
+
+**How to use:** Create stages (model + threshold). `new MultiStageIntentModel(stages)`. Call `Infer(space)` as usual.
+
+---
+
+## Scenario Runner
+
+**What it is:** **Intentum.Simulation** provides **IScenarioRunner** (**IntentScenarioRunner**): run a list of **BehaviorScenario** (fixed sequences or random-generation params) through an intent model and policy. Returns **ScenarioRunResult** per scenario.
+
+**What it's for:** Reproducible scenario testing, demos, or regression suites (e.g. "run 10 scenarios, assert no unexpected Blocks").
+
+**How to use:** Add **Intentum.Simulation**, register with `AddIntentScenarioRunner()`. Build scenarios (e.g. from sequences or random config) and call `runner.RunAsync(scenarios, model, policy)`.
+
+---
+
+## Real-time Intent Stream Processing
+
+**What it is:** **Intentum.Core.Streaming** defines **IBehaviorStreamConsumer** with `ReadAllAsync()` returning `IAsyncEnumerable<BehaviorEventBatch>`. **MemoryBehaviorStreamConsumer** is an in-memory implementation using **System.Threading.Channels** for tests or single-process pipelines.
+
+**What it's for:** Process behavior events as a stream (e.g. from a message queue or event hub) and infer intent per batch without loading all events into memory.
+
+**How to use:** Implement or use **MemoryBehaviorStreamConsumer**. In a worker or Azure Function, `await foreach (var batch in consumer.ReadAllAsync(cancellationToken))` and run your model/policy on each batch.
 
 ---
 

@@ -20,7 +20,9 @@
 
   <div class="top-tabs" role="tablist" aria-label="Ana görünüm">
     <button type="button" class="top-tab active" id="tab-examples" aria-selected="true" aria-controls="view-examples">Örnekler</button>
+    <button type="button" class="top-tab" id="tab-playground" aria-selected="false" aria-controls="view-playground">Playground</button>
     <button type="button" class="top-tab" id="tab-dashboard" aria-selected="false" aria-controls="view-dashboard">Dashboard</button>
+    <button type="button" class="top-tab" id="tab-help" aria-selected="false" aria-controls="view-help">Nasıl kullanılır?</button>
   </div>
 
   <!-- Örnekler görünümü: sidebar + kartlar -->
@@ -47,6 +49,9 @@
         <section id="section-esg" class="card section-card" aria-labelledby="title-esg">
           <h2 id="title-esg"><span class="esg-icon" aria-hidden="true">♻</span> Sürdürülebilirlik (ESG)</h2>
           <p class="subtitle">Karbon ayak izi hesaplama ve rapor sorgulama. Aktör ve kapsama göre karar: izin, gözlem veya inceleme.</p>
+          <div class="example-what">
+            <strong>Bu ne?</strong> Karbon hesaplama isteği gönderiyorsunuz veya daha önce hesaplanan raporu ID ile çekiyorsunuz. <strong>Sonuç:</strong> Hesapla → değerler; Rapor getir → rapor detayı veya “bulunamadı”. Allow/Block yok, sadece komut/sorgu akışı.
+          </div>
           <div class="esg-row">
             <div class="esg-block">
               <h3 class="esg-block-title">Hesapla</h3>
@@ -72,6 +77,9 @@
         <section id="section-order" class="card section-card" aria-labelledby="title-order">
           <h2 id="title-order">E-ticaret siparişi</h2>
           <p class="subtitle">Sipariş verme; olaylar niyet/risk motoruna gider (yeni hesap, yüksek tutar, hızlı sipariş → dolandırıcılık skoru).</p>
+          <div class="example-what">
+            <strong>Bu ne?</strong> Sipariş formu doldurup gönderiyorsunuz. <strong>Sonuç:</strong> Sipariş onayı veya hata. Gerçek uygulamada risk skoruna göre red de olabilir.
+          </div>
           <form id="order-form">
             <label>Ürün ID <input name="productId" value="PROD-001" required /></label>
             <label>Miktar <input name="quantity" type="number" value="2" min="1" required /></label>
@@ -84,6 +92,9 @@
         <section id="section-greenwashing" class="card section-card greenwashing-section" aria-labelledby="title-greenwashing">
           <h2 id="title-greenwashing">Greenwashing tespiti</h2>
           <p class="subtitle">Sürdürülebilirlik raporu metnini analiz et: niyet (GenuineSustainability → ActiveGreenwashing), politika kararı ve önerilen aksiyonlar. Demo: farklı kaynak türleri (sosyal medya, basın, yatırımcı) mock veriyle.</p>
+          <div class="example-what">
+            <strong>Bu ne?</strong> Rapor metninin “yeşil badana” mı yoksa gerçek mi olduğu analiz edilir. <strong>Sonuç:</strong> Niyet (temiz / greenwashing), Karar (Allow = güvenilir, Block = şüpheli), hangi cümleler etkiledi, önerilen aksiyonlar.
+          </div>
           <div class="two-col-layout">
             <div class="col-form">
               <div class="preset-scenarios">
@@ -136,6 +147,9 @@
         <section id="section-infer" class="card section-card infer-section" aria-labelledby="title-infer">
           <h2 id="title-infer">Dolandırıcılık & risk — Niyet çıkarımı</h2>
           <p class="subtitle">Davranış olaylarından niyet ve politika kararı. Pazarlama segmentasyonu (churn, kampanya), sağlık/banka (işlem anomalisi, KYC) ve gelişmiş dolandırıcılık senaryoları.</p>
+          <div class="example-what">
+            <strong>Bu ne?</strong> Girilen davranışlardan (login, retry, hassas veri vb.) sistem bir <strong>niyet</strong> tahmin ediyor ve <strong>karar</strong> veriyor. <strong>Sonuç:</strong> <strong>Allow</strong> = izin verildi, <strong>Block</strong> = engellendi (şüpheli), <strong>Observe</strong> = izlenecek. Güven (High/Medium/Low) = tahmine ne kadar emin. Çok retry veya hassas erişim genelde Observe/Block’a kayar.
+          </div>
           <div class="two-col-layout">
             <div class="col-form">
               <div class="preset-scenarios">
@@ -169,6 +183,9 @@
         <section id="section-explain" class="card section-card explain-section" aria-labelledby="title-explain">
           <h2 id="title-explain">Niyet açıklanabilirliği</h2>
           <p class="subtitle">Kararın gerekçesi: hangi davranış karara ne kadar katkı yaptı? (kaynak, ağırlık, yüzde). İnceleme ve denetim için.</p>
+          <div class="example-what">
+            <strong>Bu ne?</strong> Aynı olaylarla niyet çıkarılır ama bu sefer <strong>neden</strong> o karar verildiği gösterilir. <strong>Sonuç:</strong> Tabloda her davranışın karara <strong>katkı yüzdesi</strong>. Yüksek % = o davranış kararı daha çok etkiledi. “Neden Block?” sorusuna cevap için.
+          </div>
           <div class="two-col-layout">
             <div class="col-form">
               <form id="explain-form">
@@ -186,6 +203,66 @@
           </div>
         </section>
       </main>
+    </div>
+  </div>
+
+  <!-- Playground görünümü: ayrı sekme, serbest deneme alanı -->
+  <div id="view-playground" class="view view-playground" aria-hidden="true" hidden>
+    <div class="playground-page">
+      <div class="playground-header">
+        <h2>Playground</h2>
+        <p class="subtitle">Aynı olay setinde farklı modelleri karşılaştırın. Olayları satır satır girin, isterseniz JSON yapıştırın veya hızlı yükle ile deneyin.</p>
+        <p class="playground-purpose">Playground’un anlamı: <strong>Aynı olayları</strong> farklı modellere verip <strong>farklı niyet/karar</strong> görün. Bu demo’da sadece iki mock model olduğu için sonuçlar aynı çıkar. Kendi projenizde gerçek LLM veya kural tabanlı model ekleyip buraya kaydettiğinizde, Karşılaştır gerçekten farklı satırlar gösterecek. Şimdilik burada: <strong>istediğiniz olay setini</strong> (UI’da olmayan senaryolar dahil) tek yerden deneyip tek istekte iki model çıktısını görmeniz.</p>
+      </div>
+      <div class="playground-body">
+        <div class="playground-input">
+          <div class="playground-section-card">
+            <h3>Olaylar (aktör + aksiyon)</h3>
+            <p class="playground-hint">Her satıra bir <strong>aktör</strong> ve <strong>aksiyon</strong> girin. İstediğiniz kadar satır ekleyebilirsiniz.</p>
+            <ul class="events-list" id="playground-events-list"></ul>
+            <div class="add-event-row">
+              <button type="button" id="playground-add-event">+ Olay ekle</button>
+            </div>
+          </div>
+          <div class="playground-section-card">
+            <h3>Veya JSON yapıştır</h3>
+            <p class="playground-hint">Geçerli bir dizi yapıştırırsanız yukarıdaki listeyi geçersiz kılar. Örnek: <code>[{"actor":"user","action":"login"},{"actor":"user","action":"submit"}]</code></p>
+            <textarea id="playground-json" class="playground-json-input" rows="4" placeholder='[{"actor":"user","action":"login"}, ...]'></textarea>
+            <div class="playground-json-actions">
+              <button type="button" id="playground-json-apply">JSON'dan listeye uygula</button>
+              <button type="button" id="playground-json-from-list">Listeden JSON'a aktar</button>
+            </div>
+          </div>
+          <div class="playground-section-card">
+            <h3>Hızlı yükle</h3>
+            <p class="playground-hint">Hazır senaryoları listeye yükler; sonra düzenleyebilirsiniz. <strong>Kendi senaryom</strong> = UI’da hiç yok, tamamen sizin tanımınız (ör. sürücü/sensör); JSON’u denemek için tek tık.</p>
+            <div class="preset-scenarios preset-inline">
+              <button type="button" class="btn-preset-pg" data-events='[{"actor":"user","action":"login"},{"actor":"user","action":"submit"}]'>Normal oturum</button>
+              <button type="button" class="btn-preset-pg" data-events='[{"actor":"user","action":"retry"},{"actor":"user","action":"retry"},{"actor":"user","action":"retry"}]'>Çoklu retry</button>
+              <button type="button" class="btn-preset-pg" data-events='[{"actor":"user","action":"login_failed"},{"actor":"user","action":"password_reset_request"}]'>Şifre sıfırlama</button>
+              <button type="button" class="btn-preset-pg" data-events='[{"actor":"customer","action":"add_to_cart"},{"actor":"customer","action":"checkout_start"}]'>Satın alma</button>
+              <button type="button" class="btn-preset-pg" data-events='[{"actor":"user","action":"sensitive_data_access"}]'>Hassas veri</button>
+              <button type="button" class="btn-preset-pg btn-preset-custom" data-events='[{"actor":"driver","action":"lane_change"},{"actor":"driver","action":"speed_up"},{"actor":"sensor","action":"obstacle_detected"}]' title="UI'da olmayan örnek: sürücü + sensör">Kendi senaryom (UI'da yok)</button>
+            </div>
+          </div>
+          <form id="playground-form">
+            <fieldset class="playground-models">
+              <legend>Karşılaştırılacak modeller</legend>
+              <label class="checkbox-label"><input type="checkbox" name="provider" value="Default" checked /> Default</label>
+              <label class="checkbox-label"><input type="checkbox" name="provider" value="Mock" checked /> Mock</label>
+              <label class="checkbox-label"><input type="checkbox" name="provider" value="Strict" /> Strict (güveni düşürür → farklı politika)</label>
+            </fieldset>
+            <button type="submit" id="playground-submit" class="playground-submit-btn">Karşılaştır</button>
+          </form>
+        </div>
+        <div class="playground-output">
+          <h3>Sonuç (model başına)</h3>
+          <p class="playground-result-hint"><strong>Strict</strong> modeli güveni bir kademe düşürür; aynı olaylarda Default/Mock <em>Allow</em> verirken Strict <em>Observe</em> veya <em>Block</em> verebilir. Karşılaştırmaya Strict'i ekleyin. Default ve Mock bu örnekte <strong>aynı tür motor</strong> (mock) kullandığı için aynı girdide <strong>aynı sonucu</strong> verir. Bu normal. Farklı sonuç görmek için farklı model türleri (örn. gerçek LLM vs kural tabanlı) karşılaştırmanız gerekir; bu demo’da sadece “aynı olay setinde iki model de aynı kararı verdi” deneyini yapıyorsunuz.</p>
+          <div id="playground-result" class="result-panel" aria-live="polite">
+            <p class="result empty">Olayları girin ve Karşılaştır'a tıklayın.</p>
+          </div>
+        </div>
+      </div>
     </div>
   </div>
 
@@ -244,6 +321,121 @@
         </div>
         <p class="muted">Greenwashing analizleri; her 30 sn mock kayıt eklenir. Analiz yapmak için Örnekler → Greenwashing tespiti.</p>
       </div>
+    </div>
+  </div>
+
+  <!-- Yardım / Nasıl kullanılır: arayüz kılavuzu -->
+  <div id="view-help" class="view view-help" aria-hidden="true" hidden>
+    <div class="help-page">
+      <h2>Sample Web nasıl kullanılır?</h2>
+      <p class="help-lead">Bu sayfa Intentum örnek uygulamasının arayüzünü adım adım anlatır. Hiç bilmiyorsanız aşağıdan başlayın.</p>
+
+      <section class="help-section">
+        <h3>Bu uygulama ne?</h3>
+        <p>Intentum Sample Web, <strong>davranış olaylarından niyet çıkarma</strong> ve <strong>politika kararı</strong> (izin ver, izle, engelle vb.) almayı denemeniz için hazır bir demo. Gerçek API anahtarı gerekmez; varsayılan olarak “mock” (sahte) model kullanılır.</p>
+        <p>Üstte <strong>dört sekme</strong> var: <strong>Örnekler</strong>, <strong>Playground</strong>, <strong>Dashboard</strong>, <strong>Nasıl kullanılır?</strong> (bu sayfa).</p>
+      </section>
+
+      <section class="help-section">
+        <h3>Sonuçlar ne anlama geliyor?</h3>
+        <p>Örneklerde ve Playground’da gördüğünüz terimlerin kısa anlamı:</p>
+        <ul class="help-glossary">
+          <li><strong>Allow</strong> — İzin verildi. Sistem bu davranışı/niyeti kabul ediyor, işlem devam edebilir.</li>
+          <li><strong>Block</strong> — Engellendi. Sistem şüpheli veya riskli buldu; işlem durdurulur (örn. dolandırıcılık riski).</li>
+          <li><strong>Observe</strong> — İzlenecek. İzin verilir ama kayıt altına alınır; sonradan inceleme için.</li>
+          <li><strong>Warn</strong> — Uyarı. İşlem yapılır ama kullanıcıya uyarı gösterilir.</li>
+          <li><strong>Escalate</strong> — İnsan incelemesine gönder. Otomatik karar verilmez, bir operatör bakar.</li>
+          <li><strong>Güven (High / Medium / Low / Certain)</strong> — Modelin niyet tahminine ne kadar emin olduğu. High/Certain = yüksek güven; Low = düşük güven, belirsiz.</li>
+          <li><strong>Niyet adı</strong> — Davranışlardan çıkarılan etiket (örn. “Normal oturum”, “Şüpheli erişim”).</li>
+          <li><strong>Sinyaller</strong> — Karara katkı yapan davranışlar (örn. user:login, user:retry) ve ağırlıkları.</li>
+        </ul>
+      </section>
+
+      <section class="help-section">
+        <h3>Örnekler sekmesi — Her senaryo ne yapar?</h3>
+        <p>Sol menüdeki her başlık <strong>farklı bir demo</strong>. Ne yaptığınız ve sonucun ne anlama geldiğini aşağıda özetledik.</p>
+
+        <h4 class="help-h4">♻ Sürdürülebilirlik (ESG)</h4>
+        <p><strong>Ne bu:</strong> Karbon ayak izi hesaplama ve rapor sorgulama (CQRS örneği). Aktör (analyst, auditor) ve kapsam (facility-A, supply_chain) giriyorsunuz.</p>
+        <p><strong>Ne yapıyorsunuz:</strong> “Hesapla” ile karbon hesaplama isteği gönderiyorsunuz; “Rapor getir” ile daha önce hesaplanan bir raporu ID ile çekiyorsunuz.</p>
+        <p><strong>Sonuç ne demek:</strong> Hesapla → Hesaplanan değerler veya onay mesajı. Rapor getir → Rapor detayı veya “bulunamadı”. Bu senaryoda Allow/Block yok; sadece CQRS komut/sorgu akışı gösterilir.</p>
+
+        <h4 class="help-h4">E-ticaret siparişi</h4>
+        <p><strong>Ne bu:</strong> Sipariş verme simülasyonu. Ürün, miktar ve müşteri ID giriyorsunuz; arka planda niyet/risk değerlendirmesi yapılabilir.</p>
+        <p><strong>Ne yapıyorsunuz:</strong> Formu doldurup “Sipariş ver”e basıyorsunuz.</p>
+        <p><strong>Sonuç ne demek:</strong> Sipariş onayı veya hata mesajı. Demo’da genelde başarılı yanıt döner; gerçek uygulamada dolandırıcılık skoruna göre red de olabilir.</p>
+
+        <h4 class="help-h4">Greenwashing tespiti</h4>
+        <p><strong>Ne bu:</strong> Sürdürülebilirlik raporu veya metin “yeşil badana” (greenwashing) mı yoksa gerçek mi, analiz edilir. Niyet: GenuineSustainability (temiz) veya ActiveGreenwashing (yeşil badana).</p>
+        <p><strong>Ne yapıyorsunuz:</strong> Hazır raporlardan birini seçin veya kutuya metin yapıştırın, “Analiz et”e basın.</p>
+        <p><strong>Sonuç ne demek:</strong> <strong>Niyet</strong> (temiz / greenwashing / borderline), <strong>Karar</strong> (Allow = güvenilir kabul, Block = şüpheli), <strong>sinyaller</strong> (hangi cümleler etkiledi), <strong>önerilen aksiyonlar</strong>. Block = rapor şüpheli bulundu.</p>
+
+        <h4 class="help-h4">Dolandırıcılık & risk — Niyet çıkarımı</h4>
+        <p><strong>Ne bu:</strong> Davranış olaylarından (login, retry, hassas veri erişimi vb.) <strong>niyet</strong> çıkarılır; politika buna göre <strong>Allow / Block / Observe</strong> kararı verir. Dolandırıcılık, müşteri segmentasyonu, banka/sağlık senaryoları demo’da.</p>
+        <p><strong>Ne yapıyorsunuz:</strong> Hazır senaryolardan birini seçin (örn. “Normal oturum”, “Şüpheli: çoklu retry”) veya kendiniz satır satır aktör/aksiyon girin, “Çıkar”a basın.</p>
+        <p><strong>Sonuç ne demek:</strong> <strong>Karar</strong>: Allow = izin, Block = engel, Observe = izle. <strong>Güven</strong>: High/Medium/Low — modelin tahminine güveni. <strong>Geçmiş ID</strong>: Bu çıkarım kayıt altına alındı (Dashboard’da görünebilir). Çok retry veya hassas erişim genelde Observe/Block’a kayar.</p>
+
+        <h4 class="help-h4">Niyet açıklanabilirliği</h4>
+        <p><strong>Ne bu:</strong> Aynı olay setiyle niyet çıkarılır ama bu sefer <strong>neden</strong> o karar verildiği gösterilir: Hangi davranış (sinyal) karara ne kadar katkı yaptı (yüzde).</p>
+        <p><strong>Ne yapıyorsunuz:</strong> Olayları girin (veya hazır senaryo), “Açıkla”ya basın.</p>
+        <p><strong>Sonuç ne demek:</strong> Niyet adı, güven, bir <strong>özet cümle</strong> ve <strong>tablo</strong>: Kaynak (örn. user:login), Açıklama, Ağırlık, Katkı %. Yüksek % = o davranış kararı daha çok etkiledi. Denetim ve “neden Block?” sorusuna cevap için.</p>
+
+        <p style="margin-top:1rem"><strong>İlk deneme:</strong> Örnekler → <strong>Dolandırıcılık & risk</strong> → “Normal oturum” butonuna tıklayın → <strong>Çıkar</strong>’a basın. Sonuçta Allow ve güven seviyesi görürsünüz.</p>
+      </section>
+
+      <section class="help-section">
+        <h3>Playground sekmesi</h3>
+        <p><strong>Ne işe yarar:</strong> Kendi olay listenizi (aktör + aksiyon) girin veya JSON yapıştırın; <strong>birden fazla modeli</strong> (Default, Mock, Strict) aynı olay setinde karşılaştırırsınız.</p>
+        <p><strong>Strict ne yapar?</strong> <strong>Strict</strong> modeli güveni bir kademe düşürür (Certain→High, High→Medium, Medium→Low). Aynı olaylarda Default/Mock <em>Allow</em> verirken Strict <em>Observe</em> veya <em>Block</em> verebilir — böylece Playground’da <strong>farklı politika sonuçlarını</strong> hemen görebilirsiniz. Karşılaştırmaya Strict’i ekleyip Karşılaştır’a basın.</p>
+        <p><strong>Default ve Mock neden benzer?</strong> Bu demo’da ikisi de aynı <strong>mock</strong> motoru kullanıyor; gerçek LLM yok. Aynı girdi → benzer çıktı. Kendi projenizde gerçek LLM veya kural tabanlı model eklediğinizde Default vs diğer modeller arasında da fark görürsünüz.</p>
+        <p><strong>Playground’un anlamı ne?</strong> (1) <strong>Aynı olay setini</strong> birden fazla modele gönderip <strong>farklı sonuçları</strong> yan yana görmek — Strict ile bu demo’da da farkı görürsünüz. (2) <strong>Örneklerde olmayan senaryoları</strong> tek ekrandan denemek.</p>
+        <ol class="help-steps">
+          <li><strong>Olaylar</strong> bölümünde her satıra bir <strong>aktör</strong> ve <strong>aksiyon</strong> yazın (örn. aktör: <code>user</code>, aksiyon: <code>login</code>). “+ Olay ekle” ile satır ekleyin.</li>
+          <li>İsterseniz <strong>“Veya JSON yapıştır”</strong> alanına <code>[{"actor":"user","action":"login"}, ...]</code> formatında JSON yapıştırın. Karşılaştır’a basınca önce bu kullanılır.</li>
+          <li><strong>“Hızlı yükle”</strong> altındaki butonlarla hazır senaryoyu listeye yükleyebilir, sonra düzenleyebilirsiniz.</li>
+          <li><strong>Karşılaştırılacak modelleri</strong> işaretleyin (Default, Mock, Strict). <strong>Karşılaştır</strong>’a tıklayın.</li>
+          <li><strong>Sonuç</strong> sağda tabloda görünür: model başına niyet adı, güven, skor, karar.</li>
+        </ol>
+      </section>
+
+      <section class="help-section">
+        <h3>UI’da olmayan (tamamen kendi) senaryo nasıl denersiniz?</h3>
+        <p>Sistem sadece <strong>aktör</strong> ve <strong>aksiyon</strong> metinlerini kullanır; hazır senaryolar sadece kısayol. İstediğiniz alan için (araç, bot, sensör, vb.) kendi etiketlerinizi yazabilirsiniz.</p>
+        <p><strong>Adımlar:</strong></p>
+        <ol class="help-steps">
+          <li><strong>Playground</strong> sekmesine gidin.</li>
+          <li><strong>İki yol:</strong> (A) Olaylar listesinde “+ Olay ekle” ile satır ekleyip her satıra kendi <strong>aktör</strong> ve <strong>aksiyon</strong> değerlerinizi yazın. (B) “Veya JSON yapıştır” kutusuna aşağıdaki formatta bir dizi yapıştırın.</li>
+          <li>Modelleri seçin (Default, Mock, Strict). <strong>Karşılaştır</strong>’a basın. Model yine de niyet ve karar üretir (Mock/Default, aktör:aksiyon anahtarına göre skor üretir).</li>
+        </ol>
+        <p><strong>Örnek — UI’da hiç olmayan bir senaryo (sürücü + sensör):</strong></p>
+        <pre class="help-code">[
+  {"actor": "driver", "action": "lane_change"},
+  {"actor": "driver", "action": "speed_up"},
+  {"actor": "sensor", "action": "obstacle_detected"}
+]</pre>
+        <p>Bu JSON’u Playground’da “Veya JSON yapıştır” kutusuna yapıştırıp <strong>Karşılaştır</strong>’a basın. Veya “Hızlı yükle” altındaki <strong>Kendi senaryom (UI'da yok)</strong> butonuna tıklayın; aynı olaylar listeye yüklenir, sonra Karşılaştır’a basın. Sonuçta model bu davranış seti için bir niyet adı ve karar (Allow/Observe/Block) üretir.</p>
+        <p>Kendi senaryonuz için: <code>actor</code> ve <code>action</code> yerine istediğiniz kelimeleri kullanın (örn. <code>"actor": "bot"</code>, <code>"action": "api_retry"</code>). Format her zaman <code>[{"actor": "...", "action": "..."}, ...]</code> olmalı.</p>
+      </section>
+
+      <section class="help-section">
+        <h3>Dashboard sekmesi</h3>
+        <p><strong>Ne işe yarar:</strong> Örnek uygulama çalışırken biriken <strong>analitik özet</strong> (toplam çıkarım, karar dağılımı, güven eğilimi, anomaliler, son çıkarımlar, greenwashing analizleri).</p>
+        <ol class="help-steps">
+          <li><strong>Tarih aralığı</strong> seçin (Başlangıç / Bitiş) veya “Son 24 saat” / “Son 7 gün” butonuna basın.</li>
+          <li><strong>Yenile</strong> ile veriyi tek seferde çekin. İsterseniz <strong>Canlı</strong> kutusunu işaretleyin; belirli aralıklarla otomatik yenilenir.</li>
+          <li>Aşağıda <strong>KPI’lar</strong>, <strong>karar dağılımı</strong> çubukları, <strong>güven eğilimi</strong> tablosu, <strong>anomaliler</strong>, <strong>son çıkarımlar</strong> ve <strong>son greenwashing analizleri</strong> listelenir.</li>
+        </ol>
+        <p>Önce Örnekler veya Playground’da birkaç istek atarsanız Dashboard’da veri görünür (örnek uygulama in-memory tutar).</p>
+      </section>
+
+      <section class="help-section">
+        <h3>Kısa özet</h3>
+        <ul class="help-summary">
+          <li><strong>Örnekler:</strong> Sol menü → senaryo seç → formu doldur / hazır senaryo → gönder → sonuç yanında.</li>
+          <li><strong>Playground:</strong> Olayları satır satır gir veya JSON yapıştır → modelleri seç → Karşılaştır → tablo.</li>
+          <li><strong>Dashboard:</strong> Tarih seç → Yenile (veya Canlı) → özet, grafikler, tablolar.</li>
+        </ul>
+      </section>
     </div>
   </div>
 

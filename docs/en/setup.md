@@ -111,6 +111,37 @@ For DI (e.g. ASP.NET Core), use `services.AddIntentumOpenAI(options)` and inject
 
 ---
 
+## Create from template (dotnet new)
+
+You can start from a pre-configured project using **dotnet new** and the Intentum templates (install once from the repo `templates` folder):
+
+```bash
+# From repo root: install templates
+dotnet new install ./templates/intentum-webapi
+dotnet new install ./templates/intentum-backgroundservice
+dotnet new install ./templates/intentum-function
+```
+
+Then create a new project:
+
+| Template | Description |
+|----------|-------------|
+| **intentum-webapi** | Minimal ASP.NET Core Web API with Intentum: infer endpoint, health check, Mock provider. |
+| **intentum-backgroundservice** | .NET Worker Service with **MemoryBehaviorStreamConsumer** and **IntentStreamWorker** that processes behavior event batches through an intent model and policy. |
+| **intentum-function** | Azure Functions v4 (isolated worker) with HTTP-triggered **InferIntent** function, Mock model and policy. |
+
+Example:
+
+```bash
+dotnet new intentum-webapi -n MyIntentumApi -o MyIntentumApi
+cd MyIntentumApi
+dotnet run
+```
+
+See [Advanced Features](advanced-features.md) for Policy Store, Context-Aware Policy, Multi-Stage Model, and other extensions.
+
+---
+
 ## Environment variables (overview)
 
 Set these only when using real HTTP adapters:
@@ -192,9 +223,9 @@ dotnet run --project samples/Intentum.Sample.Web
 - **Endpoints:**
   - Carbon: `POST /api/carbon/calculate`, `GET /api/carbon/report/{id}`
   - Orders: `POST /api/orders`
-  - Intent: `POST /api/intent/infer` (body: `{ "events": [ { "actor": "user", "action": "login" }, ... ] }`), `POST /api/intent/explain` (same body; returns signal contributions)
+  - Intent: `POST /api/intent/infer` (body: `{ "events": [ { "actor": "user", "action": "login" }, ... ] }`), `POST /api/intent/explain` (same body; returns signal contributions), `POST /api/intent/explain-tree` (decision tree), `POST /api/intent/playground/compare` (compare models)
   - Greenwashing: `POST /api/greenwashing/analyze` (body: `{ "report": "...", "sourceType": "Report", "language": "tr", "imageBase64": null }`), `GET /api/greenwashing/recent?limit=15`
-  - Analytics: `GET /api/intent/analytics/summary`, `GET /api/intent/history`, `GET /api/intent/analytics/export/json`, `GET /api/intent/analytics/export/csv`
+  - Analytics: `GET /api/intent/analytics/summary`, `GET /api/intent/history`, `GET /api/intent/analytics/timeline/{entityId}`, `GET /api/intent/analytics/export/json`, `GET /api/intent/analytics/export/csv`
   - Health: `/health`
 
 ---

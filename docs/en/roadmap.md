@@ -30,3 +30,23 @@ Intentum's direction: adoption first, then depth.
 - Academic-grade docs and design notes.
 
 ---
+
+## Recent additions (post–v1.0)
+
+Already implemented and documented:
+
+- **Intent Timeline** — Entity-scoped intent history over time; `GetIntentTimelineAsync`, Sample: `GET /api/intent/analytics/timeline/{entityId}`.
+- **Intent Tree** — Decision tree explainability; `IIntentTreeExplainer`, Sample: `POST /api/intent/explain-tree`.
+- **Context-Aware Policy** — Policy rules with context (load, region, recent intents); `ContextAwarePolicyEngine`, `intent.Decide(context, policy)`.
+- **Policy Store** — Declarative JSON policy with hot-reload; `IPolicyStore`, `FilePolicyStore` (Intentum.Runtime.PolicyStore).
+- **Behavior Pattern Detector** — Patterns and anomalies in intent history; `IBehaviorPatternDetector`.
+- **Multi-Stage Intent Model** — Chain models with confidence thresholds; `MultiStageIntentModel`.
+- **Scenario Runner** — Run scenarios through model + policy; `IScenarioRunner`, `IntentScenarioRunner`.
+- **Real-time stream** — `IBehaviorStreamConsumer`, `MemoryBehaviorStreamConsumer`; Worker template uses it.
+- **OpenTelemetry tracing** — Spans for infer and policy.evaluate; `IntentumActivitySource`.
+- **Playground** — Compare models via `POST /api/intent/playground/compare`.
+- **dotnet new templates** — `intentum-webapi`, `intentum-backgroundservice`, `intentum-function`.
+
+See [Advanced Features](advanced-features.md), [Setup – Create from template](setup.md#create-from-template-dotnet-new), and [API Reference](api.md).
+
+---

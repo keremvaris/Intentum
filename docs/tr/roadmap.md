@@ -30,3 +30,23 @@ Intentum'un yönü: önce benimsenme, sonra derinlik.
 - Akademik seviye dokümanlar.
 
 ---
+
+## Son eklemeler (v1.0 sonrası)
+
+Uygulanmış ve dokümante edilmiş:
+
+- **Intent Timeline** — Entity-scoped intent geçmişi; `GetIntentTimelineAsync`, Sample: `GET /api/intent/analytics/timeline/{entityId}`.
+- **Intent Tree** — Karar ağacı açıklanabilirliği; `IIntentTreeExplainer`, Sample: `POST /api/intent/explain-tree`.
+- **Context-Aware Policy** — Context’li policy kuralları (load, region, recent intents); `ContextAwarePolicyEngine`, `intent.Decide(context, policy)`.
+- **Policy Store** — JSON’dan deklaratif policy, hot-reload; `IPolicyStore`, `FilePolicyStore` (Intentum.Runtime.PolicyStore).
+- **Behavior Pattern Detector** — Intent geçmişinde pattern ve anomali; `IBehaviorPatternDetector`.
+- **Multi-Stage Intent Model** — Eşiklerle model zinciri; `MultiStageIntentModel`.
+- **Scenario Runner** — Senaryoları model + policy ile çalıştırma; `IScenarioRunner`, `IntentScenarioRunner`.
+- **Gerçek zamanlı stream** — `IBehaviorStreamConsumer`, `MemoryBehaviorStreamConsumer`; Worker şablonu kullanır.
+- **OpenTelemetry tracing** — infer ve policy.evaluate span’leri; `IntentumActivitySource`.
+- **Playground** — `POST /api/intent/playground/compare` ile model karşılaştırma.
+- **dotnet new şablonları** — `intentum-webapi`, `intentum-backgroundservice`, `intentum-function`.
+
+Bkz. [Gelişmiş Özellikler](advanced-features.md), [Kurulum – Şablondan oluştur](setup.md#şablondan-oluştur-dotnet-new) ve [API Referansı](api.md).
+
+---

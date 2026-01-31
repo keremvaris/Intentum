@@ -213,6 +213,8 @@ Aşağıdaki paketler opsiyonel yetenek ekler. Detaylı kullanım (nedir, ne zam
 |-----|----------------|
 | **IIntentExplainer** | Intent'in nasıl çıkarıldığını açıklar (sinyal katkıları, metin özeti). |
 | **IntentExplainer** | `GetSignalContributions(intent)` → **SignalContribution** listesi; `GetExplanation(intent, maxSignals?)` → string. |
+| **IIntentTreeExplainer** | Policy yolunu ağaç olarak oluşturur (eşleşen kural, sinyal düğümleri). |
+| **IntentTreeExplainer** | `ExplainTree(intent, policy, behaviorSpace?)` → **IntentDecisionTree** (IntentSummary, SignalNodes, MatchedRule). |
 | **SignalContribution** | Source, Description, Weight, ContributionPercent. |
 
 ### Simulation (`Intentum.Simulation`)
@@ -264,6 +266,8 @@ Aşağıdaki paketler opsiyonel yetenek ekler. Detaylı kullanım (nedir, ne zam
 
 **Persistence:** `IBehaviorSpaceRepository` ve `IIntentHistoryRepository` için EF Core (`AddIntentumPersistence`), Redis (`Intentum.Persistence.Redis`, `AddIntentumPersistenceRedis`) veya MongoDB (`Intentum.Persistence.MongoDB`, `AddIntentumPersistenceMongoDB`) kullanılabilir. Detay: [Gelişmiş özellikler](advanced-features.md#persistence).
 
+**Genişletme:** `GetIntentTimelineAsync(entityId, start, end)` entity başına zaman sıralı intent noktaları döndürür (isteğe bağlı `EntityId` ile history gerekir). Bkz. [Gelişmiş Özellikler – Intent Timeline](advanced-features.md#intent-timeline).
+
 **Nereden başlanır:** `IIntentHistoryRepository` kaydedin (örn. `AddIntentumPersistence`), sonra `AddIntentAnalytics()` ekleyin ve `IIntentAnalytics` inject edin. `GetSummaryAsync()`, `GetConfidenceTrendsAsync()`, `GetDecisionDistributionAsync()`, `DetectAnomaliesAsync()`, `ExportToJsonAsync()`, `ExportToCsvAsync()` kullanın.
 
 ---
@@ -276,8 +280,11 @@ Web örneği intent çıkarımı, açıklanabilirlik, greenwashing tespiti ve an
 |--------|------|----------|
 | POST | `/api/intent/infer` | Olaylardan intent çıkarır. Body: `{ "events": [ { "actor": "user", "action": "login" }, ... ] }`. Intent adı, güven, karar, sinyaller döner. |
 | POST | `/api/intent/explain` | Infer ile aynı body; sinyal katkıları (kaynak, açıklama, ağırlık, yüzde) ve metin açıklaması döner. |
+| POST | `/api/intent/explain-tree` | Infer ile aynı body; karar ağacı (eşleşen kural, sinyal düğümleri, intent özeti) döner. **IIntentTreeExplainer** gerekir. |
+| POST | `/api/intent/playground/compare` | Birden fazla kayıtlı modelde çıkarım karşılaştırır. Body: `{ "events": [...], "modelNames": ["Default", "Mock"] }`. Model başına intent ve karar döner. |
 | GET | `/api/intent/history` | Sayfalanmış intent geçmişi (örnekte in-memory). Sorgu: `skip`, `take`. |
 | GET | `/api/intent/analytics/summary` | Dashboard özeti: güven trendleri, karar dağılımı, anomali listesi. |
+| GET | `/api/intent/analytics/timeline/{entityId}` | Entity için intent timeline. Sorgu: `start`, `end` (ISO8601). Zaman sıralı noktalar (intent, güven, karar) döner. |
 | GET | `/api/intent/analytics/export/json` | Analytics’i JSON olarak dışa aktarır. |
 | GET | `/api/intent/analytics/export/csv` | Analytics’i CSV olarak dışa aktarır. |
 | POST | `/api/greenwashing/analyze` | Raporu greenwashing için analiz eder. Body: `{ "report": "...", "sourceType": "Report", "language": "tr", "imageBase64": null }`. Intent, karar, sinyaller, önerilen aksiyonlar, `sourceMetadata`, `visualResult` (görsel gönderildiyse) döner. |

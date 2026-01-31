@@ -106,17 +106,35 @@ public sealed class IntentAnalyticsTests
         Assert.Contains("bs1", csv);
     }
 
+    [Fact]
+    public async Task GetIntentTimelineAsync_ReturnsTimeOrderedPointsForEntity()
+    {
+        var analytics = await CreateAnalyticsWithSampleDataAsync();
+        var now = DateTimeOffset.UtcNow;
+        var start = now.AddDays(-1);
+        var end = now.AddDays(1);
+
+        var timeline = await analytics.GetIntentTimelineAsync("bs1", start, end);
+
+        Assert.Equal("bs1", timeline.EntityId);
+        Assert.Equal(start, timeline.Start);
+        Assert.Equal(end, timeline.End);
+        Assert.Equal(2, timeline.Points.Count);
+        Assert.True(timeline.Points[0].RecordedAt <= timeline.Points[1].RecordedAt);
+        Assert.Contains(timeline.Points, p => p.IntentName == "Test" && (p.ConfidenceLevel == "High" || p.ConfidenceLevel == "Certain"));
+    }
+
     private sealed class InMemoryIntentHistoryRepository : IIntentHistoryRepository
     {
         private readonly List<IntentHistoryRecord> _records = new();
         private int _id;
 
-        public Task<string> SaveAsync(string behaviorSpaceId, Intent intent, PolicyDecision decision, IReadOnlyDictionary<string, object>? metadata = null, CancellationToken cancellationToken = default)
+        public Task<string> SaveAsync(string behaviorSpaceId, Intent intent, PolicyDecision decision, IReadOnlyDictionary<string, object>? metadata = null, string? entityId = null, CancellationToken cancellationToken = default)
         {
             var id = (++_id).ToString();
             _records.Add(new IntentHistoryRecord(
                 id, behaviorSpaceId, intent.Name, intent.Confidence.Level, intent.Confidence.Score,
-                decision, DateTimeOffset.UtcNow, metadata));
+                decision, DateTimeOffset.UtcNow, metadata, entityId));
             return Task.FromResult(id);
         }
 
@@ -131,5 +149,11 @@ public sealed class IntentAnalyticsTests
 
         public Task<IReadOnlyList<IntentHistoryRecord>> GetByTimeWindowAsync(DateTimeOffset start, DateTimeOffset end, CancellationToken cancellationToken = default)
             => Task.FromResult<IReadOnlyList<IntentHistoryRecord>>(_records.Where(r => r.RecordedAt >= start && r.RecordedAt <= end).ToList());
+
+        public Task<IReadOnlyList<IntentHistoryRecord>> GetByEntityIdAsync(string entityId, DateTimeOffset start, DateTimeOffset end, CancellationToken cancellationToken = default)
+            => Task.FromResult<IReadOnlyList<IntentHistoryRecord>>(_records
+                .Where(r => (r.EntityId == entityId || r.BehaviorSpaceId == entityId) && r.RecordedAt >= start && r.RecordedAt <= end)
+                .OrderBy(r => r.RecordedAt)
+                .ToList());
     }
 }

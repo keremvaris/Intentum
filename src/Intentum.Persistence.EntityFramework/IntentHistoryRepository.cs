@@ -23,18 +23,10 @@ public sealed class IntentHistoryRepository : IIntentHistoryRepository
         Intent intent,
         PolicyDecision decision,
         IReadOnlyDictionary<string, object>? metadata = null,
+        string? entityId = null,
         CancellationToken cancellationToken = default)
     {
-        var record = new IntentHistoryRecord(
-            Id: Guid.NewGuid().ToString(),
-            BehaviorSpaceId: behaviorSpaceId,
-            IntentName: intent.Name,
-            ConfidenceLevel: intent.Confidence.Level,
-            ConfidenceScore: intent.Confidence.Score,
-            Decision: decision,
-            RecordedAt: DateTimeOffset.UtcNow,
-            Metadata: metadata);
-
+        var record = IntentHistoryRecord.Create(behaviorSpaceId, intent, decision, metadata, entityId);
         var entity = IntentHistoryEntity.FromRecord(record);
         _context.IntentHistory.Add(entity);
         await _context.SaveChangesAsync(cancellationToken);
@@ -84,7 +76,23 @@ public sealed class IntentHistoryRepository : IIntentHistoryRepository
     {
         var entities = await _context.IntentHistory
             .Where(h => h.RecordedAt >= start && h.RecordedAt <= end)
-            .OrderByDescending(h => h.RecordedAt)
+            .OrderBy(h => h.RecordedAt)
+            .ToListAsync(cancellationToken);
+
+        return entities.Select(e => e.ToRecord()).ToList();
+    }
+
+    /// <inheritdoc />
+    public async Task<IReadOnlyList<IntentHistoryRecord>> GetByEntityIdAsync(
+        string entityId,
+        DateTimeOffset start,
+        DateTimeOffset end,
+        CancellationToken cancellationToken = default)
+    {
+        var entities = await _context.IntentHistory
+            .Where(h => (h.EntityId == entityId || h.BehaviorSpaceId == entityId)
+                && h.RecordedAt >= start && h.RecordedAt <= end)
+            .OrderBy(h => h.RecordedAt)
             .ToListAsync(cancellationToken);
 
         return entities.Select(e => e.ToRecord()).ToList();

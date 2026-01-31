@@ -26,7 +26,7 @@ In Intentum, the **Infer** step optionally uses **AI (embeddings)**: it turns be
 | **Similarity** | A **similarity engine** aggregates all embeddings into a single score (e.g. average). That score is mapped to a confidence level. |
 | **Intent** | **LlmIntentModel** produces an **Intent** (Confidence + Signals) from this score; the policy returns Allow / Observe / Warn / Block based on that intent. |
 
-Examples usually use **Mock** (no API key). To try real AI, set the right environment variables and use a provider; see [Providers](providers.md), [How to use AI providers](ai-providers-howto.md), and [Setup – real provider](setup.md#using-a-real-provider-eg-openai). **Samples** (`samples/`) are full showcase apps (many scenarios, Web API); **examples** (`examples/`) are minimal single-use-case projects (fraud-intent, **customer-intent**, ai-fallback-intent, **chained-intent**, **time-decay-intent**, **vector-normalization**, **greenwashing-intent**). Intent may include optional **Reasoning** (e.g. which rule matched or fallback used).
+Examples usually use **Mock** (no API key). To try real AI, set the right environment variables and use a provider; see [Providers](providers.md), [How to use AI providers](ai-providers-howto.md), and [Setup – real provider](setup.md#using-a-real-provider-eg-openai). **Samples** (`samples/`) are full showcase apps (many scenarios, Web API with infer, explain, explain-tree, playground, analytics, timeline); **examples** (`examples/`) are minimal single-use-case projects (fraud-intent, customer-intent, ai-fallback-intent, chained-intent, time-decay-intent, vector-normalization, greenwashing-intent). **Templates:** `dotnet new intentum-webapi`, `intentum-backgroundservice`, `intentum-function` — see [Setup – Create from template](setup.md#create-from-template-dotnet-new). **Examples overview** and **Tests overview** are in the docs sidebar. Intent may include optional **Reasoning** (e.g. which rule matched or fallback used).
 
 ---
 
@@ -75,7 +75,9 @@ In short: **Given/When/Then is gone; in its place you have Observe (record event
 | [Local integration tests](local-integration-tests.md) | Run VerifyAI (all providers) or per-provider integration tests locally with `.env` and scripts. |
 | [Coverage](coverage.md) | How to generate and view coverage; SonarCloud findings and quality gate. |
 | [Benchmarks](benchmarks.md) | BenchmarkDotNet: ToVector, Infer, PolicyEngine; run and refresh docs with `./scripts/run-benchmarks.sh`. |
-| [Advanced Features](advanced-features.md) | Similarity engines (WeightedAverage, TimeDecay, Cosine, Composite), **source weights & time decay in main flow**, **vector normalization** (ToVectorOptions), **rule-based and chained intent models**, fluent APIs, caching, testing utilities, **rate limiting**, **analytics & reporting**, middleware, observability, logging, health checks, batch processing, persistence. |
+| [Examples overview](examples-overview.md) | Examples and samples by difficulty (simple / medium / hard) and real-life use cases. |
+| [Tests overview](tests-overview.md) | Test projects, sample links, and how to run unit and integration tests. |
+| [Advanced Features](advanced-features.md) | Similarity engines, vector normalization, rule-based and chained intent models, fluent APIs, caching, **Intent Timeline**, **Intent Tree**, **Context-Aware Policy**, **Policy Store**, **Behavior Pattern Detector**, **Multi-Stage Model**, **Scenario Runner**, **stream processing**, **OpenTelemetry tracing**, rate limiting, analytics, middleware, observability, batch processing, persistence. |
 
 ---
 

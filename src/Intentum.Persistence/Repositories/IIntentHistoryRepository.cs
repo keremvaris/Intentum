@@ -15,12 +15,14 @@ public interface IIntentHistoryRepository
     /// <param name="intent">The inferred intent.</param>
     /// <param name="decision">The policy decision.</param>
     /// <param name="metadata">Optional metadata (e.g. EventsSummary, Source) to show where the inference came from.</param>
+    /// <param name="entityId">Optional entity identifier (e.g. userId) for timeline and entity-scoped queries.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
     Task<string> SaveAsync(
         string behaviorSpaceId,
         Intent intent,
         PolicyDecision decision,
         IReadOnlyDictionary<string, object>? metadata = null,
+        string? entityId = null,
         CancellationToken cancellationToken = default);
 
     /// <summary>
@@ -51,6 +53,16 @@ public interface IIntentHistoryRepository
         DateTimeOffset start,
         DateTimeOffset end,
         CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Gets intent history for an entity (e.g. userId) within a time window, ordered by RecordedAt.
+    /// When entityId was not stored, use behaviorSpaceId as entity scope.
+    /// </summary>
+    Task<IReadOnlyList<IntentHistoryRecord>> GetByEntityIdAsync(
+        string entityId,
+        DateTimeOffset start,
+        DateTimeOffset end,
+        CancellationToken cancellationToken = default);
 }
 
 /// <summary>
@@ -64,7 +76,8 @@ public sealed record IntentHistoryRecord(
     double ConfidenceScore,
     PolicyDecision Decision,
     DateTimeOffset RecordedAt,
-    IReadOnlyDictionary<string, object>? Metadata = null
+    IReadOnlyDictionary<string, object>? Metadata = null,
+    string? EntityId = null
 )
 {
     /// <summary>
@@ -74,7 +87,8 @@ public sealed record IntentHistoryRecord(
         string behaviorSpaceId,
         Intent intent,
         PolicyDecision decision,
-        IReadOnlyDictionary<string, object>? metadata = null) =>
+        IReadOnlyDictionary<string, object>? metadata = null,
+        string? entityId = null) =>
         new(
             Id: Guid.NewGuid().ToString(),
             BehaviorSpaceId: behaviorSpaceId,
@@ -83,5 +97,6 @@ public sealed record IntentHistoryRecord(
             ConfidenceScore: intent.Confidence.Score,
             Decision: decision,
             RecordedAt: DateTimeOffset.UtcNow,
-            Metadata: metadata);
+            Metadata: metadata,
+            EntityId: entityId);
 }

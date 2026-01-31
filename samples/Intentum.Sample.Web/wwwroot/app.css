@@ -171,6 +171,305 @@ header nav a:hover {
   background: var(--bg-subtle);
 }
 
+/* --- Playground tab (full-page view) --- */
+.view-playground {
+  background: var(--bg-subtle);
+}
+
+.playground-page {
+  max-width: 80rem;
+  margin: 0 auto;
+  padding: 2rem;
+}
+
+.playground-header {
+  margin-bottom: 1.5rem;
+}
+
+.playground-header h2 {
+  margin: 0 0 0.25rem 0;
+  font-size: 1.35rem;
+  font-weight: 600;
+}
+
+.playground-header .subtitle {
+  margin: 0;
+  color: var(--text-muted);
+  font-size: 0.95rem;
+}
+
+.playground-body {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 2rem;
+  align-items: start;
+}
+
+@media (max-width: 900px) {
+  .playground-body {
+    grid-template-columns: 1fr;
+  }
+
+  .playground-page {
+    padding: 1rem;
+  }
+
+  .playground-output {
+    position: static;
+  }
+}
+
+.playground-input {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.playground-section-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 1.25rem;
+}
+
+.playground-section-card h3 {
+  margin: 0 0 0.5rem 0;
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+.playground-hint {
+  margin: 0 0 0.75rem 0;
+  font-size: 0.875rem;
+  color: var(--text-muted);
+  line-height: 1.45;
+}
+
+.playground-json-input {
+  width: 100%;
+  min-height: 6rem;
+  padding: 0.75rem;
+  font-family: "JetBrains Mono", monospace;
+  font-size: 0.85rem;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--text);
+  resize: vertical;
+  box-sizing: border-box;
+}
+
+.playground-json-input::placeholder {
+  color: var(--text-muted);
+}
+
+.playground-json-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+}
+
+.playground-json-actions button {
+  padding: 0.4rem 0.75rem;
+  font-size: 0.85rem;
+  background: var(--surface-hover);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--text);
+  cursor: pointer;
+}
+
+.playground-json-actions button:hover {
+  background: var(--border);
+}
+
+.preset-inline {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.preset-inline .btn-preset-pg {
+  padding: 0.4rem 0.75rem;
+  font-size: 0.85rem;
+  background: var(--surface-hover);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--text);
+  cursor: pointer;
+}
+
+.preset-inline .btn-preset-pg:hover {
+  background: var(--border);
+}
+
+.preset-inline .btn-preset-pg.btn-preset-custom {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.preset-inline .btn-preset-pg.btn-preset-custom:hover {
+  background: rgba(56, 189, 248, 0.15);
+}
+
+.playground-submit-btn {
+  padding: 0.6rem 1.25rem;
+  font-size: 1rem;
+  font-weight: 500;
+  background: var(--accent-gradient);
+  background-color: var(--accent);
+  border: none;
+  border-radius: var(--radius);
+  color: var(--bg);
+  cursor: pointer;
+}
+
+.playground-submit-btn:hover {
+  filter: brightness(1.1);
+}
+
+.playground-output {
+  position: sticky;
+  top: 6rem;
+}
+
+.playground-output h3 {
+  margin: 0 0 0.5rem 0;
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+.playground-output .playground-result-hint {
+  margin: 0 0 0.75rem 0;
+  padding: 0.6rem 0.75rem;
+  font-size: 0.85rem;
+  line-height: 1.45;
+  color: var(--text-muted);
+  background: var(--bg-subtle);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+}
+
+.playground-output .playground-result-hint strong {
+  color: var(--text);
+}
+
+/* --- Yardım / Nasıl kullanılır (full-page view) --- */
+.view-help {
+  background: var(--bg-subtle);
+}
+
+.help-page {
+  max-width: 52rem;
+  margin: 0 auto;
+  padding: 2rem;
+}
+
+.help-page h2 {
+  margin: 0 0 0.5rem 0;
+  font-size: 1.5rem;
+  font-weight: 600;
+}
+
+.help-lead {
+  margin: 0 0 1.5rem 0;
+  font-size: 1rem;
+  color: var(--text-muted);
+  line-height: 1.5;
+}
+
+.help-section {
+  margin-bottom: 1.75rem;
+}
+
+.help-section h3 {
+  margin: 0 0 0.5rem 0;
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: var(--accent);
+}
+
+.help-section p {
+  margin: 0 0 0.75rem 0;
+  font-size: 0.95rem;
+  line-height: 1.55;
+}
+
+.help-steps {
+  margin: 0.5rem 0 1rem 1.5rem;
+  padding: 0;
+  list-style: decimal;
+}
+
+.help-steps li {
+  margin-bottom: 0.5rem;
+  line-height: 1.5;
+}
+
+.help-steps li strong {
+  font-weight: 600;
+}
+
+.help-summary {
+  margin: 0.5rem 0 0 1rem;
+  padding: 0;
+  list-style: disc;
+}
+
+.help-summary li {
+  margin-bottom: 0.35rem;
+  line-height: 1.5;
+}
+
+.help-page code {
+  font-family: "JetBrains Mono", monospace;
+  font-size: 0.85em;
+  padding: 0.15rem 0.35rem;
+  background: var(--surface);
+  border-radius: var(--radius-sm);
+  color: var(--accent);
+}
+
+.help-glossary {
+  margin: 0.5rem 0 1rem 1rem;
+  padding: 0;
+  list-style: none;
+}
+
+.help-glossary li {
+  margin-bottom: 0.5rem;
+  padding-left: 0.5rem;
+  border-left: 3px solid var(--accent);
+  line-height: 1.45;
+}
+
+.help-h4 {
+  margin: 1rem 0 0.35rem 0;
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.help-page pre.help-code {
+  margin: 0.5rem 0 1rem 0;
+  padding: 1rem;
+  font-family: "JetBrains Mono", monospace;
+  font-size: 0.85rem;
+  line-height: 1.4;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--text);
+  overflow-x: auto;
+}
+
+@media (max-width: 600px) {
+  .help-page {
+    padding: 1rem;
+  }
+}
+
 .dashboard-page {
   max-width: 72rem;
   margin: 0 auto;
@@ -317,6 +616,22 @@ header nav a:hover {
 
 .section-card {
   scroll-margin-top: 1rem;
+}
+
+/* Örnek kartlarında "Bu ne? / Sonuç ne demek?" kutusu */
+.example-what {
+  margin: 0 0 1rem 0;
+  padding: 0.75rem 1rem;
+  background: var(--bg-subtle);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  font-size: 0.9rem;
+  line-height: 1.5;
+  color: var(--text);
+}
+
+.example-what strong {
+  color: var(--accent);
 }
 
 .section-subtitle {
@@ -1106,4 +1421,67 @@ table.signals td {
     flex-direction: column;
     align-items: flex-start;
   }
+}
+
+/* --- Playground (tab view) models & checkboxes --- */
+.playground-page .playground-models,
+.playground-section .playground-models {
+  margin: 1rem 0;
+  padding: 0.75rem 1rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--bg-subtle);
+}
+
+.playground-page .playground-models legend,
+.playground-section .playground-models legend {
+  padding: 0 0.5rem;
+  font-size: 0.9rem;
+  color: var(--text-muted);
+}
+
+.playground-page .checkbox-label,
+.playground-section .checkbox-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-right: 1rem;
+  cursor: pointer;
+  font-size: 0.95rem;
+}
+
+.playground-page .checkbox-label input[type="checkbox"],
+.playground-section .checkbox-label input[type="checkbox"] {
+  accent-color: var(--accent);
+}
+
+.playground-page .label-block,
+.playground-section .label-block {
+  display: block;
+  margin-bottom: 0.35rem;
+  font-size: 0.9rem;
+  color: var(--text-muted);
+}
+
+table.playground-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.9rem;
+}
+
+table.playground-table th,
+table.playground-table td {
+  padding: 0.6rem 0.9rem;
+  text-align: left;
+  border-bottom: 1px solid var(--border);
+}
+
+table.playground-table th {
+  background: var(--bg);
+  color: var(--text-muted);
+  font-weight: 500;
+}
+
+table.playground-table tbody tr:hover {
+  background: rgba(255, 255, 255, 0.02);
 }

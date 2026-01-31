@@ -41,6 +41,7 @@ public sealed class IntentumDbContext : DbContext
         {
             entity.HasKey(e => e.Id);
             entity.HasIndex(e => e.BehaviorSpaceId);
+            entity.HasIndex(e => e.EntityId);
             entity.HasIndex(e => e.ConfidenceLevel);
             entity.HasIndex(e => e.Decision);
             entity.HasIndex(e => e.RecordedAt);

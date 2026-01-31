@@ -19,6 +19,7 @@ public sealed class IntentHistoryDocument
 {
     public string Id { get; set; } = "";
     public string BehaviorSpaceId { get; set; } = "";
+    public string? EntityId { get; set; }
     public string IntentName { get; set; } = "";
     public string ConfidenceLevel { get; set; } = "";
     public double ConfidenceScore { get; set; }
@@ -32,6 +33,7 @@ public sealed class IntentHistoryDocument
         {
             Id = record.Id,
             BehaviorSpaceId = record.BehaviorSpaceId,
+            EntityId = record.EntityId,
             IntentName = record.IntentName,
             ConfidenceLevel = record.ConfidenceLevel,
             ConfidenceScore = record.ConfidenceScore,
@@ -54,6 +56,7 @@ public sealed class IntentHistoryDocument
             ConfidenceScore,
             Enum.Parse<PolicyDecision>(Decision),
             RecordedAt,
-            Metadata: metadata);
+            Metadata: metadata,
+            EntityId: EntityId);
     }
 }

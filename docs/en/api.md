@@ -224,6 +224,8 @@ The following packages add optional capabilities. For detailed usage (what it is
 |------|----------------|
 | **IIntentExplainer** | Explains how intent was inferred (signal contributions, text summary). |
 | **IntentExplainer** | `GetSignalContributions(intent)` → list of **SignalContribution** (Source, Description, Weight, ContributionPercent); `GetExplanation(intent, maxSignals?)` → string. |
+| **IIntentTreeExplainer** | Builds a decision tree for policy path (matched rule, signal nodes). |
+| **IntentTreeExplainer** | `ExplainTree(intent, policy, behaviorSpace?)` → **IntentDecisionTree** (IntentSummary, SignalNodes, MatchedRule). |
 | **SignalContribution** | Source, Description, Weight, ContributionPercent. |
 
 ### Simulation (`Intentum.Simulation`)
@@ -262,6 +264,8 @@ The following packages add optional capabilities. For detailed usage (what it is
 | **AnomalyReport** | Detected anomaly (Type, Description, Severity, Details). |
 | **AnalyticsSummary** | Dashboard-ready summary (trends, distribution, anomalies). |
 
+**Extended:** `GetIntentTimelineAsync(entityId, start, end)` returns time-ordered intent points per entity (requires history with optional `EntityId`). See [Advanced Features – Intent Timeline](advanced-features.md#intent-timeline).
+
 **Where to start:** Register `IIntentHistoryRepository` (e.g. via `AddIntentumPersistence`), then add `AddIntentAnalytics()` and inject `IIntentAnalytics`. Use `GetSummaryAsync()`, `GetConfidenceTrendsAsync()`, `GetDecisionDistributionAsync()`, `DetectAnomaliesAsync()`, `ExportToJsonAsync()`, `ExportToCsvAsync()`.
 
 ---
@@ -274,8 +278,11 @@ The web sample exposes HTTP endpoints for intent inference, explainability, gree
 |--------|------|-------------|
 | POST | `/api/intent/infer` | Infer intent from events. Body: `{ "events": [ { "actor": "user", "action": "login" }, ... ] }`. Returns intent name, confidence, decision, signals. |
 | POST | `/api/intent/explain` | Same body as infer; returns signal contributions (source, description, weight, contribution percent) and text explanation. |
+| POST | `/api/intent/explain-tree` | Same body as infer; returns decision tree (matched rule, signal nodes, intent summary). Requires **IIntentTreeExplainer**. |
+| POST | `/api/intent/playground/compare` | Compare inference across multiple registered models. Body: `{ "events": [...], "modelNames": ["Default", "Mock"] }`. Returns per-model intent and decision. |
 | GET | `/api/intent/history` | Paginated intent history (in-memory in sample). Query: `skip`, `take`. |
 | GET | `/api/intent/analytics/summary` | Dashboard summary: confidence trends, decision distribution, anomaly list. |
+| GET | `/api/intent/analytics/timeline/{entityId}` | Intent timeline for entity. Query: `start`, `end` (ISO8601). Returns time-ordered points (intent, confidence, decision). |
 | GET | `/api/intent/analytics/export/json` | Export analytics to JSON. |
 | GET | `/api/intent/analytics/export/csv` | Export analytics to CSV. |
 | POST | `/api/greenwashing/analyze` | Analyze report for greenwashing. Body: `{ "report": "...", "sourceType": "Report", "language": "tr", "imageBase64": null }`. Returns intent, decision, signals, suggested actions, `sourceMetadata`, `visualResult` (if image sent). |

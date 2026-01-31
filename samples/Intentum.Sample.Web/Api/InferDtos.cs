@@ -2,6 +2,10 @@ namespace Intentum.Sample.Web.Api;
 
 internal record InferIntentRequest(IReadOnlyList<IntentEventDto> Events);
 internal record IntentEventDto(string Actor, string Action);
+
+internal record PlaygroundCompareRequest(IReadOnlyList<IntentEventDto> Events, IReadOnlyList<string>? Providers = null);
+internal record PlaygroundCompareResult(string Provider, string IntentName, string ConfidenceLevel, double ConfidenceScore, string Decision);
+internal record PlaygroundCompareResponse(IReadOnlyList<PlaygroundCompareResult> Results);
 internal record InferIntentResponse(
     string Decision,
     string Confidence,

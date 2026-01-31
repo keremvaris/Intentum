@@ -113,6 +113,37 @@ DI (örn. ASP.NET Core) için `services.AddIntentumOpenAI(options)` kullan ve sa
 
 ---
 
+## Şablondan oluştur (dotnet new)
+
+**dotnet new** ve Intentum şablonlarıyla (repo `templates` klasöründen bir kez kur) önceden yapılandırılmış bir projeden başlayabilirsin:
+
+```bash
+# Repo kökünden: şablonları kur
+dotnet new install ./templates/intentum-webapi
+dotnet new install ./templates/intentum-backgroundservice
+dotnet new install ./templates/intentum-function
+```
+
+Sonra yeni proje oluştur:
+
+| Şablon | Açıklama |
+|--------|----------|
+| **intentum-webapi** | Intentum’lu minimal ASP.NET Core Web API: infer endpoint, health check, Mock sağlayıcı. |
+| **intentum-backgroundservice** | **MemoryBehaviorStreamConsumer** ve **IntentStreamWorker** ile .NET Worker Service; behavior event batch’lerini intent modeli ve policy üzerinden işler. |
+| **intentum-function** | HTTP tetiklemeli **InferIntent** fonksiyonu, Mock model ve policy ile Azure Functions v4 (isolated worker). |
+
+Örnek:
+
+```bash
+dotnet new intentum-webapi -n MyIntentumApi -o MyIntentumApi
+cd MyIntentumApi
+dotnet run
+```
+
+Policy Store, Context-Aware Policy, Multi-Stage Model ve diğer uzantılar için [Gelişmiş Özellikler](advanced-features.md) bölümüne bakın.
+
+---
+
 ## Ortam değişkenleri (özet)
 
 Sadece gerçek HTTP adapter kullanırken ayarla:
@@ -194,9 +225,9 @@ dotnet run --project samples/Intentum.Sample.Web
 - **Endpoint'ler:**
   - Carbon: `POST /api/carbon/calculate`, `GET /api/carbon/report/{id}`
   - Orders: `POST /api/orders`
-  - Intent: `POST /api/intent/infer` (body: `{ "events": [ { "actor": "user", "action": "login" }, ... ] }`), `POST /api/intent/explain` (aynı body; sinyal katkıları döner)
+  - Intent: `POST /api/intent/infer` (body: `{ "events": [ { "actor": "user", "action": "login" }, ... ] }`), `POST /api/intent/explain` (aynı body; sinyal katkıları döner), `POST /api/intent/explain-tree` (karar ağacı), `POST /api/intent/playground/compare` (model karşılaştırma)
   - Greenwashing: `POST /api/greenwashing/analyze` (body: `{ "report": "...", "sourceType": "Report", "language": "tr", "imageBase64": null }`), `GET /api/greenwashing/recent?limit=15`
-  - Analytics: `GET /api/intent/analytics/summary`, `GET /api/intent/history`, `GET /api/intent/analytics/export/json`, `GET /api/intent/analytics/export/csv`
+  - Analytics: `GET /api/intent/analytics/summary`, `GET /api/intent/history`, `GET /api/intent/analytics/timeline/{entityId}`, `GET /api/intent/analytics/export/json`, `GET /api/intent/analytics/export/csv`
   - Health: `/health`
 
 ---

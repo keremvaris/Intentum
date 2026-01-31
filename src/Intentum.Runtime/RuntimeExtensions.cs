@@ -16,6 +16,17 @@ public static class RuntimeExtensions
     }
 
     /// <summary>
+    /// Decides using context-aware policy (intent + system load, region, etc.).
+    /// </summary>
+    public static PolicyDecision Decide(
+        this Intent intent,
+        PolicyContext context,
+        ContextAwareIntentPolicy policy)
+    {
+        return ContextAwarePolicyEngine.Evaluate(intent, context, policy);
+    }
+
+    /// <summary>
     /// Decides using an A/B policy variant set (selector picks which policy applies to this intent).
     /// </summary>
     public static PolicyDecision Decide(

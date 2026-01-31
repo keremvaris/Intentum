@@ -49,11 +49,23 @@ Suggested panels when exporting to Grafana (or any Prometheus-compatible backend
 
 *(Exact metric names depend on your OTLP/Prometheus exporter; adjust to match the names emitted by the OpenTelemetry SDK.)*
 
+## OpenTelemetry tracing
+
+The **Intentum.Observability** package also exposes **OpenTelemetry spans** via **IntentumActivitySource**:
+
+- **intentum.infer** — Span for each intent inference; tags: intent name, confidence level/score, signal count, behavior event count.
+- **intentum.policy.evaluate** — Span for each policy evaluation; tags: policy decision, matched rule name.
+
+When you use **ObservableIntentModel** and **DecideWithMetrics**, these spans are emitted automatically. Configure your OpenTelemetry TracerProvider to add the Intentum activity source so traces appear in Jaeger, Zipkin, or any OTLP backend.
+
+---
+
 ## Summary
 
 | What              | Where |
 |-------------------|--------|
 | Metrics           | **Intentum.Observability** — IntentumMetrics, ObservablePolicyEngine |
+| Tracing           | **IntentumActivitySource** — intentum.infer, intentum.policy.evaluate spans |
 | Export            | OpenTelemetry SDK → OTLP exporter → Grafana Agent / Prometheus / etc. |
 | Dashboard         | Inferences/s, inference duration, confidence, decisions by type |
 

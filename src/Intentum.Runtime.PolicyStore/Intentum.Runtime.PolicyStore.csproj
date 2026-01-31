@@ -1,0 +1,29 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <NoWarn>$(NoWarn);1591</NoWarn>
+    <PackageId>Intentum.Runtime.PolicyStore</PackageId>
+    <Authors>Intentum Contributors</Authors>
+    <Description>Load and version intent policies from JSON/YAML or other stores (file, config).</Description>
+    <PackageTags>intent;behavior;policy;runtime;config;dotnet</PackageTags>
+    <RepositoryUrl>https://github.com/keremvaris/Intentum</RepositoryUrl>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Intentum.Core\Intentum.Core.csproj" />
+    <ProjectReference Include="..\Intentum.Runtime\Intentum.Runtime.csproj" />
+    <ProjectReference Include="..\Intentum.Versioning\Intentum.Versioning.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="10.0.0" />
+    <PackageReference Include="System.Text.Json" Version="10.0.0" />
+  </ItemGroup>
+
+</Project>

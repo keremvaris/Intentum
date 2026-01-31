@@ -8,11 +8,26 @@ namespace Intentum.Runtime.Engine;
 /// </summary>
 public static class IntentPolicyEngine
 {
+    /// <summary>
+    /// Evaluates the intent against the policy and returns the decision.
+    /// </summary>
     public static PolicyDecision Evaluate(
         Intent intent,
         IntentPolicy policy)
     {
+        var (decision, _) = EvaluateWithRule(intent, policy);
+        return decision;
+    }
+
+    /// <summary>
+    /// Evaluates the intent against the policy and returns the decision plus the matched rule (if any).
+    /// </summary>
+    public static (PolicyDecision Decision, PolicyRule? MatchedRule) EvaluateWithRule(
+        Intent intent,
+        IntentPolicy policy)
+    {
         var matchingRule = policy.Rules.FirstOrDefault(rule => rule.Condition(intent));
-        return matchingRule?.Decision ?? PolicyDecision.Observe;
+        var decision = matchingRule?.Decision ?? PolicyDecision.Observe;
+        return (decision, matchingRule);
     }
 }

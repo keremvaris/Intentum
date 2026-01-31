@@ -27,15 +27,18 @@ public sealed class RedisIntentHistoryRepository : IIntentHistoryRepository
         Intent intent,
         PolicyDecision decision,
         IReadOnlyDictionary<string, object>? metadata = null,
+        string? entityId = null,
         CancellationToken cancellationToken = default)
     {
-        var record = IntentHistoryRecord.Create(behaviorSpaceId, intent, decision, metadata);
+        var record = IntentHistoryRecord.Create(behaviorSpaceId, intent, decision, metadata, entityId);
         var db = _redis.GetDatabase();
         var doc = IntentHistoryDocument.From(record);
         var json = JsonSerializer.Serialize(doc, IntentHistorySerialization.JsonOptions);
         await db.StringSetAsync(_keyPrefix + "record:" + record.Id, json);
         await db.SetAddAsync(_keyPrefix + "bybehaviorspace:" + behaviorSpaceId, record.Id);
         await db.SetAddAsync(_keyPrefix + "ids", record.Id);
+        if (!string.IsNullOrEmpty(entityId))
+            await db.SetAddAsync(_keyPrefix + "byentity:" + entityId, record.Id);
         return record.Id;
     }
 
@@ -99,6 +102,26 @@ public sealed class RedisIntentHistoryRepository : IIntentHistoryRepository
                 list.Add(record);
         }
         return list.OrderByDescending(r => r.RecordedAt).ToList();
+    }
+
+    public async Task<IReadOnlyList<IntentHistoryRecord>> GetByEntityIdAsync(
+        string entityId,
+        DateTimeOffset start,
+        DateTimeOffset end,
+        CancellationToken cancellationToken = default)
+    {
+        var db = _redis.GetDatabase();
+        var byEntity = await db.SetMembersAsync(_keyPrefix + "byentity:" + entityId);
+        var bySpace = await db.SetMembersAsync(_keyPrefix + "bybehaviorspace:" + entityId);
+        var ids = byEntity.Union(bySpace).Distinct().ToList();
+        var list = new List<IntentHistoryRecord>();
+        foreach (var id in ids)
+        {
+            var record = await GetByIdAsync(id!);
+            if (record != null && record.RecordedAt >= start && record.RecordedAt <= end)
+                list.Add(record);
+        }
+        return list.OrderBy(r => r.RecordedAt).ToList();
     }
 
     private async Task<IntentHistoryRecord?> GetByIdAsync(string id)

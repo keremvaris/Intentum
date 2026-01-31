@@ -1,60 +1,105 @@
-# Left sidebar — English docs
+# Left sidebar — English docs (grouped, collapsible)
 items:
   - name: Home
     href: index.md
-  - name: Why Intentum
-    href: why-intentum.md
-  - name: Manifesto
-    href: manifesto.md
-  - name: Intentum Canon
-    href: intentum-canon.md
-  - name: Why Intent ≠ Logs
-    href: why-intent-not-logs.md
-  - name: Designing Intent Models
-    href: designing-intent-models.md
-  - name: Real-world Scenarios
-    href: real-world-scenarios.md
-  - name: Roadmap
-    href: roadmap.md
-  - name: Architecture
-    href: architecture.md
-  - name: Setup
-    href: setup.md
-  - name: Scenarios
-    href: scenarios.md
-  - name: CodeGen
-    href: codegen.md
-  - name: Providers
-    href: providers.md
-  - name: How to use AI providers
-    href: ai-providers-howto.md
-  - name: Embedding API error handling
-    href: embedding-api-errors.md
-  - name: Production readiness
-    href: production-readiness.md
-  - name: Observability
-    href: observability.md
-  - name: Clustering and Experiments use cases
-    href: clustering-and-experiments-use-cases.md
-  - name: Greenwashing detection (how-to)
-    href: greenwashing-detection-howto.md
-  - name: Domain intent templates
-    href: domain-intent-templates.md
-  - name: Explainability
-    href: explainability.md
-  - name: Benchmarks
-    href: benchmarks.md
-  - name: Testing
-    href: testing.md
-  - name: Local integration tests
-    href: local-integration-tests.md
-  - name: Audience
-    href: audience.md
-  - name: Coverage
-    href: coverage.md
-  - name: API
-    href: api.md
-  - name: Advanced Features
-    href: advanced-features.md
-  - name: Agent framework integration
-    href: agent-framework-integration.md
+  - name: Getting Started
+    expanded: false
+    items:
+      - name: Why Intentum
+        href: why-intentum.md
+      - name: Manifesto
+        href: manifesto.md
+      - name: Why Intent ≠ Logs
+        href: why-intent-not-logs.md
+      - name: Setup
+        href: setup.md
+  - name: Concepts
+    expanded: false
+    items:
+      - name: Intentum Canon
+        href: intentum-canon.md
+      - name: Designing Intent Models
+        href: designing-intent-models.md
+      - name: Architecture
+        href: architecture.md
+      - name: Real-world Scenarios
+        href: real-world-scenarios.md
+      - name: Roadmap
+        href: roadmap.md
+  - name: Setup & Providers
+    expanded: false
+    items:
+      - name: Scenarios
+        href: scenarios.md
+      - name: CodeGen
+        href: codegen.md
+      - name: Providers
+        href: providers.md
+      - name: AI providers how-to
+        href: ai-providers-howto.md
+      - name: Embedding API errors
+        href: embedding-api-errors.md
+  - name: Features
+    expanded: false
+    items:
+      - name: Production readiness
+        href: production-readiness.md
+      - name: Observability
+        href: observability.md
+      - name: Explainability
+        href: explainability.md
+      - name: Clustering & Experiments
+        href: clustering-and-experiments-use-cases.md
+      - name: Domain intent templates
+        href: domain-intent-templates.md
+      - name: Advanced Features
+        href: advanced-features.md
+      - name: Agent framework integration
+        href: agent-framework-integration.md
+  - name: How-To & Guides
+    expanded: false
+    items:
+      - name: Greenwashing detection
+        href: greenwashing-detection-howto.md
+  - name: Examples
+    expanded: false
+    items:
+      - name: Examples overview (Simple / Medium / Hard)
+        href: examples-overview.md
+      - name: Features — simple guide (what each feature is for)
+        href: features-simple-guide.md
+  - name: Testing & Quality
+    expanded: false
+    items:
+      - name: Testing
+        href: testing.md
+      - name: Tests overview
+        href: tests-overview.md
+      - name: Local integration tests
+        href: local-integration-tests.md
+      - name: Benchmarks
+        href: benchmarks.md
+      - name: Coverage
+        href: coverage.md
+      - name: Audience
+        href: audience.md
+  - name: Case Studies
+    expanded: false
+    items:
+      - name: Case studies index
+        href: ../case-studies/README.md
+      - name: Load test (infer)
+        href: ../case-studies/load-test-infer.md
+      - name: Benchmark results
+        href: ../case-studies/benchmark-results.md
+      - name: Cross-LLM consistency
+        href: ../case-studies/cross-llm-consistency.md
+      - name: Greenwashing metrics
+        href: ../case-studies/greenwashing-metrics.md
+  - name: API Reference
+    expanded: false
+    items:
+      - name: API overview
+        href: api.md
+  - name: API (generated)
+    href: ../api/toc.yml

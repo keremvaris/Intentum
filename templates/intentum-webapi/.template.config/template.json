@@ -1,0 +1,14 @@
+{
+  "$schema": "http://json.schemastore.org/template",
+  "author": "Intentum",
+  "classifications": [ "Web", "API", "Intentum" ],
+  "identity": "Intentum.WebApi",
+  "name": "Intentum Web API",
+  "shortName": "intentum-webapi",
+  "tags": {
+    "language": "C#",
+    "type": "project"
+  },
+  "sourceName": "Intentum.WebApi",
+  "preferNameDirectory": true
+}

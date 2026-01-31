@@ -23,9 +23,10 @@ public sealed class MongoIntentHistoryRepository : IIntentHistoryRepository
         Intent intent,
         PolicyDecision decision,
         IReadOnlyDictionary<string, object>? metadata = null,
+        string? entityId = null,
         CancellationToken cancellationToken = default)
     {
-        var record = IntentHistoryRecord.Create(behaviorSpaceId, intent, decision, metadata);
+        var record = IntentHistoryRecord.Create(behaviorSpaceId, intent, decision, metadata, entityId);
         var doc = IntentHistoryDocument.From(record);
         await _collection.InsertOneAsync(doc, cancellationToken: cancellationToken);
         return record.Id;
@@ -75,7 +76,28 @@ public sealed class MongoIntentHistoryRepository : IIntentHistoryRepository
             Builders<IntentHistoryDocument>.Filter.Lte(d => d.RecordedAt, end));
         var list = await _collection
             .Find(filter)
-            .SortByDescending(d => d.RecordedAt)
+            .SortBy(d => d.RecordedAt)
+            .ToListAsync(cancellationToken);
+        return list.Select(d => d.ToRecord()).ToList();
+    }
+
+    /// <inheritdoc />
+    public async Task<IReadOnlyList<IntentHistoryRecord>> GetByEntityIdAsync(
+        string entityId,
+        DateTimeOffset start,
+        DateTimeOffset end,
+        CancellationToken cancellationToken = default)
+    {
+        var entityOrSpace = Builders<IntentHistoryDocument>.Filter.Or(
+            Builders<IntentHistoryDocument>.Filter.Eq(d => d.EntityId, entityId),
+            Builders<IntentHistoryDocument>.Filter.Eq(d => d.BehaviorSpaceId, entityId));
+        var timeRange = Builders<IntentHistoryDocument>.Filter.And(
+            Builders<IntentHistoryDocument>.Filter.Gte(d => d.RecordedAt, start),
+            Builders<IntentHistoryDocument>.Filter.Lte(d => d.RecordedAt, end));
+        var filter = Builders<IntentHistoryDocument>.Filter.And(entityOrSpace, timeRange);
+        var list = await _collection
+            .Find(filter)
+            .SortBy(d => d.RecordedAt)
             .ToListAsync(cancellationToken);
         return list.Select(d => d.ToRecord()).ToList();
     }

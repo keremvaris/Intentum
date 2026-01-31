@@ -49,11 +49,23 @@ Grafana'ya (veya Prometheus uyumlu herhangi bir backend'e) aktarırken önerilen
 
 *(Tam metrik adları OTLP/Prometheus exporter'ınıza bağlıdır; OpenTelemetry SDK'nın ürettiği adlara göre uyarlayın.)*
 
+## OpenTelemetry tracing
+
+**Intentum.Observability** paketi **IntentumActivitySource** ile **OpenTelemetry span’leri** de sunar:
+
+- **intentum.infer** — Her intent inference için span; etiketler: intent adı, güven düzeyi/skoru, sinyal sayısı, davranış olay sayısı.
+- **intentum.policy.evaluate** — Her policy değerlendirmesi için span; etiketler: policy kararı, eşleşen kural adı.
+
+**ObservableIntentModel** ve **DecideWithMetrics** kullandığınızda bu span’ler otomatik üretilir. Jaeger, Zipkin veya herhangi bir OTLP backend’de trace’lerin görünmesi için OpenTelemetry TracerProvider’a Intentum activity source’u ekleyin.
+
+---
+
 ## Özet
 
 | Ne               | Nerede |
 |------------------|--------|
 | Metrikler        | **Intentum.Observability** — IntentumMetrics, ObservablePolicyEngine |
+| Tracing          | **IntentumActivitySource** — intentum.infer, intentum.policy.evaluate span’leri |
 | Dışa aktarma     | OpenTelemetry SDK → OTLP exporter → Grafana Agent / Prometheus / vb. |
 | Dashboard        | Inference/s, inference süresi, güven, türe göre kararlar |
 

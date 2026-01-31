@@ -12,6 +12,7 @@ public sealed class IntentHistoryEntity
 {
     public string Id { get; set; } = Guid.NewGuid().ToString();
     public string BehaviorSpaceId { get; set; } = string.Empty;
+    public string? EntityId { get; set; }
     public string IntentName { get; set; } = string.Empty;
     public string ConfidenceLevel { get; set; } = string.Empty;
     public double ConfidenceScore { get; set; }
@@ -25,6 +26,7 @@ public sealed class IntentHistoryEntity
         {
             Id = record.Id,
             BehaviorSpaceId = record.BehaviorSpaceId,
+            EntityId = record.EntityId,
             IntentName = record.IntentName,
             ConfidenceLevel = record.ConfidenceLevel,
             ConfidenceScore = record.ConfidenceScore,
@@ -47,6 +49,7 @@ public sealed class IntentHistoryEntity
             ConfidenceScore,
             Enum.Parse<PolicyDecision>(Decision),
             RecordedAt,
-            metadata);
+            metadata,
+            EntityId);
     }
 }

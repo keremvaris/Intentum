@@ -172,6 +172,25 @@ public sealed class IntentAnalytics : IIntentAnalytics
     }
 
     /// <inheritdoc />
+    public async Task<IntentTimeline> GetIntentTimelineAsync(
+        string entityId,
+        DateTimeOffset start,
+        DateTimeOffset end,
+        CancellationToken cancellationToken = default)
+    {
+        var records = await _historyRepository.GetByEntityIdAsync(entityId, start, end, cancellationToken);
+        var points = records
+            .Select(r => new IntentTimelinePoint(
+                r.RecordedAt,
+                r.IntentName,
+                r.ConfidenceLevel,
+                r.ConfidenceScore,
+                r.Decision))
+            .ToList();
+        return new IntentTimeline(entityId, start, end, points);
+    }
+
+    /// <inheritdoc />
     public async Task<string> ExportToJsonAsync(
         DateTimeOffset start,
         DateTimeOffset end,

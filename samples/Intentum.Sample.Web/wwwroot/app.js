@@ -25,26 +25,41 @@ function setResultLoading(id, message = "Yükleniyor…") {
   el.classList.add("empty");
 }
 
-/* --- Top tabs: Örnekler | Dashboard --- */
+/* --- Top tabs: Örnekler | Playground | Dashboard --- */
 const viewExamples = document.getElementById("view-examples");
+const viewPlayground = document.getElementById("view-playground");
 const viewDashboard = document.getElementById("view-dashboard");
+const viewHelp = document.getElementById("view-help");
 const tabExamples = document.getElementById("tab-examples");
+const tabPlayground = document.getElementById("tab-playground");
 const tabDashboard = document.getElementById("tab-dashboard");
+const tabHelp = document.getElementById("tab-help");
 
 let liveRefreshInterval = null;
 const LIVE_REFRESH_MS = 15000;
 
 function showView(name) {
   const isExamples = name === "examples";
+  const isPlayground = name === "playground";
+  const isDashboard = name === "dashboard";
+  const isHelp = name === "help";
   viewExamples?.setAttribute("aria-hidden", !isExamples);
-  viewDashboard?.setAttribute("aria-hidden", isExamples);
-  if (viewExamples) viewExamples.hidden = !isExamples;
-  if (viewDashboard) viewDashboard.hidden = isExamples;
+  viewExamples && (viewExamples.hidden = !isExamples);
+  viewPlayground?.setAttribute("aria-hidden", !isPlayground);
+  viewPlayground && (viewPlayground.hidden = !isPlayground);
+  viewDashboard?.setAttribute("aria-hidden", !isDashboard);
+  viewDashboard && (viewDashboard.hidden = !isDashboard);
+  viewHelp?.setAttribute("aria-hidden", !isHelp);
+  viewHelp && (viewHelp.hidden = !isHelp);
   tabExamples?.setAttribute("aria-selected", isExamples);
-  tabDashboard?.setAttribute("aria-selected", !isExamples);
   tabExamples?.classList.toggle("active", isExamples);
-  tabDashboard?.classList.toggle("active", !isExamples);
-  if (!isExamples) {
+  tabPlayground?.setAttribute("aria-selected", isPlayground);
+  tabPlayground?.classList.toggle("active", isPlayground);
+  tabDashboard?.setAttribute("aria-selected", isDashboard);
+  tabDashboard?.classList.toggle("active", isDashboard);
+  tabHelp?.setAttribute("aria-selected", isHelp);
+  tabHelp?.classList.toggle("active", isHelp);
+  if (isDashboard) {
     setMonitoringDates(defaultFrom(), defaultTo());
     loadMonitoringSummary();
     loadHistory();
@@ -77,7 +92,9 @@ function stopLiveRefresh() {
 }
 
 tabExamples?.addEventListener("click", () => showView("examples"));
+tabPlayground?.addEventListener("click", () => showView("playground"));
 tabDashboard?.addEventListener("click", () => showView("dashboard"));
+tabHelp?.addEventListener("click", () => showView("help"));
 
 document.getElementById("mon-live")?.addEventListener("change", (e) => {
   if (e.target.checked) startLiveRefresh();
@@ -140,6 +157,10 @@ function initEventsList(listId, addButtonId, defaultEvents = [{ actor: "user", a
 
 initEventsList("infer-events-list", "infer-add-event");
 initEventsList("explain-events-list", "explain-add-event", [{ actor: "user", action: "login" }]);
+initEventsList("playground-events-list", "playground-add-event", [
+  { actor: "user", action: "login" },
+  { actor: "user", action: "submit" },
+]);
 
 /* Preset scenarios: fill infer events, explain list, and optional narrative */
 document.querySelectorAll(".btn-preset").forEach((btn) => {
@@ -156,6 +177,43 @@ document.querySelectorAll(".btn-preset").forEach((btn) => {
       }
     } catch (_) {}
   });
+});
+
+/* Playground presets: fill list and clear JSON so user can edit */
+document.querySelectorAll(".btn-preset-pg").forEach((btn) => {
+  btn.addEventListener("click", () => {
+    try {
+      const events = JSON.parse(btn.getAttribute("data-events") || "[]");
+      setEventsList("playground-events-list", events);
+      const jsonEl = document.getElementById("playground-json");
+      if (jsonEl) jsonEl.value = "";
+    } catch (_) {}
+  });
+});
+
+/* Playground: JSON'dan listeye uygula */
+document.getElementById("playground-json-apply")?.addEventListener("click", () => {
+  const jsonEl = document.getElementById("playground-json");
+  const raw = jsonEl?.value?.trim();
+  if (!raw) return;
+  try {
+    const arr = JSON.parse(raw);
+    if (!Array.isArray(arr)) return;
+    const events = arr.map((e) => ({ actor: String(e?.actor ?? ""), action: String(e?.action ?? "") }));
+    setEventsList("playground-events-list", events.length ? events : [{ actor: "user", action: "login" }]);
+  } catch (err) {
+    const resultEl = document.getElementById("playground-result");
+    if (resultEl) resultEl.innerHTML = `<p class="result err">Geçersiz JSON: ${escapeHtml(err.message)}</p>`;
+  }
+});
+
+/* Playground: Listeden JSON'a aktar */
+document.getElementById("playground-json-from-list")?.addEventListener("click", () => {
+  const listEl = document.getElementById("playground-events-list");
+  const jsonEl = document.getElementById("playground-json");
+  if (!listEl || !jsonEl) return;
+  const events = getEventsFromList(listEl);
+  jsonEl.value = events.length ? JSON.stringify(events, null, 2) : "[]";
 });
 
 /* --- Intent Infer --- */
@@ -289,6 +347,100 @@ function escapeHtml(s) {
   div.textContent = s == null ? "" : String(s);
   return div.innerHTML;
 }
+
+/* --- Playground: compare models --- */
+const playgroundForm = document.getElementById("playground-form");
+
+playgroundForm?.addEventListener("submit", async (e) => {
+  e.preventDefault();
+  let events = [];
+  const jsonEl = document.getElementById("playground-json");
+  const jsonRaw = jsonEl?.value?.trim();
+  if (jsonRaw) {
+    try {
+      const arr = JSON.parse(jsonRaw);
+      if (Array.isArray(arr)) events = arr.map((o) => ({ actor: String(o?.actor ?? ""), action: String(o?.action ?? "") })).filter((e) => e.actor || e.action);
+    } catch (_) {}
+  }
+  if (events.length === 0) {
+    const listEl = document.getElementById("playground-events-list");
+    events = listEl ? getEventsFromList(listEl) : [];
+  }
+  const providerCheckboxes = document.querySelectorAll('#playground-form input[name="provider"]:checked');
+  const providers = Array.from(providerCheckboxes).map((cb) => cb.value).filter(Boolean);
+  const resultEl = document.getElementById("playground-result");
+  const btn = document.getElementById("playground-submit");
+  if (events.length === 0) {
+    if (resultEl) {
+      resultEl.innerHTML = '<p class="result err">En az bir olay ekleyin (aktör + aksiyon).</p>';
+      resultEl.classList.add("fade-in");
+    }
+    return;
+  }
+  if (providers.length === 0) {
+    if (resultEl) {
+      resultEl.innerHTML = '<p class="result err">En az bir model seçin (Default veya Mock).</p>';
+      resultEl.classList.add("fade-in");
+    }
+    return;
+  }
+  if (btn) {
+    btn.disabled = true;
+    btn.textContent = "Karşılaştırılıyor…";
+  }
+  if (resultEl) {
+    resultEl.innerHTML = '<p class="result empty">Karşılaştırılıyor…</p>';
+    resultEl.classList.add("fade-in");
+  }
+  try {
+    const res = await api("/api/intent/playground/compare", {
+      method: "POST",
+      body: JSON.stringify({ events, providers }),
+    });
+    const data = await res.json();
+    const el = document.getElementById("playground-result");
+    if (!el) return;
+    if (!res.ok) {
+      el.innerHTML = `<pre class="result err fade-in">${escapeHtml(JSON.stringify(data, null, 2))}</pre>`;
+      return;
+    }
+    const results = data.results || [];
+    if (results.length === 0) {
+      el.innerHTML = '<p class="result empty fade-in">Seçilen modellerden sonuç dönmedi.</p>';
+      return;
+    }
+    const rows = results.map(
+      (r) => `
+      <tr>
+        <td><strong>${escapeHtml(r.provider)}</strong></td>
+        <td>${escapeHtml(r.intentName)}</td>
+        <td>${escapeHtml(r.confidenceLevel)}</td>
+        <td>${(r.confidenceScore ?? 0).toFixed(2)}</td>
+        <td><span class="badge ${decisionBadgeClass(r.decision)}">${escapeHtml(r.decision)}</span></td>
+      </tr>
+    `
+    ).join("");
+    el.innerHTML = `
+      <div class="fade-in">
+        <div class="table-wrap">
+          <table class="playground-table">
+            <thead><tr><th>Model</th><th>Niyet</th><th>Güven</th><th>Skor</th><th>Karar</th></tr></thead>
+            <tbody>${rows}</tbody>
+          </table>
+        </div>
+        <p class="muted" style="margin-top:0.75rem">Aynı olay seti üzerinde model başına intent ve politika kararı.</p>
+      </div>
+    `;
+  } catch (err) {
+    const el = document.getElementById("playground-result");
+    if (el) el.innerHTML = `<pre class="result err fade-in">${escapeHtml(err.message)}</pre>`;
+  } finally {
+    if (btn) {
+      btn.disabled = false;
+      btn.textContent = "Karşılaştır";
+    }
+  }
+});
 
 /* --- Greenwashing: preset reports and analyze --- */
 const GREENWASHING_PRESETS = {

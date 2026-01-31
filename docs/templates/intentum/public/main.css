@@ -76,3 +76,80 @@ pre {
   color: var(--bs-link-color);
   font-weight: 500;
 }
+
+/* Sidebar TOC: accordion-style groups (collapsible, less clutter) */
+.affix .nav {
+  padding-left: 0;
+}
+.affix .nav > li > a {
+  font-weight: 600;
+  padding-top: 0.35rem;
+  padding-bottom: 0.35rem;
+}
+.affix .nav .nav > li > a {
+  font-weight: 400;
+  padding-left: 1rem;
+  font-size: 0.9375rem;
+}
+.affix .nav .nav .nav > li > a {
+  padding-left: 1.5rem;
+}
+
+/* Group header: any top-level li with class toc-group (added by JS) */
+.affix .nav > li.toc-group > a,
+.nav > li.toc-group > a {
+  cursor: pointer;
+  user-select: none;
+}
+.affix .nav > li.toc-group > a::before,
+.nav > li.toc-group > a::before {
+  content: "";
+  display: inline-block;
+  width: 0.4em;
+  height: 0.4em;
+  margin-right: 0.35em;
+  border-right: 2px solid currentColor;
+  border-bottom: 2px solid currentColor;
+  transform: rotate(-45deg);
+  vertical-align: 0.15em;
+  transition: transform 0.15s ease;
+}
+.affix .nav > li.toc-group.expanded > a::before,
+.nav > li.toc-group.expanded > a::before {
+  transform: rotate(45deg);
+}
+
+/* Accordion: collapse child ul by default; show when .expanded */
+.affix .nav > li.toc-group > ul,
+.nav > li.toc-group > ul {
+  display: none;
+}
+.affix .nav > li.toc-group.expanded > ul,
+.nav > li.toc-group.expanded > ul {
+  display: block;
+}
+
+/* Fallback for DocFX modern's own has-children (if present) */
+.affix .nav li.has-children > a::before {
+  content: "";
+  display: inline-block;
+  width: 0.4em;
+  height: 0.4em;
+  margin-right: 0.35em;
+  border-right: 2px solid currentColor;
+  border-bottom: 2px solid currentColor;
+  transform: rotate(-45deg);
+  vertical-align: 0.15em;
+  transition: transform 0.15s ease;
+}
+.affix .nav li.has-children.expanded > a::before {
+  transform: rotate(45deg);
+}
+
+/* Slightly compact sidebar so more fits without scroll */
+.affix ul.nav {
+  list-style: none;
+}
+.affix .nav li {
+  margin-bottom: 0;
+}

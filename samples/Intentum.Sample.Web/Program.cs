@@ -67,6 +67,21 @@ builder.Services.AddSingleton<IIntentModel>(sp =>
     return new LlmIntentModel(embedding, similarity);
 });
 
+// Playground: named models for compare (Default = cached mock, Mock = raw mock, Strict = same engine but downgrades confidence so policy differs)
+builder.Services.AddSingleton<IPlaygroundModelRegistry>(sp =>
+{
+    var similarity = sp.GetRequiredService<IIntentSimilarityEngine>();
+    var defaultModel = sp.GetRequiredService<IIntentModel>();
+    var mockOnly = new LlmIntentModel(new MockEmbeddingProvider(), similarity);
+    var strictModel = new StrictConfidenceIntentModel(defaultModel);
+    return new PlaygroundModelRegistry(new Dictionary<string, IIntentModel>
+    {
+        ["Default"] = defaultModel,
+        ["Mock"] = mockOnly,
+        ["Strict"] = strictModel
+    });
+});
+
 // Use fluent API for policy building with new decision types
 builder.Services.AddSingleton(_ =>
 {
@@ -92,6 +107,7 @@ builder.Services.AddIntentAnalytics();
 
 // Explainability (signal contributions, human-readable explanation)
 builder.Services.AddScoped<IIntentExplainer, IntentExplainer>();
+builder.Services.AddIntentTreeExplainer();
 
 // Add Intentum ASP.NET Core integration
 builder.Services.AddIntentum();
@@ -217,6 +233,40 @@ app.MapPost("/api/intent/explain", (InferIntentRequest req, IIntentModel model, 
     });
 }).WithName("ExplainIntent").Produces(200);
 
+// --- Intent decision tree (root-cause: decision, matched rule, signals, behavior summary) ---
+app.MapPost("/api/intent/explain-tree", (InferIntentRequest req, IIntentModel model, IntentPolicy policy, IIntentTreeExplainer treeExplainer) =>
+{
+    var space = new BehaviorSpace();
+    foreach (var e in req.Events)
+        space.Observe(new BehaviorEvent(e.Actor, e.Action, DateTimeOffset.UtcNow));
+    var intent = model.Infer(space);
+    var tree = treeExplainer.GetIntentTree(intent, policy, space);
+    return Results.Json(tree);
+}).WithName("ExplainIntentTree").Produces(200);
+
+// --- Playground: compare multiple providers (events → intent + decision per provider) ---
+app.MapPost("/api/intent/playground/compare", (PlaygroundCompareRequest req, IPlaygroundModelRegistry registry, IntentPolicy policy) =>
+{
+    var space = new BehaviorSpace();
+    foreach (var e in req.Events)
+        space.Observe(new BehaviorEvent(e.Actor, e.Action, DateTimeOffset.UtcNow));
+    var providers = req.Providers?.Count > 0 ? req.Providers : registry.GetModelNames();
+    var results = new List<PlaygroundCompareResult>();
+    foreach (var name in providers)
+    {
+        if (!registry.TryGetModel(name, out var model) || model is null) continue;
+        var intent = model.Infer(space);
+        var decision = intent.Decide(policy);
+        results.Add(new PlaygroundCompareResult(
+            name,
+            intent.Name,
+            intent.Confidence.Level,
+            intent.Confidence.Score,
+            decision.ToString()));
+    }
+    return Results.Json(new PlaygroundCompareResponse(results));
+}).WithName("PlaygroundCompare").Produces(200);
+
 // --- Reporting & analytics ---
 app.MapGet("/api/intent/analytics/summary", async (
     DateTimeOffset? from,
@@ -266,6 +316,18 @@ app.MapGet("/api/intent/analytics/export/csv", async (
     var csv = await analytics.ExportToCsvAsync(start, end);
     return Results.Text(csv, "text/csv");
 }).WithName("ExportAnalyticsCsv").Produces(200);
+
+app.MapGet("/api/intent/analytics/timeline/{entityId}", async (
+    string entityId,
+    DateTimeOffset? from,
+    DateTimeOffset? to,
+    IIntentAnalytics analytics) =>
+{
+    var start = from ?? DateTimeOffset.UtcNow.AddDays(-7);
+    var end = to ?? DateTimeOffset.UtcNow;
+    var timeline = await analytics.GetIntentTimelineAsync(entityId, start, end);
+    return Results.Json(timeline);
+}).WithName("GetIntentTimeline").Produces(200);
 
 // --- Greenwashing: report text (+ dil, görsel) → behavior space → intent → policy → suggested actions ---
 app.MapPost("/api/greenwashing/analyze", (GreenwashingAnalyzeRequest req) =>

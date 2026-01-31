@@ -1,0 +1,14 @@
+{
+  "$schema": "http://json.schemastore.org/template",
+  "author": "Intentum",
+  "classifications": [ "Worker", "Intentum", "BackgroundService" ],
+  "identity": "Intentum.BackgroundService",
+  "name": "Intentum Background Service",
+  "shortName": "intentum-backgroundservice",
+  "tags": {
+    "language": "C#",
+    "type": "project"
+  },
+  "sourceName": "Intentum.BackgroundService",
+  "preferNameDirectory": true
+}

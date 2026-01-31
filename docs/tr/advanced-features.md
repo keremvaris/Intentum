@@ -18,6 +18,15 @@ Core, Runtime, AI ve sağlayıcıların ötesindeki genişletme paketleri ve bu 
 | **Intentum.Explainability** | Niyet açıklanabilirliği | Sinyal katkı skorları, özet metin; `IIntentExplainer`, `IntentExplainer` | [Intent Explainability](#intent-explainability) |
 | **Intentum.Simulation** | Niyet simülasyonu | Test için sentetik behavior space üretir; `IBehaviorSpaceSimulator`, `BehaviorSpaceSimulator` | [Intent Simulation](#intent-simulation) |
 | **Intentum.Versioning** | Policy versiyonlama | Rollback için policy/model versiyon takibi; `IVersionedPolicy`, `PolicyVersionTracker` | [Policy Versioning](#policy-versioning) |
+| **Intentum.Runtime.PolicyStore** | Deklaratif policy store | JSON/dosyadan policy yükleme, hot-reload; `IPolicyStore`, `FilePolicyStore`, `SafeConditionBuilder` | [Policy Store](#policy-store) |
+| **Intentum.Explainability** (genişletme) | Intent karar ağacı | Policy yolunu ağaç olarak açıklar; `IIntentTreeExplainer`, `IntentTreeExplainer` | [Intent Tree](#intent-tree) |
+| **Intentum.Analytics** (genişletme) | Intent timeline, pattern detector | Entity timeline, davranış pattern’leri, anomaliler; `GetIntentTimelineAsync`, `IBehaviorPatternDetector` | [Intent Timeline](#intent-timeline), [Behavior Pattern Detector](#behavior-pattern-detector) |
+| **Intentum.Simulation** (genişletme) | Scenario runner | Tanımlı senaryoları model + policy ile çalıştırır; `IScenarioRunner`, `IntentScenarioRunner` | [Scenario Runner](#scenario-runner) |
+| **Intentum.Core** (genişletme) | Multi-stage model, context-aware policy | Eşiklerle model zinciri; context’li policy; `MultiStageIntentModel`, `ContextAwarePolicyEngine` | [Multi-Stage Intent](#multi-stage-intent-model), [Context-Aware Policy](#context-aware-policy-engine) |
+| **Intentum.Core.Streaming** | Gerçek zamanlı intent stream | Behavior event batch’lerini tüketir; `IBehaviorStreamConsumer`, `MemoryBehaviorStreamConsumer` | [Stream Processing](#real-time-intent-stream-processing) |
+| **Intentum.Observability** (genişletme) | OpenTelemetry tracing | infer ve policy.evaluate span’leri; `IntentumActivitySource` | [Observability](observability.md#opentelemetry-tracing) |
+
+**Şablonlar:** `dotnet new intentum-webapi`, `intentum-backgroundservice`, `intentum-function` — bkz. [Kurulum – Şablondan oluştur](setup.md#create-from-template-dotnet-new). **Sample Web** ayrıca Playground (model karşılaştırma): `POST /api/intent/playground/compare`, ve Intent Tree: `POST /api/intent/explain-tree` sunar.
 
 Çekirdek paketler (Intentum.Core, Intentum.Runtime, Intentum.AI, sağlayıcılar, Testing, AspNetCore, Persistence, Analytics) [Mimari](architecture.md) ve [README](../../README.tr.md) içinde listelenir.
 
@@ -922,6 +931,86 @@ builder.Services.AddIntentumHealthChecks();
 // Health check endpoint: /health
 app.MapHealthChecks("/health");
 ```
+
+---
+
+## Intent Timeline
+
+**Nedir:** **Intentum.Analytics**, intent geçmişine **entity-scoped timeline** ekler: `IIntentHistoryRepository.GetByEntityIdAsync(entityId, start, end)` ve `IIntentAnalytics.GetIntentTimelineAsync(entityId, start, end)` belirli bir entity için zaman sıralı noktalar (intent adı, güven, karar) döner.
+
+**Ne işe yarar:** Intent history kayıtlarına isteğe bağlı `EntityId` eklendiğinde "bu kullanıcı/oturumun intent’i zamanla nasıl evrildi?" sorusuna cevap vermek — dashboard, destek araçları veya denetim için.
+
+**Kullanım:** Intent history’yi `EntityId` ile persist edin. `AddIntentAnalytics()` ile `IIntentAnalytics` kaydedin. `GetIntentTimelineAsync(entityId, start, end)` çağırın. Sample Web: `GET /api/intent/analytics/timeline/{entityId}`.
+
+---
+
+## Intent Tree
+
+**Nedir:** **Intentum.Explainability** **IIntentTreeExplainer** sunar: çıkarılmış intent ve policy verildiğinde **karar ağacı** (hangi kural eşleşti, sinyal düğümleri, intent özeti) oluşturur. `ExplainTree(intent, policy, behaviorSpace?)` ile `IntentDecisionTree` alırsınız.
+
+**Ne işe yarar:** Policy’nin neden Allow/Block döndüğünü açıklamak: kural adı, koşul, sinyaller ağaç formunda (UI veya denetim).
+
+**Kullanım:** **Intentum.Explainability** ekleyin, `AddIntentTreeExplainer()` ile kaydedin. Inference ve policy değerlendirmesinden sonra `treeExplainer.ExplainTree(intent, policy, space)` çağırın. Sample Web: `POST /api/intent/explain-tree` (infer ile aynı body).
+
+---
+
+## Context-Aware Policy Engine
+
+**Nedir:** **ContextAwarePolicyEngine** ve **ContextAwareIntentPolicy**, **PolicyContext** (intent, system load, region, recent intents, custom key-value) ile kuralları değerlendirir. Kurallar `Func<Intent, PolicyContext, bool>`.
+
+**Ne işe yarar:** Sadece mevcut intent’ten fazlasına bağlı kararlar (örn. "load > 0.8 ise block" veya "aynı intent 3 kez tekrarlanırsa escalate").
+
+**Kullanım:** Context-aware kurallarla `ContextAwareIntentPolicy` oluşturun. `ContextAwarePolicyEngine` oluşturup `Evaluate(intent, context, policy)` çağırın. Extension: `intent.Decide(context, policy)` (RuntimeExtensions).
+
+---
+
+## Policy Store
+
+**Nedir:** **Intentum.Runtime.PolicyStore**, **IPolicyStore** (örn. **FilePolicyStore**) ile JSON’dan **deklaratif policy** yükler: kurallar property/operator/value ile (örn. `intent.confidence.level` eq `"High"`). **SafeConditionBuilder** bunları `Func<Intent, bool>` yapar. Dosyadan hot-reload destekler.
+
+**Ne işe yarar:** Geliştirici olmayanlar policy kurallarını JSON’da düzenleyebilir; kural değişikliği için kod deploy gerekmez.
+
+**Kullanım:** **Intentum.Runtime.PolicyStore** ekleyin, `AddFilePolicyStore(path)` ile kaydedin. `await policyStore.LoadAsync()` ile policy yükleyin. JSON şeması için repoya bakın (PolicyDocument, PolicyRuleDocument, PolicyConditionDocument).
+
+---
+
+## Behavior Pattern Detector
+
+**Nedir:** **Intentum.Analytics** **IBehaviorPatternDetector** sunar: intent geçmişinde **davranış pattern’leri**, **pattern anomalileri** ve **şablon eşlemesi** (`GetBehaviorPatternsAsync`, `GetPatternAnomaliesAsync`, `MatchTemplates`).
+
+**Ne işe yarar:** Tekrarlayan intent kümelerini keşfetmek ve anomalileri işaretlemek (örn. Block oranında ani artış veya alışılmadık güven dağılımı).
+
+**Kullanım:** `AddBehaviorPatternDetector()` ile kaydedin. `IBehaviorPatternDetector` inject edip zaman penceresi ve isteğe bağlı şablon intent’lerle metodları çağırın.
+
+---
+
+## Multi-Stage Intent Model
+
+**Nedir:** **MultiStageIntentModel** (**Intentum.Core**) birden fazla **IIntentModel** örneğini güven eşikleriyle zincirler. Eşiğin üzerinde güven dönen ilk model kazanır; aksi halde son modelin sonucu döner.
+
+**Ne işe yarar:** Örn. rule-based → hafif LLM → ağır LLM; böylece pahalı inference’a sadece güven düşükken ödersiniz.
+
+**Kullanım:** Aşamalar (model + eşik) oluşturun. `new MultiStageIntentModel(stages)`. `Infer(space)` ile her zamanki gibi çağırın.
+
+---
+
+## Scenario Runner
+
+**Nedir:** **Intentum.Simulation** **IScenarioRunner** (**IntentScenarioRunner**) sunar: **BehaviorScenario** listesini (sabit sıralar veya rastgele üretim parametreleri) bir intent modeli ve policy üzerinden çalıştırır. Senaryo başına **ScenarioRunResult** döner.
+
+**Ne işe yarar:** Tekrarlanabilir senaryo testi, demolar veya regresyon setleri (örn. "10 senaryo çalıştır, beklenmeyen Block olmasın").
+
+**Kullanım:** **Intentum.Simulation** ekleyin, `AddIntentScenarioRunner()` ile kaydedin. Senaryoları (sıra veya rastgele config) oluşturup `runner.RunAsync(scenarios, model, policy)` çağırın.
+
+---
+
+## Real-time Intent Stream Processing
+
+**Nedir:** **Intentum.Core.Streaming** **IBehaviorStreamConsumer** tanımlar; `ReadAllAsync()` `IAsyncEnumerable<BehaviorEventBatch>` döner. **MemoryBehaviorStreamConsumer** test veya tek işlem pipeline’ları için **System.Threading.Channels** kullanan in-memory implementasyon.
+
+**Ne işe yarar:** Behavior event’lerini stream olarak işlemek (örn. mesaj kuyruğu veya event hub’dan); tüm event’leri belleğe almadan batch başına intent çıkarmak.
+
+**Kullanım:** **MemoryBehaviorStreamConsumer** kullanın veya implement edin. Worker veya Azure Function’da `await foreach (var batch in consumer.ReadAllAsync(cancellationToken))` ile her batch için model/policy çalıştırın.
 
 ---
 

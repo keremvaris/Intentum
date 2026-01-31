@@ -26,7 +26,7 @@ Intentum’da **Infer** adımı isteğe bağlı **AI (embedding)** kullanır: da
 | **Similarity** | **Similarity engine** tüm embedding’leri tek bir skora indirger (örn. ortalama). Bu skor güven seviyesine dönüştürülür. |
 | **Intent** | **LlmIntentModel** bu skordan **Intent** (Confidence + Signals) üretir; policy bu intent’e göre Allow / Observe / Warn / Block verir. |
 
-Örneklerde genelde **Mock** kullanılır (API anahtarı yok). Gerçek AI ile denemek için ortam değişkeniyle bir sağlayıcı seçip aynı akışı çalıştırabilirsin; bkz. [Sağlayıcılar](providers.md) ve [Kurulum – gerçek sağlayıcı](setup.md#gerçek-sağlayıcı-kullanımı-örn-openai). **examples** içinde fraud-intent, **customer-intent**, ai-fallback-intent, **chained-intent**, **time-decay-intent**, **vector-normalization**, **greenwashing-intent** var. Intent opsiyonel **Reasoning** (hangi kural eşleşti veya fallback) içerebilir.
+Örneklerde genelde **Mock** kullanılır (API anahtarı yok). Gerçek AI ile denemek için ortam değişkeniyle bir sağlayıcı seçip aynı akışı çalıştırabilirsin; bkz. [Sağlayıcılar](providers.md) ve [Kurulum – gerçek sağlayıcı](setup.md#gerçek-sağlayıcı-kullanımı-örn-openai). **Samples** tam showcase uygulamaları (infer, explain, explain-tree, playground, analytics, timeline); **examples** minimal tek use-case projeleri (fraud-intent, customer-intent, ai-fallback-intent, chained-intent, time-decay-intent, vector-normalization, greenwashing-intent). **Şablonlar:** `dotnet new intentum-webapi`, `intentum-backgroundservice`, `intentum-function` — bkz. [Kurulum – Şablondan oluştur](setup.md#şablondan-oluştur-dotnet-new). **Örnekler özeti** ve **Testler özeti** doküman sidebar’ında. Intent opsiyonel **Reasoning** (hangi kural eşleşti veya fallback) içerebilir.
 
 ---
 
@@ -74,7 +74,9 @@ Kısaca: **Given/When/Then kalktı; yerine Observe (olayları kaydet) → Infer 
 | [Yerel entegrasyon testleri](local-integration-tests.md) | `.env` ve script'lerle VerifyAI (tüm sağlayıcılar) veya sağlayıcı bazlı entegrasyon testlerini yerelde çalıştırma. |
 | [Coverage](coverage.md) | Coverage üretme ve görüntüleme; SonarCloud bulguları ve kalite kapısı. |
 | [Benchmark'lar](benchmarks.md) | BenchmarkDotNet: ToVector, Infer, PolicyEngine; çalıştırma ve `./scripts/run-benchmarks.sh` ile doküman güncelleme. |
-| [Gelişmiş Özellikler](advanced-features.md) | Similarity engine'ler (WeightedAverage, TimeDecay, Cosine, Composite), **ana akışta source weights ve time decay**, **vektör normalizasyonu** (ToVectorOptions), **kural tabanlı ve zincirli intent modelleri**, fluent API'ler, caching, test utilities, rate limiting, analytics & reporting, middleware, observability, persistence. |
+| [Örnekler özeti](examples-overview.md) | Zorluk (basit / orta / zor) ve gerçek hayat use-case’lerine göre örnekler ve sample’lar. |
+| [Testler özeti](tests-overview.md) | Test projeleri, sample linkleri ve birim/entegrasyon testlerini çalıştırma. |
+| [Gelişmiş Özellikler](advanced-features.md) | Similarity engine’ler, vektör normalizasyonu, kural tabanlı ve zincirli modeller, fluent API’ler, caching, **Intent Timeline**, **Intent Tree**, **Context-Aware Policy**, **Policy Store**, **Behavior Pattern Detector**, **Multi-Stage Model**, **Scenario Runner**, **stream processing**, **OpenTelemetry tracing**, rate limiting, analytics, middleware, observability, persistence. |
 
 ---
 
