@@ -17,6 +17,20 @@ Bu dosya **conventional commit** mesajlarından otomatik üretilir. Commit'te **
 
 
 
+
+### Bug Fixes
+
+- **Correct SonarCloud coverage file path and add validation** *(ci)*
+
+- Update SonarCloud coverage report path to use absolute path with github.workspace
+- Add check to fail workflow if coverage.opencover.xml is not found
+- Copy found coverage file to fixed location for SonarCloud processing
+- Log line count of copied coverage file for verification
+
+
+
+
+
 ### Miscellaneous
 
 - **Exclude samples, docs, tests from analysis and coverage** *(sonar)*
