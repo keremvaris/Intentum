@@ -46,6 +46,9 @@ Bu dosya **conventional commit** mesajlarından otomatik üretilir. Commit'te **
 - **Correct filter syntax in dotnet test command** *(ci)*
 
 
+- **Lower coverage threshold to 77% in Intentum.Tests.csproj** *(tests)*
+
+
 
 
 ### Miscellaneous
