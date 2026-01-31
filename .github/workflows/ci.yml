@@ -50,7 +50,7 @@ jobs:
             /d:sonar.host.url="https://sonarcloud.io" \
             /d:sonar.cs.opencover.reportsPaths="${{ github.workspace }}/TestResults/coverage.opencover.xml" \
             /d:sonar.exclusions="**/samples/**,**/examples/**,**/docs/**,**/templates/**,**/.github/**,**/tests/**,**/benchmarks/**,**/BenchmarkDotNet.Artifacts/**,**/scripts/**,**/release.sh" \
-            /d:sonar.coverage.exclusions="**/Intentum.CodeGen/**,**/*ServiceCollectionExtensions.cs,**/*CachingExtensions.cs,**/MultiTenancyExtensions.cs,**/Intentum.AI.Claude/**,**/Intentum.Persistence.MongoDB/**,**/Intentum.Persistence.Redis/**,**/*RateLimitException.cs,**/LlmIntentModelExtensions.cs"
+            /d:sonar.coverage.exclusions="**/Intentum.CodeGen/**,**/*ServiceCollectionExtensions.cs,**/*CachingExtensions.cs,**/MultiTenancyExtensions.cs,**/Intentum.AI.Claude/**,**/Intentum.Persistence.MongoDB/**,**/Intentum.Persistence.Redis/**,**/Intentum.MultiTenancy/**,**/*RateLimitException.cs,**/LlmIntentModelExtensions.cs"
 
       - name: Restore
         run: dotnet restore Intentum.slnx
