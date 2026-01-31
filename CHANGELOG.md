@@ -19,6 +19,7 @@ Bu dosya **conventional commit** mesajlarından otomatik üretilir. Commit'te **
 
 
 
+
 ### Bug Fixes
 
 - **Correct SonarCloud coverage file path and add validation** *(ci)*
@@ -93,6 +94,20 @@ Bu dosya **conventional commit** mesajlarından otomatik üretilir. Commit'te **
 - Modified solution and tests project files to include the new integration test project
 - Adjusted CI coverage comment to clarify unit vs integration test separation in projects
 - Kept documentation instructions consistent with the new test project structure
+
+
+
+
+
+### Testing
+
+- **Add validation tests for BaseUrl and EmbeddingModel** *(options)*
+
+- Add tests for GeminiOptions.Validate to throw on empty BaseUrl
+- Add tests for MistralOptions.Validate to throw on empty EmbeddingModel
+- Add tests for OpenAIOptions.Validate to throw on null, empty, or whitespace BaseUrl
+- Add tests for PolicyVersionTracker covering Add, Current, Rollback, Rollforward, SetCurrent, and version comparison
+- Add tests for EmbeddingScore.Normalize handling empty, single, and multiple values with clamping and averaging logic
 
 
 
