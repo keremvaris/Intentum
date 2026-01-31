@@ -18,6 +18,7 @@ Bu dosya **conventional commit** mesajlarından otomatik üretilir. Commit'te **
 
 
 
+
 ### Bug Fixes
 
 - **Correct SonarCloud coverage file path and add validation** *(ci)*
@@ -63,6 +64,21 @@ Bu dosya **conventional commit** mesajlarından otomatik üretilir. Commit'te **
 - Add benchmarks, BenchmarkDotNet.Artifacts, and scripts folders to sonar exclusions
 - Reflect exclusion changes in .sonarcloud.properties and GitHub Actions CI workflow
 - Ensure analysis and coverage metrics exclude additional non-production code paths
+
+
+
+
+
+### Refactor
+
+- **Move GreenwashingCaseStudyTests to integration project** *(tests)*
+
+- Renamed GreenwashingCaseStudyTests.cs from Intentum.Tests to Intentum.Tests.Integration namespace
+- Updated test commands in documentation to use Intentum.Tests.Integration project
+- Added new Intentum.Tests.Integration project file with necessary dependencies and references
+- Modified solution and tests project files to include the new integration test project
+- Adjusted CI coverage comment to clarify unit vs integration test separation in projects
+- Kept documentation instructions consistent with the new test project structure
 
 
 
