@@ -29,6 +29,16 @@ Bu dosya **conventional commit** mesajlarından otomatik üretilir. Commit'te **
 
 
 
+- **Update test coverage collection for SonarCloud integration** *(ci)*
+
+- Replace coverlet.collector with coverlet.msbuild package in test project
+- Modify GitHub Actions workflow to use coverlet.msbuild parameters during dotnet test
+- Remove manual coverage file copying; rely on fixed output path for coverage.opencover.xml
+- Add coverage file existence check and error reporting in CI script
+- Simplify test filtering to exclude Integration category and GreenwashingCaseStudyTests
+
+
+
 
 
 ### Miscellaneous
