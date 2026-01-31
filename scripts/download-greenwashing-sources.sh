@@ -15,14 +15,14 @@ for name in aramco chevron drax equinor exxonmobil ineos rwe shell total; do
   url="https://www.clientearth.org/projects/the-greenwashing-files/${name}/"
   out="$OUT_DIR/clientearth-${name}.html"
   echo "  $url -> $out"
-  curl -sL -o "$out" "$url" || echo "  (failed: $name)"
+  curl -sL --proto '=https' -o "$out" "$url" || echo "  (failed: $name)"
 done
 
 # ClientEarth index
-curl -sL -o "$OUT_DIR/clientearth-index.html" "https://www.clientearth.org/projects/the-greenwashing-files/" || true
+curl -sL --proto '=https' -o "$OUT_DIR/clientearth-index.html" "https://www.clientearth.org/projects/the-greenwashing-files/" || true
 
 # The Sustainable Agency — 20+ greenwashing examples article
-curl -sL -o "$OUT_DIR/sustainable-agency-greenwashing-examples.html" "https://thesustainableagency.com/blog/greenwashing-examples" || true
+curl -sL --proto '=https' -o "$OUT_DIR/sustainable-agency-greenwashing-examples.html" "https://thesustainableagency.com/blog/greenwashing-examples" || true
 
 echo "Done. Files in $OUT_DIR"
 echo "Mendeley dataset: if already downloaded, see docs/case-studies/downloaded/DataGreenwash/"

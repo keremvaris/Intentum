@@ -22,7 +22,7 @@ const payload = JSON.stringify({
   ],
 });
 
-export default function () {
+export default function inferLoadTest() {
   const res = http.post(`${baseUrl}/api/intent/infer`, payload, {
     headers: { 'Content-Type': 'application/json' },
   });

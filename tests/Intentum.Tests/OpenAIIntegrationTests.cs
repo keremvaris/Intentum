@@ -50,7 +50,6 @@ public class OpenAIIntegrationTests
         catch (HttpRequestException ex) when (ex.StatusCode == HttpStatusCode.TooManyRequests)
         {
             // Skip: free tier rate limit; run again later or use paid tier
-            return;
         }
     }
 
@@ -101,7 +100,6 @@ public class OpenAIIntegrationTests
         catch (HttpRequestException ex) when (ex.StatusCode == HttpStatusCode.TooManyRequests)
         {
             // Skip: free tier rate limit; run again later or use paid tier
-            return;
         }
     }
 }

@@ -10,7 +10,7 @@ dotnet run --project benchmarks/Intentum.Benchmarks/Intentum.Benchmarks.csproj -
 
 ARTIFACTS_DIR="$REPO_ROOT/BenchmarkDotNet.Artifacts/results"
 REPORT=$(find "$ARTIFACTS_DIR" -name "*-report-github.md" -print -quit 2>/dev/null || true)
-if [ -z "$REPORT" ]; then
+if [[ -z "$REPORT" ]]; then
   echo "No *-report-github.md found under $ARTIFACTS_DIR"
   exit 1
 fi

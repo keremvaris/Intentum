@@ -11,7 +11,7 @@ namespace Intentum.Tests;
 /// Greenwashing case study: labeled behavior spaces, transformation rule, and accuracy/F1.
 /// Data: synthetic labeled examples (dimension counts → human label). Reproducible; can be extended with public URLs.
 /// </summary>
-public class GreenwashingCaseStudyTests
+public partial class GreenwashingCaseStudyTests
 {
     private readonly ITestOutputHelper _output;
 
@@ -228,10 +228,16 @@ public class GreenwashingCaseStudyTests
         return Path.Combine(downloadedDir, $"clientearth-{name}.html");
     }
 
+    [GeneratedRegex(@"<[^>]+>")]
+    private static partial Regex HtmlTagRegex();
+
+    [GeneratedRegex(@"\s+")]
+    private static partial Regex WhitespaceRegex();
+
     private static string StripHtml(string html)
     {
-        var text = Regex.Replace(html, @"<[^>]+>", " ");
-        return Regex.Replace(text, @"\s+", " ").Trim();
+        var text = HtmlTagRegex().Replace(html, " ");
+        return WhitespaceRegex().Replace(text, " ").Trim();
     }
 
     private static string NormalizeHumanLabel(string label)
@@ -332,7 +338,7 @@ public class GreenwashingCaseStudyTests
     /// <summary>
     /// Gets text from a row: prefer textCol; if too short, use first column with length >= 15; else concatenate all non-empty cells.
     /// </summary>
-    private static string GetRowText(ClosedXML.Excel.IXLRangeRow row, int textCol, int lastCol)
+    private static string GetRowText(IXLRangeRow row, int textCol, int lastCol)
     {
         var primary = (row.Cell(textCol).GetString() ?? row.Cell(textCol).GetFormattedString() ?? "").Trim();
         if (primary.Length >= 15)
