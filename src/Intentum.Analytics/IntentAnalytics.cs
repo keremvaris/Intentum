@@ -71,11 +71,8 @@ public sealed class IntentAnalytics : IIntentAnalytics
             .GroupBy(r => r.Decision)
             .ToDictionary(g => g.Key, g => g.Count());
 
-        foreach (var decision in Enum.GetValues<PolicyDecision>())
-        {
-            if (!countByDecision.ContainsKey(decision))
-                countByDecision[decision] = 0;
-        }
+        foreach (var decision in Enum.GetValues<PolicyDecision>().Where(d => !countByDecision.ContainsKey(d)))
+            countByDecision[decision] = 0;
 
         return new DecisionDistributionReport(
             start,

@@ -5,6 +5,8 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <RootNamespace>Intentum.Sample.Web</RootNamespace>
+    <!-- Sonar: samples are out of scope (sonar.inclusions=src/**); suppress analyzer warnings in CI build. -->
+    <NoWarn>$(NoWarn);S108;S2583;S3267;S3776;S6444</NoWarn>
   </PropertyGroup>
 
   <ItemGroup>

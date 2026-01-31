@@ -6,6 +6,8 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <RootNamespace>Intentum.VerifyAI</RootNamespace>
+    <!-- Sonar: samples are out of scope (sonar.inclusions=src/**); suppress analyzer warnings in CI build. -->
+    <NoWarn>$(NoWarn);S1075;S1192;S3267;S3776;S3903</NoWarn>
   </PropertyGroup>
 
   <ItemGroup>

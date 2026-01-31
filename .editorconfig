@@ -11,3 +11,13 @@ insert_final_newline = true
 
 [*.{cs,csx}]
 dotnet_sort_system_directives_first = true
+
+# Sonar: default API base URLs and path separators are intentional constants (S1075).
+[**/Intentum.AI.OpenAI/OpenAIOptions.cs]
+dotnet_diagnostic.S1075.severity = none
+
+[**/Intentum.AI.Gemini/GeminiOptions.cs]
+dotnet_diagnostic.S1075.severity = none
+
+[**/Intentum.AI.Mistral/MistralOptions.cs]
+dotnet_diagnostic.S1075.severity = none
