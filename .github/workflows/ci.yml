@@ -65,7 +65,7 @@ jobs:
         run: |
           mkdir -p TestResults
           dotnet test tests/Intentum.Tests/Intentum.Tests.csproj --no-build \
-            --filter "FullyQualifiedName\!~GreenwashingCaseStudyTests&FullyQualifiedName\!~IntegrationTests" \
+            --filter 'FullyQualifiedName!~GreenwashingCaseStudyTests&FullyQualifiedName!~IntegrationTests' \
             -p:CollectCoverage=true \
             -p:CoverletOutput=../../TestResults/coverage \
             -p:CoverletOutputFormat=opencover \
