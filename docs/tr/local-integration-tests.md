@@ -68,7 +68,7 @@ Veya `.env`’e `VERIFY_AI_VERBOSE=1` ekleyebilirsiniz.
 
 ## Entegrasyon testleri (xUnit, sağlayıcı bazlı)
 
-Entegrasyon test sınıfları, ilgili env değişkenleri set edildiğinde gerçek API’yi çağırır. Anahtar yoksa **açık mesajla fail** eder (sessiz atlama yok). CI bunları `--filter "Category!=Integration"` ile hariç tutar.
+Entegrasyon test sınıfları, ilgili env değişkenleri set edildiğinde gerçek API’yi çağırır. Anahtar yoksa **açık mesajla fail** eder (sessiz atlama yok). İndirilen veri gerektiren testler (örn. Mendeley Excel veya HTML için GreenwashingCaseStudyTests) de `Category=Integration` kullanır. CI hepsini `--filter "Category!=Integration"` ile hariç tutar.
 
 | Sağlayıcı       | Gerekli env değişkenleri | Script |
 |-----------------|---------------------------|--------|

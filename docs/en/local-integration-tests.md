@@ -68,7 +68,7 @@ Or add `VERIFY_AI_VERBOSE=1` to your `.env`.
 
 ## Integration tests (xUnit, per provider)
 
-Integration test classes call the real API when the corresponding env vars are set. They **fail with a clear message** when the key is missing (no silent skip). CI excludes them with `--filter "Category!=Integration"`.
+Integration test classes call the real API when the corresponding env vars are set. They **fail with a clear message** when the key is missing (no silent skip). Tests that require downloaded data (e.g. GreenwashingCaseStudyTests for Mendeley Excel or HTML) also use `Category=Integration`. CI excludes all of them with `--filter "Category!=Integration"`.
 
 | Provider        | Env vars (required) | Script |
 |----------------|---------------------|--------|

@@ -17,13 +17,13 @@ Apple M4 Pro, 1 CPU, 14 logical and 14 physical cores
 ```
 | Method                        | Mean          | Error     | StdDev    | Gen0   | Gen1   | Allocated |
 |------------------------------ |--------------:|----------:|----------:|-------:|-------:|----------:|
-| ToVector_10Events             |     0.2719 ns | 0.0335 ns | 0.0314 ns |      - |      - |         - |
-| ToVector_1KEvents             |     0.2019 ns | 0.0083 ns | 0.0073 ns |      - |      - |         - |
-| ToVector_10KEvents            |     0.3107 ns | 0.0211 ns | 0.0187 ns |      - |      - |         - |
-| LlmIntentModel_Infer_10Events |   301.2635 ns | 1.3713 ns | 1.1451 ns | 0.1326 |      - |    1112 B |
-| LlmIntentModel_Infer_1KEvents | 1,700.0173 ns | 6.5487 ns | 6.1257 ns | 0.5703 | 0.0038 |    4784 B |
-| PolicyEngine_Decide           |    14.2151 ns | 0.1076 ns | 0.0953 ns | 0.0029 |      - |      24 B |
+| ToVector_10Events             |     0.2491 ns | 0.0077 ns | 0.0072 ns |      - |      - |         - |
+| ToVector_1KEvents             |     0.2388 ns | 0.0049 ns | 0.0046 ns |      - |      - |         - |
+| ToVector_10KEvents            |     0.3257 ns | 0.0048 ns | 0.0042 ns |      - |      - |         - |
+| LlmIntentModel_Infer_10Events |   278.6815 ns | 1.6828 ns | 1.4917 ns | 0.1326 |      - |    1112 B |
+| LlmIntentModel_Infer_1KEvents | 1,717.0460 ns | 5.5012 ns | 4.8766 ns | 0.5703 | 0.0038 |    4784 B |
+| PolicyEngine_Decide           |    14.8787 ns | 0.0514 ns | 0.0456 ns | 0.0029 |      - |      24 B |
 
 ---
 
-See [Benchmarks](../en/benchmarks.md) for how to run and filter benchmarks.
+See [Benchmarks](../en/benchmarks.md) for how to run and filter benchmarks. For improvement ideas and suggested solutions, see [Benchmarks — Improvement opportunities](../en/benchmarks.md#improvement-opportunities-and-suggested-solutions).

@@ -10,7 +10,9 @@ namespace Intentum.Tests;
 /// <summary>
 /// Greenwashing case study: labeled behavior spaces, transformation rule, and accuracy/F1.
 /// Data: synthetic labeled examples (dimension counts → human label). Reproducible; can be extended with public URLs.
+/// Excluded in CI (Category=Integration): some tests require downloaded data (Mendeley Excel, HTML) — run locally after ./scripts/download-greenwashing-sources.sh.
 /// </summary>
+[Trait("Category", "Integration")]
 public partial class GreenwashingCaseStudyTests
 {
     private readonly ITestOutputHelper _output;
