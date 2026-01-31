@@ -73,6 +73,14 @@ Bu dosya **conventional commit** mesajlarından otomatik üretilir. Commit'te **
 - **Update sonar coverage exclusions with new exception and edge cases** *(ci)*
 
 
+- **Update coverage exclusions to include MultiTenancy folder** *(sonar)*
+
+- Added **/Intentum.MultiTenancy/** to sonar coverage exclusion patterns
+- Updated comments to reflect inclusion of MultiTenancy folder as optional code
+- Synchronized coverage exclusions in .sonarcloud.properties and GitHub CI workflow config
+
+
+
 
 
 ### Refactor
