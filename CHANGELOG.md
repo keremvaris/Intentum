@@ -13,6 +13,20 @@ Bu dosya **conventional commit** mesajlarından otomatik üretilir. Commit'te **
 
 ---
 
+## [1.0.8] - 2026-01-31
+
+
+
+### Bug Fixes
+
+- **Exclude specific tests from test run** *(ci)*
+
+- Add filter to dotnet test command to exclude Integration category tests
+- Exclude tests matching GreenwashingCaseStudyTests pattern
+- Modify GitHub Actions workflow for NuGet release accordingly
+
+
+
 ## [1.0.7] - 2026-01-31
 
 
