@@ -58,24 +58,19 @@ jobs:
       - name: Build
         run: dotnet build Intentum.slnx --no-restore
 
-      # Coverage: OpenCover report for SonarCloud. 80% target: SonarCloud Quality Gate
-      # (project settings) and/or Intentum.Tests.csproj Coverlet Threshold=80.
+      # Coverage: coverlet.msbuild writes to fixed path so SonarCloud finds it (no GUID subdir; sonar.cs.opencover.reportsPaths does not support wildcards).
+      # 80% target: SonarCloud Quality Gate and Intentum.Tests.csproj Threshold=80.
       # Exclude Integration tests (Category=Integration) and GreenwashingCaseStudyTests (require downloaded data; no DataGreenwash/HTML in CI).
       - name: Test
-        run: >
-          dotnet test tests/Intentum.Tests/Intentum.Tests.csproj --no-build
-          --filter "Category!=Integration&FullyQualifiedName\!~GreenwashingCaseStudyTests"
-          --collect:"XPlat Code Coverage;Format=opencover"
-          --results-directory TestResults
-
-      # Copy coverage to fixed path so SonarCloud reliably finds it (TestResults/<guid>/coverage.opencover.xml → TestResults/coverage.opencover.xml).
-      - name: Prepare coverage for SonarCloud
-        id: coverage
         run: |
-          COV=$(find TestResults -name 'coverage.opencover.xml' -print -quit 2>/dev/null)
-          if [ -z "$COV" ]; then echo "::error::No coverage.opencover.xml found in TestResults"; exit 1; fi
-          cp "$COV" TestResults/coverage.opencover.xml
-          echo "Coverage file: $(wc -l < TestResults/coverage.opencover.xml) lines"
+          mkdir -p TestResults
+          dotnet test tests/Intentum.Tests/Intentum.Tests.csproj --no-build \
+            --filter "Category!=Integration&FullyQualifiedName\!~GreenwashingCaseStudyTests" \
+            -p:CollectCoverage=true \
+            -p:CoverletOutput=../../TestResults/coverage \
+            -p:CoverletOutputFormat=opencover \
+            --results-directory TestResults
+          test -f TestResults/coverage.opencover.xml && echo "Coverage file: $(wc -l < TestResults/coverage.opencover.xml) lines" || (echo "::error::coverage.opencover.xml not found"; exit 1)
 
       - name: SonarCloud end
         env:
