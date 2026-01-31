@@ -13,6 +13,22 @@ Bu dosya **conventional commit** mesajlarından otomatik üretilir. Commit'te **
 
 ---
 
+## [1.0.9] - 2026-01-31
+
+
+
+### Refactor
+
+- **Normalize service base URLs with trailing slash** *(config)*
+
+- Introduce constant UrlTrailingSlash for unified slash handling in AzureOpenAIOptions, GeminiOptions, MistralOptions, and OpenAIOptions
+- Normalize Endpoint/BaseUrl by trimming existing trailing slash and appending a single slash
+- Define default base URL constants for Gemini, Mistral, and OpenAI options
+- Improve consistency of environment variable fallback URLs
+- Update CI workflow to use fixed path for coverage report to ensure SonarCloud detection
+
+
+
 ## [1.0.8] - 2026-01-31
 
 
