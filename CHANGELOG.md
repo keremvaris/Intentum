@@ -39,6 +39,9 @@ Bu dosya **conventional commit** mesajlarından otomatik üretilir. Commit'te **
 
 
 
+- **Update test filter to exclude specific integration tests** *(ci)*
+
+
 
 
 ### Miscellaneous
