@@ -13,6 +13,21 @@ Bu dosya **conventional commit** mesajlarından otomatik üretilir. Commit'te **
 
 ---
 
+## [unreleased]
+
+
+
+### Miscellaneous
+
+- **Lower test coverage threshold to 68%** *(tests)*
+
+- Updated coverage threshold in Intentum.Tests.csproj from 77% to 68%
+- Adjusted comment to reflect current coverage status and rationale
+- Acknowledged low coverage areas: Persistence, Explainability, Simulation
+- Prepared for future threshold increase as coverage improves
+
+
+
 ## [1.0.13] - 2026-01-31
 
 
