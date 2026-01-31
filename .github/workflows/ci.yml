@@ -48,7 +48,7 @@ jobs:
             /o:"${{ env.SONAR_ORGANIZATION }}" \
             /d:sonar.token="$SONAR_TOKEN" \
             /d:sonar.host.url="https://sonarcloud.io" \
-            /d:sonar.cs.opencover.reportsPaths="TestResults/coverage.opencover.xml" \
+            /d:sonar.cs.opencover.reportsPaths="${{ github.workspace }}/TestResults/coverage.opencover.xml" \
             /d:sonar.exclusions="**/samples/**,**/examples/**,**/docs/**,**/templates/**,**/.github/**,**/tests/**,**/release.sh" \
             /d:sonar.coverage.exclusions="**/Intentum.CodeGen/**,**/*ServiceCollectionExtensions.cs,**/*CachingExtensions.cs,**/MultiTenancyExtensions.cs,**/Intentum.AI.Claude/**,**/Intentum.Persistence.MongoDB/**,**/Intentum.Persistence.Redis/**"
 
@@ -70,9 +70,12 @@ jobs:
 
       # Copy coverage to fixed path so SonarCloud reliably finds it (TestResults/<guid>/coverage.opencover.xml → TestResults/coverage.opencover.xml).
       - name: Prepare coverage for SonarCloud
+        id: coverage
         run: |
           COV=$(find TestResults -name 'coverage.opencover.xml' -print -quit 2>/dev/null)
-          if [ -n "$COV" ]; then cp "$COV" TestResults/coverage.opencover.xml; fi
+          if [ -z "$COV" ]; then echo "::error::No coverage.opencover.xml found in TestResults"; exit 1; fi
+          cp "$COV" TestResults/coverage.opencover.xml
+          echo "Coverage file: $(wc -l < TestResults/coverage.opencover.xml) lines"
 
       - name: SonarCloud end
         env:
