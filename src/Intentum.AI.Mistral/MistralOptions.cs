@@ -4,6 +4,9 @@ namespace Intentum.AI.Mistral;
 
 public sealed class MistralOptions
 {
+    private const string DefaultBaseUrl = "https://api.mistral.ai/v1/";
+    private const string UrlTrailingSlash = "/";
+
     public required string ApiKey { get; init; }
     public string EmbeddingModel { get; init; } = "mistral-embed";
     public string? BaseUrl { get; init; }
@@ -25,13 +28,15 @@ public sealed class MistralOptions
             ?? throw new InvalidOperationException("MISTRAL_API_KEY is not set. Copy .env.example to .env and set MISTRAL_API_KEY, or run from repo root so .env is loaded.");
 
         var baseUrl = Environment.GetEnvironmentVariable("MISTRAL_BASE_URL")
-            ?? "https://api.mistral.ai/v1/";
+            ?? DefaultBaseUrl;
+
+        var normalizedBaseUrl = baseUrl.TrimEnd(UrlTrailingSlash[0]) + UrlTrailingSlash;
 
         return new MistralOptions
         {
             ApiKey = apiKey,
             EmbeddingModel = Environment.GetEnvironmentVariable("MISTRAL_EMBEDDING_MODEL") ?? "mistral-embed",
-            BaseUrl = baseUrl.TrimEnd('/') + "/"
+            BaseUrl = normalizedBaseUrl
         };
     }
 }

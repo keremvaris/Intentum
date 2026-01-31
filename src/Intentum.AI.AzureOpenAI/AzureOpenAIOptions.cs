@@ -4,6 +4,8 @@ namespace Intentum.AI.AzureOpenAI;
 
 public sealed class AzureOpenAIOptions
 {
+    private const string UrlTrailingSlash = "/";
+
     public required string Endpoint { get; init; }
     public required string ApiKey { get; init; }
     public string EmbeddingDeployment { get; init; } = "embedding";
@@ -29,9 +31,11 @@ public sealed class AzureOpenAIOptions
         var apiKey = Environment.GetEnvironmentVariable("AZURE_OPENAI_API_KEY")
             ?? throw new InvalidOperationException("AZURE_OPENAI_API_KEY is not set. Copy .env.example to .env and set AZURE_OPENAI_API_KEY, or run from repo root so .env is loaded.");
 
+        var normalizedEndpoint = endpoint.TrimEnd(UrlTrailingSlash[0]) + UrlTrailingSlash;
+
         return new AzureOpenAIOptions
         {
-            Endpoint = endpoint.TrimEnd('/') + "/",
+            Endpoint = normalizedEndpoint,
             ApiKey = apiKey,
             EmbeddingDeployment = Environment.GetEnvironmentVariable("AZURE_OPENAI_EMBEDDING_DEPLOYMENT") ?? "embedding",
             ApiVersion = Environment.GetEnvironmentVariable("AZURE_OPENAI_API_VERSION") ?? "2023-05-15"
