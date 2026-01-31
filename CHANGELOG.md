@@ -13,7 +13,21 @@ Bu dosya **conventional commit** mesajlarından otomatik üretilir. Commit'te **
 
 ---
 
-## [unreleased]
+## [1.0.12] - 2026-01-31
+
+
+
+### Testing
+
+- **Refactor normalization tests to use predefined arrays** *(embedding)*
+
+- Extracted commonly used input arrays as static readonly fields
+- Simplified test methods by referencing predefined arrays
+- Improved code readability and maintainability in EmbeddingScoreTests.cs
+
+
+
+## [1.0.11] - 2026-01-31
 
 
 
