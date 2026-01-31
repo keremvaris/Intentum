@@ -13,6 +13,23 @@ Bu dosya **conventional commit** mesajlarından otomatik üretilir. Commit'te **
 
 ---
 
+## [1.0.7] - 2026-01-31
+
+
+
+### Testing
+
+- **Exclude GreenwashingCaseStudyTests from non-integration test runs** *(ci)*
+
+- Add Trait("Category", "Integration") attribute to GreenwashingCaseStudyTests
+- Update CI workflows and GitHub Actions to exclude GreenwashingCaseStudyTests from test runs without integration tests
+- Clarify documentation about tests requiring downloaded data marked as integration tests
+- Improve filtering in test commands to skip GreenwashingCaseStudyTests unless explicitly run
+- Update related docs in English and Turkish to reflect new integration test category usage for downloaded data tests
+- Adjust benchmark results and summaries with updated data, improving accuracy in reports
+
+
+
 ## [1.0.6] - 2026-01-31
 
 
