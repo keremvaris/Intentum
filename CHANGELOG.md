@@ -13,6 +13,28 @@ Bu dosya **conventional commit** mesajlarından otomatik üretilir. Commit'te **
 
 ---
 
+## [1.0.13] - 2026-01-31
+
+
+
+### Features
+
+- **Add advanced intentum features and playground UI** *(docs)*
+
+- Add Intentum.Runtime.PolicyStore, Intentum.Explainability extended, Analytics extended,
+  Simulation extended, Core extended, Core.Streaming, and Observability extended to docs
+- Document Intent Timeline, Intent Tree, Context-Aware Policy Engine, Policy Store,
+  Behavior Pattern Detector, Multi-Stage Intent Model, Scenario Runner,
+  and Real-time Intent Stream Processing features with usage instructions
+- Update API docs to include new endpoints for intent timeline, explain-tree,
+  and playground compare
+- Enhance sample web UI with a new Playground tab: input area, presets, JSON editor,
+  and results display with responsive design
+- Add behavior pattern detector service registration extension method
+- Localize all new documentation content in English and Turkish translations
+
+
+
 ## [1.0.12] - 2026-01-31
 
 
