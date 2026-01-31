@@ -13,6 +13,23 @@ Bu dosya **conventional commit** mesajlarından otomatik üretilir. Commit'te **
 
 ---
 
+## [unreleased]
+
+
+
+### Bug Fixes
+
+- **Enforce HTTPS protocol in curl downloads** *(scripts)*
+
+- Added --proto '=https' option to curl commands in download-greenwashing-sources.sh
+- Ensured all downloads use secure HTTPS connections to improve security
+- Updated shell conditionals in run-benchmarks.sh and run-integration-tests.sh to use [[ ]]
+- Refactored string replacements in GreenwashingCaseStudyTests for better performance using generated Regex
+- Renamed default export function in load-test-infer.js to inferLoadTest for clarity
+- Removed redundant returns in OpenAIIntegrationTests catch blocks for HttpRequestException with 429 status code
+
+
+
 ## [1.0.4] - 2026-01-30
 
 
