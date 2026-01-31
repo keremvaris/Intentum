@@ -13,6 +13,31 @@ Bu dosya **conventional commit** mesajlarından otomatik üretilir. Commit'te **
 
 ---
 
+## [1.0.6] - 2026-01-31
+
+
+
+### Features
+
+- **Add Azure OpenAI embedding provider with retry and rate limit handling** *(azure-openai)*
+
+- Implement AzureOpenAIEmbeddingProvider with built-in retry for HTTP 429 status
+- Throw AzureOpenAIRateLimitException on rate limit exhaustion with Retry-After info
+- Update AzureOpenAIOptions to improve environment variable error messages and trimming
+- Create integration tests for Azure OpenAI with real API key and model inference validation
+- Add support for multiple optional LLM providers in .env.example including Azure, Gemini, Mistral, Claude
+- Implement similar Gemini embedding provider with retry and rate limit exception
+- Add integration tests for Gemini embedding provider validating real API key and inference
+- Remove FusionCache embedding cache implementation and related extension methods
+- Improve test environment loading via DotNetEnv for .env files
+- Enhance BehaviorSpace serialization support for MongoDB and Redis storage compatibility
+- Adjust sonarcloud configuration to exclude examples and optional modules from coverage
+- Strengthen greenwashing case study tests with assertions replacing conditional skips
+- Update benchmark docs to clarify caching options and remove FusionCache mention
+- Refactor CI workflow to exclude integration tests by default to speed up runs
+
+
+
 ## [1.0.5] - 2026-01-31
 
 
