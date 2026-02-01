@@ -74,11 +74,13 @@ jobs:
           dotnet test tests/Intentum.Tests/Intentum.Tests.csproj --no-build \
             --filter 'FullyQualifiedName!~GreenwashingCaseStudyTests&FullyQualifiedName!~IntegrationTests' \
             --results-directory TestResults
+          # Ensure coverage is at fixed path for SonarCloud (Coverlet may write under bin or TestResults subdir)
           if [ ! -f TestResults/coverage.opencover.xml ]; then
-            found=$(find TestResults -name 'coverage.opencover.xml' -print -quit 2>/dev/null)
+            found=$(find . -name 'coverage.opencover.xml' -type f -print -quit 2>/dev/null)
             if [ -n "$found" ]; then cp "$found" TestResults/coverage.opencover.xml; fi
           fi
           test -f TestResults/coverage.opencover.xml && echo "Coverage file: $(wc -l < TestResults/coverage.opencover.xml) lines" || (echo "::error::coverage.opencover.xml not found"; exit 1)
+          ls -la TestResults/coverage.opencover.xml
 
       - name: SonarCloud end
         env:

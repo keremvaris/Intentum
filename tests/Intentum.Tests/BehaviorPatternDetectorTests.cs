@@ -33,7 +33,7 @@ public sealed class BehaviorPatternDetectorTests
         var patterns = await detector.GetBehaviorPatternsAsync(start, end, minSequenceLength: 2, maxSequenceLength: 2);
 
         Assert.NotEmpty(patterns);
-        Assert.True(patterns.First().Count >= 1);
+        Assert.True(patterns[0].Count >= 1);
         Assert.Contains(patterns, p => p.Sequence.Count == 2);
     }
 

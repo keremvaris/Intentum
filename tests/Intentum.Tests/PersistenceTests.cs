@@ -25,9 +25,10 @@ public sealed class PersistenceTests
             IntentName: "Test",
             Decision: PolicyDecision.Allow);
 
-        await store.AppendAsync(evt);
+        var task = store.AppendAsync(evt);
+        await task;
 
-        // No exception; completes
+        Assert.True(task.IsCompletedSuccessfully);
     }
 
     [Fact]
