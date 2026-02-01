@@ -59,4 +59,22 @@ public sealed class PolicyExecutionObservabilityTests
         Assert.Equal(decisionFromLog, decisionFromMetrics);
         Assert.Equal(PolicyDecision.Allow, decisionFromMetrics);
     }
+
+    [Fact]
+    public void DecideWithExecutionLog_WhenEvaluationThrows_ReturnsObserveAndRecordWithException()
+    {
+        var intent = new Intent("X", [], new IntentConfidence(0.7, "High"));
+        var policy = new IntentPolicy([
+            new PolicyRule("Throw", _ => throw new InvalidOperationException("policy error"), PolicyDecision.Block)
+        ]);
+
+        var (decision, record) = intent.DecideWithExecutionLog(policy);
+
+        Assert.Equal(PolicyDecision.Observe, decision);
+        Assert.False(record.Success);
+        Assert.Equal("X", record.IntentName);
+        Assert.NotNull(record.ExceptionMessage);
+        Assert.Contains("policy error", record.ExceptionMessage);
+        Assert.NotNull(record.ExceptionTrace);
+    }
 }

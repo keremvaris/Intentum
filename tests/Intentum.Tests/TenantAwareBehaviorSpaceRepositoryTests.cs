@@ -40,6 +40,100 @@ public class TenantAwareBehaviorSpaceRepositoryTests
         Assert.Null(result);
     }
 
+    [Fact]
+    public async Task GetByMetadataAsync_WhenCurrentTenant_ReturnsOnlyMatchingSpaces()
+    {
+        var inner = new TestBehaviorSpaceRepository();
+        var provider = new FixedTenantProvider("tenant-1");
+        var repo = new TenantAwareBehaviorSpaceRepository(inner, provider);
+        var space = new BehaviorSpace();
+        space.Observe(new BehaviorEvent("user", "login", DateTimeOffset.UtcNow));
+        await repo.SaveAsync(space);
+
+        var list = await repo.GetByMetadataAsync("TenantId", "tenant-1");
+
+        Assert.NotEmpty(list);
+        Assert.All(list, s => Assert.Equal("tenant-1", s.Metadata.GetValueOrDefault("TenantId")));
+    }
+
+    [Fact]
+    public async Task GetByMetadataAsync_WhenTenantNull_DelegatesToInner()
+    {
+        var inner = new TestBehaviorSpaceRepository();
+        var provider = new FixedTenantProvider(null);
+        var repo = new TenantAwareBehaviorSpaceRepository(inner, provider);
+        var space = new BehaviorSpace();
+        space.Observe(new BehaviorEvent("u", "a", DateTimeOffset.UtcNow));
+        await inner.SaveAsync(space);
+
+        var list = await repo.GetByMetadataAsync("TenantId", "any");
+
+        Assert.Empty(list);
+    }
+
+    [Fact]
+    public async Task GetByTimeWindowAsync_WhenCurrentTenant_ReturnsSpacesInWindow()
+    {
+        var inner = new TestBehaviorSpaceRepository();
+        var provider = new FixedTenantProvider("t1");
+        var repo = new TenantAwareBehaviorSpaceRepository(inner, provider);
+        var space = new BehaviorSpace();
+        var t = DateTimeOffset.UtcNow;
+        space.Observe(new BehaviorEvent("u", "a", t));
+        await repo.SaveAsync(space);
+
+        var list = await repo.GetByTimeWindowAsync(t.AddMinutes(-1), t.AddMinutes(1));
+
+        Assert.NotEmpty(list);
+    }
+
+    [Fact]
+    public async Task GetByTimeWindowAsync_WhenTenantNull_DelegatesToInner()
+    {
+        var inner = new TestBehaviorSpaceRepository();
+        var provider = new FixedTenantProvider(null);
+        var repo = new TenantAwareBehaviorSpaceRepository(inner, provider);
+        var start = DateTimeOffset.UtcNow.AddHours(-1);
+        var end = DateTimeOffset.UtcNow.AddHours(1);
+
+        var list = await repo.GetByTimeWindowAsync(start, end);
+
+        Assert.NotNull(list);
+    }
+
+    [Fact]
+    public async Task DeleteAsync_WhenCurrentTenant_ReturnsTrue()
+    {
+        var inner = new TestBehaviorSpaceRepository();
+        var provider = new FixedTenantProvider("tenant-1");
+        var repo = new TenantAwareBehaviorSpaceRepository(inner, provider);
+        var space = new BehaviorSpace();
+        space.Observe(new BehaviorEvent("u", "a", DateTimeOffset.UtcNow));
+        var id = await repo.SaveAsync(space);
+
+        var ok = await repo.DeleteAsync(id);
+
+        Assert.True(ok);
+        Assert.Null(await inner.GetByIdAsync(id));
+    }
+
+    [Fact]
+    public async Task DeleteAsync_WhenDifferentTenant_ReturnsFalse()
+    {
+        var inner = new TestBehaviorSpaceRepository();
+        var provider = new FixedTenantProvider("tenant-2");
+        var repo = new TenantAwareBehaviorSpaceRepository(inner, provider);
+        var space = new BehaviorSpace();
+        space.SetMetadata("TenantId", "tenant-1");
+        space.Observe(new BehaviorEvent("u", "a", DateTimeOffset.UtcNow));
+        var id = await inner.SaveAsync(space);
+
+        var ok = await repo.DeleteAsync(id);
+
+        Assert.False(ok);
+        Assert.NotNull(await inner.GetByIdAsync(id));
+    }
+
     private sealed class FixedTenantProvider : ITenantProvider
     {
         private readonly string? _id;

@@ -23,4 +23,24 @@ public sealed class OnnxIntentModelTests
         var ex = Assert.Throws<ArgumentException>(() => new OnnxIntentModel(options));
         Assert.Contains("not found", ex.Message);
     }
+
+    [Fact]
+    public void Constructor_WhenIntentLabelsEmpty_ThrowsArgumentException()
+    {
+        using var temp = new TempFile();
+        var options = new OnnxIntentModelOptions(
+            ModelPath: temp.Path,
+            IntentLabels: []);
+
+        var ex = Assert.Throws<ArgumentException>(() => new OnnxIntentModel(options));
+        Assert.Contains("IntentLabels must be non-empty", ex.Message);
+    }
+
+    /// <summary>Disposable temp file for tests that need an existing path (e.g. before model load).</summary>
+    private sealed class TempFile : IDisposable
+    {
+        public string Path { get; } = System.IO.Path.GetTempFileName();
+
+        public void Dispose() => File.Delete(Path);
+    }
 }

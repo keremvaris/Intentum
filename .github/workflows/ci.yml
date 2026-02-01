@@ -48,7 +48,7 @@ jobs:
             /o:"${{ env.SONAR_ORGANIZATION }}" \
             /d:sonar.token="$SONAR_TOKEN" \
             /d:sonar.host.url="https://sonarcloud.io" \
-            /d:sonar.cs.opencover.reportsPaths="${{ github.workspace }}/TestResults/coverage.opencover.xml" \
+            /d:sonar.cs.opencover.reportsPaths=TestResults/coverage.opencover.xml \
             /d:sonar.exclusions="**/samples/**,**/examples/**,**/docs/**,**/templates/**,**/tools/**,**/.github/**,**/tests/**,**/benchmarks/**,**/BenchmarkDotNet.Artifacts/**,**/scripts/**,**/release.sh" \
             /d:sonar.coverage.exclusions="**/Intentum.CodeGen/**,**/*ServiceCollectionExtensions.cs,**/*CachingExtensions.cs,**/MultiTenancyExtensions.cs,**/Intentum.AI.Claude/**,**/Intentum.Persistence.MongoDB/**,**/Intentum.Persistence.Redis/**,**/Intentum.MultiTenancy/**,**/*RateLimitException.cs,**/LlmIntentModelExtensions.cs,**/Intentum.AI.ONNX/**,**/Intentum.Persistence/**,**/Intentum.Observability/**,**/Intentum.Analytics/**"
           # Exclusions duplicated here on purpose so CI is stable. Keep in sync with .sonarcloud.properties when changing.
@@ -66,7 +66,7 @@ jobs:
           mkdir -p TestResults
           dotnet build tests/Intentum.Tests/Intentum.Tests.csproj --no-restore \
             -p:CollectCoverage=true \
-            -p:CoverletOutput=../../TestResults/coverage \
+            -p:CoverletOutput="${{ github.workspace }}/TestResults" \
             -p:CoverletOutputFormat=opencover
 
       - name: Test
@@ -74,6 +74,10 @@ jobs:
           dotnet test tests/Intentum.Tests/Intentum.Tests.csproj --no-build \
             --filter 'FullyQualifiedName!~GreenwashingCaseStudyTests&FullyQualifiedName!~IntegrationTests' \
             --results-directory TestResults
+          if [ ! -f TestResults/coverage.opencover.xml ]; then
+            found=$(find TestResults -name 'coverage.opencover.xml' -print -quit 2>/dev/null)
+            if [ -n "$found" ]; then cp "$found" TestResults/coverage.opencover.xml; fi
+          fi
           test -f TestResults/coverage.opencover.xml && echo "Coverage file: $(wc -l < TestResults/coverage.opencover.xml) lines" || (echo "::error::coverage.opencover.xml not found"; exit 1)
 
       - name: SonarCloud end
