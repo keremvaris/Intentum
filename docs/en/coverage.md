@@ -1,5 +1,7 @@
 # Coverage (EN)
 
+**Why you're reading this page:** This page explains how Intentum test coverage is generated, how it runs in CI, and where to view the report. It is the right place if you are targeting 80%+ coverage or SonarCloud integration.
+
 Intentum generates **code coverage** for the test project so you can see which code paths are exercised by unit and contract tests. The project targets **at least 80%** line coverage on the library code; coverage is enforced via the test project’s Coverlet threshold and SonarCloud quality gate.
 
 This page explains how to generate coverage locally, how CI generates it, and where to view the report. For what is tested, see [Testing](testing.md).
@@ -60,3 +62,5 @@ Then open `coverage/index.html` in a browser.
 - **Excluding code:** To exclude types or methods from Coverlet (e.g. generated code), use Coverlet’s exclude options or attributes in the project file.
 
 For test structure and what is covered, see [Testing](testing.md).
+
+**Next step:** When you're done with this page → [Testing](testing.md) or [Tests overview](tests-overview.md).

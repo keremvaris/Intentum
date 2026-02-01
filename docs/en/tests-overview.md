@@ -1,5 +1,7 @@
 # Tests Overview
 
+**Why you're reading this page:** This page gives a short overview of Intentum test projects (Intentum.Tests, Intentum.Tests.Integration): what is covered, how to run them, and how they relate to samples and examples. It is the right place if you are asking "What does each test do?"
+
 This page gives a short overview of Intentum tests: what is covered, how to run them, and how they relate to **samples** and **examples**.
 
 ---
@@ -54,7 +56,7 @@ Integration tests cover greenwashing accuracy/F1 on labeled data; see [Case stud
 | | Tests | Examples | Samples |
 |--|--------|----------|---------|
 | **Purpose** | Assert contracts and core behavior; no real APIs in CI. | Learn one use case; copy-paste friendly. | Full app: many features, Web API, UI. |
-| **Run** | `dotnet test tests/Intentum.Tests` | `dotnet run --project examples/<name>` | `dotnet run --project samples/Intentum.Sample.Web` |
+| **Run** | `dotnet test tests/Intentum.Tests` | `dotnet run --project examples/<name>` | `dotnet run --project samples/Intentum.Sample.Blazor` |
 | **Docs** | [Testing](testing.md), this page | [Examples overview](examples-overview.md) | [API](api.md), [Setup](setup.md) |
 
 ---
@@ -63,3 +65,5 @@ Integration tests cover greenwashing accuracy/F1 on labeled data; see [Case stud
 
 - Use **mock HttpClient** or in-memory providers so tests don’t call real APIs.
 - For new features (e.g. timeline, intent tree, pattern detector), add tests in `Intentum.Tests` and extend the “What is covered” list in [Testing](testing.md).
+
+**Next step:** When you're done with this page → [Testing](testing.md) or [Examples overview](examples-overview.md).

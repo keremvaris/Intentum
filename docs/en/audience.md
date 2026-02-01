@@ -1,8 +1,8 @@
 # Audience, project types & example use cases (EN)
 
-This page describes **which types of projects** use Intentum, **who the users** are (developer profiles), and **example test cases** at low, medium, and high complexity — for both **AI-driven** and **non-AI (rule-based)** usage. It also gives **sector-based** examples (ESG, Carbon Accounting, Compliance) so you can map Intentum to your domain.
+**Why you're reading this page** — This page describes **which types of projects** use Intentum, **who the users** are (developer profiles), and **example test cases** at low, medium, and high complexity — for both **AI-driven** and **non-AI (rule-based)** usage. It also gives **sector-based** examples (ESG, Carbon Accounting, Compliance) so you can map Intentum to your domain.
 
-For the core flow (Observe → Infer → Decide), see [index](index.md) and [API Reference](api.md). For runnable scenarios, see the [sample](https://github.com/keremvaris/Intentum/tree/master/samples/Intentum.Sample) and [Scenarios](scenarios.md).
+For the core flow (Observe → Infer → Decide), see [index](index.md) and [API Reference](api.md). For runnable scenarios, see [Sample (console)](https://github.com/keremvaris/Intentum/tree/master/samples/Intentum.Sample), [Sample.Blazor](https://github.com/keremvaris/Intentum/tree/master/samples/Intentum.Sample.Blazor), and [Scenarios](scenarios.md).
 
 ---
 
@@ -28,6 +28,7 @@ For the core flow (Observe → Infer → Decide), see [index](index.md) and [API
 | **Security / risk** | Defines Block rules, thresholds, and audit | Policy order (Block first), retry/rate limits, localization for audit messages. |
 | **QA / test** | Validates behavior → intent → decision for key flows | Test cases (low/medium/high), mock provider, contract tests, sector scenarios. |
 | **DevOps / SRE** | Runs services with API keys, regions, rate limits | Env vars, provider choice, no raw logging in prod. |
+| **Frontend / Blazor developer** | Uses intent infer, explain, timeline, policy lab in the UI | Sample.Blazor: Overview, Commerce, Explain, FraudLive, Sustainability, Timeline, PolicyLab, Sandbox pages; CQRS (Carbon, Greenwashing, OrderPlacement). |
 
 ---
 
@@ -101,7 +102,8 @@ The sample and **WorkflowStatusTests** include these transitions for ESG report,
 
 ## How the sample and tests map to this
 
-- **Sample project** runs: ESG/Carbon/EU Green Bond scenarios; **workflow process status** (Draft, InProgress, UnderReview, Approved, Rejected, Completed) for EU Green Bond, ESG, compliance, LMA; and **classic** examples (payment happy path, payment with retries, suspicious retries, support escalation, e‑commerce: add to cart, checkout success, checkout with retries, payment validation).
+- **Intentum.Sample** (console) runs: ESG/Carbon/EU Green Bond scenarios; **workflow process status** (Draft, InProgress, UnderReview, Approved, Rejected, Completed) for EU Green Bond, ESG, compliance, LMA; and **classic** examples (payment happy path, payment with retries, suspicious retries, support escalation, e‑commerce: add to cart, checkout success, checkout with retries, payment validation). Run: `dotnet run --project samples/Intentum.Sample`.
+- **Intentum.Sample.Blazor** (Blazor UI + API): Overview, Commerce, Explain, FraudLive, Sustainability, Timeline, PolicyLab, Sandbox, Settings, Signals, Graph, Heatmap pages; Carbon, Greenwashing, OrderPlacement CQRS; intent infer/explain/explain-tree, greenwashing detection, Dashboard, analytics, timeline, playground compare; SSE inference broadcast, fraud and sustainability simulation. Run: `dotnet run --project samples/Intentum.Sample.Blazor`.
 - **Test project** has: **LowLevelScenarioTests**, **MediumLevelScenarioTests**, **HighLevelScenarioTests**, **SectorScenarioTests** (ESG, Carbon, compliance + classic: Fintech, Support, E‑commerce), and **WorkflowStatusTests** (process status transitions: Draft→InProgress, full lifecycle to Approved/Completed, Rejected path, stuck Draft/InProgress, EU Green Bond style).
 
-See [Setup](setup.md) to run the sample and [Testing](testing.md) to run the tests.
+See [Setup](setup.md) to run the samples and [Testing](testing.md) to run the tests. **Next step:** If you're done here → [Scenarios](scenarios.md) or [Examples overview](examples-overview.md).

@@ -1,5 +1,7 @@
 # Why Intentum?
 
+**Why you're reading this page** — This page explains where the name and philosophy of Intentum come from: intent-centric design, how it differs from classic BDD/TDD, and why it fits the AI era. You're in the right place if you're curious about the name or asking "why intent?"
+
 The name Intentum is not accidental. It carries a deliberate philosophy that aligns with the framework's design.
 
 ---
@@ -104,3 +106,5 @@ Or more sharply:
 | **Intentum** | **Intent** | **Uncertainty** | **AI & adaptive systems** |
 
 See [Manifesto](manifesto.md) and [The Intentum Canon](intentum-canon.md) for the full philosophy.
+
+**Next step:** If you're done here → [Architecture](architecture.md) or [Setup](setup.md).

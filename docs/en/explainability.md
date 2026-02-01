@@ -41,7 +41,7 @@ See [Advanced Features – Intent Tree](advanced-features.md#intent-tree) for se
 
 ## Sample usage
 
-See Sample.Web: `POST /api/intent/explain` returns signal contributions and explanation text. The response includes top signals and, when the model provides it, reasoning. Use `POST /api/intent/explain-tree` for the policy decision tree.
+See Sample.Blazor: `POST /api/intent/explain` returns signal contributions and explanation text. The response includes top signals and, when the model provides it, reasoning. Use `POST /api/intent/explain-tree` for the policy decision tree.
 
 ## Summary
 
@@ -51,3 +51,5 @@ See Sample.Web: `POST /api/intent/explain` returns signal contributions and expl
 | Explanation text  | `IIntentExplainer.GetExplanation` | Single string: name, confidence, top signals, reasoning |
 | Intent tree       | `IIntentTreeExplainer.ExplainTree` | Decision tree: matched rule, signal nodes; Sample: `POST /api/intent/explain-tree` |
 | Reasoning         | `Intent.Reasoning` (set by model) | Short "why" from rule or LLM; included in explanation when present |
+
+**Next step:** When you're done with this page → [Advanced features](advanced-features.md) or [What these features do](features-simple-guide.md).

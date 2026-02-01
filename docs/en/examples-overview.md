@@ -1,5 +1,7 @@
 # Examples Overview — Simple, Medium, Hard
 
+**Why you're reading this page:** This page groups Intentum examples and samples by simple / medium / hard and shows what each project does and how to run it. It is the right place if you are asking "Which example should I start with?" or "Which project is for this scenario?"
+
 This page groups Intentum **examples** and **samples** by difficulty and ties them to real-life use cases. All examples run without an API key (Mock provider) unless noted.
 
 ---
@@ -127,15 +129,15 @@ dotnet run --project examples/greenwashing-intent
 | Sample | Description | Difficulty |
 |--------|-------------|------------|
 | [Intentum.Sample](https://github.com/keremvaris/Intentum/tree/master/samples/Intentum.Sample) | Console: many scenarios (payment, ESG, compliance, retries) in one app. | Medium |
-| [Intentum.Sample.Web](https://github.com/keremvaris/Intentum/tree/master/samples/Intentum.Sample.Web) | CQRS Web API: infer, explain, explain-tree, analytics, timeline, playground compare, greenwashing. | Hard |
+| [Intentum.Sample.Blazor](https://github.com/keremvaris/Intentum/tree/master/samples/Intentum.Sample.Blazor) | Blazor UI + CQRS Web API: infer, explain, explain-tree, analytics, timeline, playground compare, greenwashing; Overview, Commerce, Explain, FraudLive, Sustainability, Timeline, PolicyLab, Sandbox; SSE inference, fraud/sustainability simulation. | Hard |
 
-Run the web sample:
+Run the web sample (Blazor):
 
 ```bash
-dotnet run --project samples/Intentum.Sample.Web
+dotnet run --project samples/Intentum.Sample.Blazor
 ```
 
-Then open the UI and Scalar API docs; try `POST /api/intent/infer`, `POST /api/intent/explain-tree`, `GET /api/intent/analytics/timeline/{entityId}`, `POST /api/intent/playground/compare`.
+Then open the UI and Scalar API docs; try `POST /api/intent/infer`, `POST /api/intent/explain-tree`, `GET /api/intent/analytics/timeline/{entityId}`, `POST /api/intent/playground/compare`. In the browser you can try Overview, Commerce, Explain, FraudLive, Sustainability, Timeline, PolicyLab, and Sandbox.
 
 ---
 
@@ -150,6 +152,8 @@ Then open the UI and Scalar API docs; try `POST /api/intent/infer`, `POST /api/i
 | fraud-intent | Hard | `dotnet run --project examples/fraud-intent` |
 | customer-intent | Hard | `dotnet run --project examples/customer-intent` |
 | greenwashing-intent | Hard | `dotnet run --project examples/greenwashing-intent` |
-| Sample.Web | Hard | `dotnet run --project samples/Intentum.Sample.Web` |
+| Sample.Blazor | Hard | `dotnet run --project samples/Intentum.Sample.Blazor` |
 
 No API keys are required for the examples above; they use the Mock provider. For real AI, set environment variables and use a provider — see [Providers](providers.md) and [AI providers how-to](ai-providers-howto.md).
+
+**Next step:** When you're done with this page → [Setup](setup.md) or [Scenarios](scenarios.md).

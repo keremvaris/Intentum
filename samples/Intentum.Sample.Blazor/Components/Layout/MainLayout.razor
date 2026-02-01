@@ -1,7 +1,7 @@
 @inherits LayoutComponentBase
 
 <div class="dashboard-app">
-    <aside class="dashboard-sidebar">
+    <aside class="dashboard-sidebar @(_sidebarOpen ? "open" : "collapsed")">
         <div class="sidebar-brand">
             <a href="/" class="brand-link">Intentum</a>
             <span class="tagline">Intent Intelligence Hub</span>
@@ -38,6 +38,10 @@
                 </button>
                 <div class="accordion-content @(_openUseCases ? "open" : "")">
                     <NavLink href="fraud-live" class="sidebar-link">Intent Stream</NavLink>
+                    <NavLink href="ato" class="sidebar-link">ATO Demo</NavLink>
+                    <NavLink href="insider-threat" class="sidebar-link">İçeriden Tehdit Demo</NavLink>
+                    <NavLink href="zero-day" class="sidebar-link">Zero-Day Demo</NavLink>
+                    <NavLink href="api-traffic" class="sidebar-link">API Trafik Demo</NavLink>
                     <NavLink href="sustainability" class="sidebar-link">Sustainability</NavLink>
                     <NavLink href="commerce" class="sidebar-link">Commerce</NavLink>
                 </div>
@@ -54,6 +58,9 @@
         </nav>
     </aside>
     <div class="dashboard-body">
+        <button type="button" class="sidebar-toggler" aria-label="Toggle menu" @onclick="@(() => _sidebarOpen = !_sidebarOpen)">
+            <span class="sidebar-toggler-icon">☰</span>
+        </button>
         <main class="dashboard-main">
             @Body
         </main>
@@ -61,6 +68,7 @@
 </div>
 
 @code {
+    private bool _sidebarOpen = true;
     private bool _openInfer = true;
     private bool _openAnalyze = true;
     private bool _openUseCases = true;

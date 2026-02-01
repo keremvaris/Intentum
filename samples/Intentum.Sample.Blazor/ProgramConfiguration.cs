@@ -12,6 +12,7 @@ using Intentum.Analytics.Models;
 using Intentum.AspNetCore;
 using Intentum.Core.Behavior;
 using Intentum.Core.Contracts;
+using Intentum.Core.Models;
 using Intentum.Explainability;
 using Intentum.Persistence.EntityFramework;
 using Intentum.Persistence.Repositories;
@@ -71,15 +72,20 @@ internal static class ProgramConfiguration
 
         builder.Services.AddSingleton<IPlaygroundModelRegistry>(sp =>
         {
+            var embedding = sp.GetRequiredService<IIntentEmbeddingProvider>();
             var similarity = sp.GetRequiredService<IIntentSimilarityEngine>();
             var defaultModel = sp.GetRequiredService<IIntentModel>();
             var mockOnly = new LlmIntentModel(new MockEmbeddingProvider(), similarity);
             var strictModel = new StrictConfidenceIntentModel(defaultModel);
+            var fraudModel = BuildFraudChainedIntentModel(embedding);
+            var zeroDayModel = BuildZeroDayChainedIntentModel(embedding, similarity);
             return new PlaygroundModelRegistry(new Dictionary<string, IIntentModel>
             {
                 ["Default"] = defaultModel,
                 ["Mock"] = mockOnly,
-                ["Strict"] = strictModel
+                ["Strict"] = strictModel,
+                ["Fraud"] = fraudModel,
+                ["ZeroDay"] = zeroDayModel
             });
         });
 
@@ -104,6 +110,8 @@ internal static class ProgramConfiguration
         builder.Services.AddSingleton<SseInferenceBroadcaster>();
         builder.Services.AddSingleton<FraudSimulationState>();
         builder.Services.AddHostedService<FraudSimulationService>();
+        builder.Services.AddSingleton<FraudDemo1State>();
+        builder.Services.AddHostedService<FraudDemo1Service>();
         builder.Services.AddSingleton<SustainabilitySimulationState>();
         builder.Services.AddSingleton<SustainabilityTimelineBroadcaster>();
         builder.Services.AddHostedService<SustainabilityTimelineService>();
@@ -193,6 +201,10 @@ internal static class ProgramConfiguration
         MapAnalyticsEndpoints(app);
         MapDashboardEndpoints(app);
         MapSimulationEndpoints(app);
+        MapFraudDemo1Endpoints(app);
+        MapZeroDayEndpoints(app);
+        MapApiTrafficEndpoints(app);
+        MapInsiderThreatEndpoints(app);
         MapGreenwashingEndpoints(app);
         MapHistoryEndpoints(app);
     }
@@ -400,6 +412,13 @@ internal static class ProgramConfiguration
         app.MapPost("/api/fraud-simulation/start", (FraudSimulationState state) => { state.Start(); return Results.Ok(new { running = true }); }).WithName("FraudSimulationStart").Produces(200);
         app.MapPost("/api/fraud-simulation/stop", (FraudSimulationState state) => { state.Stop(); return Results.Ok(new { running = false }); }).WithName("FraudSimulationStop").Produces(200);
         app.MapGet("/api/fraud-simulation/status", (FraudSimulationState state) => Results.Json(new { state.Running, state.EventsPerMinute, state.LastInferenceAt })).WithName("FraudSimulationStatus").Produces(200);
+    }
+
+    private static void MapFraudDemo1Endpoints(WebApplication app)
+    {
+        app.MapPost("/api/fraud-demo1/start", (FraudDemo1State state) => { state.Start(); return Results.Ok(new { running = true }); }).WithName("FraudDemo1Start").Produces(200);
+        app.MapPost("/api/fraud-demo1/stop", (FraudDemo1State state) => { state.Stop(); return Results.Ok(new { running = false }); }).WithName("FraudDemo1Stop").Produces(200);
+        app.MapGet("/api/fraud-demo1/status", (FraudDemo1State state) => Results.Json(new { state.Running, state.CurrentStep })).WithName("FraudDemo1Status").Produces(200);
 
         app.MapPost("/api/sustainability-simulation/start", (SustainabilityStartRequest? req, SustainabilitySimulationState state) =>
         {
@@ -428,21 +447,230 @@ internal static class ProgramConfiguration
         }).WithName("GetSustainabilityStream").Produces(200);
     }
 
+    private static void MapZeroDayEndpoints(WebApplication app)
+    {
+        app.MapPost("/api/zero-day/infer", async (IPlaygroundModelRegistry registry, IIntentHistoryRepository history) =>
+        {
+            if (!registry.TryGetModel("ZeroDay", out var model) || model is null)
+                return Results.NotFound();
+            var space = new BehaviorSpace();
+            var t = DateTimeOffset.UtcNow;
+            space.Observe(new BehaviorEvent("attacker", "PortScan", t));
+            space.Observe(new BehaviorEvent("attacker", "ExploitAttempt", t.AddSeconds(1)));
+            space.Observe(new BehaviorEvent("attacker", "LateralMoveToServerB", t.AddSeconds(2)));
+            var intent = model.Infer(space);
+            var start = DateTimeOffset.UtcNow.AddDays(-7);
+            var end = DateTimeOffset.UtcNow;
+            var records = await history.GetByTimeWindowAsync(start, end);
+            var similarCount = records.Count(r => string.Equals(r.IntentName, intent.Name, StringComparison.OrdinalIgnoreCase));
+            return Results.Ok(new
+            {
+                intentName = intent.Name,
+                confidenceScore = intent.Confidence.Score,
+                confidenceLevel = intent.Confidence.Level,
+                reasoning = intent.Reasoning,
+                fromFallback = intent.Reasoning?.Contains("Fallback", StringComparison.OrdinalIgnoreCase) == true,
+                similarPastCount = similarCount
+            });
+        }).WithName("ZeroDayInfer").Produces(200);
+    }
+
+    private static void MapApiTrafficEndpoints(WebApplication app)
+    {
+        var apiTrafficPolicy = new IntentPolicyBuilder()
+            .RateLimit("AutomatedScanOrAttack", i => i.Name == "AutomatedScanOrAttack")
+            .Allow("Default", _ => true)
+            .Build();
+
+        app.MapPost("/api/api-traffic/demo", (IRateLimiter rateLimiter) =>
+        {
+            const string attackIp = "203.0.113.10";
+            const int eventCount = 120;
+            var space = new BehaviorSpace();
+            var t = DateTimeOffset.UtcNow;
+            for (var i = 0; i < eventCount; i++)
+            {
+                space.Observe(new BehaviorEvent(attackIp, "API_CALL", t.AddMilliseconds(i * 10),
+                    new Dictionary<string, object> { ["path"] = "/api/v1/validate-coupon" }));
+            }
+            var apiTrafficModel = BuildApiTrafficRuleBasedModel();
+            var intent = apiTrafficModel.Infer(space);
+            var decision = intent.Decide(apiTrafficPolicy);
+            var rateLimitOptions = new RateLimitOptions("api-traffic-demo", 50, TimeSpan.FromMinutes(1));
+            intent.DecideWithRateLimit(apiTrafficPolicy, rateLimiter, rateLimitOptions, out var rateLimitResult);
+            return Results.Ok(new
+            {
+                intentName = intent.Name,
+                confidenceScore = intent.Confidence.Score,
+                decision = decision.ToString(),
+                requestRate = eventCount,
+                blockedIps = new[] { attackIp },
+                rateLimitTriggered = !(rateLimitResult?.Allowed ?? true),
+                rateLimitCurrent = rateLimitResult?.CurrentCount,
+                rateLimitLimit = rateLimitResult?.Limit
+            });
+        }).WithName("ApiTrafficDemo").Produces(200);
+    }
+
+    private static IIntentModel BuildApiTrafficRuleBasedModel()
+    {
+        var rules = new List<Func<BehaviorSpace, RuleMatch?>>
+        {
+            space =>
+            {
+                var byActor = space.Events.Where(e => e.Action == "API_CALL").GroupBy(e => e.Actor).ToList();
+                foreach (var g in byActor)
+                {
+                    if (g.Count() > 50)
+                        return new RuleMatch("AutomatedScanOrAttack", 0.95, $"Actor {g.Key} exceeded 50 API_CALL in window");
+                }
+                return null;
+            }
+        };
+        return new RuleBasedIntentModel(rules);
+    }
+
+    private static void MapInsiderThreatEndpoints(WebApplication app)
+    {
+        var insiderPolicy = new IntentPolicyBuilder()
+            .RequireAuth("DataExfiltrationRisk", i => i.Name == "DataExfiltrationPreparation" && i.Confidence.Score > 0.7)
+            .Warn("InsiderRisk", i => i.Name == "DataExfiltrationPreparation")
+            .Observe("Default", _ => true)
+            .Build();
+
+        app.MapPost("/api/insider-threat/infer", () =>
+        {
+            var rules = new List<Func<BehaviorSpace, RuleMatch?>>
+            {
+                space =>
+                {
+                    var massDownload = space.Events.Count(e => e.Action == "MassFileDownload");
+                    var unusualDb = space.Events.Count(e => e.Action == "AccessToUnusualDatabase");
+                    var privilegedApi = space.Events.Count(e => e.Action == "AttemptToUsePrivilegedAPIs");
+                    if (massDownload >= 1 || unusualDb >= 1 || privilegedApi >= 1)
+                        return new RuleMatch("DataExfiltrationPreparation", 0.88, $"MassFileDownload={massDownload}, UnusualDB={unusualDb}, PrivilegedAPI={privilegedApi}");
+                    return null;
+                }
+            };
+            var model = new RuleBasedIntentModel(rules);
+            var space = new BehaviorSpace();
+            var t = DateTimeOffset.UtcNow;
+            space.Observe(new BehaviorEvent("Merve B.", "MassFileDownload", t));
+            space.Observe(new BehaviorEvent("Merve B.", "AccessToUnusualDatabase", t.AddHours(1)));
+            space.Observe(new BehaviorEvent("Merve B.", "AttemptToUsePrivilegedAPIs", t.AddHours(2)));
+            var intent = model.Infer(space);
+            var decision = intent.Decide(insiderPolicy);
+            var baseline = new { FileDownload = 100, InternalAccess = 500, PrivilegedApi = 0 };
+            var current = new { FileDownload = 1000, InternalAccess = 5, PrivilegedApi = 3 };
+            return Results.Ok(new
+            {
+                intentName = intent.Name,
+                confidenceScore = intent.Confidence.Score,
+                decision = decision.ToString(),
+                baseline,
+                current
+            });
+        }).WithName("InsiderThreatInfer").Produces(200);
+    }
+
     private static void MapGreenwashingEndpoints(WebApplication app)
     {
         app.MapPost("/api/greenwashing/analyze", (GreenwashingAnalyzeRequest req) =>
         {
             var report = req.Report ?? "";
-            var space = SustainabilityReporter.AnalyzeReport(report, req.Language);
+            var sourceType = req.SourceType ?? "Report";
+            var language = req.Language;
+            var imageBase64 = req.ImageBase64;
+
+            var space = SustainabilityReporter.AnalyzeReport(report, language);
+            GreenwashingVisualResult? visualResult = null;
+            if (!string.IsNullOrWhiteSpace(imageBase64))
+            {
+                var (greenScore, _) = GreenwashingImageAnalyzer.AnalyzeAndAugment(imageBase64, space);
+                visualResult = new GreenwashingVisualResult(greenScore, greenScore >= 0.38 ? "Yeşil baskın (demo)" : "Düşük yeşillik");
+            }
+
             var model = new GreenwashingIntentModel();
             var intent = model.Infer(space);
-            var policy = new IntentPolicyBuilder().Escalate("CriticalGreenwashing", i => i is { Name: "ActiveGreenwashing", Confidence.Score: >= 0.7 }).Warn("NeedsVerification", i => i.Name == "StrategicObfuscation").Observe("Monitor", i => i.Confidence.Score > 0.3).Allow("LowRisk", _ => true).Build();
+            var policy = new IntentPolicyBuilder()
+                .Escalate("CriticalGreenwashing", i => i is { Name: "ActiveGreenwashing", Confidence.Score: >= 0.7 })
+                .Warn("NeedsVerification", i => i.Name == "StrategicObfuscation" || i is { Name: "SelectiveDisclosure", Confidence.Score: >= 0.5 })
+                .Observe("Monitor", i => i.Confidence.Score > 0.3)
+                .Allow("LowRisk", _ => true)
+                .Build();
             var decision = intent.Decide(policy);
             var actions = SustainabilitySolutionGenerator.Suggest(intent, space, decision);
-            return Results.Ok(new GreenwashingAnalyzeResponse(intent.Name, intent.Confidence.Level, intent.Confidence.Score, decision.ToString(), intent.Signals.Select(s => s.Description).ToList(), actions, "0x" + Guid.NewGuid().ToString("N")[..32], null, null));
+
+            var now = DateTimeOffset.UtcNow;
+            var blockchainRef = "0x" + Guid.NewGuid().ToString("N")[..32];
+            var scope3Summary = GreenwashingScope3Mock.Get();
+            GreenwashingSourceMetadata? metadata;
+            if (sourceType is "SocialMedia" or "PressRelease" or "InvestorPresentation")
+            {
+                metadata = sourceType switch
+                {
+                    "SocialMedia" => new GreenwashingSourceMetadata(
+                        "Sosyal medya (mock)",
+                        language ?? "TR",
+                        Scope3Verified: false,
+                        Scope3Summary: null,
+                        blockchainRef,
+                        now),
+                    "PressRelease" => new GreenwashingSourceMetadata(
+                        "Basın bülteni (mock)",
+                        language ?? "TR",
+                        Scope3Verified: false,
+                        Scope3Summary: scope3Summary,
+                        blockchainRef,
+                        now),
+                    "InvestorPresentation" => new GreenwashingSourceMetadata(
+                        "Yatırımcı sunumu (mock)",
+                        language ?? "EN",
+                        Scope3Verified: true,
+                        Scope3Summary: scope3Summary,
+                        blockchainRef,
+                        now),
+                    _ => null
+                };
+            }
+            else
+            {
+                metadata = new GreenwashingSourceMetadata(
+                    "Rapor",
+                    language ?? "TR",
+                    false,
+                    null,
+                    blockchainRef,
+                    now);
+            }
+
+            var recentItem = new GreenwashingRecentItem(
+                blockchainRef,
+                report.Length > 80 ? report[..80] + "…" : report,
+                intent.Name,
+                decision.ToString(),
+                sourceType,
+                language,
+                now);
+            GreenwashingRecentStore.Add(recentItem);
+
+            return Results.Ok(new GreenwashingAnalyzeResponse(
+                intent.Name,
+                intent.Confidence.Level,
+                intent.Confidence.Score,
+                decision.ToString(),
+                intent.Signals.Select(s => s.Description).ToList(),
+                actions,
+                blockchainRef,
+                metadata,
+                visualResult));
         }).WithName("AnalyzeGreenwashing").Produces(200);
 
-        app.MapGet("/api/greenwashing/recent", (int? limit) => Results.Json(GreenwashingRecentStore.GetRecent(Math.Clamp(limit ?? 15, 1, 50)))).WithName("GetGreenwashingRecent").Produces(200);
+        app.MapGet("/api/greenwashing/recent", (int? limit) =>
+        {
+            var take = Math.Clamp(limit ?? 15, 1, 50);
+            return Results.Json(GreenwashingRecentStore.GetRecent(take));
+        }).WithName("GetGreenwashingRecent").Produces(200);
     }
 
     private static void MapHistoryEndpoints(WebApplication app)
@@ -455,5 +683,40 @@ internal static class ProgramConfiguration
             var take = Math.Clamp(limit ?? 50, 1, 100);
             return Results.Json(records.OrderByDescending(r => r.RecordedAt).Take(take).ToList());
         }).WithName("GetIntentHistory").Produces(200);
+    }
+
+    private static IIntentModel BuildFraudChainedIntentModel(IIntentEmbeddingProvider embedding)
+    {
+        var timeDecay = new TimeDecaySimilarityEngine(TimeSpan.FromHours(1), DateTimeOffset.UtcNow);
+        var fallback = new LlmIntentModel(embedding, timeDecay);
+        var rules = new List<Func<BehaviorSpace, RuleMatch?>>
+        {
+            space =>
+            {
+                var hasChangeEmail = space.Events.Any(e => e.Action == "ChangeContactEmail");
+                var hasHighTransfer = space.Events.Any(e => e.Action == "HighValueTransfer");
+                if (hasChangeEmail && hasHighTransfer)
+                    return new RuleMatch("FlagForReview", 0.92, "ChangeContactEmail and HighValueTransfer");
+                return null;
+            }
+        };
+        var primary = new RuleBasedIntentModel(rules);
+        return new ChainedIntentModel(primary, fallback);
+    }
+
+    private static IIntentModel BuildZeroDayChainedIntentModel(IIntentEmbeddingProvider embedding, IIntentSimilarityEngine similarity)
+    {
+        var fallback = new LlmIntentModel(embedding, similarity);
+        var rules = new List<Func<BehaviorSpace, RuleMatch?>>
+        {
+            space =>
+            {
+                if (space.Events.Any(e => e.Action == "KnownCveExploit"))
+                    return new RuleMatch("KnownExploit", 0.9, "KnownCveExploit");
+                return null;
+            }
+        };
+        var primary = new RuleBasedIntentModel(rules);
+        return new ChainedIntentModel(primary, fallback);
     }
 }

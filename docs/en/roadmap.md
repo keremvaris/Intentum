@@ -1,5 +1,7 @@
 # Roadmap
 
+**Why you're reading this page:** This page summarizes Intentum's roadmap: v1.0 criteria, next steps, and longer-term goals. It is the right place if you are curious about project direction or where to contribute.
+
 Intentum's direction: adoption first, then depth.
 
 ---
@@ -48,5 +50,7 @@ Already implemented and documented:
 - **dotnet new templates** — `intentum-webapi`, `intentum-backgroundservice`, `intentum-function`.
 
 See [Advanced Features](advanced-features.md), [Setup – Create from template](setup.md#create-from-template-dotnet-new), and [API Reference](api.md).
+
+**Next step:** When you're done with this page → [Advanced features](advanced-features.md) or [Setup](setup.md).
 
 ---

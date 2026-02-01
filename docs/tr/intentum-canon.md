@@ -1,5 +1,7 @@
 # Intentum Canon
 
+**Bu sayfayı neden okuyorsunuz?** Bu sayfa niyet odaklı tasarım ve geliştirme için **10 kısa kural** (Canon) sunar: nasıl düşünmeli, neyi öncelemeli. Manifesto "neden ve ne"yi anlatırken Canon "nasıl"ı özetler. Günlük kararlarda referans almak için uygundur.
+
 **Manifesto ile fark:** [Intentum Manifestosu](manifesto.md) **8 ilkeyi** anlatır (neden ve ne). Intentum Canon ise niyet odaklı tasarım ve geliştirme için **10 kısa kural** sunar (nasıl düşünmeli). İkisi aynı felsefeyi farklı biçimde ifade eder: Manifesto metin, Canon özet.
 
 ---
@@ -99,3 +101,5 @@ Niyet beklentiyi tanımlar.
 
 > Eğer davranış gerçekleşmisse,  
 > Önemli olan niyettir.
+
+**Sonraki adım:** Bu sayfayı bitirdiyseniz → [Mimari](architecture.md) veya [Senaryolar](scenarios.md).

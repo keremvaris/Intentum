@@ -132,3 +132,5 @@ dotnet test tests/Intentum.Tests/Intentum.Tests.csproj --filter "Category!=Integ
 | Per-provider tests | `./scripts/run-integration-tests.sh` (OpenAI), `run-mistral-integration-tests.sh`, `run-gemini-integration-tests.sh`, `run-azure-integration-tests.sh` |
 | Exclude integration tests | `dotnet test ... --filter "Category!=Integration"` |
 | Never commit | `.env` is in `.gitignore`; do not add or push it. |
+
+**Next step:** When you're done with this page → [Testing](testing.md) or [Providers](providers.md).

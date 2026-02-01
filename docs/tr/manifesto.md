@@ -1,5 +1,7 @@
 # Intentum Manifestosu
 
+**Bu sayfayı neden okuyorsunuz?** Bu sayfa Intentum'un felsefi temelini özetler: neden niyet odaklı geliştirme, neden davranış ≠ niyet, neden AI çağında bu yaklaşım. "Neden Intentum?" sorusuna derinlemesine yanıt arıyorsanız doğru yerdesiniz.
+
 **AI Çağı için Niyet Odaklı Geliştirme**
 
 ---
@@ -166,3 +168,5 @@ Ama sisteminiz şunları içeriyorsa:
 - insan belirsizliği
 
 Niyet Odaklı Geliştirme o zaman seçenek değil; kaçınılmaz olur.
+
+**Sonraki adım:** Bu sayfayı bitirdiyseniz → [Neden Intentum](why-intentum.md) veya [Intentum Kanonu](intentum-canon.md).

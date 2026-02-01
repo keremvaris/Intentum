@@ -1,5 +1,7 @@
 # Real-world scenarios
 
+**Why you're reading this page:** This page describes how Intentum is used in production with concrete examples: fraud/abuse intent detection and AI decision fallback. It is the right place if you are asking "How do I apply this in a real project?"
+
 Intentum in production: fraud/abuse detection and AI decision fallback.
 
 ---
@@ -300,8 +302,10 @@ Minimal runnable projects for these scenarios:
 - [examples/time-decay-intent](https://github.com/keremvaris/Intentum/tree/master/examples/time-decay-intent) — Recent events weigh more
 - [examples/vector-normalization](https://github.com/keremvaris/Intentum/tree/master/examples/vector-normalization) — Cap, L1, SoftCap
 
-**Web sample (fraud + greenwashing + explain):** [samples/Intentum.Sample.Web](https://github.com/keremvaris/Intentum/tree/master/samples/Intentum.Sample.Web) — full UI and HTTP API: intent infer/explain, greenwashing detection (multi-language, optional image, Scope 3/blockchain mock), Dashboard with analytics and recent analyses. See [Greenwashing detection (how-to)](greenwashing-detection-howto.md#6-sample-application-intentumsampleweb) and [Setup – Web sample](setup.md#build-and-run-the-repo-samples).
+**Web sample (fraud + greenwashing + explain):** [samples/Intentum.Sample.Blazor](https://github.com/keremvaris/Intentum/tree/master/samples/Intentum.Sample.Blazor) — full UI and HTTP API: intent infer/explain, greenwashing detection (multi-language, optional image, Scope 3/blockchain mock), Dashboard with analytics and recent analyses. See [Greenwashing detection (how-to)](greenwashing-detection-howto.md#6-sample-application-intentumsampleblazor) and [Setup – Web sample](setup.md#build-and-run-the-repo-samples).
 
 See the [examples README](https://github.com/keremvaris/Intentum/tree/master/examples) in the repo for how to run the console examples.
 
 For more flows (payment, support, ESG), see [Scenarios](scenarios.md) and [Audience & use cases](audience.md).
+
+**Next step:** When you're done with this page → [Scenarios](scenarios.md) or [Greenwashing detection (how-to)](greenwashing-detection-howto.md).

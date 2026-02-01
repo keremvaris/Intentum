@@ -1,5 +1,7 @@
 # Providers (EN)
 
+**Why you're reading this page:** This page explains embedding providers (Mock, OpenAI, Gemini, Mistral, Azure, Claude): when to use which, env vars, and minimal code. It is the right place if you are choosing a provider for your first project or configuring for production.
+
 Intentum uses **embedding providers** to turn behavior (e.g. `"user:login"`) into vectors so the intent model can infer confidence. You can use a **mock provider** (no API key, for local runs and tests) or a **real provider** (OpenAI, Gemini, Mistral, Azure OpenAI, Claude) for production.
 
 This page explains each provider: what it does, env vars, minimal code, and DI setup. For **easy / medium / hard** usage examples for every AI provider (Mock, OpenAI, Gemini, Mistral, Azure, Claude), see [How to use AI providers](ai-providers-howto.md). For the overall flow (Observe → Infer → Decide), see [API Reference](api.md) and [Setup](setup.md).
@@ -189,3 +191,5 @@ Then inject the intent model (e.g. ClaudeMessageIntentModel) as needed. See pack
 - **Rate limits:** Respect each provider’s limits; consider retries and backoff (or a dedicated middleware) for production.
 
 For full env var names and optional fields, see each provider’s `*Options` class and `FromEnvironment()` in the repo.
+
+**Next step:** When you're done with this page → [How to use AI providers](ai-providers-howto.md) or [API Reference](api.md).

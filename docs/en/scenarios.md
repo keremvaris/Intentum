@@ -1,5 +1,7 @@
 # Usage Scenarios (EN)
 
+**Why you're reading this page:** This page shows the Observe → Infer → Decide flow and policy rules for payment, login, support, e-commerce, and ESG scenarios in Intentum. It is useful when writing your first scenario or extending existing examples.
+
 Intentum does not use Given/When/Then steps. Instead you **Observe** events, **Infer** intent and confidence, and **Decide** with policy rules. This page shows both **classic** (payment, login, support, e‑commerce) and **ESG / compliance** scenarios: what behavior you record, how you define the policy, and what outcome to expect.
 
 For the replacement of Given/When/Then, see [index](index.md#what-replaced-givenwhenthen). For types and flow, see [API Reference](api.md).
@@ -258,3 +260,5 @@ var policy = new IntentPolicy()
 ```
 
 For a full runnable example with multiple scenarios, see the [sample](https://github.com/keremvaris/Intentum/tree/master/samples/Intentum.Sample).
+
+**Next step:** When you're done with this page → [Real-world scenarios](real-world-scenarios.md) or [API Reference](api.md).

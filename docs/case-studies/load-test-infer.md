@@ -1,6 +1,6 @@
-# Load test: Sample.Web infer endpoint
+# Load test: Sample.Blazor infer endpoint
 
-Short load test for `POST /api/intent/infer` (Sample.Web) to document p95 latency and error rate.
+Short load test for `POST /api/intent/infer` (Sample.Blazor) to document p95 latency and error rate.
 
 ## How the script works
 
@@ -12,12 +12,12 @@ The script [scripts/load-test-infer.js](../../scripts/load-test-infer.js) is a *
 4. **Thresholds:** Fails the run if error rate ≥ 5% or p95 latency ≥ 2 s.
 5. **Base URL:** From env `K6_BASE_URL` or default `http://localhost:5000`.
 
-So you must have **Sample.Web running** and **k6 installed** before running the script.
+So you must have **Sample.Blazor running** and **k6 installed** before running the script.
 
 ## How to run
 
 1. Install k6 (if needed): `brew install k6`.
-2. Start Sample.Web: `dotnet run --project samples/Intentum.Sample.Web/Intentum.Sample.Web.csproj` (default: http://localhost:5000).
+2. Start Sample.Blazor: `dotnet run --project samples/Intentum.Sample.Blazor/Intentum.Sample.Blazor.csproj` (default: http://localhost:5018).
 3. From repo root run k6: `k6 run scripts/load-test-infer.js`.
 4. Optional: override base URL: `K6_BASE_URL=http://localhost:5001 k6 run scripts/load-test-infer.js`.
 

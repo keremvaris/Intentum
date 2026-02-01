@@ -1,5 +1,7 @@
 # Greenwashing detection (how-to)
 
+**Why you're reading this page:** This page walks through detecting greenwashing in sustainability reports with Intentum: behavior space, intent inference, and policy decisions. It is the right place if you work with ESG reports or claim verification.
+
 Detect sustainability-report greenwashing using Intentum: behavior space, intent inference, and policy decisions.
 
 ---
@@ -160,14 +162,14 @@ You get flexibility (new signals = new observations), a confidence score instead
 
 ---
 
-## 6. Sample application (Intentum.Sample.Web)
+## 6. Sample application (Intentum.Sample.Blazor)
 
 The web sample includes a full greenwashing flow in the UI and HTTP API.
 
 **Run:**
 
 ```bash
-dotnet run --project samples/Intentum.Sample.Web
+dotnet run --project samples/Intentum.Sample.Blazor
 ```
 
 - **UI:** http://localhost:5000/ → **Örnekler** → **Greenwashing tespiti**
@@ -205,7 +207,7 @@ dotnet run --project samples/Intentum.Sample.Web
 - **Blockchain (mock):** Every analysis returns a unique `blockchainRef` (e.g. `0x…`).
 - **Recent analyses:** Dashboard tab shows "Son greenwashing analizleri" from `GET /api/greenwashing/recent`; list refreshes when Dashboard is open; mock entries are added every 30 seconds.
 
-Implementation lives under `samples/Intentum.Sample.Web/Features/GreenwashingDetection/`: `SustainabilityReporter`, `GreenwashingIntentModel`, `SustainabilitySolutionGenerator`, `GreenwashingImageAnalyzer`, `GreenwashingScope3Mock`, `GreenwashingRecentStore`.
+Implementation lives under `samples/Intentum.Sample.Blazor/Features/GreenwashingDetection/`: `SustainabilityReporter`, `GreenwashingIntentModel`, `SustainabilitySolutionGenerator`, `GreenwashingImageAnalyzer`, `GreenwashingScope3Mock`, `GreenwashingRecentStore`.
 
 ---
 
@@ -213,5 +215,7 @@ Implementation lives under `samples/Intentum.Sample.Web/Features/GreenwashingDet
 
 - [Real-world scenarios](real-world-scenarios.md) — Fraud/abuse and AI fallback
 - [Designing intent models](designing-intent-models.md) — Heuristic vs weighted vs LLM
-- [Setup](setup.md) — Build and run Sample.Web
+- [Setup](setup.md) — Build and run Sample.Blazor
 - Example: [examples/greenwashing-intent](https://github.com/keremvaris/Intentum/tree/master/examples/greenwashing-intent) — Console greenwashing sample (no API)
+
+**Next step:** When you're done with this page → [Real-world scenarios](real-world-scenarios.md) or [Designing intent models](designing-intent-models.md).

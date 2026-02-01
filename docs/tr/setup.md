@@ -1,6 +1,6 @@
 # Kurulum (TR)
 
-Bu sayfa gereksinimler, paket kurulumu ve Intentum’u uçtan uca çalıştırabilmen için minimal bir ilk proje adımlarını anlatır.
+**Bu sayfayı neden okuyorsunuz?** Bu sayfa Intentum'u projenize ekleyip **ilk çalışan akışı** (gözlemle → çıkar → karar ver) kurmanızı sağlar. Gereksinimler, paket kurulumu ve Intentum’u uçtan uca çalıştırabilmen için minimal bir ilk proje adımlarını anlatır.
 
 ---
 
@@ -37,6 +37,10 @@ Sağlayıcı eklemezsen yerel çalıştırma için **MockEmbeddingProvider** (In
 ---
 
 ## İlk proje: minimal konsol uygulaması
+
+**Bu örnek ne yapar?** Ahmet kullanıcısı 1 dakika içinde 3 kez giriş denedi (2 başarısız, 1 başarılı), ardından "submit" aksiyonunu tetikledi. Kod bu olayları kaydeder, niyet ve güven çıkarır, basit bir policy ile Allow veya Observe kararı verir.
+
+**Doğru yaptığınızı nasıl anlarsınız?** `dotnet run` sonrası konsolda bir **güven seviyesi** (örn. High, Medium) ve bir **karar** (Allow veya Observe) görürsünüz.
 
 1. **Konsol uygulaması oluştur** (yoksa):
    ```bash
@@ -192,7 +196,7 @@ Detay ve örnekler: [Sağlayıcılar](providers.md).
 **Örnekler:**
 
 - `samples/Intentum.Sample` — Konsol: ESG, Carbon, EU Green Bond, workflow, klasik (ödeme, destek, e‑ticaret), fluent API, caching, batch, rate limiting demo
-- `samples/Intentum.Sample.Web` — ASP.NET Core API ve web UI: CQRS (carbon, orders), intent infer (`POST /api/intent/infer`), intent explain (`POST /api/intent/explain`), **greenwashing tespiti** (`POST /api/greenwashing/analyze`, `GET /api/greenwashing/recent`), rate limiting, persistence (in-memory), **Dashboard** (analytics, son çıkarımlar, son greenwashing analizleri), raporlama ve analytics (`GET /api/intent/analytics/summary`, `/api/intent/history`, `/export/json`, `/export/csv`), health check'ler. Bkz. [Greenwashing tespiti (how-to)](greenwashing-detection-howto.md#6-örnek-uygulama-intentumsampleweb) ve [samples/Intentum.Sample.Web/README.md](../../samples/Intentum.Sample.Web/README.md).
+- `samples/Intentum.Sample.Blazor` — Blazor WebAssembly/Server örnek uygulama (web UI + API): Overview, Commerce, Explain, FraudLive, Sustainability, Timeline, PolicyLab, Sandbox, Settings, Signals, Graph, Heatmap sayfaları; Carbon, Greenwashing, OrderPlacement CQRS; intent infer/explain/explain-tree, greenwashing tespiti, Dashboard, analytics, timeline, playground compare; SSE inference broadcast, dolandırıcılık ve sürdürülebilirlik simülasyonu. Çalıştırma: `dotnet run --project samples/Intentum.Sample.Blazor`. Bkz. [Greenwashing tespiti (how-to)](greenwashing-detection-howto.md#6-örnek-uygulama-intentumsampleblazor).
 
 ---
 
@@ -214,14 +218,14 @@ ESG, Carbon, EU Green Bond, workflow ve klasik (ödeme, destek, e‑ticaret) sen
 
 **Gerçek AI denemek için:** `OPENAI_API_KEY` (ve isteğe bağlı `OPENAI_EMBEDDING_MODEL`) ortam değişkenini ayarla; örnek **OpenAI embedding** kullanır. Bkz. [Sağlayıcılar](providers.md).
 
-**Web örneği** (API + UI, intent infer, explain, greenwashing, Dashboard, analytics):
+**Web örneği (Blazor)** (API + UI, intent infer, explain, greenwashing, Dashboard, analytics):
 
 ```bash
-dotnet run --project samples/Intentum.Sample.Web
+dotnet run --project samples/Intentum.Sample.Blazor
 ```
 
-- **UI:** http://localhost:5000/ (veya `launchSettings.json`'daki port) — **Örnekler** (carbon, orders, greenwashing, intent infer, explain) ve **Dashboard** (analytics, son çıkarımlar, son greenwashing analizleri)
-- **API dokümanları (Scalar):** http://localhost:5000/scalar
+- **UI:** http://localhost:5018/ (veya `launchSettings.json`'daki port) — Overview, Commerce, Explain, FraudLive, Sustainability, Timeline, PolicyLab, Sandbox, Settings, Signals, Graph, Heatmap; **Dashboard** (analytics, son çıkarımlar, son greenwashing analizleri)
+- **API dokümanları (Scalar):** http://localhost:5018/scalar
 - **Endpoint'ler:**
   - Carbon: `POST /api/carbon/calculate`, `GET /api/carbon/report/{id}`
   - Orders: `POST /api/orders`
@@ -229,6 +233,8 @@ dotnet run --project samples/Intentum.Sample.Web
   - Greenwashing: `POST /api/greenwashing/analyze` (body: `{ "report": "...", "sourceType": "Report", "language": "tr", "imageBase64": null }`), `GET /api/greenwashing/recent?limit=15`
   - Analytics: `GET /api/intent/analytics/summary`, `GET /api/intent/history`, `GET /api/intent/analytics/timeline/{entityId}`, `GET /api/intent/analytics/export/json`, `GET /api/intent/analytics/export/csv`
   - Health: `/health`
+
+**Kurulumu tamamladıysanız** → [Senaryolar](scenarios.md) veya [API Referansı](api.md).
 
 ---
 

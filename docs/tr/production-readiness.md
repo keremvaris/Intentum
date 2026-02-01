@@ -1,5 +1,7 @@
 # Üretim hazırlığı
 
+**Bu sayfayı neden okuyorsunuz?** Bu sayfa Intentum'u production'da kullanırken rate limiting, fallback ve maliyet kontrolü için kısa rehber sunar. Gerçek embedding API'leriyle canlıya geçmeden önce bu sayfayı okumanız faydalıdır.
+
 Intentum'u gerçek embedding API'leriyle kullanırken **rate limiting**, **fallback** ve **maliyet kontrolü** için kısa rehber.
 
 ## Rate limiting
@@ -29,3 +31,5 @@ Embedding API başarısız olduğunda (timeout, 429, 5xx):
 | Rate limiting | [api.md](api.md) (MemoryRateLimiter, DecideWithRateLimit), [embedding-api-errors.md](embedding-api-errors.md) |
 | Fallback      | [ChainedIntentModel](api.md), [examples/ai-fallback-intent](../../examples/ai-fallback-intent/), [embedding-api-errors.md](embedding-api-errors.md) |
 | Maliyet       | ToVectorOptions (cap/örnekleme), CachedEmbeddingProvider, [benchmarks](../../benchmarks/README.md) |
+
+**Sonraki adım:** Bu sayfayı bitirdiyseniz → [Embedding API hata yönetimi](embedding-api-errors.md) veya [Benchmark'lar](benchmarks.md).

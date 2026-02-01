@@ -1,5 +1,7 @@
 # Gözlemlenebilirlik
 
+**Bu sayfayı neden okuyorsunuz?** Bu sayfa Intentum'un OpenTelemetry metrikleri ve tracing'ini açıklar: inference sayısı, süre, güven skoru, policy kararları. Production'da izleme veya dashboard kuruyorsanız doğru yerdesiniz.
+
 Intentum, intent inference ve politika kararları için **OpenTelemetry metrikleri** sunar. Bunları Grafana, Prometheus veya herhangi bir OTLP uyumlu backend'e aktarabilirsiniz.
 
 ## Intentum.Observability
@@ -70,3 +72,5 @@ Grafana'ya (veya Prometheus uyumlu herhangi bir backend'e) aktarırken önerilen
 | Dashboard        | Inference/s, inference süresi, güven, türe göre kararlar |
 
 Sağlık kontrolleri (embedding sağlayıcı, politika motoru) için [Intentum.AspNetCore](api.md) health check'lerine bakın.
+
+**Sonraki adım:** Bu sayfayı bitirdiyseniz → [Üretim hazırlığı](production-readiness.md) veya [API Referansı](api.md).

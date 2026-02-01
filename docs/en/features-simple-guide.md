@@ -1,5 +1,7 @@
 # What These Features Do — Simple Guide
 
+**Why you're reading this page:** This page summarizes what each Intentum feature (Intent Timeline, Intent Tree, Policy Store, Multi-Stage Model, etc.) does in plain language. It is the right place if you are asking "What does this feature actually do?"
+
 For someone new to Intentum: what each feature is for, in plain language.
 
 ---
@@ -46,7 +48,7 @@ Useful for **adaptive behavior** and **operational rules** (e.g. overload, A/B b
 **What it is:** Policies defined in **JSON (or a file)** instead of code. You can **edit rules** (conditions, decisions) in that file; the app can **reload** them without redeploying.
 
 **Why it’s useful:**  
-Non-developers (e.g. ops, compliance) can change rules: “Block when confidence is Low” → “Block when confidence is Low **or** signal count &gt; 10.” No code change, no new deploy.  
+Personnel who are not developers (for example, operations or compliance teams) can update rules directly. For example, the rule “Block when confidence is Low” can be changed to “Block when confidence is Low or signal count is greater than 10.” No code change or new deploy is required.  
 Useful for **faster rule updates** and **low-code** policy management.
 
 **In one sentence:** *“Change policy rules in a file; no code deploy needed.”*
@@ -132,3 +134,5 @@ You might have several models (e.g. rule-based, Mock, real LLM). Playground lets
 | **Scenario Runner** | Run predefined scenarios and see Allow/Block (testing/demos). |
 | **Stream** | Process events as a continuous stream (batches). |
 | **Playground** | Compare different models on the same events (API today; UI can be added). |
+
+**Next step:** When you're done with this page → [Advanced features](advanced-features.md) or [API Reference](api.md).

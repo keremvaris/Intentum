@@ -1,5 +1,7 @@
 # Coverage (TR)
 
+**Bu sayfayı neden okuyorsunuz?** Bu sayfa Intentum test coverage'ının nasıl üretildiğini, CI'da nasıl çalıştığını ve raporun nerede görüntüleneceğini anlatır. %80+ hedef ve SonarCloud entegrasyonu için doğru yerdesiniz.
+
 Intentum, test projesi için **kod coverage** üretir; böylece birim ve contract testlerinin hangi kod yollarını çalıştırdığını görebilirsin. Proje, kütüphane kodu için **en az %80** satır coverage hedefler; eşik test projesindeki Coverlet ayarı ve SonarCloud kalite kapısı ile zorunludur.
 
 Bu sayfa coverage'ı yerelde nasıl üreteceğini, CI'da nasıl üretildiğini ve raporu nerede görüntüleyeceğini anlatır. Neyin test edildiği için [Test](testing.md).
@@ -60,3 +62,5 @@ Sonra tarayıcıda `coverage/index.html` aç.
 - **Hariç tutma:** Coverlet ile tip/metot hariç tutmak (örn. üretilen kod) için proje dosyasında Coverlet exclude seçenekleri veya attribute kullan.
 
 Test yapısı ve kapsananlar için [Test](testing.md).
+
+**Sonraki adım:** Bu sayfayı bitirdiyseniz → [Test](testing.md) veya [Testler özeti](tests-overview.md).

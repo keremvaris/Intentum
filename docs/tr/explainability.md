@@ -1,5 +1,7 @@
 # Intent açıklanabilirliği
 
+**Bu sayfayı neden okuyorsunuz?** Bu sayfa Intentum'un açıklanabilirlik özelliklerini anlatır: sinyal katkıları, insan tarafından okunabilir açıklama, intent ağacı ve Reasoning. "Neden bu karar verildi?" sorusuna yanıt vermek istiyorsanız doğru yerdesiniz.
+
 Intentum **sinyal tabanlı açıklanabilirlik** (hangi davranışların ne kadar katkı yaptığı) ve isteğe bağlı **reasoning** (model veya kuraldan kısa metin) sunar.
 
 ## Sinyal katkıları
@@ -26,7 +28,7 @@ Kurulum ve seçenekler için [Gelişmiş Özellikler – Intent Tree](advanced-f
 
 ## Örnek kullanım
 
-Sample.Web: `POST /api/intent/explain` sinyal katkılarını ve açıklama metnini döndürür. Yanıt en önemli sinyalleri ve model sağlıyorsa reasoning'i içerir. Karar ağacı için `POST /api/intent/explain-tree` kullanın.
+Sample.Blazor: `POST /api/intent/explain` sinyal katkılarını ve açıklama metnini döndürür. Yanıt en önemli sinyalleri ve model sağlıyorsa reasoning'i içerir. Karar ağacı için `POST /api/intent/explain-tree` kullanın.
 
 ## Özet
 
@@ -36,3 +38,5 @@ Sample.Web: `POST /api/intent/explain` sinyal katkılarını ve açıklama metni
 | Açıklama metni    | `IIntentExplainer.GetExplanation` | Tek metin: ad, güven, en önemli sinyaller, reasoning |
 | Intent ağacı      | `IIntentTreeExplainer.GetIntentTree` | Karar ağacı: eşleşen kural, sinyal düğümleri; Sample: `POST /api/intent/explain-tree` |
 | Reasoning         | `Intent.Reasoning` (model tarafından set edilir) | Kural veya LLM'den kısa "neden"; varsa açıklamaya eklenir |
+
+**Sonraki adım:** Bu sayfayı bitirdiyseniz → [Gelişmiş özellikler](advanced-features.md) veya [Bu özellikler ne işe yarar](features-simple-guide.md).

@@ -2,7 +2,7 @@
 
 Bu sayfa Intentum’un **hangi tip projelerde** kullanıldığını, **kullanıcıların** kimler olduğunu (geliştirici profilleri) ve **düşük, orta ve yüksek** karmaşıklıkta **örnek test senaryolarını** — hem **AI tabanlı** hem **AI’sız (kural tabanlı)** kullanım için — anlatır. Ayrıca **sektör bazlı** örnekler (ESG, Carbon Accounting, Uyumluluk) verir; böylece Intentum’u kendi alanına uyarlayabilirsin.
 
-Çekirdek akış (Observe → Infer → Decide) için [ana sayfa](index.md) ve [API Referansı](api.md). Çalıştırılabilir senaryolar için [sample](https://github.com/keremvaris/Intentum/tree/master/samples/Intentum.Sample) ve [Senaryolar](scenarios.md).
+Çekirdek akış (Observe → Infer → Decide) için [ana sayfa](index.md) ve [API Referansı](api.md). Çalıştırılabilir senaryolar için [Sample (konsol)](https://github.com/keremvaris/Intentum/tree/master/samples/Intentum.Sample), [Sample.Blazor](https://github.com/keremvaris/Intentum/tree/master/samples/Intentum.Sample.Blazor) ve [Senaryolar](scenarios.md).
 
 ---
 
@@ -101,7 +101,8 @@ Sample ve **WorkflowStatusTests** bu geçişleri ESG raporu, uyumluluk, LMA kred
 
 ## Sample ve testler buna nasıl karşılık geliyor
 
-- **Sample projesi** şunları çalıştırır: ESG/Carbon/EU Green Bond senaryoları; **iş akışı process status** (Draft, InProgress, UnderReview, Approved, Rejected, Completed) EU Green Bond, ESG, uyumluluk, LMA için; ve **klasik** örnekler (ödeme başarılı, tekrarlı ödeme, şüpheli tekrarlar, destek eskalasyonu, e‑ticaret: sepete ekleme, checkout başarılı, checkout tekrarlı, ödeme doğrulama).
+- **Intentum.Sample** (konsol) şunları çalıştırır: ESG/Carbon/EU Green Bond senaryoları; **iş akışı process status** (Draft, InProgress, UnderReview, Approved, Rejected, Completed) EU Green Bond, ESG, uyumluluk, LMA için; ve **klasik** örnekler (ödeme başarılı, tekrarlı ödeme, şüpheli tekrarlar, destek eskalasyonu, e‑ticaret: sepete ekleme, checkout başarılı, checkout tekrarlı, ödeme doğrulama).
+- **Intentum.Sample.Blazor** (Blazor UI + API): Overview, Commerce, Explain, FraudLive, Sustainability, Timeline, PolicyLab, Sandbox sayfaları; Carbon, Greenwashing, OrderPlacement; intent infer/explain/explain-tree, greenwashing tespiti, Dashboard, analytics, timeline, playground compare; SSE inference, dolandırıcılık ve sürdürülebilirlik simülasyonu. Çalıştırma: `dotnet run --project samples/Intentum.Sample.Blazor`.
 - **Test projesi** şunlara sahiptir: **LowLevelScenarioTests**, **MediumLevelScenarioTests**, **HighLevelScenarioTests**, **SectorScenarioTests** (ESG, Carbon, uyumluluk + klasik: Fintech, Destek, E‑ticaret), **WorkflowStatusTests** (process status geçişleri: Draft→InProgress, tam yaşam döngüsü Approved/Completed, Rejected yolu, takılı Draft/InProgress, EU Green Bond tarzı).
 
-Sample’ı çalıştırmak için [Kurulum](setup.md), testleri çalıştırmak için [Test](testing.md).
+Sample’ı çalıştırmak için [Kurulum](setup.md), testleri çalıştırmak için [Test](testing.md). **Sonraki adım:** Bu sayfayı bitirdiyseniz → [Senaryolar](scenarios.md) veya [Örnekler rehberi](examples-overview.md).

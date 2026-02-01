@@ -1,5 +1,7 @@
 # Designing Intent Models
 
+**Why you're reading this page:** This page explains how to derive intent from behavior and how to design intent models: intent ≠ label, signals, confidence, policy. It is useful when setting up your first intent model or turning existing rules into intent-focused ones.
+
 How meaning emerges from behavior.
 
 ---
@@ -183,3 +185,5 @@ Intentum does **not**:
 Intentum **does**:
 
 Make reasonable decisions under uncertainty possible.
+
+**Next step:** When you're done with this page → [Scenarios](scenarios.md) or [Architecture](architecture.md).

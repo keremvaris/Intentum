@@ -1,5 +1,7 @@
 # Clustering and Experiments: use cases
 
+**Why you're reading this page:** This page gives a short summary of use cases for Intentum.Clustering and Intentum.Experiments: intent grouping, A/B tests, policy tuning, anomaly detection. It is the right place if you want to know what these packages do.
+
 Short summary of **use cases** for **Intentum.Clustering** and **Intentum.Experiments**. Full API and setup: [Advanced Features](advanced-features.md#intent-clustering), [Advanced Features — A/B Experiments](advanced-features.md#ab-experiments).
 
 ---
@@ -38,3 +40,5 @@ Short summary of **use cases** for **Intentum.Clustering** and **Intentum.Experi
 |----------------------|-------------------|
 | **Intentum.Clustering**  | Group intent history by pattern or score; policy tuning, anomaly detection, dashboards. |
 | **Intentum.Experiments** | A/B test model or policy; compare variants, rollout new model/policy. |
+
+**Next step:** When you're done with this page → [Advanced features](advanced-features.md) or [Scenarios](scenarios.md).

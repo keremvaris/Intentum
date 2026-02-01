@@ -1,5 +1,7 @@
 # Embedding API error handling
 
+**Why you're reading this page:** This page describes current behavior when embedding providers fail and how to add timeout, retry, and rate-limit handling for production. It is the right place if you need to handle 429/timeout/5xx in production.
+
 This document describes **current behavior** when embedding providers (OpenAI, Azure, Gemini, Mistral, etc.) fail, and how to add **timeout**, **retry**, and **rate-limit handling** for production.
 
 ## Current behavior
@@ -54,3 +56,5 @@ When the API returns 429 (Too Many Requests), the provider throws. To reduce 429
 | **Rate limit**   | 429 → throw                                | Rate limit calls; retry with backoff on 429       |
 
 These practices apply to all HTTP-based embedding providers (OpenAI, Azure OpenAI, Gemini, Mistral); configure the same `HttpClient` (and handlers) used for each provider’s registration.
+
+**Next step:** When you're done with this page → [Production readiness](production-readiness.md) or [Providers](providers.md).

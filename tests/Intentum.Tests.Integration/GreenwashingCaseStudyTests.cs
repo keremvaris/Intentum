@@ -2,7 +2,7 @@ using System.Text.RegularExpressions;
 using ClosedXML.Excel;
 using Intentum.Core;
 using Intentum.Core.Behavior;
-using Intentum.Sample.Web.Features.GreenwashingDetection;
+using Intentum.Sample.Blazor.Features.GreenwashingDetection;
 using Xunit.Abstractions;
 
 namespace Intentum.Tests.Integration;

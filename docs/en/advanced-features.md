@@ -1,5 +1,7 @@
 # Advanced Features (EN)
 
+**Why you're reading this page:** This page explains Intentum's advanced features (caching, clustering, events, A/B experiments, multi-tenancy, explainability, simulation, policy store, etc.). It is the right place if you know the basic flow (Observe → Infer → Decide) and need production or extension features.
+
 This page covers advanced features added in recent versions: similarity engines, fluent APIs, caching, testing utilities, and more.
 
 ---
@@ -936,7 +938,7 @@ You can also `SetCurrent(index)` to jump to a specific version by index. Version
 
 **What it is:** **Intentum.Runtime.PolicyStore** provides **IPolicyStore** (e.g. **FilePolicyStore**) to load **declarative policies** from JSON: rules with conditions expressed as property/operator/value (e.g. `intent.confidence.level` eq `"High"`). **SafeConditionBuilder** turns these into `Func<Intent, bool>`. Supports hot-reload from file.
 
-**What it's for:** Non-developers can edit policy rules in JSON; no code deploy for rule changes.
+**What it's for:** Personnel who are not developers (for example, operations or compliance teams) can edit policy rules in the JSON file; no code change or deploy is required for rule changes.
 
 **How to use:** Add **Intentum.Runtime.PolicyStore**, register with `AddFilePolicyStore(path)`. Load policy with `await policyStore.LoadAsync()`. See repository for JSON schema (PolicyDocument, PolicyRuleDocument, PolicyConditionDocument).
 
@@ -987,3 +989,5 @@ You can also `SetCurrent(index)` to jump to a specific version by index. Version
 - [API Reference](api.md) — Full API documentation
 - [Setup](setup.md) — Getting started guide
 - [Scenarios](scenarios.md) — Usage examples
+
+**Next step:** When you're done with this page → [What these features do](features-simple-guide.md) or [API Reference](api.md).

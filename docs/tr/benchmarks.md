@@ -1,5 +1,7 @@
 # Benchmark'lar
 
+**Bu sayfayı neden okuyorsunuz?** Bu sayfa Intentum'un BenchmarkDotNet benchmark'larını (ToVector, Infer, PolicyEngine) ve performans boyutlandırma ipuçlarını açıklar. Gecikme, throughput veya maliyet optimizasyonu arıyorsanız doğru yerdesiniz.
+
 Intentum, çekirdek işlemler için **BenchmarkDotNet** benchmark'ları içerir: davranış uzayından vektöre, intent inference (mock embedding ile) ve politika kararı. Makinenizde gecikme, throughput ve bellek ölçmek ve üretim boyutlandırması için performans belgelemek için kullanın.
 
 ---
@@ -59,7 +61,7 @@ Bu komut Release modunda benchmark'ları çalıştırır ve üretilen `*-report-
 | Çıktılar | `BenchmarkDotNet.Artifacts/results/` |
 | Doküman güncelleme | `./scripts/run-benchmarks.sh` → `docs/case-studies/benchmark-results.md` |
 
-Sample.Web API için yük testi (örn. eşzamanlı infer endpoint) için [Yük testi: infer endpoint](../case-studies/load-test-infer.md) sayfasına bakın.
+Sample.Blazor API için yük testi (örn. eşzamanlı infer endpoint) için [Yük testi: infer endpoint](../case-studies/load-test-infer.md) sayfasına bakın.
 
 ---
 
@@ -74,3 +76,5 @@ Benchmark sonuçlarına göre (LlmIntentModel bellek ve gecikme event/boyut say�
 | **Production’da inference gecikmesini düşük tutmak** | **ChainedIntentModel** (önce kural tabanlı, LLM yedek) ile yüksek güvenli yollar LLM’e girmeden çözülsün; ToVectorOptions ile boyutları cap’leyin; aynı space birden çok değerlendiriliyorsa vektörü önceden hesaplayıp tekrar kullanın. |
 | **Production’da daha büyük veri setleri** | Gerçekçi payload boyutlarıyla yük testi (örn. [Yük testi: infer endpoint](../case-studies/load-test-infer.md)); p95 artıyorsa boyut cap’i veya cache ekleyin. |
 | **PolicyEngine** | Değişiklik gerekmez; zaten onlarca nanosaniye seviyesinde. |
+
+**Sonraki adım:** Bu sayfayı bitirdiyseniz → [Gelişmiş özellikler](advanced-features.md) veya [Üretim hazırlığı](production-readiness.md).

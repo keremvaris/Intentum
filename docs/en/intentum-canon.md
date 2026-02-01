@@ -1,5 +1,7 @@
 # The Intentum Canon
 
+**Why you're reading this page** — This page gives **ten short rules** (the Canon) for intent-driven design and development: how to think and what to prioritize. The Manifesto explains "why and what"; the Canon summarizes "how". Use it as a daily reference.
+
 **Relationship to the Manifesto:** [The Intentum Manifesto](manifesto.md) states **eight principles** (the why and what). The Canon gives **ten short rules** for intent-driven design and development (the how). Same philosophy, two formulations: Manifesto = narrative, Canon = summary.
 
 ---
@@ -99,3 +101,5 @@ Intent defines expectation.
 
 > If behavior is what happened,  
 > intent is what mattered.
+
+**Next step:** If you're done here → [Architecture](architecture.md) or [Scenarios](scenarios.md).

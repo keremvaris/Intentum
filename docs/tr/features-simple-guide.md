@@ -1,5 +1,7 @@
 # Bu Özellikler Ne İşe Yarar — Basit Rehber
 
+**Bu sayfayı neden okuyorsunuz?** Bu sayfa Intentum'daki her özelliğin (Intent Timeline, Intent Tree, Policy Store, Multi-Stage Model vb.) ne işe yaradığını sade bir dille özetler. "Bu özellik tam olarak ne yapıyor?" sorusuna hızlı yanıt arıyorsanız doğru yerdesiniz.
+
 Intentum’a yeni biri için: her özelliğin ne işe yaradığı, sade bir dille.
 
 ---
@@ -46,7 +48,7 @@ Context = **yük**, **bölge**, **son intent’ler**, **özel anahtar-değer**.
 **Ne:** Policy’lerin **kod yerine JSON (veya dosya)** ile tanımlanması. Kuralları (koşul, karar) bu dosyada **düzenleyebilirsin**; uygulama **yeniden deploy etmeden** dosyayı tekrar yükleyebilir (hot-reload).
 
 **Neden işe yarar:**  
-Geliştirici olmayanlar (örn. operasyon, uyumluluk) kuralı değiştirebilir: “Güven Low ise Block” → “Güven Low **veya** sinyal sayısı &gt; 10 ise Block.” Kod değişikliği, yeni deploy yok.  
+Geliştirici olmayan personel (örneğin operasyon veya uyumluluk ekipleri) kuralları doğrudan güncelleyebilir. Örnek: “Güven Low ise Block” kuralı, “Güven Low veya sinyal sayısı 10'dan büyükse Block” şeklinde değiştirilebilir. Bu güncelleme için kod değişikliği veya yeni bir deploy gerekmez.  
 **Hızlı kural güncellemesi** ve **düşük kod** policy yönetimi için kullanılır.
 
 **Tek cümle:** *“Policy kurallarını dosyada değiştir; kod deploy’a gerek yok.”*
@@ -130,3 +132,5 @@ Birden fazla modelin (kural tabanlı, Mock, gerçek LLM) olabilir. Playground �
 | **Scenario Runner** | Tanımlı senaryoları çalıştır, Allow/Block gör (test/demo). |
 | **Stream** | Olayları sürekli akış (batch) olarak işle. |
 | **Playground** | Aynı olaylarda farklı modelleri karşılaştır (şu an API; arayüz eklenebilir). |
+
+**Sonraki adım:** Bu sayfayı bitirdiyseniz → [Gelişmiş özellikler](advanced-features.md) veya [API Referansı](api.md).

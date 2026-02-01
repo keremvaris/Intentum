@@ -1,5 +1,7 @@
 # Agent framework entegrasyonu (Faz 4)
 
+**Bu sayfayı neden okuyorsunuz?** Bu sayfa Intentum'u agent framework'leri (Semantic Kernel, LangChain, AutoGen, CrewAI, LlamaIndex) ile intent doğrulama / guardrail katmanı olarak nasıl kullanacağınızı özetler. Agent aksiyonlarına policy kararları uygulamak istiyorsanız doğru yerdesiniz.
+
 Intentum, agent framework'leri (Semantic Kernel, LangChain, AutoGen, CrewAI, LlamaIndex) için **intent doğrulama / guardrail** katmanı olarak kullanılabilir. Bu sayfa, davranış olaylarını Intentum'a besleyen ve agent aksiyonlarına politika kararları uygulayan bir **adapter** veya **middleware** oluşturmayı özetler.
 
 ---
@@ -53,3 +55,5 @@ Uygulama: bir `BehaviorSpace` tutun, `RecordEvent`'i `space.Observe(actor, actio
 | Kararı kullan  | Allow → devam; Block → dur veya eskalasyon; Observe → logla ve devam et |
 
 Somut bir adapter (örn. Semantic Kernel için) Intentum org'da ayrı bir repo veya örnek olarak eklenebilir. Bu doküman Faz 4 "agent framework middleware" spesifikasyonu niteliğindedir.
+
+**Sonraki adım:** Bu sayfayı bitirdiyseniz → [Senaryolar](scenarios.md) veya [API Referansı](api.md).

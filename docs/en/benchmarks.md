@@ -1,5 +1,7 @@
 # Benchmarks
 
+**Why you're reading this page:** This page explains Intentum's BenchmarkDotNet benchmarks (ToVector, Infer, PolicyEngine) and performance sizing tips. It is the right place if you are optimizing latency, throughput, or cost.
+
 Intentum includes **BenchmarkDotNet** benchmarks for core operations: behavior space to vector, intent inference (with mock embedding), and policy decision. Use them to measure latency, throughput, and memory on your machine and to document performance for production sizing.
 
 ---
@@ -59,7 +61,7 @@ This runs the benchmarks in Release and copies the generated `*-report-github.md
 | Artifacts | `BenchmarkDotNet.Artifacts/results/` |
 | Refresh docs | `./scripts/run-benchmarks.sh` → `docs/case-studies/benchmark-results.md` |
 
-For load testing the Sample.Web API (e.g. infer endpoint under concurrency), see [Load test: infer endpoint](../case-studies/load-test-infer.md).
+For load testing the Sample.Blazor API (e.g. infer endpoint under concurrency), see [Load test: infer endpoint](../case-studies/load-test-infer.md).
 
 ---
 
@@ -74,3 +76,5 @@ Based on benchmark results (LlmIntentModel allocation and latency scale with eve
 | **Keep inference latency low in production** | Use **ChainedIntentModel** (rule-based first, LLM fallback) so high-confidence paths skip the LLM; cap dimensions with ToVectorOptions; precompute and reuse vectors where the same space is evaluated multiple times. |
 | **Larger datasets in production** | Run load tests (e.g. [Load test: infer endpoint](../case-studies/load-test-infer.md)) with realistic payload sizes; if p95 grows, cap dimensions or add caching before increasing capacity. |
 | **PolicyEngine** | No change needed; already in the tens of nanoseconds. |
+
+**Next step:** When you're done with this page → [Advanced features](advanced-features.md) or [Production readiness](production-readiness.md).

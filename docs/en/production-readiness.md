@@ -1,5 +1,7 @@
 # Production readiness
 
+**Why you're reading this page:** This page gives a short guide to rate limiting, fallback, and cost control when using Intentum in production with real embedding APIs. It is useful to read before going live.
+
 Short guide to **rate limiting**, **fallback**, and **cost control** when using Intentum with real embedding APIs.
 
 ## Rate limiting
@@ -29,3 +31,5 @@ When the embedding API fails (timeout, 429, 5xx):
 | Rate limiting | [api.md](api.md) (MemoryRateLimiter, DecideWithRateLimit), [embedding-api-errors.md](embedding-api-errors.md) |
 | Fallback      | [ChainedIntentModel](api.md), [examples/ai-fallback-intent](../../examples/ai-fallback-intent/), [embedding-api-errors.md](embedding-api-errors.md) |
 | Cost          | ToVectorOptions (cap/sampling), CachedEmbeddingProvider, [benchmarks](../../benchmarks/README.md) |
+
+**Next step:** When you're done with this page → [Embedding API error handling](embedding-api-errors.md) or [Benchmarks](benchmarks.md).

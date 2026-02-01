@@ -1,5 +1,7 @@
 # Sağlayıcılar (TR)
 
+**Bu sayfayı neden okuyorsunuz?** Bu sayfa embedding sağlayıcılarını (Mock, OpenAI, Gemini, Mistral, Azure, Claude) açıklar: ne zaman hangisini kullanacağınız, env değişkenleri ve minimal kod. İlk projenizde hangi sağlayıcıyı seçeceğinizi veya production'da nasıl yapılandıracağınızı merak ediyorsanız doğru yerdesiniz.
+
 Intentum, davranışı (örn. `"user:login"`) vektörlere çevirmek için **embedding sağlayıcıları** kullanır; böylece intent modeli güven skorunu çıkarabilir. Yerel çalıştırma ve testler için **mock sağlayıcı** (API anahtarı yok) veya production için **gerçek sağlayıcı** (OpenAI, Gemini, Mistral, Azure OpenAI, Claude) kullanabilirsin.
 
 Bu sayfa her sağlayıcıyı açıklar: ne yapar, env var’lar, minimal kod ve DI kurulumu. **Kolay / orta / zor** kullanım örnekleri için [AI sağlayıcılarını kullanma](ai-providers-howto.md) sayfasına bak. Genel akış (Observe → Infer → Decide) için [API Referansı](api.md) ve [Kurulum](setup.md).
@@ -189,3 +191,5 @@ Sonra intent modelini (örn. ClaudeMessageIntentModel) ihtiyaca göre inject et.
 - **Rate limit:** Her sağlayıcının limitine uy; production için retry ve backoff (veya ayrı middleware) düşün.
 
 Tam env var isimleri ve opsiyonel alanlar için her sağlayıcının `*Options` sınıfı ve repodaki `FromEnvironment()` kullanımına bak.
+
+**Sonraki adım:** Bu sayfayı bitirdiyseniz → [AI sağlayıcılarını kullanma](ai-providers-howto.md) veya [API Referansı](api.md).

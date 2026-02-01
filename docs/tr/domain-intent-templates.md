@@ -1,5 +1,7 @@
 # Domain intent şablonları
 
+**Bu sayfayı neden okuyorsunuz?** Bu sayfa dolandırıcılık/güvenlik ve müşteri niyeti için intent adları ve actor:action (sinyal) setleri sunar. "Domain'im için intent'leri nasıl tanımlarım?" sorusuna tekrarlanabilir yanıt arıyorsanız doğru yerdesiniz.
+
 Greenwashing dışında iki domain için **intent adları** ve **actor:action** (sinyal) setleri: **dolandırıcılık / güvenlik** ve **müşteri niyeti**. "Domain'im için intent'leri nasıl tanımlarım?" sorusuna tekrarlanabilir şekilde yanıt vermek için bu şablonları kullanın.
 
 ---
@@ -57,3 +59,5 @@ Greenwashing dışında iki domain için **intent adları** ve **actor:action** 
 4. Intent modelinizi (örn. `LlmIntentModel` veya kural tabanlı model) ve politikayı çalıştırın; yönlendirme veya engelleme için intent adı + güveni kullanın.
 
 Greenwashing için [Greenwashing tespiti how-to](greenwashing-detection-howto.md) ve [Greenwashing metrikleri](../case-studies/greenwashing-metrics.md) sayfalarına bakın.
+
+**Sonraki adım:** Bu sayfayı bitirdiyseniz → [Niyet modelleri tasarlama](designing-intent-models.md) veya [Senaryolar](scenarios.md).

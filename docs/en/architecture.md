@@ -1,6 +1,6 @@
 # Architecture (EN)
 
-This page describes Intentum’s architecture: core flow, package layout, inference pipeline, and optional extensions. Diagrams use Mermaid.
+**Why you're reading this page** — This page explains Intentum’s architecture: which packages to use and why, and how the Observe → Infer → Decide flow maps to the code. Useful before setting up your first project or when choosing packages.
 
 ---
 
@@ -35,6 +35,12 @@ flowchart LR
 | **Observe** | Record what happened: `space.Observe(actor, action)` or `BehaviorSpaceBuilder`. Events form a **BehaviorSpace**. Use **ToVector(options)** for optional normalization (Cap, L1, SoftCap). |
 | **Infer** | **IIntentModel** (e.g. **LlmIntentModel**, **RuleBasedIntentModel**, or **ChainedIntentModel**) produces **Intent** (name, confidence, signals, optional **Reasoning**). LlmIntentModel uses embeddings + similarity engine; dimension counts as weights; **ITimeAwareSimilarityEngine** (e.g. TimeDecay) applied automatically when used. |
 | **Decide** | **IntentPolicy** evaluates rules in order → **PolicyDecision** (Allow, Observe, Warn, Block, Escalate, RequireAuth, RateLimit). |
+
+**Concrete example (e-commerce account takeover):**
+
+- **Observe:** Alex, within one minute: 1) added 5 different credit cards, 2) placed orders to 10 different addresses, 3) changed the account password. The system records these events in a **BehaviorSpace**.
+- **Infer:** **IIntentModel** infers intent from this behavior: Intent = AccountTakeover, confidence 92%. The system interprets this behavior as an "account takeover" intent.
+- **Decide:** **IntentPolicy** rule: "above 85% confidence → Block + alert". Result: order is blocked, alert is sent to the security team.
 
 ---
 
@@ -117,6 +123,18 @@ flowchart TB
 
 **All packages (summary):** Core, Runtime, AI, AI providers (OpenAI, Gemini, Mistral, Azure, Claude), Persistence (abstractions + EF, MongoDB, Redis), Analytics, AspNetCore, Clustering, Events, Experiments, Explainability, Simulation, MultiTenancy, Versioning, AI.Caching.Redis. Also Testing, Observability, Logging, CodeGen — see [API Reference](api.md) and [Advanced Features](advanced-features.md).
 
+**Which package for which need?**
+
+| What you need / What you want to do | Packages to get started | You can add later |
+|-------------------------------------|--------------------------|-------------------|
+| Intent detection only (rule-based or simple AI) | Intentum.Core | — |
+| Decision rules (policy) and rate limiting | Intentum.Core + Intentum.Runtime | — |
+| Intent inference with LLM (OpenAI, Gemini, etc.) | Intentum.Core + Intentum.AI + Intentum.AI.OpenAI (or other provider) | Intentum.AI.Caching.Redis (performance) |
+| Store data in a database | Intentum.Core + Intentum.Persistence.EntityFramework (or MongoDB) | Intentum.Analytics |
+| Use in a web app (ASP.NET Core) | Above + Intentum.AspNetCore | Intentum.MultiTenancy (multi-tenant) |
+
+For detailed setup, see [Setup](setup.md).
+
 ---
 
 ## Inference pipeline (detail)
@@ -164,7 +182,7 @@ A simplified view of how layers depend on each other (no package names in nodes 
 ```mermaid
 flowchart TB
   subgraph app [Application / Samples]
-    WebApp[Sample.Web]
+    WebApp[Sample.Blazor]
     ConsoleApp[Sample.Console]
   end
 
@@ -255,6 +273,12 @@ flowchart TB
   TenantRepo --> Metadata[SetMetadata TenantId on Save]
   TenantRepo --> Filter[Filter by TenantId on Get]
 ```
+
+---
+
+## Next step
+
+If you're done here → [Setup](setup.md) or [Scenarios](scenarios.md).
 
 ---
 

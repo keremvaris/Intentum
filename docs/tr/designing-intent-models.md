@@ -1,5 +1,7 @@
 # Niyet Modelleri Tasarlamak
 
+**Bu sayfayı neden okuyorsunuz?** Bu sayfa davranıştan niyet nasıl çıkarılacağını ve niyet modellerini nasıl tasarlayacağınızı anlatır: niyet ≠ etiket, sinyaller, güven, policy. İlk intent modelinizi kurarken veya mevcut kuralları niyet odaklı hale getirirken faydalıdır.
+
 Davranıştan anlam nasıl çıkar.
 
 ---
@@ -140,3 +142,5 @@ Intentum bu döngüyü bilinçli olarak açık bırakır: öğrenme dışarıda 
 Intentum niyetin "gerçek" olduğunu iddia etmez, insan zihnini taklit etmez, mutlak doğruluk vaat etmez.
 
 Yaptığı şey: Belirsizlik altında makul karar vermeyi mümkün kılmak.
+
+**Sonraki adım:** Bu sayfayı bitirdiyseniz → [Senaryolar](scenarios.md) veya [Mimari](architecture.md).

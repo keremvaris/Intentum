@@ -1,5 +1,7 @@
 # Domain intent templates
 
+**Why you're reading this page:** This page provides intent names and actor:action (signal) sets for fraud/security and customer intent. It is the right place if you are asking "How do I define intents for my domain?" in a repeatable way.
+
 Templates for defining **intent names** and **actor:action** (signal) sets for two domains beyond greenwashing: **fraud / security** and **customer intent**. Use these to answer "How do I define intents for my domain?" in a repeatable way.
 
 ---
@@ -57,3 +59,5 @@ Templates for defining **intent names** and **actor:action** (signal) sets for t
 4. Run your intent model (e.g. `LlmIntentModel` or a rule-based model) and policy; use the intent name + confidence for routing or blocking.
 
 For greenwashing, see [Greenwashing detection how-to](greenwashing-detection-howto.md) and [Greenwashing metrics](../case-studies/greenwashing-metrics.md).
+
+**Next step:** When you're done with this page → [Designing intent models](designing-intent-models.md) or [Scenarios](scenarios.md).

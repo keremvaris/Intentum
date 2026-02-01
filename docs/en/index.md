@@ -1,10 +1,18 @@
 # Intentum Documentation (EN)
 
-Welcome to Intentum. This documentation helps you install, configure, and use Intentum in your project.
+**Why you're reading this page** — This page explains what Intentum is, what it does, and where to start. If you're new to the concept, you're in the right place; setup and your first try are also covered here.
 
 ---
 
-## What is Intentum?
+## What is Intentum? (One sentence)
+
+**Intentum** is a library that analyzes user and behavior events in your app, infers **intent**, and lets you take automatic **decisions** (allow, warn, block, etc.) based on that intent. For example, it can detect and block a suspicious account takeover attempt or speed up a frequently used flow.
+
+**Everyday analogy:** Think of it like a security guard for your system. The guard **watches** (cameras, sensors), **interprets** (is the person familiar? are the actions suspicious?), and **decides** (open the door, alert, call security). Intentum automates these three steps in software: **Observe** → **Infer** → **Decide**.
+
+---
+
+## What is Intentum? (Detail)
 
 Intentum is a **intent-driven** approach for systems where behavior is not fully deterministic: instead of asserting fixed scenario steps (like classic BDD), you **observe** what happened, **infer** the user’s or system’s intent (with optional AI embeddings), and **decide** what to do (Allow, Observe, Warn, Block) via policy rules.
 
@@ -59,6 +67,17 @@ In short: **Given/When/Then is gone; in its place you have Observe (record event
 
 ---
 
+## Learning path
+
+In what order to proceed:
+
+1. **Getting started** — Learn the core flow and Intentum.Core / Runtime / AI. → [Architecture](architecture.md), [Setup](setup.md).
+2. **Next** — Writing policies, scenarios, real AI provider. → [Scenarios](scenarios.md), [Providers](providers.md).
+3. **Data** — Storing and analyzing intent history. → [Setup – Repository structure](setup.md#repository-structure), [Advanced Features](advanced-features.md) (Analytics).
+4. **Advanced** — Analytics, Clustering, Explainability, Policy Store, etc. → [Advanced Features](advanced-features.md).
+
+---
+
 ## Documentation contents
 
 | Page | What you’ll find |
@@ -81,7 +100,9 @@ In short: **Given/When/Then is gone; in its place you have Observe (record event
 
 ---
 
-## Quick start (3 steps)
+## 5-minute first try (Quick start)
+
+**Concrete scenario:** Alex, within one minute: 1) tried login 3 times (2 failed, 1 succeeded), 2) triggered a "submit" action after logging in. The system will observe this behavior, infer intent and confidence, and the policy will return Allow or Observe.
 
 1. **Install core packages**
    ```bash
@@ -97,11 +118,13 @@ In short: **Given/When/Then is gone; in its place you have Observe (record event
 
 3. **Read [Setup](setup.md)** for a minimal “first project” and [API Reference](api.md) for the main types and flow.
 
+**You'll know it worked when** — After running, you see a **confidence level** (e.g. High, Medium) and a **decision** (Allow, Observe, Warn, or Block) in the console. Example: `Confidence: High, Decision: Allow`.
+
 ---
 
 ## How to
 
-- **How do I run the first scenario?** — Run the console sample with `dotnet run --project samples/Intentum.Sample` (mock provider, no API key). For a full API with intent infer, rate limiting, and analytics, run `dotnet run --project samples/Intentum.Sample.Web`; see [Setup](setup.md) for repo structure and endpoints.
+- **How do I run the first scenario?** — Run the console sample with `dotnet run --project samples/Intentum.Sample` (mock provider, no API key). For a full API and Blazor UI (intent infer, rate limiting, analytics, Overview, Commerce, Explain, FraudLive, Sustainability, Timeline, PolicyLab, Sandbox), run `dotnet run --project samples/Intentum.Sample.Blazor`. See [Setup](setup.md) for repo structure and endpoints.
 - **How do I add a policy?** — Create an `IntentPolicy`, add rules in **order** with `.AddRule(PolicyRule(...))` (e.g. Block first, then Allow). After inference, call `intent.Decide(policy)`. See [Scenarios](scenarios.md) and [API Reference](api.md) for details.
 - **How do I model classic flows (payment, login, support)?** — Record events with `space.Observe(actor, action)` (e.g. `"user"`, `"login"`; `"user"`, `"retry"`; `"user"`, `"submit"`). The model infers intent from behavior; the policy returns Allow, Observe, Warn, or Block. [Usage Scenarios](scenarios.md) includes both classic (payment, e‑commerce) and ESG examples.
 - **How do I build scenarios with AI?** — The same `Observe` flow works with Mock or a real provider (OpenAI, Gemini, etc.); use meaningful behavior keys and base policy on confidence and signals. Details and tips: [Scenarios – How to build scenarios with AI](scenarios.md#how-to-build-scenarios-with-ai).

@@ -1,0 +1,144 @@
+@page "/api-traffic"
+@rendermode InteractiveServer
+@inject HttpClient Http
+@inject NavigationManager Navigation
+@inject IJSRuntime JSRuntime
+@implements IAsyncDisposable
+
+<PageTitle>API Trafik Demo</PageTitle>
+
+<div class="page-card">
+    <h2 class="page-card h2" style="margin: 0 0 0.25rem 0;">Demo 5: API/Web Trafiği Anormalliği</h2>
+    <p class="subtitle">Intentum trafiği sadece hacim olarak değil, niyet olarak da sınıflandırır ve buna göre tepki verir.</p>
+    <div class="api-traffic-controls">
+        <button type="button" class="btn-demo-api" @onclick="RunDemo" disabled="@_running">
+            @(_running ? "Çalışıyor…" : "Demo Çalıştır")
+        </button>
+    </div>
+</div>
+
+@if (_result != null)
+{
+    <div class="page-card">
+        <h3 class="page-card h3" style="margin: 0 0 0.75rem 0;">Trafik grafiği (simülasyon)</h3>
+        <p class="api-traffic-desc">Normal trafik → ani artış (bot) → Intentum müdahalesi (RateLimit) ile düşüş.</p>
+        <div class="api-traffic-stats">
+            <div class="api-traffic-stat"><span class="api-traffic-stat__label">İstek hızı (simüle)</span><span class="api-traffic-stat__value">@_result.RequestRate req/s</span></div>
+            <div class="api-traffic-stat"><span class="api-traffic-stat__label">Niyet</span><span class="api-traffic-stat__value">@_result.IntentName</span></div>
+            <div class="api-traffic-stat"><span class="api-traffic-stat__label">Karar</span><span class="decision-badge decision-badge--@(_result.Decision.ToLowerInvariant())">@_result.Decision</span></div>
+            <div class="api-traffic-stat"><span class="api-traffic-stat__label">Rate limit tetiklendi</span><span class="api-traffic-stat__value">@(_result.RateLimitTriggered ? "Evet (429)" : "Hayır")</span></div>
+        </div>
+        <h3 class="page-card h3" style="margin: 1rem 0 0.5rem 0;">Saldırı kaynakları (harita simülasyonu)</h3>
+        <ul class="api-traffic-ips">
+            @foreach (var ip in _result.BlockedIps ?? Array.Empty<string>())
+            {
+                <li class="api-traffic-ip api-traffic-ip--blocked">@ip (engellendi)</li>
+            }
+        </ul>
+    </div>
+    <div class="page-card api-traffic-charts-row">
+        <h3 class="page-card h3" style="margin: 0 0 0.75rem 0;">Grafikler ve rapor</h3>
+        <div class="api-traffic-charts-grid">
+            <div class="api-traffic-chart-card card">
+                <h4 class="api-traffic-chart-title">İstek hızı (zaman)</h4>
+                <div id="api-traffic-line" class="api-traffic-chart-container"></div>
+            </div>
+            <div class="api-traffic-chart-card card">
+                <h4 class="api-traffic-chart-title">Saldırı kaynakları (istek sayısı)</h4>
+                <div id="api-traffic-bar" class="api-traffic-chart-container"></div>
+            </div>
+        </div>
+        <div class="api-traffic-report card">
+            <h4 class="api-traffic-report-title">Özet rapor</h4>
+            <ul class="api-traffic-report-list">
+                <li><strong>Niyet:</strong> @_result.IntentName</li>
+                <li><strong>Güven:</strong> @((_result.ConfidenceScore * 100).ToString("N1"))%</li>
+                <li><strong>Karar:</strong> @_result.Decision</li>
+                <li><strong>Peak istek hızı:</strong> @_result.RequestRate req/s</li>
+                <li><strong>Rate limit:</strong> @(_result.RateLimitTriggered ? "Tetiklendi (429)" : "Tetiklenmedi")</li>
+                <li><strong>Engellenen IP sayısı:</strong> @((_result.BlockedIps?.Length ?? 0))</li>
+            </ul>
+        </div>
+    </div>
+}
+
+@code {
+    private bool _running;
+    private ApiTrafficResult? _result;
+    private EChartsInterop? _lineEcharts;
+    private EChartsInterop? _barEcharts;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (_result != null && _lineEcharts == null)
+        {
+            await Task.Delay(100);
+            await InvokeAsync(async () =>
+            {
+                if (_lineEcharts != null) return;
+                _lineEcharts = new EChartsInterop(JSRuntime, "api-traffic-line");
+                _barEcharts = new EChartsInterop(JSRuntime, "api-traffic-bar");
+                if (await _lineEcharts.InitAsync())
+                    await UpdateApiTrafficChartsAsync();
+                StateHasChanged();
+            });
+        }
+    }
+
+    private async Task UpdateApiTrafficChartsAsync()
+    {
+        if (_lineEcharts == null || _barEcharts == null || _result == null) return;
+        var timeLabels = new[] { "T-2", "T-1", "T0 (ani artış)", "T+1", "T+2" };
+        var trafficData = new[] { 15, 18, _result.RequestRate, (int)(_result.RequestRate * 0.5), (int)(_result.RequestRate * 0.25) };
+        var lineOption = new
+        {
+            tooltip = new { trigger = "axis" },
+            grid = new { left = "8%", right = "4%", bottom = "12%", top = "8%", containLabel = true },
+            xAxis = new { type = "category", data = timeLabels },
+            yAxis = new { type = "value", name = "req/s", min = 0 },
+            series = new[] { new { type = "line", data = trafficData, smooth = true, symbol = "circle", symbolSize = 8, lineStyle = new { width = 2 }, itemStyle = new { color = "#2196f3" }, areaStyle = new { opacity = 0.2 } } }
+        };
+        await _lineEcharts.SetOptionAsync(lineOption);
+        var ips = _result.BlockedIps ?? Array.Empty<string>();
+        var barData = ips.Length > 0 ? ips.Select(ip => ip.Length > 12 ? ip.Substring(0, 10) + "…" : ip).ToArray() : new[] { "—" };
+        var barValues = ips.Length > 0 ? ips.Select((_, i) => _result!.RequestRate + (i * 10)).ToArray() : new[] { 0 };
+        var barOption = new
+        {
+            tooltip = new { trigger = "axis" },
+            grid = new { left = "20%", right = "8%", bottom = "12%", top = "8%", containLabel = true },
+            xAxis = new { type = "category", data = barData },
+            yAxis = new { type = "value", name = "istek" },
+            series = new[] { new { type = "bar", data = barValues, itemStyle = new { color = "#d32f2f" } } }
+        };
+        await _barEcharts.SetOptionAsync(barOption);
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        if (_lineEcharts != null) await _lineEcharts.DisposeAsync();
+        if (_barEcharts != null) await _barEcharts.DisposeAsync();
+    }
+
+    private async Task RunDemo()
+    {
+        _running = true;
+        if (_lineEcharts != null) { await _lineEcharts.DisposeAsync(); _lineEcharts = null; }
+        if (_barEcharts != null) { await _barEcharts.DisposeAsync(); _barEcharts = null; }
+        _result = null;
+        StateHasChanged();
+        try
+        {
+            var baseUri = new Uri(Navigation.BaseUri).GetLeftPart(UriPartial.Authority);
+            var res = await Http.PostAsync(baseUri + "/api/api-traffic/demo", null);
+            if (res.IsSuccessStatusCode)
+            {
+                _result = await res.Content.ReadFromJsonAsync<ApiTrafficResult>();
+            }
+        }
+        catch { /* ignore */ }
+        _running = false;
+        StateHasChanged();
+    }
+
+    private sealed record ApiTrafficResult(string IntentName, double ConfidenceScore, string Decision, int RequestRate, string[]? BlockedIps, bool RateLimitTriggered, int? RateLimitCurrent, int? RateLimitLimit);
+}

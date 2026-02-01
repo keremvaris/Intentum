@@ -1,0 +1,141 @@
+@page "/zero-day"
+@rendermode InteractiveServer
+@inject HttpClient Http
+@inject NavigationManager Navigation
+@inject IJSRuntime JSRuntime
+@implements IAsyncDisposable
+
+<PageTitle>Zero-Day Demo</PageTitle>
+
+<div class="page-card">
+    <h2 class="page-card h2" style="margin: 0 0 0.25rem 0;">Demo 4: Sıfır-Gün Saldırı Davranışı</h2>
+    <p class="subtitle">İmza henüz yok, ancak kötü niyetli davranış modeli değişmedi.</p>
+    <div class="zero-day-controls">
+        <button type="button" class="btn-demo-zeroday" @onclick="RunZeroDay" disabled="@_running">
+            @(_running ? "Çalışıyor…" : "Demo Çalıştır")
+        </button>
+    </div>
+</div>
+
+<div class="page-card zero-day-diagram">
+    <h3 class="page-card h3" style="margin: 0 0 0.75rem 0;">Saldırı adımları (ağ diyagramı)</h3>
+    <div class="zero-day-steps">
+        <span class="zero-day-node">PortScan</span>
+        <span class="zero-day-arrow">→</span>
+        <span class="zero-day-node">ExploitAttempt</span>
+        <span class="zero-day-arrow">→</span>
+        <span class="zero-day-node">LateralMoveToServerB</span>
+    </div>
+</div>
+
+@if (_result != null)
+{
+    <div class="page-card">
+        @if (_result.FromFallback)
+        {
+            <div class="zero-day-banner">
+                ⚠ BİLİNMEYEN İMZA, ANCAK BİLİNEN DAVRANIŞ: '@_result.IntentName' @((_result.ConfidenceScore * 100).ToString("N0"))% Güven
+            </div>
+        }
+        <p class="zero-day-reasoning">@_result.Reasoning</p>
+        <p class="zero-day-similar">Geçmişte tespit edilmiş benzer davranış modelleri: <strong>@_result.SimilarPastCount</strong></p>
+    </div>
+    <div class="page-card zero-day-charts-row">
+        <h3 class="page-card h3" style="margin: 0 0 0.75rem 0;">Grafikler ve rapor</h3>
+        <div class="zero-day-charts-grid">
+            <div class="zero-day-chart-card card">
+                <h4 class="zero-day-chart-title">Saldırı akışı (ECharts)</h4>
+                <div id="zero-day-graph" class="zero-day-graph-container"></div>
+            </div>
+            <div class="zero-day-chart-card card">
+                <h4 class="zero-day-chart-title">Benzer davranış (geçmiş)</h4>
+                <div id="zero-day-bar" class="zero-day-bar-container"></div>
+            </div>
+        </div>
+        <div class="zero-day-report card">
+            <h4 class="zero-day-report-title">Özet rapor</h4>
+            <ul class="zero-day-report-list">
+                <li><strong>Niyet:</strong> @_result.IntentName</li>
+                <li><strong>Güven:</strong> @((_result.ConfidenceScore * 100).ToString("N1"))%</li>
+                <li><strong>Fallback:</strong> @(_result.FromFallback ? "LLM (imza yok)" : "Hayır")</li>
+                <li><strong>Geçmişte benzer tespit:</strong> @_result.SimilarPastCount</li>
+            </ul>
+        </div>
+    </div>
+}
+
+@code {
+    private bool _running;
+    private ZeroDayResult? _result;
+    private EChartsInterop? _graphEcharts;
+    private EChartsInterop? _barEcharts;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (_result != null && _graphEcharts == null)
+        {
+            await Task.Delay(100);
+            await InvokeAsync(async () =>
+            {
+                if (_graphEcharts != null) return;
+                _graphEcharts = new EChartsInterop(JSRuntime, "zero-day-graph");
+                _barEcharts = new EChartsInterop(JSRuntime, "zero-day-bar");
+                if (await _graphEcharts.InitAsync())
+                    await UpdateZeroDayChartsAsync();
+                StateHasChanged();
+            });
+        }
+    }
+
+    private async Task UpdateZeroDayChartsAsync()
+    {
+        if (_graphEcharts == null || _barEcharts == null || _result == null) return;
+        var nodes = new[] { new { name = "PortScan", x = 0.2, y = 0.5, symbolSize = 50, itemStyle = new { color = "#2196f3" } }, new { name = "ExploitAttempt", x = 0.5, y = 0.5, symbolSize = 50, itemStyle = new { color = "#ff9800" } }, new { name = "LateralMoveToServerB", x = 0.8, y = 0.5, symbolSize = 50, itemStyle = new { color = "#d32f2f" } } };
+        var links = new[] { new { source = "PortScan", target = "ExploitAttempt" }, new { source = "ExploitAttempt", target = "LateralMoveToServerB" } };
+        var graphOption = new
+        {
+            tooltip = new { show = true },
+            series = new[] { new { type = "graph", layout = "none", roam = true, label = new { show = true, position = "bottom" }, edgeSymbol = new[] { "none", "arrow" }, edgeSymbolSize = new[] { 4, 10 }, data = nodes,
+                links, lineStyle = new { color = "#999", width = 2 } } }
+        };
+        await _graphEcharts.SetOptionAsync(graphOption);
+        var barOption = new
+        {
+            tooltip = new { trigger = "axis" },
+            grid = new { left = "15%", right = "8%", bottom = "12%", top = "8%", containLabel = true },
+            xAxis = new { type = "category", data = new[] { "Benzer tespit" } },
+            yAxis = new { type = "value", min = 0 },
+            series = new[] { new { type = "bar", data = new[] { _result.SimilarPastCount }, itemStyle = new { color = "#9c27b0" } } }
+        };
+        await _barEcharts.SetOptionAsync(barOption);
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        if (_graphEcharts != null) await _graphEcharts.DisposeAsync();
+        if (_barEcharts != null) await _barEcharts.DisposeAsync();
+    }
+
+    private async Task RunZeroDay()
+    {
+        _running = true;
+        if (_graphEcharts != null) { await _graphEcharts.DisposeAsync(); _graphEcharts = null; }
+        if (_barEcharts != null) { await _barEcharts.DisposeAsync(); _barEcharts = null; }
+        _result = null;
+        StateHasChanged();
+        try
+        {
+            var baseUri = new Uri(Navigation.BaseUri).GetLeftPart(UriPartial.Authority);
+            var res = await Http.PostAsync(baseUri + "/api/zero-day/infer", null);
+            if (res.IsSuccessStatusCode)
+            {
+                _result = await res.Content.ReadFromJsonAsync<ZeroDayResult>();
+            }
+        }
+        catch { /* ignore */ }
+        _running = false;
+        StateHasChanged();
+    }
+
+    private sealed record ZeroDayResult(string IntentName, double ConfidenceScore, string ConfidenceLevel, string? Reasoning, bool FromFallback, int SimilarPastCount);
+}

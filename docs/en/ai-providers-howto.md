@@ -1,5 +1,7 @@
 # How to use AI providers
 
+**Why you're reading this page:** This page shows easy / medium / hard usage scenarios for each Intentum AI provider (Mock, OpenAI, Gemini, Mistral, Azure, Claude). It is the right place if you want to know how to integrate a provider or move from test to production.
+
 **Easy**, **medium**, and **hard** usage scenarios for each Intentum AI provider. Same structure as the usage scenarios: **What**, **What you need**, **Code**, **Expected result**.
 
 ---
@@ -368,3 +370,5 @@ var intent = model.Infer(space);
 - Never commit API keys; use environment variables or a secret manager.
 - Avoid logging raw request/response bodies in production.
 - For full env var names and optional fields, see each provider’s `*Options` class and `FromEnvironment()` in the repo. See also [Providers](providers.md) and [Setup](setup.md).
+
+**Next step:** When you're done with this page → [Providers](providers.md) or [Scenarios](scenarios.md).

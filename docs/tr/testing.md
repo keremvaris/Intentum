@@ -1,5 +1,7 @@
 # Test (TR)
 
+**Bu sayfayı neden okuyorsunuz?** Bu sayfa Intentum testlerinin neyi kapsadığını, nasıl çalıştırılacağını ve kendi testinizi nasıl ekleyeceğinizi anlatır. CI'da API anahtarı olmadan güvenilir test istiyorsanız doğru yerdesiniz.
+
 Intentum testleri **contract** (sağlayıcıların ve çekirdek tiplerin doğru parse ve davranışı) ile **çekirdek akışlara** (BehaviorSpace → Infer → Decide) odaklanır. Testler **mock HTTP** ve bellek içi sağlayıcı kullanır; API anahtarı veya ağ olmadan çalıştırılabilir.
 
 Bu sayfa neyin test edildiğini, testlerin nasıl çalıştırılacağını ve kendi testini nasıl ekleyeceğini anlatır. Coverage üretimi ve raporlar için [Coverage](coverage.md).
@@ -95,3 +97,5 @@ Assert.InRange(result.Score, 0.49, 0.51);
 ```
 
 Gerçek örnekler için repodaki `ProviderHttpTests` dosyasına bak. Coverage seçenekleri (CollectCoverage, OpenCover vb.) için [Coverage](coverage.md).
+
+**Sonraki adım:** Bu sayfayı bitirdiyseniz → [Testler özeti](tests-overview.md) veya [Coverage](coverage.md).

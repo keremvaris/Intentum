@@ -1,5 +1,7 @@
 # Hybrid mode and rule-based fallback
 
+**Why you're reading this page:** This page describes hybrid intent inference (rule-based + LLM/ONNX fallback): high-confidence cases stay fast, uncertain cases use the fallback model. It is the right place if you are balancing cost and confidence.
+
 This page describes **hybrid intent inference**: combining rule-based logic with AI (LLM or local ONNX) so that high-confidence cases stay fast and cheap, while uncertain cases use a fallback model. It also summarizes best practices.
 
 ---
@@ -96,3 +98,5 @@ When you need full control over the pipeline (signal → vector → intent → c
 - [Real-world scenarios](real-world-scenarios.md) — Chained intent (rule → LLM fallback)
 - [Production readiness](production-readiness.md) — Fallback and error handling
 - [API overview](api.md) — ChainedIntentModel, OnnxIntentModel, Intent.Reasoning
+
+**Next step:** When you're done with this page → [Real-world scenarios](real-world-scenarios.md) or [Production readiness](production-readiness.md).

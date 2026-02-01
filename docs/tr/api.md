@@ -1,5 +1,7 @@
 # API Referansı (TR)
 
+**Bu sayfayı neden okuyorsunuz?** Bu sayfa Intentum'un ana tiplerini (BehaviorSpace, Intent, IntentPolicy vb.) ve bunların nasıl bir araya geldiğini açıklar. Kod yazarken hangi tipi nerede kullanacağınızı veya akışı (Observe → Infer → Decide) netleştirmek için faydalıdır.
+
 Bu sayfa ana tipleri ve birbirleriyle nasıl uyumlu olduklarını açıklar. Tam metod imzaları ve otomatik üretilen doküman için [API sitesine](https://keremvaris.github.io/Intentum/api/) bakın.
 
 ---
@@ -272,9 +274,9 @@ Aşağıdaki paketler opsiyonel yetenek ekler. Detaylı kullanım (nedir, ne zam
 
 ---
 
-## Örnek Web HTTP API (`Intentum.Sample.Web`)
+## Örnek Blazor HTTP API (`Intentum.Sample.Blazor`)
 
-Web örneği intent çıkarımı, açıklanabilirlik, greenwashing tespiti ve analytics için HTTP endpoint’leri sunar. `dotnet run --project samples/Intentum.Sample.Web` ile çalıştırın; UI ve API dokümanları çalıştırma sonrası gösterilen URL'dedir (varsayılan http://localhost:5000/ ve http://localhost:5000/scalar).
+Web örneği intent çıkarımı, açıklanabilirlik, greenwashing tespiti ve analytics için HTTP endpoint’leri sunar. `dotnet run --project samples/Intentum.Sample.Blazor` ile çalıştırın; UI ve API dokümanları çalıştırma sonrası gösterilen URL'dedir (varsayılan http://localhost:5018/ ve http://localhost:5018/scalar).
 
 | Method | Path | Açıklama |
 |--------|------|----------|
@@ -294,7 +296,7 @@ Web örneği intent çıkarımı, açıklanabilirlik, greenwashing tespiti ve an
 | POST | `/api/orders` | Sipariş ver (CQRS örneği). |
 | GET | `/health` | Sağlık kontrolü. |
 
-Detay için [Kurulum](setup.md#repo-sampleını-derle-ve-çalıştır) ve [Greenwashing tespiti (how-to)](greenwashing-detection-howto.md#6-örnek-uygulama-intentumsampleweb).
+Detay için [Kurulum](setup.md#repo-sampleını-derle-ve-çalıştır) ve [Greenwashing tespiti (how-to)](greenwashing-detection-howto.md#6-örnek-uygulama-intentumsampleblazor).
 
 ---
 
@@ -324,3 +326,5 @@ var decision = intent.Decide(policy);
 ```
 
 Tam çalışan örnek için [sample](https://github.com/keremvaris/Intentum/tree/master/samples/Intentum.Sample) ve [Kurulum](setup.md).
+
+**Sonraki adım:** Bu sayfayı bitirdiyseniz → [Senaryolar](scenarios.md) veya [Kurulum](setup.md).

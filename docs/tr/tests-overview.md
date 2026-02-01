@@ -1,5 +1,7 @@
 # Testler Özeti
 
+**Bu sayfayı neden okuyorsunuz?** Bu sayfa Intentum test projelerinin (Intentum.Tests, Intentum.Tests.Integration) kısa özetini verir: nelerin kapsandığı, nasıl çalıştırılacağı ve sample/örneklerle ilişkisi. "Hangi test ne yapıyor?" sorusuna hızlı yanıt arıyorsanız doğru yerdesiniz.
+
 Bu sayfa Intentum testlerinin kısa bir özetini verir: nelerin kapsandığı, nasıl çalıştırılacağı ve **sample** / **örnekler**le ilişkisi.
 
 ---
@@ -54,7 +56,7 @@ Entegrasyon testleri greenwashing accuracy/F1’i etiketli veri üzerinde kapsar
 | | Testler | Örnekler | Sample |
 |--|--------|----------|--------|
 | **Amaç** | Sözleşme ve çekirdek davranışı doğrulamak; CI’da gerçek API yok. | Tek kullanım senaryosunu öğrenmek; kopyala-yapıştır. | Tam uygulama: birçok özellik, Web API, UI. |
-| **Çalıştırma** | `dotnet test tests/Intentum.Tests` | `dotnet run --project examples/<ad>` | `dotnet run --project samples/Intentum.Sample.Web` |
+| **Çalıştırma** | `dotnet test tests/Intentum.Tests` | `dotnet run --project examples/<ad>` | `dotnet run --project samples/Intentum.Sample.Blazor` |
 | **Döküman** | [Test](testing.md), bu sayfa | [Örnekler rehberi](examples-overview.md) | [API](api.md), [Kurulum](setup.md) |
 
 ---
@@ -63,3 +65,5 @@ Entegrasyon testleri greenwashing accuracy/F1’i etiketli veri üzerinde kapsar
 
 - Gerçek API çağrısı olmaması için **mock HttpClient** veya in-memory sağlayıcı kullanın.
 - Yeni özellikler (timeline, niyet ağacı, pattern dedektörü vb.) için `Intentum.Tests` içinde test ekleyin ve [Test](testing.md) içindeki “Neler kapsanıyor” listesini güncelleyin.
+
+**Sonraki adım:** Bu sayfayı bitirdiyseniz → [Test](testing.md) veya [Örnekler rehberi](examples-overview.md).

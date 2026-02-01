@@ -1,6 +1,6 @@
 # Mimari (TR)
 
-Bu sayfa Intentum mimarisini anlatır: temel akış, paket yapısı, inference pipeline ve opsiyonel uzantılar. Diyagramlar Mermaid kullanır.
+**Bu sayfayı neden okuyorsunuz?** Bu sayfa Intentum mimarisini anlatır: hangi paketleri neden kullanacağınızı ve Observe → Infer → Decide akışının teknik karşılığını gösterir. İlk projeyi kurmadan önce veya paket seçerken faydalıdır.
 
 ---
 
@@ -35,6 +35,12 @@ flowchart LR
 | **Observe** | Ne olduğunu kaydet: `space.Observe(actor, action)` veya `BehaviorSpaceBuilder`. Olaylar **BehaviorSpace** oluşturur. İsteğe bağlı normalizasyon için **ToVector(options)** (Cap, L1, SoftCap) kullan. |
 | **Infer** | **IIntentModel** (örn. **LlmIntentModel**, **RuleBasedIntentModel** veya **ChainedIntentModel**) **Intent** (ad, güven, sinyaller, opsiyonel **Reasoning**) üretir. LlmIntentModel embedding + similarity engine kullanır; dimension count ağırlık olarak geçer; **ITimeAwareSimilarityEngine** (örn. TimeDecay) kullanıldığında otomatik uygulanır. |
 | **Decide** | **IntentPolicy** kuralları sırayla değerlendirir → **PolicyDecision** (Allow, Observe, Warn, Block, Escalate, RequireAuth, RateLimit). |
+
+**Somut örnek (e-ticaret dolandırıcılık):**
+
+- **Observe:** Ahmet kullanıcısı 1 dakika içinde: 1) 5 farklı kredi kartı ekledi, 2) 10 farklı adrese sipariş verdi, 3) Hesap şifresini değiştirdi. Sistem bu olayları **BehaviorSpace** ile kaydeder.
+- **Infer:** **IIntentModel** bu davranıştan niyet çıkarır: Niyet = HesapEleGeçirme, güven %92. Sistem bu davranışı "hesap ele geçirme" niyeti olarak yorumlar.
+- **Decide:** **IntentPolicy** kuralı: "%85 üstü güven → Block + bildirim". Sonuç: Sipariş bloke edilir, güvenlik ekibine uyarı gider.
 
 ---
 
@@ -117,6 +123,18 @@ flowchart TB
 
 **Tüm paketler (özet):** Core, Runtime, AI, AI sağlayıcılar (OpenAI, Gemini, Mistral, Azure, Claude), Persistence (abstractions + EF, MongoDB, Redis), Analytics, AspNetCore, Clustering, Events, Experiments, Explainability, Simulation, MultiTenancy, Versioning, AI.Caching.Redis. Ayrıca Testing, Observability, Logging, CodeGen — bkz. [API Referansı](api.md) ve [Gelişmiş Özellikler](advanced-features.md).
 
+**Hangi ihtiyacıma hangi paket?**
+
+| İhtiyacınız / Yapmak istediğiniz | Başlamak için paketler | İleride ekleyebilecekleriniz |
+|----------------------------------|-------------------------|------------------------------|
+| Sadece niyet tespiti (kural veya basit AI) | Intentum.Core | — |
+| Karar kuralları (policy) ve sınırlama (rate limit) | Intentum.Core + Intentum.Runtime | — |
+| LLM ile niyet tahmini (OpenAI, Gemini vb.) | Intentum.Core + Intentum.AI + Intentum.AI.OpenAI (veya diğer sağlayıcı) | Intentum.AI.Caching.Redis (performans) |
+| Verileri veritabanına kaydetmek | Intentum.Core + Intentum.Persistence.EntityFramework (veya MongoDB) | Intentum.Analytics |
+| Web uygulamasında kullanmak (ASP.NET Core) | Yukarıdakiler + Intentum.AspNetCore | Intentum.MultiTenancy (çoklu müşteri) |
+
+Detaylı kurulum için [Kurulum](setup.md).
+
 ---
 
 ## Inference pipeline (detay)
@@ -164,7 +182,7 @@ Katmanların birbirine bağımlılığının sadeleştirilmiş görünümü.
 ```mermaid
 flowchart TB
   subgraph app [Uygulama / Örnekler]
-    WebApp[Sample.Web]
+    WebApp[Sample.Blazor]
     ConsoleApp[Sample.Console]
   end
 
@@ -255,6 +273,12 @@ flowchart TB
   TenantRepo --> Metadata[Save'de TenantId metadata]
   TenantRepo --> Filter[Get'te TenantId filtre]
 ```
+
+---
+
+## Sonraki adım
+
+Bu sayfayı bitirdiyseniz → [Kurulum](setup.md) veya [Senaryolar](scenarios.md).
 
 ---
 

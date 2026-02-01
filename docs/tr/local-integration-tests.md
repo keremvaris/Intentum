@@ -1,5 +1,7 @@
 # Yerel entegrasyon testleri ve VerifyAI
 
+**Bu sayfayı neden okuyorsunuz?** Bu sayfa gerçek API entegrasyon testlerini (OpenAI, Mistral, Gemini, Azure OpenAI) ve VerifyAI uygulamasını yerelde nasıl çalıştıracağınızı anlatır. API anahtarı ile sağlayıcı doğrulaması yapmak istiyorsanız doğru yerdesiniz.
+
 Bu sayfa **gerçek API entegrasyon testlerini** (OpenAI, Mistral, Gemini, Azure OpenAI) ve **VerifyAI** uygulamasını yerelde nasıl çalıştıracağınızı anlatır. API anahtarı gerektirir; CI'da varsayılan olarak **çalıştırılmaz** (CI `Category=Integration` hariç tutar); yalnızca kendi makinenizde kullanın.
 
 ---
@@ -132,3 +134,5 @@ dotnet test tests/Intentum.Tests/Intentum.Tests.csproj --filter "Category!=Integ
 | Sağlayıcı bazlı testler | `./scripts/run-integration-tests.sh` (OpenAI), `run-mistral-integration-tests.sh`, `run-gemini-integration-tests.sh`, `run-azure-integration-tests.sh` |
 | Entegrasyon testlerini hariç tut | `dotnet test ... --filter "Category!=Integration"` |
 | Asla commit etme | `.env` .gitignore'da; eklemeyin veya push etmeyin. |
+
+**Sonraki adım:** Bu sayfayı bitirdiyseniz → [Test](testing.md) veya [Sağlayıcılar](providers.md).

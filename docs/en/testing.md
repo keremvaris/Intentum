@@ -1,5 +1,7 @@
 # Testing (EN)
 
+**Why you're reading this page:** This page explains what Intentum tests cover, how to run them, and how to add your own. It is the right place if you want reliable tests in CI without API keys.
+
 Intentum tests focus on **contracts** (correct parsing and behavior of providers and core types) and **core flows** (BehaviorSpace → Infer → Decide). Tests use **mock HTTP** and in-memory providers so you can run them without API keys or network.
 
 This page explains what is tested, how to run tests, and how to add your own. For coverage generation and reports, see [Coverage](coverage.md).
@@ -95,3 +97,5 @@ See `ProviderHttpTests` in the repo for real examples. For coverage options (e.g
 | **Real Redis / MongoDB / PostgreSQL** | All current tests use in-memory or mock implementations. Integration tests against real databases (e.g. Testcontainers) are not in place. |
 
 If you add persistence or run against a real store, consider adding integration tests (e.g. Testcontainers for MongoDB/PostgreSQL/Redis) or at least contract tests with a fake repository that implements the same interface.
+
+**Next step:** When you're done with this page → [Tests overview](tests-overview.md) or [Coverage](coverage.md).

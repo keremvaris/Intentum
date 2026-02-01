@@ -1,5 +1,7 @@
 # Clustering ve Experiments: kullanım senaryoları
 
+**Bu sayfayı neden okuyorsunuz?** Bu sayfa Intentum.Clustering ve Intentum.Experiments için kullanım senaryolarının kısa özetini verir: intent gruplama, A/B test, politika ayarı, anomali tespiti. Bu paketlerin ne işe yaradığını merak ediyorsanız doğru yerdesiniz.
+
 **Intentum.Clustering** ve **Intentum.Experiments** için **kullanım senaryolarının** kısa özeti. Tam API ve kurulum: [Gelişmiş Özellikler](advanced-features.md#intent-clustering), [Gelişmiş Özellikler — A/B deneyleri](advanced-features.md#ab-experiments).
 
 ---
@@ -38,3 +40,5 @@
 |-----------------------|-----------------|
 | **Intentum.Clustering**  | Intent geçmişini örüntü veya skora göre grupla; politika ayarı, anomali tespiti, dashboard'lar. |
 | **Intentum.Experiments**  | Model veya politikada A/B test; varyantları karşılaştır, yeni model/politika rollout. |
+
+**Sonraki adım:** Bu sayfayı bitirdiyseniz → [Gelişmiş özellikler](advanced-features.md) veya [Senaryolar](scenarios.md).

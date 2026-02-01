@@ -35,7 +35,7 @@
     <p class="muted">Olayları girin; infer ile intent ve politika kararı alın.</p>
     <div class="dashboard-toolbar">
         <label>Olaylar (JSON) <textarea @bind="_eventsJson" rows="3" style="width: 100%; max-width: 400px;" placeholder='[{"actor":"user","action":"login"},{"actor":"user","action":"retry"}]'></textarea></label>
-        <button type="button" @onclick="Evaluate" disabled="@_loading">Bu giriş için karar ne olurdu?</button>
+        <button type="button" class="btn-app-primary" @onclick="Evaluate" disabled="@_loading">Bu giriş için karar ne olurdu?</button>
     </div>
     @if (_loading) { <p class="muted">Yükleniyor…</p> }
     @if (_evalError != null) { <p class="error">@_evalError</p> }

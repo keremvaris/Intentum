@@ -1,5 +1,7 @@
 # Neden Niyet ≠ Log / Event?
 
+**Bu sayfayı neden okuyorsunuz?** Bu sayfa "Zaten log tutuyoruz, event'ler var" itirazına yanıt verir: log/event ile niyet arasındaki farkı ve niyetin neden sadece dashboard'larla türetilemeyeceğini anlatır. Intentum'un neden "log + analytics" yerine niyet katmanı sunduğunu merak ediyorsanız doğru yerdesiniz.
+
 Ve niyetin neden sadece dashboard'larla türetilemeyeceği.
 
 ---
@@ -167,5 +169,7 @@ Telemetri → Loglar → Event'ler → Sinyaller → Niyet → Karar
 
 Analytics bu zincirin başında kalır.
 Intentum zincirin ortasında durur.
+
+**Sonraki adım:** Bu sayfayı bitirdiyseniz → [Mimari](architecture.md) veya [Senaryolar](scenarios.md).
 
 Intentum analytics’in alternatifi değil; analytics’in veremediği anlam katmanı.

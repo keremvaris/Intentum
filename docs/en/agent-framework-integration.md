@@ -1,5 +1,7 @@
 # Agent framework integration (Faz 4)
 
+**Why you're reading this page:** This page outlines how to use Intentum as an intent verification / guardrail layer with agent frameworks (Semantic Kernel, LangChain, AutoGen, CrewAI, LlamaIndex). It is the right place if you want to apply policy decisions to agent actions.
+
 Intentum can act as an **intent verification / guardrail** layer for agent frameworks (Semantic Kernel, LangChain, AutoGen, CrewAI, LlamaIndex). This page outlines how to build an **adapter** or **middleware** that feeds behavior events into Intentum and applies policy decisions to agent actions.
 
 ---
@@ -53,3 +55,5 @@ Implementation: maintain a `BehaviorSpace`, implement `RecordEvent` as `space.Ob
 | Use decision  | Allow → continue; Block → stop or escalate; Observe → log and continue |
 
 A concrete adapter (e.g. for Semantic Kernel) can be added as a separate repo or sample in the Intentum org. This doc serves as the Faz 4 "agent framework middleware" specification.
+
+**Next step:** When you're done with this page → [Scenarios](scenarios.md) or [API Reference](api.md).

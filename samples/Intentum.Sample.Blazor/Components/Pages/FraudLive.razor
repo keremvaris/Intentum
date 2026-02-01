@@ -43,6 +43,44 @@
         </p>
     </div>
 
+    <div class="page-card fraud-demo1-card">
+        <h3 class="page-card h3" style="margin: 0 0 0.5rem 0;">Demo 1: Finans Dolandırıcılığı (Ahmet K.)</h3>
+        <p class="fraud-demo1-intro">Olaylar zinciri: Login (yeni ülke IP) → ChangeContactEmail → HighValueTransfer → RequestNewCardExpressShipping. ChainedIntentModel (RuleBased + LlmIntentModel TimeDecay) her adımda çalışır.</p>
+        <div class="fraud-demo1-controls">
+            <button type="button" class="btn-fraud-primary" @onclick="ToggleDemo1" disabled="@_demo1ToggleBusy">
+                @(_demo1Running ? "Durdur" : "Başlat Demo 1")
+            </button>
+            <span class="status-pill @(_demo1Running ? "status-pill--running" : "status-pill--stopped")">@(_demo1Running ? "Çalışıyor" : "Durduruldu")</span>
+            @if (_demo1Running || _demo1Events.Count > 0)
+            {
+                <span class="fraud-live__meta">Adım: @_demo1Events.Count / 4</span>
+            }
+        </div>
+        @if (_demo1Events.Count > 0)
+        {
+            <div class="fraud-demo1-geo">
+                <span class="fraud-demo1-geo-label">Coğrafi konum:</span>
+                <span class="fraud-demo1-geo-point fraud-demo1-geo--login">Login IP: @(_demo1LoginIp ?? "—") (kırmızı)</span>
+                <span class="fraud-demo1-geo-point fraud-demo1-geo--normal">Normal: @(_demo1NormalLocation ?? "—") (yeşil)</span>
+            </div>
+            <div class="fraud-demo1-events">
+                <strong>Olaylar ve Fraud Risk Skoru:</strong>
+                <ul class="fraud-demo1-event-list">
+                    @foreach (var e in _demo1Events.OrderBy(x => x.EventIndex))
+                    {
+                        <li>Adım @e.EventIndex: @(e.EventsSummary ?? "—") → Skor: @e.ConfidenceScore.ToString("P0") | @e.Decision</li>
+                    }
+                </ul>
+            </div>
+            @if (_demo1FinalDecision != null && (_demo1FinalDecision == "Block" || _demo1FinalDecision == "Escalate"))
+            {
+                <div class="fraud-demo1-banner">
+                    İŞLEM DURDURULDU &amp; GÜVENLİK EKİBİNE BİLDİRİLDİ
+                </div>
+            }
+        }
+    </div>
+
     <div class="page-card">
         <h3 class="page-card h3" style="margin: 0 0 0.75rem 0;">Anlık özet (KPI) <InfoIcon Text="Son inference'ın risk skoru, son 1 dakikadaki inference sayısı, dominant intent ve oturum toplam kayıt sayısı. Başlat ile simülasyon açılır, SSE ile veri akar." /></h3>
     <div class="kpi-grid fraud-kpi-grid" style="margin-bottom: 0;">
@@ -173,6 +211,12 @@
     private double? _lastConfidence;
     private string? _lastIntent;
     private readonly List<InferenceEvent> _recent = new();
+    private bool _demo1Running;
+    private bool _demo1ToggleBusy;
+    private string? _demo1FinalDecision;
+    private string? _demo1LoginIp;
+    private string? _demo1NormalLocation;
+    private readonly List<FraudDemo1Event> _demo1Events = new();
     private CancellationTokenSource? _sseCts;
     private EChartsInterop? _gaugeEcharts;
     private EChartsInterop? _lineEcharts;
@@ -281,20 +325,80 @@
     {
         try
         {
-            var ev = System.Text.Json.JsonSerializer.Deserialize<InferenceEvent>(json, _jsonOptions);
-            if (ev == null) return;
-            _recent.Insert(0, ev);
+            using var doc = System.Text.Json.JsonDocument.Parse(json);
+            if (doc.RootElement.TryGetProperty("source", out var sourceEl) && sourceEl.GetString() == "FraudDemo1")
+            {
+                var ev = System.Text.Json.JsonSerializer.Deserialize<FraudDemo1Event>(json, _jsonOptions);
+                if (ev != null)
+                {
+                    _demo1Events.RemoveAll(e => e.EventIndex == ev.EventIndex);
+                    _demo1Events.Add(ev);
+                    _demo1Events.Sort((a, b) => a.EventIndex.CompareTo(b.EventIndex));
+                    if (ev.LoginIp != null) _demo1LoginIp = ev.LoginIp;
+                    if (ev.NormalLocation != null) _demo1NormalLocation = ev.NormalLocation;
+                    if (ev.Final)
+                    {
+                        _demo1FinalDecision = ev.Decision;
+                        _demo1Running = false;
+                    }
+                    var inferenceEv = new InferenceEvent(ev.Id, ev.IntentName, ev.ConfidenceLevel, ev.ConfidenceScore, ev.Decision, ev.EventsSummary, ev.RecordedAt);
+                    _recent.Insert(0, inferenceEv);
+                    if (_recent.Count > 100) _recent.RemoveAt(_recent.Count - 1);
+                    _lastConfidence = ev.ConfidenceScore;
+                    _lastIntent = ev.IntentName;
+                    _lineData.Insert(0, (ev.RecordedAt.ToUnixTimeMilliseconds(), ev.ConfidenceScore));
+                    if (_lineData.Count > MaxLinePoints) _lineData.RemoveAt(_lineData.Count - 1);
+                    await InvokeAsync(StateHasChanged);
+                    await UpdateGauge(ev.ConfidenceScore);
+                    await UpdateLineChart();
+                    await UpdateDecisionPie();
+                }
+                return;
+            }
+            var genericEv = System.Text.Json.JsonSerializer.Deserialize<InferenceEvent>(json, _jsonOptions);
+            if (genericEv == null) return;
+            _recent.Insert(0, genericEv);
             if (_recent.Count > 100) _recent.RemoveAt(_recent.Count - 1);
-            _lastConfidence = ev.ConfidenceScore;
-            _lastIntent = ev.IntentName;
-            _lineData.Insert(0, (DateTimeOffset.UtcNow.ToUnixTimeMilliseconds(), ev.ConfidenceScore));
+            _lastConfidence = genericEv.ConfidenceScore;
+            _lastIntent = genericEv.IntentName;
+            _lineData.Insert(0, (DateTimeOffset.UtcNow.ToUnixTimeMilliseconds(), genericEv.ConfidenceScore));
             if (_lineData.Count > MaxLinePoints) _lineData.RemoveAt(_lineData.Count - 1);
             await InvokeAsync(StateHasChanged);
-            await UpdateGauge(ev.ConfidenceScore);
+            await UpdateGauge(genericEv.ConfidenceScore);
             await UpdateLineChart();
             await UpdateDecisionPie();
         }
         catch { /* skip bad event */ }
+    }
+
+    private async Task ToggleDemo1()
+    {
+        _demo1ToggleBusy = true;
+        StateHasChanged();
+        try
+        {
+            var baseUri = new Uri(Navigation.BaseUri).GetLeftPart(UriPartial.Authority);
+            if (_demo1Running)
+            {
+                await Http.PostAsync(baseUri + "/api/fraud-demo1/stop", null);
+            }
+            else
+            {
+                _demo1Events.Clear();
+                _demo1FinalDecision = null;
+                _demo1LoginIp = null;
+                _demo1NormalLocation = null;
+                await Http.PostAsync(baseUri + "/api/fraud-demo1/start", null);
+                if (_sseCts == null || _sseCts.Token.IsCancellationRequested)
+                    _ = ConnectSse();
+            }
+            _demo1Running = !_demo1Running;
+        }
+        finally
+        {
+            _demo1ToggleBusy = false;
+            StateHasChanged();
+        }
     }
 
     private static readonly System.Text.Json.JsonSerializerOptions _jsonOptions = new()
@@ -470,6 +574,7 @@
 
     private sealed record FraudStatus(bool Running, int EventsPerMinute, DateTimeOffset LastInferenceAt);
     private sealed record InferenceEvent(string Id, string IntentName, string ConfidenceLevel, double ConfidenceScore, string Decision, string? EventsSummary, DateTimeOffset RecordedAt);
+    private sealed record FraudDemo1Event(string Id, string IntentName, string ConfidenceLevel, double ConfidenceScore, string Decision, string? EventsSummary, DateTimeOffset RecordedAt, string? Source, int EventIndex, string? LoginIp, string? NormalLocation, bool Final, string? Reasoning);
     private sealed record FraudLiveSummaryResult(DateTimeOffset PeriodStart, DateTimeOffset PeriodEnd, int TotalEvents, double AverageScore, string DominantIntent, double DominantIntentPercent, IReadOnlyList<FraudIntentDistRow> IntentDistribution, IReadOnlyList<FraudDecisionDistRow> DecisionDistribution, string VerdictText, string FutureOutlookText);
     private sealed record FraudIntentDistRow(string IntentName, int Count, double Percent);
     private sealed record FraudDecisionDistRow(string Decision, int Count, double Percent);

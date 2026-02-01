@@ -1,5 +1,7 @@
 # Neden Intentum?
 
+**Bu sayfayı neden okuyorsunuz?** Bu sayfa Intentum isminin ve felsefesinin nereden geldiğini anlatır: niyet odaklı tasarım, klasik BDD/TDD’den farkı ve AI çağına uyumu. İsmin anlamını merak ediyorsanız veya “neden niyet?” sorusuna yanıt arıyorsanız doğru yerdesiniz.
+
 Intentum ismi rastgele seçilmedi. Çerçevenin tasarımıyla uyumlu, bilinçli bir felsefeyi taşır.
 
 ---
@@ -93,3 +95,5 @@ Daha sert: **Yazılım niyetle yargılanmalı, olaylarla değil.**
 | **Intentum** | **Niyet** | **Belirsizlik** | **AI ve adaptif sistemler** |
 
 Tam felsefe için [Manifesto](manifesto.md) ve [Intentum Canon](intentum-canon.md) sayfalarına bakın.
+
+**Sonraki adım:** Bu sayfayı bitirdiyseniz → [Mimari](architecture.md) veya [Kurulum](setup.md).

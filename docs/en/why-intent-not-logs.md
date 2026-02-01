@@ -1,5 +1,7 @@
 # Why Intent ≠ Logs / Events
 
+**Why you're reading this page** — This page answers the "We already have logs and events" objection: it explains the difference between logs/events and intent, and why intent cannot be derived by dashboards alone. You're in the right place if you're wondering why Intentum offers an intent layer instead of "log + analytics".
+
 And why intent cannot be derived by dashboards alone.
 
 ---
@@ -177,3 +179,5 @@ Intentum sits in the middle.
 
 Intentum is not an alternative to analytics.
 It is the meaning layer that analytics cannot provide.
+
+**Next step:** If you're done here → [Architecture](architecture.md) or [Scenarios](scenarios.md).

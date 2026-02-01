@@ -1,5 +1,7 @@
 # API Reference (EN)
 
+**Why you're reading this page:** This page explains Intentum's main types (BehaviorSpace, Intent, IntentPolicy, etc.) and how they fit together. It is useful when writing code to see which type to use where or to clarify the Observe → Infer → Decide flow.
+
 This page explains the main types and how they fit together. For full method signatures and generated docs, see the [API site](https://keremvaris.github.io/Intentum/api/).
 
 ---
@@ -270,9 +272,9 @@ The following packages add optional capabilities. For detailed usage (what it is
 
 ---
 
-## Sample Web HTTP API (`Intentum.Sample.Web`)
+## Sample Blazor HTTP API (`Intentum.Sample.Blazor`)
 
-The web sample exposes HTTP endpoints for intent inference, explainability, greenwashing detection, and analytics. Run with `dotnet run --project samples/Intentum.Sample.Web`; UI and API docs at the URL shown (default http://localhost:5000/ and http://localhost:5000/scalar).
+The web sample (Blazor) exposes HTTP endpoints for intent inference, explainability, greenwashing detection, and analytics. Run with `dotnet run --project samples/Intentum.Sample.Blazor`; UI and API docs at the URL shown (default http://localhost:5018/ and http://localhost:5018/scalar).
 
 | Method | Path | Description |
 |--------|------|-------------|
@@ -293,7 +295,7 @@ The web sample exposes HTTP endpoints for intent inference, explainability, gree
 | POST | `/api/orders` | Place order (CQRS sample). |
 | GET | `/health` | Health check. |
 
-See [Setup](setup.md#build-and-run-the-repo-samples) and [Greenwashing detection (how-to)](greenwashing-detection-howto.md#6-sample-application-intentumsampleweb) for details.
+See [Setup](setup.md#build-and-run-the-repo-samples) and [Greenwashing detection (how-to)](greenwashing-detection-howto.md#6-sample-application-intentumsampleblazor) for details.
 
 ---
 
@@ -349,3 +351,5 @@ await historyRepository.SaveAsync(spaceId, intent, decision);
 ```
 
 For a full runnable example, see the [sample](https://github.com/keremvaris/Intentum/tree/master/samples/Intentum.Sample) and [Setup](setup.md).
+
+**Next step:** When you're done with this page → [Scenarios](scenarios.md) or [Setup](setup.md).

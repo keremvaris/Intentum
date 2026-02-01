@@ -1,5 +1,7 @@
 # Kullanım Senaryoları (TR)
 
+**Bu sayfayı neden okuyorsunuz?** Bu sayfa Intentum'da ödeme, giriş, destek, e-ticaret ve ESG senaryolarında Observe → Infer → Decide akışını ve policy kurallarını gösterir. İlk senaryonuzu yazarken veya mevcut örnekleri genişletirken faydalıdır.
+
 Intentum Given/When/Then adımları kullanmaz. Bunun yerine olayları **Observe** edersin, **Infer** ile intent ve güven çıkarırsın, policy kurallarıyla **Decide** edersin. Bu sayfa hem **klasik** (ödeme, giriş, destek, e‑ticaret) hem **ESG / uyumluluk** senaryolarını gösterir: hangi davranışı kaydettiğin, policy’yi nasıl tanımladığın ve ne sonuç bekleyeceğin.
 
 Given/When/Then’in yerine ne geldiği için [ana sayfa](index.md#givenwhenthen-yerine-ne-geldi). Tipler ve akış için [API Referansı](api.md).
@@ -258,3 +260,5 @@ var policy = new IntentPolicy()
 ```
 
 Birden fazla senaryoyla tam çalışan örnek için [sample](https://github.com/keremvaris/Intentum/tree/master/samples/Intentum.Sample).
+
+**Sonraki adım:** Bu sayfayı bitirdiyseniz → [Gerçek dünya senaryoları](real-world-scenarios.md) veya [API Referansı](api.md).

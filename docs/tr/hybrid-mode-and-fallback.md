@@ -1,5 +1,7 @@
 # Hibrit mod ve kural tabanlı yedekleme
 
+**Bu sayfayı neden okuyorsunuz?** Bu sayfa hibrit niyet çıkarımını (kural tabanlı + LLM/ONNX yedek) anlatır: yüksek güvenli durumlar hızlı kalır, belirsiz durumlarda yedek model kullanılır. Maliyet ve güven dengesi arıyorsanız doğru yerdesiniz.
+
 Bu sayfa **hibrit niyet çıkarımını** anlatır: Kural tabanlı mantığı AI (LLM veya yerel ONNX) ile birleştirerek yüksek güvenli durumların hızlı ve ucuz kalması, belirsiz durumlarda ise yedek modelin kullanılması. En iyi uygulamalar özetlenir.
 
 ---
@@ -96,3 +98,5 @@ Pipeline’a (sinyal → vektör → niyet → güven) tam kontrol istediğinizd
 - [Gerçek dünya senaryoları](real-world-scenarios.md) — Zincirli intent (kural → LLM yedek)
 - [Production readiness](production-readiness.md) — Yedekleme ve hata yönetimi
 - [API özeti](api.md) — ChainedIntentModel, OnnxIntentModel, Intent.Reasoning
+
+**Sonraki adım:** Bu sayfayı bitirdiyseniz → [Gerçek dünya senaryoları](real-world-scenarios.md) veya [Üretim hazırlığı](production-readiness.md).

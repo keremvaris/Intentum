@@ -1,5 +1,7 @@
 # Örnekler Rehberi — Basit, Orta, Zor
 
+**Bu sayfayı neden okuyorsunuz?** Bu sayfa Intentum örneklerini ve sample uygulamalarını basit / orta / zor olarak gruplar; hangi örneğin ne işe yaradığını ve nasıl çalıştırılacağını gösterir. "Hangi örnekle başlamalıyım?" veya "Bu senaryo için hangi proje?" sorularına yanıt arıyorsanız doğru yerdesiniz.
+
 Bu sayfa Intentum **örneklerini** ve **sample** uygulamalarını zorluk derecesine göre gruplar ve gerçek hayat kullanımlarıyla eşleştirir. Tüm örnekler API anahtarı olmadan (Mock sağlayıcı) çalışır; aksi belirtilmedikçe.
 
 ---
@@ -127,15 +129,17 @@ dotnet run --project examples/greenwashing-intent
 | Sample | Açıklama | Zorluk |
 |--------|----------|--------|
 | [Intentum.Sample](https://github.com/keremvaris/Intentum/tree/master/samples/Intentum.Sample) | Konsol: tek uygulamada birçok senaryo (ödeme, ESG, uyumluluk, yeniden denemeler). | Orta |
-| [Intentum.Sample.Web](https://github.com/keremvaris/Intentum/tree/master/samples/Intentum.Sample.Web) | CQRS Web API: infer, explain, explain-tree, analytics, timeline, playground compare, greenwashing. | Zor |
+| [Intentum.Sample.Blazor](https://github.com/keremvaris/Intentum/tree/master/samples/Intentum.Sample.Blazor) | Blazor UI + CQRS Web API: infer, explain, explain-tree, analytics, timeline, playground compare, greenwashing; Overview, Commerce, Explain, FraudLive, Sustainability, Timeline, PolicyLab, Sandbox; SSE inference, dolandırıcılık ve sürdürülebilirlik simülasyonu. | Zor |
 
 Web sample’ı çalıştırma:
 
 ```bash
-dotnet run --project samples/Intentum.Sample.Web
+dotnet run --project samples/Intentum.Sample.Blazor
 ```
 
 Ardından arayüzü ve Scalar API dokümanını açın; `POST /api/intent/infer`, `POST /api/intent/explain-tree`, `GET /api/intent/analytics/timeline/{entityId}`, `POST /api/intent/playground/compare` deneyin.
+
+Ardından tarayıcıda Overview, Commerce, Explain, FraudLive, Sustainability, Timeline, PolicyLab, Sandbox sayfalarını deneyebilirsiniz.
 
 ---
 
@@ -150,6 +154,8 @@ Ardından arayüzü ve Scalar API dokümanını açın; `POST /api/intent/infer`
 | fraud-intent | Zor | `dotnet run --project examples/fraud-intent` |
 | customer-intent | Zor | `dotnet run --project examples/customer-intent` |
 | greenwashing-intent | Zor | `dotnet run --project examples/greenwashing-intent` |
-| Sample.Web | Zor | `dotnet run --project samples/Intentum.Sample.Web` |
+| Sample.Blazor | Zor | `dotnet run --project samples/Intentum.Sample.Blazor` |
 
 Yukarıdaki örnekler için API anahtarı gerekmez; Mock sağlayıcı kullanılır. Gerçek AI için ortam değişkenlerini ayarlayıp bir sağlayıcı kullanın — bkz. [Sağlayıcılar](providers.md) ve [AI sağlayıcılarını kullanma](ai-providers-howto.md).
+
+**Sonraki adım:** Bu sayfayı bitirdiyseniz → [Kurulum](setup.md) veya [Senaryolar](scenarios.md).

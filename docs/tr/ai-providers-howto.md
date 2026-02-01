@@ -1,5 +1,7 @@
 # AI sağlayıcılarını kullanma
 
+**Bu sayfayı neden okuyorsunuz?** Bu sayfa her Intentum AI sağlayıcısı (Mock, OpenAI, Gemini, Mistral, Azure, Claude) için kolay / orta / zor kullanım senaryolarını gösterir. Hangi sağlayıcıyı nasıl entegre edeceğinizi veya testten production'a nasıl geçeceğinizi merak ediyorsanız doğru yerdesiniz.
+
 Her Intentum AI sağlayıcısı için **kolay**, **orta** ve **zor** kullanım senaryoları. Kullanım senaryoları sayfasındaki gibi: **Ne**, **İhtiyaç**, **Kod**, **Beklenen sonuç**.
 
 ---
@@ -366,3 +368,5 @@ var intent = model.Infer(space);
 - API anahtarlarını asla commit etme; ortam değişkenleri veya secret manager kullan.
 - Production’da ham istek/cevap gövdesini loglama.
 - Tüm env var isimleri ve opsiyonel alanlar için her sağlayıcının `*Options` sınıfı ve repodaki `FromEnvironment()` kullanımına bak. Ayrıca [Sağlayıcılar](providers.md) ve [Kurulum](setup.md).
+
+**Sonraki adım:** Bu sayfayı bitirdiyseniz → [Sağlayıcılar](providers.md) veya [Senaryolar](scenarios.md).

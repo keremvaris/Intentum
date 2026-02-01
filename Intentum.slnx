@@ -15,7 +15,6 @@
   <Project Path="examples/vector-normalization/Intentum.Example.VectorNormalization.csproj"/>
   <Project Path="samples/Intentum.Sample/Intentum.Sample.csproj"/>
   <Project Path="samples/Intentum.Sample.Blazor/Intentum.Sample.Blazor.csproj"/>
-  <Project Path="samples/Intentum.Sample.Web/Intentum.Sample.Web.csproj"/>
   <Project Path="samples/Intentum.VerifyAI/Intentum.VerifyAI.csproj"/>
   <Project Path="src/Intentum.AI/Intentum.AI.csproj"/>
   <Project Path="src/Intentum.AI.AzureOpenAI/Intentum.AI.AzureOpenAI.csproj"/>

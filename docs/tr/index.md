@@ -1,10 +1,18 @@
 # Intentum Dokümantasyonu (TR)
 
-Intentum dokümantasyonuna hoş geldin. Bu doküman projene kurulum, yapılandırma ve kullanım konusunda yardımcı olur.
+**Bu sayfayı neden okuyorsunuz?** Bu sayfa Intentum’un ne olduğunu, ne işe yaradığını ve nereden başlamanız gerektiğini anlatır. Konsepte hiç aşina değilseniz doğru yerdesiniz; kurulum ve ilk deneme adımları da burada.
 
 ---
 
-## Intentum nedir?
+## Intentum nedir? (Tek cümle)
+
+**Intentum**, uygulamadaki kullanıcı ve davranış olaylarını analiz edip **niyet** tahmin eden ve bu niyete göre otomatik **karar** (izin, uyarı, engel vb.) almanızı sağlayan bir kütüphanedir. Örneğin şüpheli bir hesap ele geçirme girişimini tespit edip engelleyebilir veya sık yapılan bir işlemi hızlandırabilir.
+
+**Günlük benzetme:** Sisteminizi koruyan bir güvenlik görevlisi gibi düşünün. Görevli **izler** (kameralar, sensörler), **yorumlar** (gelen tanıdık mı, hareketler şüpheli mi?) ve **karar verir** (kapıyı açar, uyarır, güvenliği arar). Intentum da bu üç adımı yazılımda otomatikleştirir: **Gözlemle (Observe)** → **Tahmin et (Infer)** → **Karar ver (Decide)**.
+
+---
+
+## Intentum nedir? (Detay)
 
 Intentum, davranışın tam deterministik olmadığı sistemler için **intent odaklı** bir yaklaşımdır: klasik BDD’deki gibi sabit senaryo adımları yerine, ne olduğunu **gözlemlersin**, kullanıcının veya sistemin **intent’ini** (isteğe bağlı AI embedding’leriyle) **çıkarırsın** ve policy kurallarıyla ne yapacağına **karar verirsin** (Allow, Observe, Warn, Block).
 
@@ -59,6 +67,17 @@ Kısaca: **Given/When/Then kalktı; yerine Observe (olayları kaydet) → Infer 
 
 ---
 
+## Öğrenme yolu
+
+Hangi sırayla ilerleyeceğiniz:
+
+1. **Başlangıç** — Temel akışı ve Intentum.Core / Runtime / AI’yı öğrenin. → [Mimari](architecture.md), [Kurulum](setup.md).
+2. **İleri** — Policy yazma, senaryolar, gerçek AI sağlayıcı. → [Senaryolar](scenarios.md), [Sağlayıcılar](providers.md).
+3. **Veri** — Niyet geçmişini kaydetmek ve analiz etmek. → [Kurulum – Repo yapısı](setup.md#repo-yapısı), [Gelişmiş Özellikler](advanced-features.md) (Analytics).
+4. **Gelişmiş** — Analytics, Clustering, Explainability, Policy Store vb. → [Gelişmiş Özellikler](advanced-features.md).
+
+---
+
 ## Doküman içeriği
 
 | Sayfa | Ne bulacaksın |
@@ -80,7 +99,9 @@ Kısaca: **Given/When/Then kalktı; yerine Observe (olayları kaydet) → Infer 
 
 ---
 
-## Hızlı başlangıç (3 adım)
+## 5 dakikada ilk deneme (Hızlı başlangıç)
+
+**Somut senaryo:** Ahmet kullanıcısı 1 dakika içinde: 1) 3 kez giriş denedi (2 başarısız, 1 başarılı), 2) Giriş yaptıktan sonra "submit" aksiyonunu tetikledi. Sistem bu davranışı gözlemleyip niyet ve güven çıkaracak; policy Allow veya Observe kararı verecek.
 
 1. **Çekirdek paketleri yükle**
    ```bash
@@ -96,11 +117,13 @@ Kısaca: **Given/When/Then kalktı; yerine Observe (olayları kaydet) → Infer 
 
 3. **Minimal “ilk proje” için [Kurulum](setup.md)** ve ana tipler ile akış için [API Referansı](api.md) oku.
 
+**Doğru yaptığınızı nasıl anlarsınız?** Çalıştırdıktan sonra konsolda bir **güven seviyesi** (örn. High, Medium) ve bir **karar** (Allow, Observe, Warn veya Block) görürsünüz. Örnek: `Güven: High, Karar: Allow`.
+
 ---
 
 ## Nasıl yapılır?
 
-- **İlk senaryoyu nasıl çalıştırırım?** — Konsol örneği: `dotnet run --project samples/Intentum.Sample` (mock sağlayıcı, API anahtarı gerekmez). Tam API için `dotnet run --project samples/Intentum.Sample.Web`; repo yapısı ve endpoint'ler için [Kurulum](setup.md)'a bakın. Örnekler hem klasik (ödeme, giriş, destek, e‑ticaret: sepete ekleme, checkout, ödeme doğrulama) hem ESG (rapor gönderimi, uyumluluk) akışlarını gösterir.
+- **İlk senaryoyu nasıl çalıştırırım?** — Konsol örneği: `dotnet run --project samples/Intentum.Sample` (mock sağlayıcı, API anahtarı gerekmez). Tam API ve Blazor UI için `dotnet run --project samples/Intentum.Sample.Blazor` (Overview, Commerce, Explain, FraudLive, Sustainability, Timeline, PolicyLab, Sandbox). Repo yapısı ve endpoint'ler için [Kurulum](setup.md)'a bakın. Örnekler hem klasik (ödeme, giriş, destek, e‑ticaret: sepete ekleme, checkout, ödeme doğrulama) hem ESG (rapor gönderimi, uyumluluk) akışlarını gösterir.
 - **Policy nasıl eklenir?** — `IntentPolicy` oluştur, `.AddRule(PolicyRule(...))` ile kuralları **sırayla** ekle (önce Block, sonra Allow). Çıkarımdan sonra `intent.Decide(policy)` çağır. Detay için [Senaryolar](scenarios.md) ve [API Referansı](api.md).
 - **Klasik akışları (ödeme, login, destek) nasıl modellersin?** — Olayları `space.Observe(actor, action)` ile kaydet (örn. `"user"`, `"login"`; `"user"`, `"retry"`; `"user"`, `"submit"`). Model davranıştan intent çıkarır; policy Allow/Observe/Warn/Block verir. [Kullanım Senaryoları](scenarios.md) içinde hem klasik (ödeme, e‑ticaret) hem ESG örnekleri var.
 - **AI ile senaryo nasıl yazılır?** — Aynı `Observe` akışı Mock veya gerçek sağlayıcı (OpenAI, Gemini vb.) ile çalışır; davranış anahtarlarını anlamlı seç, policy'yi güven + sinyallere dayandır. Detay ve ipuçları: [Senaryolar – AI ile senaryolar](scenarios.md#ai-ile-senaryolar-nasıl-yapılır).

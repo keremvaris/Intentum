@@ -1,0 +1,227 @@
+@page "/ato"
+@rendermode InteractiveServer
+@using System.Text.Json
+@inject HttpClient Http
+@inject NavigationManager Navigation
+@inject IJSRuntime JSRuntime
+@implements IAsyncDisposable
+
+<PageTitle>ATO Demo – Hesap Ele Geçirme</PageTitle>
+
+<div class="page-card">
+    <h2 class="page-card h2" style="margin: 0 0 0.25rem 0;">Demo 2: Hesap Ele Geçirme Saldırısı (ATO)</h2>
+    <p class="subtitle">Parçalar tehlikeli görünmeyebilir; Intentum onları bir araya getirip resmi görebilir.</p>
+    <div class="ato-controls">
+        <button type="button" class="btn-demo-ato" @onclick="StartAto" disabled="@(_atoRunning || _atoStep >= AtoEventLabels.Length)">
+            @(_atoRunning ? "Çalışıyor…" : (_atoStep >= AtoEventLabels.Length ? "Tamamlandı" : "Başlat"))
+        </button>
+        @if (_atoStep > 0 && _atoStep < AtoEventLabels.Length)
+        {
+            <span class="status-pill status-pill--running">Adım @_atoStep / @AtoEventLabels.Length</span>
+        }
+    </div>
+</div>
+
+<div class="ato-layout">
+    <div class="page-card ato-events-card">
+        <h3 class="page-card h3" style="margin: 0 0 0.75rem 0;">Olaylar (kronolojik)</h3>
+        <ul class="ato-event-list">
+            @for (var i = 0; i < AtoEventLabels.Length; i++)
+            {
+                var idx = i;
+                var label = AtoEventLabels[idx];
+                var reached = idx < _atoStep;
+                <li class="ato-event-item @(reached ? "ato-event-item--reached" : "")">
+                    <span class="ato-event-num">@(idx + 1)</span>
+                    <span class="ato-event-label">@label</span>
+                </li>
+            }
+        </ul>
+    </div>
+    <div class="page-card ato-intent-card">
+        <h3 class="page-card h3" style="margin: 0 0 0.75rem 0;">Intent kartı</h3>
+        @if (_atoIntentName != null)
+        {
+            <div class="ato-intent-name"><strong>@_atoIntentName</strong></div>
+            <div class="ato-intent-confidence">Güven: @((_atoConfidence ?? 0).ToString("P0"))</div>
+            @if (_atoSignals.Count > 0)
+            {
+                <div class="ato-intent-keywords">
+                    <strong>Anahtar kelimeler / sinyaller:</strong>
+                    <ul class="ato-keyword-list">
+                        @foreach (var s in _atoSignals.Take(8))
+                        {
+                            <li>@s</li>
+                        }
+                    </ul>
+                </div>
+            }
+        }
+        else
+        {
+            <p class="muted">Başlat’a tıklayın; her olay eklendikçe intent güncellenecek.</p>
+        }
+    </div>
+</div>
+
+@if (_confidencePerStep.Count > 0)
+{
+    <div class="page-card ato-charts-row">
+        <h3 class="page-card h3" style="margin: 0 0 0.75rem 0;">Grafikler ve rapor</h3>
+        <div class="ato-charts-grid">
+            <div class="ato-chart-card card">
+                <h4 class="ato-chart-title">Güven skoru (adımlara göre)</h4>
+                <div id="ato-confidence-line" class="ato-chart-container"></div>
+            </div>
+            <div class="ato-chart-card card">
+                <h4 class="ato-chart-title">Sinyal katkıları</h4>
+                <div id="ato-signal-bar" class="ato-chart-container"></div>
+            </div>
+        </div>
+        <div class="ato-report card">
+            <h4 class="ato-report-title">Özet rapor</h4>
+            <ul class="ato-report-list">
+                <li><strong>Toplam adım:</strong> @_confidencePerStep.Count</li>
+                <li><strong>Son intent:</strong> @(_atoIntentName ?? "—")</li>
+                <li><strong>Ortalama güven:</strong> @(_confidencePerStep.Count > 0 ? (_confidencePerStep.Average(x => x.Confidence) * 100).ToString("N1") + "%" : "—")</li>
+                <li><strong>Min / Max güven:</strong> @(_confidencePerStep.Count > 0 ? (_confidencePerStep.Min(x => x.Confidence) * 100).ToString("N0") + "% / " + (_confidencePerStep.Max(x => x.Confidence) * 100).ToString("N0") + "%" : "—")</li>
+            </ul>
+        </div>
+    </div>
+}
+
+@code {
+    private static readonly string[] AtoEventLabels =
+    [
+        "FailedLogin (yanlış şifre)",
+        "PasswordResetRequest",
+        "EmailAccessFromNewDevice (reset linkine tıklama)",
+        "Login (yeni cihaz, başarılı)",
+        "ProfileUpdate (2FA telefon numarası kaldırıldı)"
+    ];
+
+    private static readonly string[] AtoActions = ["FailedLogin", "PasswordResetRequest", "EmailAccessFromNewDevice", "Login", "ProfileUpdate"];
+
+    private bool _atoRunning;
+    private int _atoStep;
+    private string? _atoIntentName;
+    private double? _atoConfidence;
+    private readonly List<string> _atoSignals = new();
+    private readonly List<(int Step, double Confidence)> _confidencePerStep = new();
+    private EChartsInterop? _lineChart;
+    private EChartsInterop? _barChart;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (_confidencePerStep.Count == 0) return;
+        if (_lineChart == null)
+        {
+            await Task.Delay(100);
+            await InvokeAsync(async () =>
+            {
+                if (_lineChart != null) return;
+                await InitChartsAsync();
+                await UpdateChartsAsync();
+                StateHasChanged();
+            });
+        }
+        else
+            await UpdateChartsAsync();
+    }
+
+    private async Task InitChartsAsync()
+    {
+        _lineChart = new EChartsInterop(JSRuntime, "ato-confidence-line");
+        _barChart = new EChartsInterop(JSRuntime, "ato-signal-bar");
+        await _lineChart.InitAsync();
+        await _barChart.InitAsync();
+    }
+
+    private async Task UpdateChartsAsync()
+    {
+        if (_lineChart == null || _barChart == null) return;
+        var lineOption = new
+        {
+            tooltip = new { trigger = "axis" },
+            grid = new { left = "8%", right = "4%", bottom = "12%", top = "8%", containLabel = true },
+            xAxis = new { type = "category", data = _confidencePerStep.OrderBy(x => x.Step).Select(x => "Adım " + x.Step).ToArray(), axisLabel = new { interval = 0 } },
+            yAxis = new { type = "value", min = 0, max = 100, axisLabel = new { formatter = "{value}%" } },
+            series = new[] { new { type = "line", data = _confidencePerStep.OrderBy(x => x.Step).Select(x => Math.Round(x.Confidence * 100, 1)).ToArray(), smooth = true, symbol = "circle", symbolSize = 8, lineStyle = new { width = 2 }, itemStyle = new { color = "#2196f3" } } }
+        };
+        await _lineChart.SetOptionAsync(lineOption);
+        if (_atoSignals.Count > 0)
+        {
+            var barOption = new
+            {
+                tooltip = new { trigger = "axis" },
+                grid = new { left = "25%", right = "8%", bottom = "8%", top = "4%", containLabel = true },
+                xAxis = new { type = "value", max = 100, axisLabel = new { formatter = "{value}%" } },
+                yAxis = new { type = "category", data = _atoSignals.Select(s => s.Length > 20 ? s.Substring(0, 17) + "…" : s).ToArray(), inverse = true },
+                series = new[] { new { type = "bar", data = _atoSignals.Select(_ => Math.Round(100.0 / _atoSignals.Count, 1)).ToArray(), itemStyle = new { color = "#4caf50" } } }
+            };
+            await _barChart.SetOptionAsync(barOption);
+        }
+        else
+        {
+            await _barChart.SetOptionAsync(new { title = new { text = "Sinyal yok", left = "center", top = "center", textStyle = new { fontSize = 14, color = "#999" } } });
+        }
+    }
+
+    private async Task StartAto()
+    {
+        if (_atoRunning || _atoStep >= AtoEventLabels.Length) return;
+        _atoRunning = true;
+        _atoStep = 0;
+        _atoIntentName = null;
+        _atoConfidence = null;
+        _atoSignals.Clear();
+        _confidencePerStep.Clear();
+        if (_lineChart != null) { await _lineChart.DisposeAsync(); _lineChart = null; }
+        if (_barChart != null) { await _barChart.DisposeAsync(); _barChart = null; }
+        StateHasChanged();
+
+        var baseUri = new Uri(Navigation.BaseUri).GetLeftPart(UriPartial.Authority);
+        var eventsList = new List<object>();
+
+        for (var i = 0; i < AtoActions.Length; i++)
+        {
+            eventsList.Add(new { actor = "user", action = AtoActions[i] });
+            _atoStep = i + 1;
+            try
+            {
+                var req = new { events = eventsList };
+                var res = await Http.PostAsJsonAsync(baseUri + "/api/intent/explain", req);
+                if (res.IsSuccessStatusCode)
+                {
+                    var json = await res.Content.ReadFromJsonAsync<JsonElement>();
+                    if (json.TryGetProperty("intentName", out var nameEl)) _atoIntentName = nameEl.GetString();
+                    if (json.TryGetProperty("confidenceScore", out var scoreEl)) _atoConfidence = scoreEl.GetDouble();
+                    if (_atoConfidence.HasValue) _confidencePerStep.Add((i + 1, _atoConfidence.Value));
+                    _atoSignals.Clear();
+                    if (json.TryGetProperty("signalContributions", out var contribEl))
+                    {
+                        foreach (var c in contribEl.EnumerateArray())
+                        {
+                            if (c.TryGetProperty("description", out var descEl))
+                                _atoSignals.Add(descEl.GetString() ?? "");
+                        }
+                    }
+                }
+            }
+            catch { /* ignore */ }
+
+            StateHasChanged();
+            if (i < AtoActions.Length - 1)
+                await Task.Delay(TimeSpan.FromSeconds(2));
+        }
+
+        _atoRunning = false;
+        StateHasChanged();
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        if (_lineChart != null) await _lineChart.DisposeAsync();
+        if (_barChart != null) await _barChart.DisposeAsync();
+    }
+}

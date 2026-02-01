@@ -1,5 +1,7 @@
 # Gelişmiş Özellikler (TR)
 
+**Bu sayfayı neden okuyorsunuz?** Bu sayfa Intentum'un gelişmiş özelliklerini (caching, clustering, events, A/B test, multi-tenancy, explainability, simulation, policy store vb.) açıklar. Temel akışı (Observe → Infer → Decide) biliyorsanız ve production veya genişletme ihtiyacınız varsa doğru yerdesiniz.
+
 Bu sayfa son versiyonlarda eklenen gelişmiş özellikleri kapsar: similarity engine'ler, fluent API'ler, caching, test utilities ve daha fazlası.
 
 ---
@@ -968,7 +970,7 @@ app.MapHealthChecks("/health");
 
 **Nedir:** **Intentum.Runtime.PolicyStore**, **IPolicyStore** (örn. **FilePolicyStore**) ile JSON’dan **deklaratif policy** yükler: kurallar property/operator/value ile (örn. `intent.confidence.level` eq `"High"`). **SafeConditionBuilder** bunları `Func<Intent, bool>` yapar. Dosyadan hot-reload destekler.
 
-**Ne işe yarar:** Geliştirici olmayanlar policy kurallarını JSON’da düzenleyebilir; kural değişikliği için kod deploy gerekmez.
+**Ne işe yarar:** Geliştirici olmayan personel (örneğin operasyon veya uyumluluk ekipleri), policy kurallarını JSON dosyasında düzenleyebilir; kural değişiklikleri için kod değişikliği veya deploy gerekmez.
 
 **Kullanım:** **Intentum.Runtime.PolicyStore** ekleyin, `AddFilePolicyStore(path)` ile kaydedin. `await policyStore.LoadAsync()` ile policy yükleyin. JSON şeması için repoya bakın (PolicyDocument, PolicyRuleDocument, PolicyConditionDocument).
 
@@ -1019,3 +1021,5 @@ app.MapHealthChecks("/health");
 - [API Referansı](api.md) — Tam API dokümantasyonu
 - [Kurulum](setup.md) — Başlangıç rehberi
 - [Senaryolar](scenarios.md) — Kullanım örnekleri
+
+**Sonraki adım:** Bu sayfayı bitirdiyseniz → [Bu özellikler ne işe yarar](features-simple-guide.md) veya [API Referansı](api.md).

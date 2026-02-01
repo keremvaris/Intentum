@@ -1,5 +1,7 @@
 # Embedding API hata yönetimi
 
+**Bu sayfayı neden okuyorsunuz?** Bu sayfa embedding sağlayıcıları (OpenAI, Azure, Gemini, Mistral vb.) hata verdiğinde mevcut davranışı ve production için timeout, retry ve rate-limit eklemeyi açıklar. Canlıda 429/timeout/5xx yönetimi arıyorsanız doğru yerdesiniz.
+
 Bu belge, embedding sağlayıcıları (OpenAI, Azure, Gemini, Mistral vb.) hata verdiğinde **mevcut davranışı** ve production için **timeout**, **retry** ve **rate-limit** eklemenin nasıl yapılacağını açıklar.
 
 ## Mevcut davranış
@@ -54,3 +56,5 @@ API 429 (Too Many Requests) döndüğünde sağlayıcı fırlatır. 429’ları 
 | **Rate limit**    | 429 → fırlatır                             | Çağrıları rate limit’le; 429’da backoff ile retry   |
 
 Bu uygulamalar tüm HTTP tabanlı embedding sağlayıcıları (OpenAI, Azure OpenAI, Gemini, Mistral) için geçerlidir; her sağlayıcının kaydında kullanılan aynı `HttpClient` (ve handler’lar) yapılandırılmalıdır.
+
+**Sonraki adım:** Bu sayfayı bitirdiyseniz → [Üretim hazırlığı](production-readiness.md) veya [Sağlayıcılar](providers.md).

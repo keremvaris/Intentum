@@ -1,5 +1,7 @@
 # CodeGen (EN)
 
+**Why you're reading this page:** This page explains how to scaffold CQRS + Intentum projects and generate features (Commands, Queries, Handlers) from a test assembly or YAML spec using Intentum CodeGen. It is the right place if you are looking for project scaffolding or code generation.
+
 Intentum CodeGen scaffolds CQRS + Intentum projects and generates **Features** (Commands, Queries, Handlers, Validators) from a test assembly or a YAML/JSON spec. Use it in **any** solution: new project or existing Web API.
 
 ---
@@ -73,7 +75,7 @@ CodeGen scans the test assembly for methods with **xUnit `[Fact]`** (or similar)
   - `Features/<FeatureName>/Handlers/` — command handler.
   - `Features/<FeatureName>/Validators/` — FluentValidation validator (optional).
 
-Handlers and validators are minimal stubs; you can add Intentum (Observe → Infer → Decide) inside handlers as in [Sample.Web](https://github.com/keremvaris/Intentum/tree/master/samples/Intentum.Sample.Web).
+Handlers and validators are minimal stubs; you can add Intentum (Observe → Infer → Decide) inside handlers as in [Sample.Blazor](https://github.com/keremvaris/Intentum/tree/master/samples/Intentum.Sample.Blazor).
 
 ---
 
@@ -107,7 +109,7 @@ features:
 
 ## Output structure
 
-Scaffold and generate both target this layout (aligned with [Sample.Web](https://github.com/keremvaris/Intentum/tree/master/samples/Intentum.Sample.Web)):
+Scaffold and generate both target this layout (aligned with [Sample.Blazor](https://github.com/keremvaris/Intentum/tree/master/samples/Intentum.Sample.Blazor)):
 
 ```
 Features/
@@ -122,15 +124,15 @@ Existing files are **not overwritten**; CodeGen only writes missing files.
 
 ---
 
-## Sample.Web at a glance
+## Sample.Blazor at a glance
 
-The [Sample.Web](https://github.com/keremvaris/Intentum/tree/master/samples/Intentum.Sample.Web) project is the reference for CodeGen output and Intentum in handlers:
+The [Sample.Blazor](https://github.com/keremvaris/Intentum/tree/master/samples/Intentum.Sample.Blazor) project is the reference for CodeGen output and Intentum in handlers:
 
 - **Stack:** ASP.NET Core, MediatR, FluentValidation, Intentum (Core, Runtime, AI), **Scalar** (API docs), static **UI** in `wwwroot/`.
 - **Endpoints:** `POST /api/carbon/calculate` (with Intentum Observe→Infer→Decide), `GET /api/carbon/report/{id}`, `POST /api/orders`.
 - **UI:** `http://localhost:5150/` — forms to try Carbon, Report, and Orders. **API docs:** `http://localhost:5150/scalar`.
 - **Port:** 5150 in `Properties/launchSettings.json` (change if 5000 is in use).
-- **Run:** `dotnet run --project samples/Intentum.Sample.Web`.
+- **Run:** `dotnet run --project samples/Intentum.Sample.Blazor`.
 
 ---
 
@@ -138,4 +140,6 @@ The [Sample.Web](https://github.com/keremvaris/Intentum/tree/master/samples/Inte
 
 - [Setup](setup.md) — Install Intentum packages.
 - [Scenarios](scenarios.md) — Observe → Infer → Decide examples.
-- [Sample.Web](https://github.com/keremvaris/Intentum/tree/master/samples/Intentum.Sample.Web) — Full CQRS + Intentum ASP.NET sample (Scalar + UI).
+- [Sample.Blazor](https://github.com/keremvaris/Intentum/tree/master/samples/Intentum.Sample.Blazor) — Full CQRS + Intentum ASP.NET sample (Scalar + UI).
+
+**Next step:** When you're done with this page → [Setup](setup.md) or [Scenarios](scenarios.md).

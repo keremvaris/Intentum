@@ -1,6 +1,6 @@
 # Setup (EN)
 
-This page walks you through prerequisites, package installation, and a minimal first project so you can run Intentum end-to-end.
+**Why you're reading this page** — This page helps you add Intentum to your project and get your **first working flow** (observe → infer → decide). Prerequisites, package choice, and a minimal first project are covered here.
 
 ---
 
@@ -35,6 +35,10 @@ Alternatively, add **Intentum.Providers** to get Core, Runtime, AI, and all prov
 ---
 
 ## First project: minimal console app
+
+**What this example does** — Alex tried login 3 times in 1 minute (2 failed, 1 succeeded), then triggered a "submit" action. The code records these events, infers intent and confidence, and returns Allow or Observe from a simple policy.
+
+**You'll know it worked when** — After `dotnet run`, you see a **confidence level** (e.g. High, Medium) and a **decision** (Allow or Observe) in the console.
 
 1. **Create a console app** (if you don’t have one):
    ```bash
@@ -190,7 +194,7 @@ The solution contains many packages and two sample applications.
 **Samples:**
 
 - `samples/Intentum.Sample` — Console: ESG, Carbon, EU Green Bond, workflow, classic (payment, support, e‑commerce), fluent API, caching, batch, rate limiting demo
-- `samples/Intentum.Sample.Web` — ASP.NET Core API with Scalar docs and web UI: CQRS (carbon, orders), intent infer (`POST /api/intent/infer`), intent explain (`POST /api/intent/explain`), **greenwashing detection** (`POST /api/greenwashing/analyze`, `GET /api/greenwashing/recent`), rate limiting, persistence (in-memory), **Dashboard** (analytics, son çıkarımlar, son greenwashing analizleri), reporting & analytics (`GET /api/intent/analytics/summary`, `/api/intent/history`, `/export/json`, `/export/csv`), health checks. See [Greenwashing detection (how-to)](greenwashing-detection-howto.md#6-sample-application-intentumsampleweb) and [samples/Intentum.Sample.Web/README.md](../../samples/Intentum.Sample.Web/README.md).
+- `samples/Intentum.Sample.Blazor` — Blazor WebAssembly/Server sample app (web UI + API): Overview, Commerce, Explain, FraudLive, Sustainability, Timeline, PolicyLab, Sandbox, Settings, Signals, Graph, Heatmap pages; Carbon, Greenwashing, OrderPlacement CQRS; intent infer/explain/explain-tree, greenwashing detection, Dashboard, analytics, timeline, playground compare; SSE inference broadcast, fraud and sustainability simulation. Run: `dotnet run --project samples/Intentum.Sample.Blazor`. See [Greenwashing detection (how-to)](greenwashing-detection-howto.md#6-sample-application-intentumsampleblazor).
 
 ---
 
@@ -212,14 +216,14 @@ Runs ESG, Carbon, EU Green Bond, workflow, and classic (payment, support, e‑co
 
 **To try real AI:** Set the `OPENAI_API_KEY` (and optionally `OPENAI_EMBEDDING_MODEL`) environment variable; the sample will use **OpenAI embeddings**. See [Providers](providers.md).
 
-**Web sample** (API + UI, intent infer, explain, greenwashing, Dashboard, analytics):
+**Web sample (Blazor)** (API + UI, intent infer, explain, greenwashing, Dashboard, analytics):
 
 ```bash
-dotnet run --project samples/Intentum.Sample.Web
+dotnet run --project samples/Intentum.Sample.Blazor
 ```
 
-- **UI:** http://localhost:5000/ (or the port in `launchSettings.json`) — **Örnekler** (carbon, orders, greenwashing, intent infer, explain) and **Dashboard** (analytics, son çıkarımlar, son greenwashing analizleri)
-- **API docs (Scalar):** http://localhost:5000/scalar
+- **UI:** http://localhost:5018/ (or the port in `launchSettings.json`) — Overview, Commerce, Explain, FraudLive, Sustainability, Timeline, PolicyLab, Sandbox, Settings, Signals, Graph, Heatmap; **Dashboard** (analytics, son çıkarımlar, son greenwashing analizleri)
+- **API docs (Scalar):** http://localhost:5018/scalar
 - **Endpoints:**
   - Carbon: `POST /api/carbon/calculate`, `GET /api/carbon/report/{id}`
   - Orders: `POST /api/orders`
@@ -227,6 +231,8 @@ dotnet run --project samples/Intentum.Sample.Web
   - Greenwashing: `POST /api/greenwashing/analyze` (body: `{ "report": "...", "sourceType": "Report", "language": "tr", "imageBase64": null }`), `GET /api/greenwashing/recent?limit=15`
   - Analytics: `GET /api/intent/analytics/summary`, `GET /api/intent/history`, `GET /api/intent/analytics/timeline/{entityId}`, `GET /api/intent/analytics/export/json`, `GET /api/intent/analytics/export/csv`
   - Health: `/health`
+
+**If you're done with setup** → [Scenarios](scenarios.md) or [API Reference](api.md).
 
 ---
 

@@ -1,5 +1,7 @@
 # Greenwashing tespiti (how-to)
 
+**Bu sayfayı neden okuyorsunuz?** Bu sayfa Intentum ile sürdürülebilirlik raporlarında greenwashing (yeşil aklama) tespitini adım adım anlatır: davranış uzayı, niyet çıkarımı ve policy kararları. ESG raporları veya iddia doğrulama ile uğraşıyorsanız doğru yerdesiniz.
+
 Intentum ile sürdürülebilirlik raporlarında greenwashing tespiti: davranış uzayı, niyet çıkarımı ve politika kararları.
 
 ---
@@ -160,14 +162,14 @@ Yeni sinyaller = yeni gözlemlerle esneklik, ikili bayrak yerine güven skoru ve
 
 ---
 
-## 6. Örnek uygulama (Intentum.Sample.Web)
+## 6. Örnek uygulama (Intentum.Sample.Blazor)
 
 Web örneği UI ve HTTP API ile tam greenwashing akışı içerir.
 
 **Çalıştırma:**
 
 ```bash
-dotnet run --project samples/Intentum.Sample.Web
+dotnet run --project samples/Intentum.Sample.Blazor
 ```
 
 - **UI:** http://localhost:5000/ → **Örnekler** → **Greenwashing tespiti**
@@ -205,7 +207,7 @@ dotnet run --project samples/Intentum.Sample.Web
 - **Blockchain (mock):** Her analiz benzersiz `blockchainRef` (örn. `0x…`) döner.
 - **Son analizler:** Dashboard sekmesi `GET /api/greenwashing/recent` ile "Son greenwashing analizleri" gösterir; liste Dashboard açıkken yenilenir; her 30 saniyede mock kayıt eklenir.
 
-Implementasyon: `samples/Intentum.Sample.Web/Features/GreenwashingDetection/` altında — `SustainabilityReporter`, `GreenwashingIntentModel`, `SustainabilitySolutionGenerator`, `GreenwashingImageAnalyzer`, `GreenwashingScope3Mock`, `GreenwashingRecentStore`.
+Implementasyon: `samples/Intentum.Sample.Blazor/Features/GreenwashingDetection/` altında — `SustainabilityReporter`, `GreenwashingIntentModel`, `SustainabilitySolutionGenerator`, `GreenwashingImageAnalyzer`, `GreenwashingScope3Mock`, `GreenwashingRecentStore`.
 
 ---
 
@@ -213,5 +215,7 @@ Implementasyon: `samples/Intentum.Sample.Web/Features/GreenwashingDetection/` al
 
 - [Gerçek dünya senaryoları](real-world-scenarios.md) — Dolandırıcılık/kötüye kullanım ve AI yedeklemesi
 - [Niyet modelleri tasarlama](designing-intent-models.md) — Heuristic vs ağırlıklı vs LLM
-- [Kurulum](setup.md) — Sample.Web derleme ve çalıştırma
+- [Kurulum](setup.md) — Sample.Blazor derleme ve çalıştırma
 - Örnek: [examples/greenwashing-intent](https://github.com/keremvaris/Intentum/tree/master/examples/greenwashing-intent) — Konsol greenwashing örneği (API yok)
+
+**Sonraki adım:** Bu sayfayı bitirdiyseniz → [Gerçek dünya senaryoları](real-world-scenarios.md) veya [Niyet modelleri tasarlama](designing-intent-models.md).

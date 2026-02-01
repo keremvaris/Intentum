@@ -1,5 +1,7 @@
 # CodeGen (TR)
 
+**Bu sayfayı neden okuyorsunuz?** Bu sayfa Intentum CodeGen ile CQRS + Intentum proje iskeleti oluşturmayı ve test assembly veya YAML spec'ten feature (Commands, Queries, Handlers) üretmeyi anlatır. Yeni proje scaffold veya kod üretimi arıyorsanız doğru yerdesiniz.
+
 Intentum CodeGen, CQRS + Intentum proje iskeleti oluşturur ve test assembly veya YAML/JSON spec’ten **Features** (Commands, Queries, Handlers, Validators) üretir. **Herhangi** bir solution’da kullanılabilir: yeni proje veya mevcut Web API.
 
 ---
@@ -73,7 +75,7 @@ CodeGen, test assembly içinde **xUnit `[Fact]`** (veya benzeri) attribute’lu 
   - `Features/<FeatureName>/Handlers/` — command handler.
   - `Features/<FeatureName>/Validators/` — FluentValidation validator (isteğe bağlı).
 
-Handler ve validator’lar minimal stub’dır; [Sample.Web](https://github.com/keremvaris/Intentum/tree/master/samples/Intentum.Sample.Web) örneğindeki gibi handler içinde Intentum (Observe → Infer → Decide) ekleyebilirsiniz.
+Handler ve validator’lar minimal stub’dır; [Sample.Blazor](https://github.com/keremvaris/Intentum/tree/master/samples/Intentum.Sample.Blazor) örneğindeki gibi handler içinde Intentum (Observe → Infer → Decide) ekleyebilirsiniz.
 
 ---
 
@@ -107,7 +109,7 @@ features:
 
 ## Çıktı yapısı
 
-Scaffold ve generate, [Sample.Web](https://github.com/keremvaris/Intentum/tree/master/samples/Intentum.Sample.Web) ile uyumlu bu yapıyı hedefler:
+Scaffold ve generate, [Sample.Blazor](https://github.com/keremvaris/Intentum/tree/master/samples/Intentum.Sample.Blazor) ile uyumlu bu yapıyı hedefler:
 
 ```
 Features/
@@ -122,15 +124,15 @@ Mevcut dosyalar **üzerine yazılmaz**; CodeGen yalnızca eksik dosyaları yazar
 
 ---
 
-## Sample.Web kısaca
+## Sample.Blazor kısaca
 
-[Sample.Web](https://github.com/keremvaris/Intentum/tree/master/samples/Intentum.Sample.Web) projesi, CodeGen çıktısı ve handler içinde Intentum için referanstır:
+[Sample.Blazor](https://github.com/keremvaris/Intentum/tree/master/samples/Intentum.Sample.Blazor) projesi, CodeGen çıktısı ve handler içinde Intentum için referanstır:
 
 - **Stack:** ASP.NET Core, MediatR, FluentValidation, Intentum (Core, Runtime, AI), **Scalar** (API dokümanı), `wwwroot/` içinde statik **UI**.
 - **Endpoint’ler:** `POST /api/carbon/calculate` (Intentum Observe→Infer→Decide), `GET /api/carbon/report/{id}`, `POST /api/orders`.
 - **UI:** `http://localhost:5000/` — Carbon, Rapor ve Sipariş formları. **API dokümanı:** `http://localhost:5000/scalar`.
 - **Port:** `Properties/launchSettings.json` içinde varsayılan 5000; gerekirse değiştirilebilir.
-- **Çalıştırma:** `dotnet run --project samples/Intentum.Sample.Web`.
+- **Çalıştırma:** `dotnet run --project samples/Intentum.Sample.Blazor`.
 
 ---
 
@@ -138,4 +140,6 @@ Mevcut dosyalar **üzerine yazılmaz**; CodeGen yalnızca eksik dosyaları yazar
 
 - [Kurulum](setup.md) — Intentum paketlerini yükleme.
 - [Senaryolar](scenarios.md) — Observe → Infer → Decide örnekleri.
-- [Sample.Web](https://github.com/keremvaris/Intentum/tree/master/samples/Intentum.Sample.Web) — Tam CQRS + Intentum ASP.NET örneği (Scalar + UI).
+- [Sample.Blazor](https://github.com/keremvaris/Intentum/tree/master/samples/Intentum.Sample.Blazor) — Tam CQRS + Intentum ASP.NET örneği (Scalar + UI).
+
+**Sonraki adım:** Bu sayfayı bitirdiyseniz → [Kurulum](setup.md) veya [Senaryolar](scenarios.md).

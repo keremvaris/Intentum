@@ -17,9 +17,9 @@
 
 <div class="page-card">
     <div class="explain-tabs">
-        <button type="button" class="@(_tab == "greenwashing" ? "active" : "")" @onclick="@(() => _tab = "greenwashing")">Greenwashing</button>
-        <button type="button" class="@(_tab == "carbon" ? "active" : "")" @onclick="@(() => _tab = "carbon")">Carbon</button>
-        <button type="button" class="@(_tab == "live" ? "active" : "")" @onclick="@(() => _tab = "live")">Live</button>
+        <button type="button" class="btn-app-tab @(_tab == "greenwashing" ? "active" : "")" @onclick="@(() => _tab = "greenwashing")">Greenwashing</button>
+        <button type="button" class="btn-app-tab @(_tab == "carbon" ? "active" : "")" @onclick="@(() => _tab = "carbon")">Carbon</button>
+        <button type="button" class="btn-app-tab @(_tab == "live" ? "active" : "")" @onclick="@(() => _tab = "live")">Live</button>
     </div>
 </div>
 
@@ -78,7 +78,7 @@
         <div class="dashboard-toolbar">
             <label>Rapor metni <textarea @bind="_reportText" rows="5" style="width: 100%; max-width: 500px;" placeholder="Örnek: Şirketimiz 2030'a kadar net sıfır taahhüt etmiştir. Scope 3 tedarikçi doğrulaması devam ediyor."></textarea></label>
             <label>Kaynak <select @bind="_sourceType"><option value="Report">Rapor</option><option value="PressRelease">Basın bülteni</option><option value="SocialMedia">Sosyal medya</option><option value="InvestorPresentation">Yatırımcı sunumu</option></select></label>
-            <button type="button" @onclick="AnalyzeGreenwashing" disabled="@_loading">Analiz et</button>
+            <button type="button" class="btn-app-primary" @onclick="AnalyzeGreenwashing" disabled="@_loading">Analiz et</button>
         </div>
         @if (_loading && _tab == "greenwashing") { <p class="muted">Yükleniyor…</p> }
         @if (_greenError != null) { <p class="error">@_greenError</p> }
@@ -198,7 +198,7 @@
         <div class="dashboard-toolbar">
             <label>Şirket (Actor) <input @bind="_carbonActor" placeholder="Acme Corp" /></label>
             <label>Kapsam (Scope) <input @bind="_carbonScope" placeholder="Scope1" /></label>
-            <button type="button" @onclick="CalculateCarbon" disabled="@_loading">Hesapla</button>
+            <button type="button" class="btn-app-success" @onclick="CalculateCarbon" disabled="@_loading">Hesapla</button>
         </div>
         @if (_loading && _tab == "carbon") { <p class="muted">Yükleniyor…</p> }
         @if (_carbonError != null) { <p class="error">@_carbonError</p> }
@@ -206,7 +206,7 @@
         {
             <div class="card">
                 <p><strong>Rapor ID:</strong> <code>@_carbonReportId</code></p>
-                <button type="button" @onclick="LoadCarbonReport" disabled="@_loading">Raporu gör</button>
+                <button type="button" class="btn-app-primary" @onclick="LoadCarbonReport" disabled="@_loading">Raporu gör</button>
             </div>
         }
         @if (_carbonReport != null)

@@ -1,5 +1,7 @@
 # Yol haritası
 
+**Bu sayfayı neden okuyorsunuz?** Bu sayfa Intentum'un yol haritasını özetler: v1.0 kriterleri, sonraki adımlar ve uzun vadeli hedefler. Proje yönünü veya katkı alanlarını merak ediyorsanız doğru yerdesiniz.
+
 Intentum'un yönü: önce benimsenme, sonra derinlik.
 
 ---
@@ -48,5 +50,7 @@ Uygulanmış ve dokümante edilmiş:
 - **dotnet new şablonları** — `intentum-webapi`, `intentum-backgroundservice`, `intentum-function`.
 
 Bkz. [Gelişmiş Özellikler](advanced-features.md), [Kurulum – Şablondan oluştur](setup.md#şablondan-oluştur-dotnet-new) ve [API Referansı](api.md).
+
+**Sonraki adım:** Bu sayfayı bitirdiyseniz → [Gelişmiş özellikler](advanced-features.md) veya [Kurulum](setup.md).
 
 ---

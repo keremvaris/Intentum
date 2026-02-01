@@ -1,0 +1,147 @@
+@page "/insider-threat"
+@rendermode InteractiveServer
+@inject HttpClient Http
+@inject NavigationManager Navigation
+@inject IJSRuntime JSRuntime
+@implements IAsyncDisposable
+
+<PageTitle>İçeriden Tehdit Demo</PageTitle>
+
+<div class="page-card">
+    <h2 class="page-card h2" style="margin: 0 0 0.25rem 0;">Demo 3: İçeriden Gelen Tehdit (Insider Threat)</h2>
+    <p class="subtitle">Intentum normali bilir, normallikten sapmayı niyet değişikliğinin erken işareti olarak yorumlar.</p>
+    <div class="insider-controls">
+        <button type="button" class="btn-demo-insider" @onclick="RunDemo" disabled="@_running">
+            @(_running ? "Çalışıyor…" : "Demo Çalıştır")
+        </button>
+    </div>
+</div>
+
+@if (_result != null)
+{
+    <div class="page-card">
+        <h3 class="page-card h3" style="margin: 0 0 0.75rem 0;">Normal Aktivite Baz Çizgisi vs. Son 48 Saat</h3>
+        <div class="insider-charts">
+            <div class="insider-chart-card">
+                <strong>Normal Baz Çizgisi (Merve B. 30 gün)</strong>
+                <ul class="insider-bar-list">
+                    <li><span class="insider-bar-label">Dosya indirme</span><span class="insider-bar insider-bar--normal" style="width: @(GetBarWidth(_result.Baseline?.FileDownload ?? 0, 1000))%;">@(_result.Baseline?.FileDownload ?? 0)</span></li>
+                    <li><span class="insider-bar-label">Dahili erişim</span><span class="insider-bar insider-bar--normal" style="width: @(GetBarWidth(_result.Baseline?.InternalAccess ?? 0, 500))%;">@(_result.Baseline?.InternalAccess ?? 0)</span></li>
+                    <li><span class="insider-bar-label">Privileged API</span><span class="insider-bar insider-bar--normal" style="width: @(GetBarWidth(_result.Baseline?.PrivilegedApi ?? 0, 10))%;">@(_result.Baseline?.PrivilegedApi ?? 0)</span></li>
+                </ul>
+            </div>
+            <div class="insider-chart-card">
+                <strong>Son 48 Saat (anomali)</strong>
+                <ul class="insider-bar-list">
+                    <li><span class="insider-bar-label">Dosya indirme</span><span class="insider-bar insider-bar--anomaly" style="width: @(GetBarWidth(_result.Current?.FileDownload ?? 0, 1000))%;">@(_result.Current?.FileDownload ?? 0)</span></li>
+                    <li><span class="insider-bar-label">Dahili erişim</span><span class="insider-bar insider-bar--anomaly" style="width: @(GetBarWidth(_result.Current?.InternalAccess ?? 0, 500))%;">@(_result.Current?.InternalAccess ?? 0)</span></li>
+                    <li><span class="insider-bar-label">Privileged API</span><span class="insider-bar insider-bar--anomaly" style="width: @(GetBarWidth(_result.Current?.PrivilegedApi ?? 0, 10))%;">@(_result.Current?.PrivilegedApi ?? 0)</span></li>
+                </ul>
+            </div>
+        </div>
+        <div class="insider-echarts-row">
+            <h4 class="insider-echarts-title">Karşılaştırmalı grafik (ECharts)</h4>
+            <div id="insider-bar-chart" class="insider-bar-chart-container"></div>
+        </div>
+        <div class="insider-result">
+            <p><strong>Niyet:</strong> @_result.IntentName | <strong>Güven:</strong> @((_result.ConfidenceScore * 100).ToString("N0"))%</p>
+            <p><strong>Karar:</strong> <span class="decision-badge decision-badge--@(_result.Decision.ToLowerInvariant())">@_result.Decision</span></p>
+            @if (_result.Decision == "Warn" || _result.Decision == "RequireAuth")
+            {
+                <div class="insider-warn-banner">Uyarı: Anormal davranış tespit edildi; yöneticiye bildirildi.</div>
+            }
+        </div>
+        <div class="insider-report card">
+            <h4 class="insider-report-title">Özet rapor</h4>
+            <ul class="insider-report-list">
+                <li><strong>Baz çizgisi dönemi:</strong> Merve B. 30 gün</li>
+                <li><strong>Anomali penceresi:</strong> Son 48 saat</li>
+                <li><strong>Tespit edilen niyet:</strong> @_result.IntentName</li>
+                <li><strong>Güven skoru:</strong> @((_result.ConfidenceScore * 100).ToString("N1"))%</li>
+                <li><strong>Karar:</strong> @_result.Decision</li>
+            </ul>
+        </div>
+    </div>
+}
+
+@code {
+    private bool _running;
+    private InsiderResult? _result;
+    private EChartsInterop? _echarts;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (_result != null && _echarts == null)
+        {
+            await Task.Delay(100);
+            await InvokeAsync(async () =>
+            {
+                if (_echarts != null) return;
+                _echarts = new EChartsInterop(JSRuntime, "insider-bar-chart");
+                if (await _echarts.InitAsync())
+                    await UpdateInsiderChartAsync();
+                StateHasChanged();
+            });
+        }
+    }
+
+    private async Task UpdateInsiderChartAsync()
+    {
+        if (_echarts == null || _result == null) return;
+        var categories = new[] { "Dosya indirme", "Dahili erişim", "Privileged API" };
+        var baseline = new[] { _result.Baseline?.FileDownload ?? 0, _result.Baseline?.InternalAccess ?? 0, _result.Baseline?.PrivilegedApi ?? 0 };
+        var current = new[] { _result.Current?.FileDownload ?? 0, _result.Current?.InternalAccess ?? 0, _result.Current?.PrivilegedApi ?? 0 };
+        var option = new
+        {
+            tooltip = new { trigger = "axis", axisPointer = new { type = "shadow" } },
+            legend = new { data = new[] { "Normal (30 gün)", "Son 48 saat" }, top = "0%" },
+            grid = new { left = "12%", right = "8%", bottom = "8%", top = "15%", containLabel = true },
+            xAxis = new { type = "value" },
+            yAxis = new { type = "category", data = categories, inverse = true },
+            series = new[]
+            {
+                new { name = "Normal (30 gün)", type = "bar", data = baseline, itemStyle = new { color = "#4caf50" } },
+                new { name = "Son 48 saat", type = "bar", data = current, itemStyle = new { color = "#d32f2f" } }
+            }
+        };
+        await _echarts.SetOptionAsync(option);
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        if (_echarts != null) await _echarts.DisposeAsync();
+    }
+
+    private static int GetBarWidth(int value, int max)
+    {
+        if (max <= 0) return 0;
+        return Math.Min(100, (int)Math.Round(100.0 * value / max));
+    }
+
+    private async Task RunDemo()
+    {
+        _running = true;
+        if (_echarts != null)
+        {
+            await _echarts.DisposeAsync();
+            _echarts = null;
+        }
+        _result = null;
+        StateHasChanged();
+        try
+        {
+            var baseUri = new Uri(Navigation.BaseUri).GetLeftPart(UriPartial.Authority);
+            var res = await Http.PostAsync(baseUri + "/api/insider-threat/infer", null);
+            if (res.IsSuccessStatusCode)
+            {
+                _result = await res.Content.ReadFromJsonAsync<InsiderResult>();
+            }
+        }
+        catch { /* ignore */ }
+        _running = false;
+        StateHasChanged();
+    }
+
+    private sealed record InsiderBaseline(int FileDownload, int InternalAccess, int PrivilegedApi);
+    private sealed record InsiderResult(string IntentName, double ConfidenceScore, string Decision, InsiderBaseline? Baseline, InsiderBaseline? Current);
+}

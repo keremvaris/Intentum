@@ -1,5 +1,7 @@
 # The Intentum Manifesto
 
+**Why you're reading this page:** This page summarizes Intentum's philosophical foundation: why intent-driven development, why behavior ≠ intent, and why this approach matters in the AI era. It is the right place if you want a deeper answer to "Why Intentum?"
+
 **Intent-Driven Development for the AI Era**
 
 ---
@@ -167,3 +169,5 @@ But if your system involves:
 
 Then Intent-Driven Development is not optional.
 It is inevitable.
+
+**Next step:** When you're done with this page → [Why Intentum](why-intentum.md) or [Intentum Canon](intentum-canon.md).

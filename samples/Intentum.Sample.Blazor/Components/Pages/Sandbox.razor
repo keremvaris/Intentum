@@ -22,9 +22,9 @@
             <label>Olaylar (JSON) <textarea @bind="_eventsJson" rows="4" style="width: 100%; max-width: 500px;" placeholder='[{"actor":"user","action":"login"},{"actor":"user","action":"retry"}]'></textarea></label>
         </div>
         <div class="playground-buttons" style="margin-top: 0.75rem;">
-            <button type="button" @onclick="Infer" disabled="@_loading">Gönder (Infer)</button>
-            <button type="button" @onclick="Compare" disabled="@_loading">Modelleri karşılaştır</button>
-            <button type="button" @onclick="Replay" disabled="@(_lastEvents == null || _loading)">Replay</button>
+            <button type="button" class="btn-app-primary" @onclick="Infer" disabled="@_loading">Gönder (Infer)</button>
+            <button type="button" class="btn-app-secondary" @onclick="Compare" disabled="@_loading">Modelleri karşılaştır</button>
+            <button type="button" class="btn-app-secondary" @onclick="Replay" disabled="@(_lastEvents == null || _loading)">Replay</button>
             <NavLink href="explain" class="action-btn action-btn-secondary">Açıkla</NavLink>
         </div>
     </div>

@@ -1,5 +1,7 @@
 # Observability
 
+**Why you're reading this page:** This page explains Intentum's OpenTelemetry metrics and tracing: inference count, duration, confidence score, policy decisions. It is the right place if you are setting up production monitoring or dashboards.
+
 Intentum exposes **OpenTelemetry metrics** for intent inference and policy decisions. You can export them to Grafana, Prometheus, or any OTLP-compatible backend.
 
 ## Intentum.Observability
@@ -77,3 +79,5 @@ When you use **ObservableIntentModel** and **DecideWithMetrics**, these spans ar
 | Dashboard         | Inferences/s, inference duration, confidence, decisions by type |
 
 For health checks (embedding provider, policy engine), see [Intentum.AspNetCore](api.md) health checks.
+
+**Next step:** When you're done with this page → [Production readiness](production-readiness.md) or [API Reference](api.md).
