@@ -13,6 +13,20 @@ Bu dosya **conventional commit** mesajlarından otomatik üretilir. Commit'te **
 
 ---
 
+## [unreleased]
+
+
+
+### Bug Fixes
+
+- **Improve image green score robustness** *(greenwashing)*
+
+Adds checks for zero-dimension images and cases where total color sum is zero or negative to prevent potential division by zero errors and ensure accurate calculation in edge scenarios.
+
+Refactors the SonarCloud CI workflow to pass exclusion paths via dedicated environment variables. This enhances reliability and addresses potential issues with very long command-line strings.
+
+
+
 ## [1.1.2] - 2026-02-01
 
 
