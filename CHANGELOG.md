@@ -13,6 +13,26 @@ Bu dosya **conventional commit** mesajlarından otomatik üretilir. Commit'te **
 
 ---
 
+## [1.1.4] - 2026-02-01
+
+
+
+### Features
+
+- **Add interactive API traffic anomaly demo page** *(api-traffic)*
+
+- Create new Blazor page /api-traffic illustrating simulated API traffic anomaly detection
+- Implement UI with traffic stats, decision badges, and blocked IPs list
+- Add line and bar charts showing request rates and attack sources via EChartsInterop
+- Enable triggering demo simulation with server call to /api/api-traffic/demo
+- Provide detailed summary report panel for intent name, confidence, decision, and rate-limit status
+- Ensure proper disposal of chart interop objects on component disposal
+- Remove outdated CSS styles and deprecated sample web imports and views
+- Update docs to rename sample web API to sample Blazor API with correct URLs and instructions
+- Add next step navigation hints in multiple documentation pages for user guidance
+
+
+
 ## [1.1.3] - 2026-02-01
 
 
