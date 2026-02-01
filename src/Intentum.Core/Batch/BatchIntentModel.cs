@@ -31,7 +31,7 @@ public sealed class BatchIntentModel : IBatchIntentModel
         CancellationToken cancellationToken = default)
     {
         if (behaviorSpaces == null || behaviorSpaces.Count == 0)
-            return Array.Empty<Intent>();
+            return [];
 
         var tasks = behaviorSpaces.Select(async space =>
         {

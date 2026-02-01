@@ -45,6 +45,28 @@ public static class SustainabilityReporter
         "seçilmiş baz", "favourable baseline", "favorable baseline", "Referenzjahr", "Basisjahr"
     ];
 
+    private static string[][] GetVaguePatternSets(string? language)
+    {
+        if (string.IsNullOrWhiteSpace(language))
+            return [VaguePatternsEn, VaguePatternsTr, VaguePatternsDe];
+        return language.ToLowerInvariant() switch
+        {
+            "tr" => [VaguePatternsTr],
+            "en" => [VaguePatternsEn],
+            "de" => [VaguePatternsDe],
+            _ => [VaguePatternsEn, VaguePatternsTr]
+        };
+    }
+
+    private static bool ReportHasProof(string report) =>
+        report.Contains("ISO", StringComparison.OrdinalIgnoreCase)
+        || report.Contains("verified", StringComparison.OrdinalIgnoreCase)
+        || report.Contains("doğrulanmış", StringComparison.OrdinalIgnoreCase)
+        || report.Contains("audit", StringComparison.OrdinalIgnoreCase)
+        || report.Contains("denetim", StringComparison.OrdinalIgnoreCase)
+        || report.Contains("third-party", StringComparison.OrdinalIgnoreCase)
+        || report.Contains("üçüncü taraf", StringComparison.OrdinalIgnoreCase);
+
     /// <param name="report"></param>
     /// <param name="language">"tr", "en", "de" veya null (tüm diller).</param>
     public static BehaviorSpace AnalyzeReport(string? report, string? language = null)
@@ -53,17 +75,7 @@ public static class SustainabilityReporter
         if (string.IsNullOrWhiteSpace(report))
             return space;
 
-        var vagueSets = string.IsNullOrWhiteSpace(language)
-            ? [VaguePatternsEn, VaguePatternsTr, VaguePatternsDe]
-            : language.ToLowerInvariant() switch
-            {
-                "tr" => new[] { VaguePatternsTr },
-                "en" => new[] { VaguePatternsEn },
-                "de" => new[] { VaguePatternsDe },
-                _ => new[] { VaguePatternsEn, VaguePatternsTr }
-            };
-
-        foreach (var patterns in vagueSets)
+        foreach (var patterns in GetVaguePatternSets(language))
         {
             foreach (var pattern in patterns)
             {
@@ -74,27 +86,14 @@ public static class SustainabilityReporter
         }
 
         var hasMetrics = MetricsPattern.IsMatch(report);
-        var hasProof = report.Contains("ISO", StringComparison.OrdinalIgnoreCase)
-                      || report.Contains("verified", StringComparison.OrdinalIgnoreCase)
-                      || report.Contains("doğrulanmış", StringComparison.OrdinalIgnoreCase)
-                      || report.Contains("audit", StringComparison.OrdinalIgnoreCase)
-                      || report.Contains("denetim", StringComparison.OrdinalIgnoreCase)
-                      || report.Contains("third-party", StringComparison.OrdinalIgnoreCase)
-                      || report.Contains("üçüncü taraf", StringComparison.OrdinalIgnoreCase);
-        if (hasMetrics && !hasProof)
+        if (hasMetrics && !ReportHasProof(report))
             space.Observe("data", "metrics.without.proof");
 
         if (UnsubstantiatedComparisonPattern.IsMatch(report))
             space.Observe("language", "comparison.unsubstantiated");
 
-        foreach (var pattern in BaselineManipulationPatterns)
-        {
-            if (report.Contains(pattern, StringComparison.OrdinalIgnoreCase))
-            {
-                space.Observe("data", "baseline.manipulation");
-                break;
-            }
-        }
+        if (BaselineManipulationPatterns.Any(p => report.Contains(p, StringComparison.OrdinalIgnoreCase)))
+            space.Observe("data", "baseline.manipulation");
 
         return space;
     }

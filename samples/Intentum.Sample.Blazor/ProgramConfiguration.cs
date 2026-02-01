@@ -197,6 +197,14 @@ internal static class ProgramConfiguration
         MapHistoryEndpoints(app);
     }
 
+    private static BehaviorSpace BehaviorSpaceFromRequest(InferIntentRequest req)
+    {
+        var space = new BehaviorSpace();
+        foreach (var e in req.Events)
+            space.Observe(new BehaviorEvent(e.Actor, e.Action, DateTimeOffset.UtcNow));
+        return space;
+    }
+
     private static void MapIntentEndpoints(WebApplication app)
     {
         app.MapPost("/api/intent/infer", async (
@@ -206,10 +214,7 @@ internal static class ProgramConfiguration
             IRateLimiter rateLimiter,
             IIntentHistoryRepository historyRepository) =>
         {
-            var space = new BehaviorSpace();
-            foreach (var e in req.Events)
-                space.Observe(new BehaviorEvent(e.Actor, e.Action, DateTimeOffset.UtcNow));
-
+            var space = BehaviorSpaceFromRequest(req);
             var intent = model.Infer(space);
             var rateLimitOptions = new RateLimitOptions("intent-infer", 100, TimeSpan.FromMinutes(1));
             var (decision, rateLimitResult) = await intent.DecideWithRateLimitAsync(policy, rateLimiter, rateLimitOptions);
@@ -233,9 +238,7 @@ internal static class ProgramConfiguration
 
         app.MapPost("/api/intent/explain", (InferIntentRequest req, IIntentModel model, IIntentExplainer explainer) =>
         {
-            var space = new BehaviorSpace();
-            foreach (var e in req.Events)
-                space.Observe(new BehaviorEvent(e.Actor, e.Action, DateTimeOffset.UtcNow));
+            var space = BehaviorSpaceFromRequest(req);
             var intent = model.Infer(space);
             var explanation = explainer.GetExplanation(intent, maxSignals: 5);
             var contributions = explainer.GetSignalContributions(intent);
@@ -252,9 +255,7 @@ internal static class ProgramConfiguration
 
         app.MapPost("/api/intent/explain-tree", (InferIntentRequest req, IIntentModel model, IntentPolicy policy, IIntentTreeExplainer treeExplainer) =>
         {
-            var space = new BehaviorSpace();
-            foreach (var e in req.Events)
-                space.Observe(new BehaviorEvent(e.Actor, e.Action, DateTimeOffset.UtcNow));
+            var space = BehaviorSpaceFromRequest(req);
             var intent = model.Infer(space);
             var tree = treeExplainer.GetIntentTree(intent, policy, space);
             var jsonOpts = new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase, Converters = { new JsonStringEnumConverter() } };
@@ -266,7 +267,7 @@ internal static class ProgramConfiguration
             var space = new BehaviorSpace();
             foreach (var e in req.Events)
                 space.Observe(new BehaviorEvent(e.Actor, e.Action, DateTimeOffset.UtcNow));
-            var providers = req.Providers?.Count > 0 ? req.Providers : registry.GetModelNames();
+            var providers = req.Providers is { Count: > 0 } ? req.Providers : registry.GetModelNames();
             var results = new List<PlaygroundCompareResult>();
             foreach (var name in providers)
             {
@@ -385,7 +386,7 @@ internal static class ProgramConfiguration
             ctx.Response.Headers.CacheControl = "no-cache";
             ctx.Response.Headers.Connection = "keep-alive";
             await ctx.Response.StartAsync(cancellationToken);
-            var cts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, ctx.RequestAborted);
+            using var cts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, ctx.RequestAborted);
             await foreach (var bytes in broadcaster.SubscribeAsync(cts.Token))
             {
                 await ctx.Response.Body.WriteAsync(bytes, cts.Token);
@@ -418,7 +419,7 @@ internal static class ProgramConfiguration
             ctx.Response.Headers.CacheControl = "no-cache";
             ctx.Response.Headers.Connection = "keep-alive";
             await ctx.Response.StartAsync(cancellationToken);
-            var cts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, ctx.RequestAborted);
+            using var cts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, ctx.RequestAborted);
             await foreach (var bytes in broadcaster.SubscribeAsync(cts.Token))
             {
                 await ctx.Response.Body.WriteAsync(bytes, cts.Token);

@@ -57,7 +57,7 @@ public sealed class GeminiEmbeddingProvider(GeminiOptions options, HttpClient ht
             .GetAwaiter()
             .GetResult();
 
-        var values = payload?.Embedding.Values ?? new List<double>();
+        var values = payload?.Embedding.Values ?? [];
         var score = EmbeddingScore.Normalize(values);
 
         return new IntentEmbedding(

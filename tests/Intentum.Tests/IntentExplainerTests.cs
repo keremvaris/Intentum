@@ -8,7 +8,7 @@ public class IntentExplainerTests
     [Fact]
     public void GetSignalContributions_EmptySignals_ReturnsEmpty()
     {
-        var intent = new Intent("Test", Array.Empty<IntentSignal>(), new IntentConfidence(0.5, "Medium"));
+        var intent = new Intent("Test", [], new IntentConfidence(0.5, "Medium"));
         var explainer = new IntentExplainer();
         var contributions = explainer.GetSignalContributions(intent);
         Assert.Empty(contributions);

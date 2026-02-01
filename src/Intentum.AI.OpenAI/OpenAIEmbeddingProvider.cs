@@ -53,7 +53,7 @@ public sealed class OpenAIEmbeddingProvider(OpenAIOptions options, HttpClient ht
             .GetAwaiter()
             .GetResult();
 
-        var values = payload?.Data.FirstOrDefault()?.Embedding ?? new List<double>();
+        var values = payload?.Data.FirstOrDefault()?.Embedding ?? [];
         var score = EmbeddingScore.Normalize(values);
 
         return new IntentEmbedding(

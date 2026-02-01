@@ -12,13 +12,13 @@ public sealed class SustainabilityTimelineService(
     : BackgroundService
 {
     private static readonly string[] Intents =
-    {
+    [
         "GenuineSustainability",
         "UnintentionalMisrepresentation",
         "SelectiveDisclosure",
         "StrategicObfuscation",
         "ActiveGreenwashing"
-    };
+    ];
 
     /// <summary>ClientEarth company id -> display name (9 fossil fuel profiles).</summary>
     private static readonly IReadOnlyDictionary<string, string> CompanyNames = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)

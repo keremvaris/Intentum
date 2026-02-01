@@ -53,7 +53,7 @@ public sealed class MistralEmbeddingProvider(MistralOptions options, HttpClient 
             .GetAwaiter()
             .GetResult();
 
-        var values = payload?.Data.FirstOrDefault()?.Embedding ?? new List<double>();
+        var values = payload?.Data.FirstOrDefault()?.Embedding ?? [];
         var score = EmbeddingScore.Normalize(values);
 
         return new IntentEmbedding(

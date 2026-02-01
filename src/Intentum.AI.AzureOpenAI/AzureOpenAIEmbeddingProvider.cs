@@ -56,7 +56,7 @@ public sealed class AzureOpenAIEmbeddingProvider(AzureOpenAIOptions options, Htt
             .GetAwaiter()
             .GetResult();
 
-        var values = payload?.Data.FirstOrDefault()?.Embedding ?? new List<double>();
+        var values = payload?.Data.FirstOrDefault()?.Embedding ?? [];
         var score = EmbeddingScore.Normalize(values);
 
         return new IntentEmbedding(

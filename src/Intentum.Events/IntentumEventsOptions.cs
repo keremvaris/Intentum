@@ -10,7 +10,7 @@ public sealed class IntentumEventsOptions
     /// <summary>
     /// Configured webhooks (URL + event types to send).
     /// </summary>
-    public List<WebhookConfig> Webhooks { get; } = new();
+    public List<WebhookConfig> Webhooks { get; } = [];
 
     /// <summary>
     /// Number of retries for failed HTTP POST (default 3).

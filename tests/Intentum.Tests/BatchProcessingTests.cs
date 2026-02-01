@@ -45,7 +45,7 @@ public class BatchProcessingTests
         var batchModel = new BatchIntentModel(model);
 
         // Act
-        var intents = batchModel.InferBatch(Array.Empty<BehaviorSpace>());
+        var intents = batchModel.InferBatch([]);
 
         // Assert
         Assert.Empty(intents);

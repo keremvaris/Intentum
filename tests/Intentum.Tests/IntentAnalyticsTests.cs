@@ -24,7 +24,7 @@ public sealed class IntentAnalyticsTests
     {
         return new Intent(
             "Test",
-            Array.Empty<IntentSignal>(),
+            [],
             IntentConfidence.FromScore(score));
     }
 
@@ -183,7 +183,7 @@ public sealed class IntentAnalyticsTests
 
     private sealed class InMemoryIntentHistoryRepository : IIntentHistoryRepository
     {
-        private readonly List<IntentHistoryRecord> _records = new();
+        private readonly List<IntentHistoryRecord> _records = [];
         private int _id;
 
         public Task<string> SaveAsync(string behaviorSpaceId, Intent intent, PolicyDecision decision, IReadOnlyDictionary<string, object>? metadata = null, string? entityId = null, CancellationToken cancellationToken = default)

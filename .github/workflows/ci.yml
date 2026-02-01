@@ -39,6 +39,14 @@ jobs:
           mkdir -p .sonar/scanner
           dotnet tool install dotnet-sonarscanner --tool-path .sonar/scanner
 
+      - name: Read Sonar exclusions from .sonarcloud.properties
+        id: sonar-props
+        run: |
+          EXCL=$(grep '^sonar.exclusions=' .sonarcloud.properties | cut -d= -f2- | tr -d '\r')
+          COVEXCL=$(grep '^sonar.coverage.exclusions=' .sonarcloud.properties | cut -d= -f2- | tr -d '\r')
+          echo "exclusions=$EXCL" >> "$GITHUB_OUTPUT"
+          echo "coverage_exclusions=$COVEXCL" >> "$GITHUB_OUTPUT"
+
       - name: SonarCloud begin
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
@@ -49,8 +57,8 @@ jobs:
             /d:sonar.token="$SONAR_TOKEN" \
             /d:sonar.host.url="https://sonarcloud.io" \
             /d:sonar.cs.opencover.reportsPaths="${{ github.workspace }}/TestResults/coverage.opencover.xml" \
-            /d:sonar.exclusions="**/samples/**,**/examples/**,**/docs/**,**/templates/**,**/.github/**,**/tests/**,**/benchmarks/**,**/BenchmarkDotNet.Artifacts/**,**/scripts/**,**/release.sh" \
-            /d:sonar.coverage.exclusions="**/Intentum.CodeGen/**,**/*ServiceCollectionExtensions.cs,**/*CachingExtensions.cs,**/MultiTenancyExtensions.cs,**/Intentum.AI.Claude/**,**/Intentum.Persistence.MongoDB/**,**/Intentum.Persistence.Redis/**,**/Intentum.MultiTenancy/**,**/*RateLimitException.cs,**/LlmIntentModelExtensions.cs,**/Intentum.AI.ONNX/**,**/Intentum.Persistence/**,**/Intentum.Observability/**,**/Intentum.Analytics/**"
+            /d:sonar.exclusions="${{ steps.sonar-props.outputs.exclusions }}" \
+            /d:sonar.coverage.exclusions="${{ steps.sonar-props.outputs.coverage_exclusions }}"
 
       - name: Restore
         run: dotnet restore Intentum.slnx

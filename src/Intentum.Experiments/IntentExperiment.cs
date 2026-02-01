@@ -10,8 +10,8 @@ namespace Intentum.Experiments;
 /// </summary>
 public sealed class IntentExperiment
 {
-    private readonly List<ExperimentVariant> _variants = new();
-    private readonly List<int> _trafficSplit = new();
+    private readonly List<ExperimentVariant> _variants = [];
+    private readonly List<int> _trafficSplit = [];
 
     /// <summary>
     /// Adds a variant (model + policy) to the experiment.
@@ -29,7 +29,7 @@ public sealed class IntentExperiment
     public IntentExperiment SplitTraffic(params int[]? percentages)
     {
         _trafficSplit.Clear();
-        _trafficSplit.AddRange(percentages ?? Array.Empty<int>());
+        _trafficSplit.AddRange(percentages ?? []);
         return this;
     }
 

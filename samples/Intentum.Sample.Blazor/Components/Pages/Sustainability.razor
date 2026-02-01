@@ -363,25 +363,25 @@
     private CarbonReportDto? _carbonReport;
     private IReadOnlyList<GreenwashingRecentDto>? _recentAnalyses;
 
-    private IReadOnlyList<GreenwashingLabeledSources.Row> _clientEarthRows = Array.Empty<GreenwashingLabeledSources.Row>();
-    private IReadOnlyList<string> _sourceNames = Array.Empty<string>();
+    private IReadOnlyList<GreenwashingLabeledSources.Row> _clientEarthRows = [];
+    private IReadOnlyList<string> _sourceNames = [];
 
     private IReadOnlyList<GreenwashingLabeledSources.Row> _filteredSources => ApplyFilters(GreenwashingLabeledSources.GetAll());
 
     // Live tab
     private static readonly (string Id, string Name)[] _liveCompanies =
-    {
+    [
         ("shell", "Shell"), ("total", "Total"), ("aramco", "Aramco"), ("chevron", "Chevron"),
         ("drax", "Drax"), ("equinor", "Equinor"), ("exxonmobil", "ExxonMobil"), ("ineos", "INEOS"), ("rwe", "RWE")
-    };
+    ];
     private string _liveCompanyId = "shell";
     private string _liveGranularity = "Monthly";
     private bool _liveRunning;
     private bool _liveToggleBusy;
     private SustainabilityStatusDto? _liveStatus;
     private string? _liveSseError;
-    private readonly List<SustainabilityTimelineEventDto> _liveEvents = new();
-    private readonly List<(double t, double v)> _liveLineData = new();
+    private readonly List<SustainabilityTimelineEventDto> _liveEvents = [];
+    private readonly List<(double t, double v)> _liveLineData = [];
     private CancellationTokenSource? _sseCts;
     private EChartsInterop? _sustainabilityLineEcharts;
     private const int MaxLiveLinePoints = 200;
@@ -571,22 +571,8 @@
                 if (line?.StartsWith("data: ") == true)
                 {
                     var json = line.Substring(6).Trim();
-                    if (string.IsNullOrEmpty(json)) continue;
-                    try
-                    {
-                        var ev = System.Text.Json.JsonSerializer.Deserialize<SustainabilityTimelineEventDto>(json, _liveJsonOptions);
-                        if (ev != null)
-                        {
-                            _liveEvents.Insert(0, ev);
-                            if (_liveEvents.Count > 100) _liveEvents.RemoveAt(_liveEvents.Count - 1);
-                            var t = ev.SimulatedAt.ToUnixTimeMilliseconds();
-                            _liveLineData.Insert(0, (t, ev.ConfidenceScore));
-                            if (_liveLineData.Count > MaxLiveLinePoints) _liveLineData.RemoveAt(_liveLineData.Count - 1);
-                            await InvokeAsync(StateHasChanged);
-                            await UpdateSustainabilityLineChart();
-                        }
-                    }
-                    catch { /* skip bad event */ }
+                    if (!string.IsNullOrEmpty(json))
+                        await TryProcessSustainabilityEventAsync(json);
                 }
             }
         }
@@ -596,6 +582,23 @@
             _liveSseError = ex.Message;
             await InvokeAsync(StateHasChanged);
         }
+    }
+
+    private async Task TryProcessSustainabilityEventAsync(string json)
+    {
+        try
+        {
+            var ev = System.Text.Json.JsonSerializer.Deserialize<SustainabilityTimelineEventDto>(json, _liveJsonOptions);
+            if (ev == null) return;
+            _liveEvents.Insert(0, ev);
+            if (_liveEvents.Count > 100) _liveEvents.RemoveAt(_liveEvents.Count - 1);
+            var t = ev.SimulatedAt.ToUnixTimeMilliseconds();
+            _liveLineData.Insert(0, (t, ev.ConfidenceScore));
+            if (_liveLineData.Count > MaxLiveLinePoints) _liveLineData.RemoveAt(_liveLineData.Count - 1);
+            await InvokeAsync(StateHasChanged);
+            await UpdateSustainabilityLineChart();
+        }
+        catch { /* skip bad event */ }
     }
 
     private static string FormatTargetPct(double pct)
@@ -631,7 +634,7 @@
     private LiveSummaryResult GetLiveSummary()
     {
         if (_liveEvents.Count == 0)
-            return new LiveSummaryResult(DateTimeOffset.MinValue, DateTimeOffset.MinValue, "", 0, 0, "", 0, Array.Empty<IntentDistRow>(), "", "", null);
+            return new LiveSummaryResult(DateTimeOffset.MinValue, DateTimeOffset.MinValue, "", 0, 0, "", 0, [], "", "", null);
         var ordered = _liveEvents.OrderBy(e => e.SimulatedAt).ToList();
         var first = ordered[0].SimulatedAt;
         var last = ordered[^1].SimulatedAt;

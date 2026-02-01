@@ -5,7 +5,7 @@ namespace Intentum.Versioning;
 /// </summary>
 public sealed class PolicyVersionTracker
 {
-    private readonly List<IVersionedPolicy> _versions = new();
+    private readonly List<IVersionedPolicy> _versions = [];
     private int _currentIndex = -1;
 
     /// <summary>

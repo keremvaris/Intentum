@@ -17,7 +17,7 @@ public sealed class FraudSimulationService(
     : BackgroundService
 {
     private static readonly (string Actor, string Action)[] EventPool =
-    {
+    [
         ("user", "login"),
         ("user", "login_failed"),
         ("user", "retry"),
@@ -30,7 +30,7 @@ public sealed class FraudSimulationService(
         ("customer", "checkout_start"),
         ("user", "sensitive_data_access"),
         ("system", "ip_change")
-    };
+    ];
 
     private const string EntityId = "LiveDemo";
 

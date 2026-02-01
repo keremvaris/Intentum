@@ -11,7 +11,7 @@ public class IntentClustererTests
     public async Task ClusterByPatternAsync_EmptyRecords_ReturnsEmpty()
     {
         var clusterer = new IntentClusterer();
-        var clusters = await clusterer.ClusterByPatternAsync(Array.Empty<IntentHistoryRecord>());
+        var clusters = await clusterer.ClusterByPatternAsync([]);
         Assert.Empty(clusters);
     }
 

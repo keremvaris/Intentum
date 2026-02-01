@@ -46,7 +46,7 @@ public sealed class IntentClusterer : IIntentClusterer
         if (k < 1) k = 1;
         var list = records.ToList();
         if (list.Count == 0)
-            return Task.FromResult<IReadOnlyList<IntentCluster>>(Array.Empty<IntentCluster>());
+            return Task.FromResult<IReadOnlyList<IntentCluster>>([]);
 
         var scores = list.Select(r => r.ConfidenceScore).OrderBy(s => s).ToList();
         var minScore = scores[0];

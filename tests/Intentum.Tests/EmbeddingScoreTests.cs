@@ -12,7 +12,7 @@ public sealed class EmbeddingScoreTests
     [Fact]
     public void Normalize_EmptyList_ReturnsZero()
     {
-        var result = EmbeddingScore.Normalize(Array.Empty<double>());
+        var result = EmbeddingScore.Normalize([]);
         Assert.Equal(0.0, result);
     }
 

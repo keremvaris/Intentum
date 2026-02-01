@@ -11,7 +11,7 @@ public sealed class IntentExplainer : IIntentExplainer
     public IReadOnlyList<SignalContribution> GetSignalContributions(Intent intent)
     {
         if (intent.Signals.Count == 0)
-            return Array.Empty<SignalContribution>();
+            return [];
 
         var total = intent.Signals.Sum(s => s.Weight);
         if (total <= 0)

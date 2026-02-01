@@ -159,7 +159,7 @@ public class WebhookIntentEventHandlerTests
 
     private sealed class CaptureHttpHandler : HttpMessageHandler
     {
-        public List<HttpRequestMessage> Requests { get; } = new();
+        public List<HttpRequestMessage> Requests { get; } = [];
         public HttpStatusCode StatusCode { get; set; } = HttpStatusCode.OK;
 
         protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
