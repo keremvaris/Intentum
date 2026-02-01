@@ -88,6 +88,18 @@ test(tenant-aware-behavior-space-repository): add multitenancy tests
 - **Ensure AppendAsync completes successfully** *(persistence)*
 
 
+- **Skip API tests when keys are missing for full suite pass** *(integration)*
+
+- Replace [Fact] with [SkippableFact] in AzureOpenAI, Gemini, Mistral, and OpenAI integration tests
+- Use Skip.If condition to skip tests if required API keys are not set
+- Update class-level comments to indicate tests are skipped instead of failing without credentials
+- Add Xunit.SkippableFact package reference to Intentum.Tests project
+- Modify CI workflow to improve coverage report handling and filtering of integration tests
+- Adjust SonarCloud coverage paths and add coverage validation steps in CI script
+- Update user settings to include TrueException in excluded files for inspection
+
+
+
 ## [1.1.2] - 2026-02-01
 
 
