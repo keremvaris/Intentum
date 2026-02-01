@@ -13,6 +13,22 @@ Bu dosya **conventional commit** mesajlarından otomatik üretilir. Commit'te **
 
 ---
 
+## [1.1.1] - 2026-02-01
+
+
+
+### Miscellaneous
+
+- **Update test coverage threshold and improve coverage handling** *(tests)*
+
+- Increase test coverage threshold from 68% to 70% in Intentum.Tests.csproj
+- Remove coverage exclusions for MultiTenancy and related modules in SonarCloud config
+- Adjust CI workflow to reflect updated coverage exclusions and threshold
+- Add detailed test plan document targeting 80% line coverage without exclusions
+- Refactor code for better testability and consistent coverage reporting across modules
+
+
+
 ## [1.1.0] - 2026-02-01
 
 
