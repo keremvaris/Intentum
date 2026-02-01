@@ -46,6 +46,9 @@ Refactors the SonarCloud CI workflow to pass exclusion paths via dedicated envir
 
 
 
+- **Improve coverage file handling and test coverage collection** *(workflows)*
+
+
 
 
 ### Testing
