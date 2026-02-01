@@ -11,7 +11,7 @@ namespace Intentum.Tests;
 
 /// <summary>
 /// Real Mistral API integration tests. Run when MISTRAL_API_KEY is set (e.g. via .env or scripts/run-mistral-integration-tests.sh).
-/// Fails with a clear message when the key is missing.
+/// Skipped when the key is missing so the full suite can pass without Mistral credentials.
 /// </summary>
 [Trait("Category", "Integration")]
 public class MistralIntegrationTests
@@ -23,10 +23,10 @@ public class MistralIntegrationTests
         "MISTRAL_API_KEY is not set. Copy .env.example to .env and set MISTRAL_API_KEY (and optionally MISTRAL_BASE_URL). " +
         "Run: ./scripts/run-mistral-integration-tests.sh. To exclude: --filter \"FullyQualifiedName!=Intentum.Tests.MistralIntegrationTests\".";
 
-    [Fact]
+    [SkippableFact]
     public void MistralEmbeddingProvider_RealApi_ReturnsValidScore()
     {
-        Assert.True(HasRealApiKey, MissingKeyMessage);
+        Skip.If(!HasRealApiKey, MissingKeyMessage);
 
         try
         {
@@ -55,10 +55,10 @@ public class MistralIntegrationTests
         }
     }
 
-    [Fact]
+    [SkippableFact]
     public void LlmIntentModel_RealMistral_FullPipeline_ProducesIntent()
     {
-        Assert.True(HasRealApiKey, MissingKeyMessage);
+        Skip.If(!HasRealApiKey, MissingKeyMessage);
 
         try
         {

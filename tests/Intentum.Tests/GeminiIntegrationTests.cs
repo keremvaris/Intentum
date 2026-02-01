@@ -11,7 +11,7 @@ namespace Intentum.Tests;
 
 /// <summary>
 /// Real Gemini API integration tests. Run when GEMINI_API_KEY is set (e.g. via .env or scripts/run-gemini-integration-tests.sh).
-/// Fails with a clear message when the key is missing.
+/// Skipped when the key is missing so the full suite can pass without Gemini credentials.
 /// </summary>
 [Trait("Category", "Integration")]
 public class GeminiIntegrationTests
@@ -23,10 +23,10 @@ public class GeminiIntegrationTests
         "GEMINI_API_KEY is not set. Copy .env.example to .env and set GEMINI_API_KEY (and optionally GEMINI_BASE_URL). " +
         "Run: ./scripts/run-gemini-integration-tests.sh. To exclude: --filter \"FullyQualifiedName!=Intentum.Tests.GeminiIntegrationTests\".";
 
-    [Fact]
+    [SkippableFact]
     public void GeminiEmbeddingProvider_RealApi_ReturnsValidScore()
     {
-        Assert.True(HasRealApiKey, MissingKeyMessage);
+        Skip.If(!HasRealApiKey, MissingKeyMessage);
 
         try
         {
@@ -54,10 +54,10 @@ public class GeminiIntegrationTests
         }
     }
 
-    [Fact]
+    [SkippableFact]
     public void LlmIntentModel_RealGemini_FullPipeline_ProducesIntent()
     {
-        Assert.True(HasRealApiKey, MissingKeyMessage);
+        Skip.If(!HasRealApiKey, MissingKeyMessage);
 
         try
         {

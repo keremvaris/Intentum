@@ -11,7 +11,7 @@ namespace Intentum.Tests;
 
 /// <summary>
 /// Real Azure OpenAI API integration tests. Run when AZURE_OPENAI_ENDPOINT and AZURE_OPENAI_API_KEY are set (e.g. via .env or scripts/run-azure-integration-tests.sh).
-/// Fails with a clear message when the key is missing.
+/// Skipped when keys are missing so the full suite can pass without Azure credentials.
 /// </summary>
 [Trait("Category", "Integration")]
 public class AzureOpenAIIntegrationTests
@@ -24,10 +24,10 @@ public class AzureOpenAIIntegrationTests
         "AZURE_OPENAI_ENDPOINT and AZURE_OPENAI_API_KEY are not set. Copy .env.example to .env and set them. " +
         "Run: ./scripts/run-azure-integration-tests.sh. To exclude: --filter \"FullyQualifiedName!=Intentum.Tests.AzureOpenAIIntegrationTests\".";
 
-    [Fact]
+    [SkippableFact]
     public void AzureOpenAIEmbeddingProvider_RealApi_ReturnsValidScore()
     {
-        Assert.True(HasKeys, MissingKeyMessage);
+        Skip.If(!HasKeys, MissingKeyMessage);
 
         try
         {
@@ -55,10 +55,10 @@ public class AzureOpenAIIntegrationTests
         }
     }
 
-    [Fact]
+    [SkippableFact]
     public void LlmIntentModel_RealAzureOpenAI_FullPipeline_ProducesIntent()
     {
-        Assert.True(HasKeys, MissingKeyMessage);
+        Skip.If(!HasKeys, MissingKeyMessage);
 
         try
         {
