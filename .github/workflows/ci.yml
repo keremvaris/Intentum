@@ -50,7 +50,7 @@ jobs:
             /d:sonar.host.url="https://sonarcloud.io" \
             /d:sonar.cs.opencover.reportsPaths="${{ github.workspace }}/TestResults/coverage.opencover.xml" \
             /d:sonar.exclusions="**/samples/**,**/examples/**,**/docs/**,**/templates/**,**/.github/**,**/tests/**,**/benchmarks/**,**/BenchmarkDotNet.Artifacts/**,**/scripts/**,**/release.sh" \
-            /d:sonar.coverage.exclusions="**/Intentum.CodeGen/**,**/*ServiceCollectionExtensions.cs,**/*CachingExtensions.cs,**/MultiTenancyExtensions.cs,**/Intentum.AI.Claude/**,**/Intentum.Persistence.MongoDB/**,**/Intentum.Persistence.Redis/**,**/Intentum.MultiTenancy/**,**/*RateLimitException.cs,**/LlmIntentModelExtensions.cs"
+            /d:sonar.coverage.exclusions="**/Intentum.CodeGen/**,**/*ServiceCollectionExtensions.cs,**/*CachingExtensions.cs,**/Intentum.AI.Claude/**,**/Intentum.Persistence.MongoDB/**,**/Intentum.Persistence.Redis/**,**/*RateLimitException.cs,**/LlmIntentModelExtensions.cs"
 
       - name: Restore
         run: dotnet restore Intentum.slnx
@@ -59,7 +59,7 @@ jobs:
         run: dotnet build Intentum.slnx --no-restore
 
       # Coverage: coverlet.msbuild writes to fixed path so SonarCloud finds it (no GUID subdir; sonar.cs.opencover.reportsPaths does not support wildcards).
-      # 80% target: SonarCloud Quality Gate and Intentum.Tests.csproj Threshold=80.
+      # Threshold=70 until test plan (docs/test-plan.md) raises coverage to 80%; no file exclusions.
       # Exclude Integration tests (Category=Integration) and GreenwashingCaseStudyTests (require downloaded data; no DataGreenwash/HTML in CI).
       - name: Test
         run: |

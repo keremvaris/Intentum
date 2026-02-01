@@ -74,7 +74,7 @@ internal static class Program
         cmd.SetHandler((eventsVal) =>
         {
             var space = new BehaviorSpace();
-            var list = eventsVal is { Length: >= 0 } ? eventsVal : Array.Empty<string>();
+            var list = eventsVal;
             foreach (var e in list)
             {
                 var parts = e.Split(':', 2, StringSplitOptions.RemoveEmptyEntries);

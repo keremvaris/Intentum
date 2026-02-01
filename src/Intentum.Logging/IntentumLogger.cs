@@ -10,6 +10,8 @@ namespace Intentum.Logging;
 /// </summary>
 public static class IntentumLogger
 {
+    private const string BehaviorSpaceMessageTemplate = "Behavior space: {BehaviorSpaceJson}";
+
     /// <summary>
     /// Logs intent inference with structured data.
     /// </summary>
@@ -77,16 +79,16 @@ public static class IntentumLogger
         switch (level)
         {
             case LogLevel.Debug:
-                logger.Debug("Behavior space: {BehaviorSpaceJson}", json);
+                logger.Debug(BehaviorSpaceMessageTemplate, json);
                 break;
             case LogLevel.Warning:
-                logger.Warning("Behavior space: {BehaviorSpaceJson}", json);
+                logger.Warning(BehaviorSpaceMessageTemplate, json);
                 break;
             case LogLevel.Error:
-                logger.Error("Behavior space: {BehaviorSpaceJson}", json);
+                logger.Error(BehaviorSpaceMessageTemplate, json);
                 break;
             default:
-                logger.Information("Behavior space: {BehaviorSpaceJson}", json);
+                logger.Information(BehaviorSpaceMessageTemplate, json);
                 break;
         }
     }

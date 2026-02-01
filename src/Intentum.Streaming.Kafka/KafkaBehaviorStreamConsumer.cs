@@ -1,3 +1,4 @@
+using System.Globalization;
 using System.Runtime.CompilerServices;
 using System.Text.Json;
 using Confluent.Kafka;
@@ -12,6 +13,8 @@ namespace Intentum.Streaming.Kafka;
 /// </summary>
 public sealed class KafkaBehaviorStreamConsumer : IBehaviorStreamConsumer
 {
+    private const string DefaultActorKafka = "kafka";
+
     private readonly KafkaBehaviorStreamConsumerOptions _options;
 
     /// <summary>
@@ -78,19 +81,29 @@ public sealed class KafkaBehaviorStreamConsumer : IBehaviorStreamConsumer
             {
                 var doc = JsonDocument.Parse(value);
                 var root = doc.RootElement;
-                var actor = root.TryGetProperty("actor", out var a) ? a.GetString() ?? "kafka" : "kafka";
+                var actor = root.TryGetProperty("actor", out var a) ? a.GetString() ?? DefaultActorKafka : DefaultActorKafka;
                 var action = root.TryGetProperty("action", out var ac) ? ac.GetString() ?? "unknown" : "unknown";
-                var occurredAt = root.TryGetProperty("occurredAt", out var o)
-                    ? DateTimeOffset.TryParse(o.GetString(), out var dt) ? dt : DateTimeOffset.UtcNow
-                    : DateTimeOffset.UtcNow;
+                var occurredAt = ParseOccurredAt(root);
                 return new BehaviorEvent(actor, action, occurredAt);
             }
             catch (JsonException)
             {
-                return new BehaviorEvent("kafka", value.Trim(), DateTimeOffset.UtcNow);
+                return new BehaviorEvent(DefaultActorKafka, value.Trim(), DateTimeOffset.UtcNow);
             }
         }
 
-        return new BehaviorEvent("kafka", value.Trim(), DateTimeOffset.UtcNow);
+        return new BehaviorEvent(DefaultActorKafka, value.Trim(), DateTimeOffset.UtcNow);
+    }
+
+    private static DateTimeOffset ParseOccurredAt(JsonElement root)
+    {
+        if (!root.TryGetProperty("occurredAt", out var o))
+            return DateTimeOffset.UtcNow;
+        var s = o.GetString();
+        if (string.IsNullOrEmpty(s))
+            return DateTimeOffset.UtcNow;
+        return DateTimeOffset.TryParse(s, CultureInfo.InvariantCulture, DateTimeStyles.None, out var dt)
+            ? dt
+            : DateTimeOffset.UtcNow;
     }
 }

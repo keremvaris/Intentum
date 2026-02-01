@@ -11,6 +11,8 @@ namespace Intentum.Analytics;
 /// </summary>
 public sealed class IntentAnalytics : IIntentAnalytics
 {
+    private static readonly JsonSerializerOptions JsonOptions = new() { WriteIndented = true };
+
     private readonly IIntentHistoryRepository _historyRepository;
 
     public IntentAnalytics(IIntentHistoryRepository historyRepository)
@@ -244,7 +246,7 @@ public sealed class IntentAnalytics : IIntentAnalytics
             Decision = r.Decision.ToString(),
             r.RecordedAt
         }).ToList();
-        return JsonSerializer.Serialize(dto, new JsonSerializerOptions { WriteIndented = true });
+        return JsonSerializer.Serialize(dto, JsonOptions);
     }
 
     /// <inheritdoc />

@@ -101,7 +101,7 @@ public sealed class OnnxIntentModel : IIntentModel, IDisposable
         return values;
     }
 
-    private (int IntentIndex, double Confidence) LogitsToIntent(OrtValue outputOrt)
+    private static (int IntentIndex, double Confidence) LogitsToIntent(OrtValue outputOrt)
     {
         var span = outputOrt.GetTensorDataAsSpan<float>();
         if (span.Length == 0)

@@ -9,6 +9,9 @@ namespace Intentum.AspNetCore;
 /// </summary>
 public static class IntentumAspNetCoreExtensions
 {
+    private static readonly string[] HealthCheckTagsEmbedding = ["intentum", "embedding"];
+    private static readonly string[] HealthCheckTagsPolicy = ["intentum", "policy"];
+
     /// <summary>
     /// Adds Intentum services to the service collection.
     /// </summary>
@@ -50,9 +53,9 @@ public static class IntentumAspNetCoreExtensions
         return services.AddHealthChecks()
             .AddCheck<HealthChecks.EmbeddingProviderHealthCheck>(
                 "embedding-provider",
-                tags: new[] { "intentum", "embedding" })
+                tags: HealthCheckTagsEmbedding)
             .AddCheck<HealthChecks.PolicyEngineHealthCheck>(
                 "policy-engine",
-                tags: new[] { "intentum", "policy" });
+                tags: HealthCheckTagsPolicy);
     }
 }

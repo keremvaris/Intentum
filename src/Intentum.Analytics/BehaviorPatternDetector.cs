@@ -75,7 +75,7 @@ public sealed class BehaviorPatternDetector : IBehaviorPatternDetector
             foreach (var (intentName, bucketCount) in bucketIntentCounts)
             {
                 var globalCount = globalIntentCounts.GetValueOrDefault(intentName, 0);
-                var expectedInBucket = total > 0 ? (globalCount / (double)total) * bucketTotal : 0;
+                var expectedInBucket = (globalCount / (double)total) * bucketTotal;
                 if (expectedInBucket <= 0) continue;
                 var ratio = bucketCount / expectedInBucket;
                 if (ratio >= frequencyMultiplierThreshold)
@@ -111,10 +111,9 @@ public sealed class BehaviorPatternDetector : IBehaviorPatternDetector
         {
             var bestScore = 0.0;
             var bestMatched = new List<string>();
-            foreach (var pattern in patterns)
+            var expected = template.ExpectedIntentNames;
+            foreach (var seq in patterns.Select(p => p.Sequence))
             {
-                var expected = template.ExpectedIntentNames;
-                var seq = pattern.Sequence;
                 var overlap = seq.Count(s => expected.Any(e => string.Equals(e, s, StringComparison.OrdinalIgnoreCase)));
                 var score = expected.Count > 0 ? overlap / (double)expected.Count : 0;
                 if (score > bestScore)

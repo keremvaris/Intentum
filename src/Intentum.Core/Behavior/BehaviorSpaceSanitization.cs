@@ -37,29 +37,38 @@ public static class BehaviorSpaceSanitization
         {
             var actor = options.MaskActor ? Mask(evt.Actor, options) : evt.Actor;
             var action = options.MaskAction ? Mask(evt.Action, options) : evt.Action;
-            var meta = evt.Metadata;
-            if (options.MetadataKeysToRedact != null && meta != null)
-            {
-                var dict = new Dictionary<string, object>(meta);
-                foreach (var key in options.MetadataKeysToRedact)
-                {
-                    if (dict.ContainsKey(key))
-                        dict[key] = "[redacted]";
-                }
-                meta = dict;
-            }
+            var meta = RedactMetadata(evt.Metadata, options.MetadataKeysToRedact);
             sanitized.Observe(new BehaviorEvent(actor, action, evt.OccurredAt, meta));
         }
 
-        foreach (var kv in space.Metadata)
+        CopyMetadata(sanitized, space.Metadata, options.MetadataKeysToRedact);
+        return sanitized;
+    }
+
+    private static IReadOnlyDictionary<string, object>? RedactMetadata(
+        IReadOnlyDictionary<string, object>? meta,
+        IReadOnlyList<string>? keysToRedact)
+    {
+        if (keysToRedact == null || meta == null)
+            return meta;
+        var dict = new Dictionary<string, object>(meta);
+        foreach (var key in keysToRedact.Where(dict.ContainsKey))
+            dict[key] = "[redacted]";
+        return dict;
+    }
+
+    private static void CopyMetadata(
+        BehaviorSpace sanitized,
+        IReadOnlyDictionary<string, object> metadata,
+        IReadOnlyList<string>? keysToRedact)
+    {
+        foreach (var kv in metadata)
         {
-            var value = options.MetadataKeysToRedact != null && options.MetadataKeysToRedact.Contains(kv.Key, StringComparer.OrdinalIgnoreCase)
+            var value = keysToRedact != null && keysToRedact.Contains(kv.Key, StringComparer.OrdinalIgnoreCase)
                 ? "[redacted]"
                 : kv.Value;
             sanitized.SetMetadata(kv.Key, value);
         }
-
-        return sanitized;
     }
 
     private static string Mask(string value, SanitizationOptions options)

@@ -33,15 +33,7 @@ public static class SafeConditionBuilder
             predicates.Add(BuildSingle(prop, op, c.Value));
         }
 
-        return intent =>
-        {
-            foreach (var p in predicates)
-            {
-                if (!p(intent))
-                    return false;
-            }
-            return true;
-        };
+        return intent => predicates.All(p => p(intent));
     }
 
     private static Func<Intent, bool> BuildSingle(string property, string op, JsonElement value)

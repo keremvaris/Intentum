@@ -14,7 +14,7 @@ namespace Intentum.AI.Models;
 /// </summary>
 public sealed class LlmIntentModel : IIntentModel
 {
-    private readonly IIntentModel _pipeline;
+    private readonly IntentResolutionPipeline _pipeline;
 
     /// <summary>
     /// Creates an LLM intent model with the given embedding provider and similarity engine.

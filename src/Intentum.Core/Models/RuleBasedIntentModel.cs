@@ -20,7 +20,7 @@ public sealed record RuleMatch(string Name, double Score, string? Reasoning = nu
 /// </summary>
 public sealed class RuleBasedIntentModel : IIntentModel
 {
-    private readonly IIntentModel _pipeline;
+    private readonly IntentResolutionPipeline _pipeline;
 
     /// <summary>
     /// Creates a rule-based intent model with the given rules. First matching rule wins.
