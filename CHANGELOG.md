@@ -36,6 +36,16 @@ Refactors the SonarCloud CI workflow to pass exclusion paths via dedicated envir
 - **Simplify SonarCloud exclusions handling in CI workflow** *(sonar)*
 
 
+- **Migrate sonar config to GitHub Actions and add local coverage script** *(ci)*
+
+- Remove sonarcloud.properties as Sonar config is now solely in GitHub Actions workflow
+- Simplify comments and centralize sonar exclusions in ci.yml workflow file
+- Add run-coverage.sh script to build and run tests locally with coverage reporting
+- Configure coverage output for easy inspection in Rider IDE
+- Exclude specific test categories during coverage run to match CI filter criteria
+
+
+
 
 
 ### Testing
