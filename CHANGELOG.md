@@ -100,6 +100,9 @@ test(tenant-aware-behavior-space-repository): add multitenancy tests
 
 
 
+- **Skip API tests when keys are missing for full suite pass** *(integration)*
+
+
 ## [1.1.2] - 2026-02-01
 
 
