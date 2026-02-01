@@ -13,6 +13,29 @@ Bu dosya **conventional commit** mesajlarından otomatik üretilir. Commit'te **
 
 ---
 
+## [unreleased]
+
+
+
+### Refactor
+
+- **Improve code style and update coverage exclusions** *(core)*
+
+- Replace Random with cryptographically secure RandomNumberGenerator in FraudSimulationService
+- Refactor lambda expressions to block bodies for clarity in ConfidenceClass methods
+- Add asynchronous cancellation and disposal for SSE cancellation tokens in FraudLive components
+- Use indexing syntax in FraudLive summary calculations for better readability
+- Encapsulate color selection logic in static function for graph node coloring
+- Simplify conditional checks in GreenwashingImageAnalyzer
+- Replace string literals with constants in GreenwashingLabeledSources for source names
+- Add explanatory comment when draining queue in GreenwashingRecentStore
+- Update sonar.coverage.exclusions and CI build to exclude additional modules temporarily
+- Increase test coverage threshold from 70% to 80% with exclusion files for low coverage areas
+- Consolidate Program.cs service registrations and middleware into ProgramConfiguration
+- Improve IntentStreamWorker comment for production usage regarding intent persistence or publishing
+
+
+
 ## [1.1.1] - 2026-02-01
 
 
