@@ -52,7 +52,7 @@ jobs:
             /d:sonar.cs.opencover.reportsPaths="**/*.opencover.xml" \
             /d:sonar.exclusions="**/samples/**,**/examples/**,**/docs/**,**/templates/**,**/tools/**,**/.github/**,**/tests/**,**/benchmarks/**,**/BenchmarkDotNet.Artifacts/**,**/scripts/**,**/release.sh" \
             /d:sonar.coverage.exclusions="**/Intentum.CodeGen/**,**/*ServiceCollectionExtensions.cs,**/*CachingExtensions.cs,**/MultiTenancyExtensions.cs,**/Intentum.AI.Claude/**,**/Intentum.Persistence.MongoDB/**,**/Intentum.Persistence.Redis/**,**/Intentum.MultiTenancy/**,**/*RateLimitException.cs,**/LlmIntentModelExtensions.cs,**/Intentum.AI.ONNX/**,**/Intentum.Persistence/**/Migrations/**,**/Intentum.Observability/**,**/Intentum.Analytics/**"
-          # Exclusions duplicated here on purpose so CI is stable. Keep in sync with .sonarcloud.properties when changing.
+          # Sonar config lives only here (no .sonarcloud.properties). New code: set in SonarCloud UI → Project Settings → New Code → Previous version.
 
       - name: Restore
         run: dotnet restore Intentum.slnx
