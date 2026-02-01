@@ -116,6 +116,19 @@ test(tenant-aware-behavior-space-repository): add multitenancy tests
 - **Skip API tests when keys are missing for full suite pass** *(integration)*
 
 
+- **Add fixture and coverage for OnnxIntentModel** *(onnx)*
+
+- Add script to generate minimal ONNX model fixture for tests
+- Update CI workflows to generate and copy ONNX fixture before testing
+- Include fixture files in test project with copy to output directory
+- Implement multiple reflection-based tests to cover private static methods
+- Add tests for inference, constructor validation, and various input scenarios
+- Add README with instructions for generating test fixture
+- Improve test filtering in CI to exclude integration and slow tests
+- Update test plan to prioritize coverage improvement for OnnxIntentModel and related files
+
+
+
 ## [1.1.2] - 2026-02-01
 
 
