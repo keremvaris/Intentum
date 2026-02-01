@@ -48,9 +48,10 @@ jobs:
             /o:"${{ env.SONAR_ORGANIZATION }}" \
             /d:sonar.token="$SONAR_TOKEN" \
             /d:sonar.host.url="https://sonarcloud.io" \
-            /d:sonar.cs.opencover.reportsPaths="**/coverage.opencover.xml" \
+            /d:sonar.projectBaseDir="${{ github.workspace }}" \
+            /d:sonar.cs.opencover.reportsPaths="**/*.opencover.xml" \
             /d:sonar.exclusions="**/samples/**,**/examples/**,**/docs/**,**/templates/**,**/tools/**,**/.github/**,**/tests/**,**/benchmarks/**,**/BenchmarkDotNet.Artifacts/**,**/scripts/**,**/release.sh" \
-            /d:sonar.coverage.exclusions="**/Intentum.CodeGen/**,**/*ServiceCollectionExtensions.cs,**/*CachingExtensions.cs,**/MultiTenancyExtensions.cs,**/Intentum.AI.Claude/**,**/Intentum.Persistence.MongoDB/**,**/Intentum.Persistence.Redis/**,**/Intentum.MultiTenancy/**,**/*RateLimitException.cs,**/LlmIntentModelExtensions.cs,**/Intentum.AI.ONNX/**,**/Intentum.Persistence/**,**/Intentum.Observability/**,**/Intentum.Analytics/**"
+            /d:sonar.coverage.exclusions="**/Intentum.CodeGen/**,**/*ServiceCollectionExtensions.cs,**/*CachingExtensions.cs,**/MultiTenancyExtensions.cs,**/Intentum.AI.Claude/**,**/Intentum.Persistence.MongoDB/**,**/Intentum.Persistence.Redis/**,**/Intentum.MultiTenancy/**,**/*RateLimitException.cs,**/LlmIntentModelExtensions.cs,**/Intentum.AI.ONNX/**,**/Intentum.Persistence/**/Migrations/**,**/Intentum.Observability/**,**/Intentum.Analytics/**"
           # Exclusions duplicated here on purpose so CI is stable. Keep in sync with .sonarcloud.properties when changing.
 
       - name: Restore
@@ -69,22 +70,16 @@ jobs:
             --filter 'FullyQualifiedName!~GreenwashingCaseStudyTests&FullyQualifiedName!~IntegrationTests' \
             --results-directory TestResults \
             /p:CollectCoverage=true \
-            /p:CoverletOutput="${{ github.workspace }}/TestResults" \
+            /p:CoverletOutput="${{ github.workspace }}/TestResults/coverage.opencover.xml" \
             /p:CoverletOutputFormat=opencover
       - name: Prepare coverage for SonarCloud
         run: |
           mkdir -p TestResults
+          # Coverlet may write to TestResults/coverage.opencover.xml or a guid subdir; normalize for Sonar
           found=$(find . -name 'coverage.opencover.xml' -type f -print -quit 2>/dev/null)
-          if [ -z "$found" ]; then
-            echo "::error::No coverage.opencover.xml found under $(pwd)"
-            find . -name '*.xml' -path '*/TestResults/*' -o -name 'coverage*.xml' 2>/dev/null | head -20
-            exit 1
-          fi
-          cp "$found" TestResults/coverage.opencover.xml
+          if [ -n "$found" ] && [ "$found" != "TestResults/coverage.opencover.xml" ]; then cp "$found" TestResults/coverage.opencover.xml; fi
+          test -s TestResults/coverage.opencover.xml || (echo "::error::No or empty coverage.opencover.xml"; find . -name 'coverage*.xml' 2>/dev/null; exit 1)
           echo "Coverage file: $(wc -l < TestResults/coverage.opencover.xml) lines, $(du -h TestResults/coverage.opencover.xml | cut -f1)"
-          head -5 TestResults/coverage.opencover.xml
-          test -s TestResults/coverage.opencover.xml || (echo "::error::coverage.opencover.xml is empty"; exit 1)
-          # Fail if report has no coverage data (SonarCloud would show 0% anyway)
           grep -q 'sequenceCoverage="[1-9]' TestResults/coverage.opencover.xml || (echo "::error::coverage.opencover.xml has no covered lines"; exit 1)
 
       - name: SonarCloud end
