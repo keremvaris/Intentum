@@ -1,8 +1,8 @@
 # Audience, project types & example use cases (EN)
 
-**Why you're reading this page** — This page describes **which types of projects** use Intentum, **who the users** are (developer profiles), and **example test cases** at low, medium, and high complexity — for both **AI-driven** and **non-AI (rule-based)** usage. It also gives **sector-based** examples (ESG, Carbon Accounting, Compliance) so you can map Intentum to your domain.
+**Why you're reading this page** — This page describes **which types of projects** use Intentum, **who the users** are (developer profiles), and **example test cases** at low, medium, and high complexity — for both **AI-driven** and **non-AI (rule-based)** usage. It also gives **sector-based** examples (ESG, Carbon Accounting, Compliance, security) so you can map Intentum to your domain.
 
-For the core flow (Observe → Infer → Decide), see [index](index.md) and [API Reference](api.md). For runnable scenarios, see [Sample (console)](https://github.com/keremvaris/Intentum/tree/master/samples/Intentum.Sample), [Sample.Blazor](https://github.com/keremvaris/Intentum/tree/master/samples/Intentum.Sample.Blazor), and [Scenarios](scenarios.md).
+**Runnable samples:** All web-based samples (including the former Sample Web) are consolidated in **Intentum.Sample.Blazor**. For the core flow (Observe → Infer → Decide), see [index](index.md) and [API Reference](api.md). For runnable scenarios, see [Sample (console)](https://github.com/keremvaris/Intentum/tree/master/samples/Intentum.Sample), [Sample.Blazor](https://github.com/keremvaris/Intentum/tree/master/samples/Intentum.Sample.Blazor), and [Scenarios](scenarios.md).
 
 ---
 
@@ -10,10 +10,13 @@ For the core flow (Observe → Infer → Decide), see [index](index.md) and [API
 
 | Project type | Typical use | Why Intentum |
 |--------------|-------------|--------------|
-| **ESG & Sustainability** | ESG reporting, compliance, metric tracking, risk assessment | Observe ESG events (report preparation, compliance review, verification); infer intent; policy decides Allow / Block / Observe. Non-deterministic (multiple stakeholders, compliance checks). |
+| **Security & fraud** | Financial fraud, account takeover (ATO), suspicious transfers | Observe event chain (login from new IP, email change, high-value transfer, express card request); ChainedIntentModel + policy → Block/Escalate. In Blazor: Demo 1 (Intent Stream) and ATO Demo. |
+| **Insider threat & anomaly** | Data exfiltration preparation, deviation from normal baseline | Observe baseline vs last 48h behavior; RuleBased intent; RequireAuth/Warn. In Blazor: Insider Threat Demo. |
+| **Zero-day & API traffic** | Unknown signature / known behavior, rate limit, bot detection | Observe behavior (PortScan → ExploitAttempt → LateralMove) or high request rate; fallback LLM or RuleBased; Block/RateLimit. In Blazor: Zero-Day Demo and API Traffic Demo. |
+| **ESG & Sustainability** | ESG reporting, compliance, greenwashing, carbon metrics | Observe ESG/carbon events; infer intent; policy Allow / Block / Observe. In Blazor: Sustainability (Greenwashing, Carbon, Live). |
 | **Carbon Accounting** | Carbon footprint calculation, verification, audit trails | Observe carbon calculation and verification events; infer intent; policy decides allow / flag / block based on compliance. |
 | **Compliance & audit** | ICMA, LMA compliance checks, audit trails, risk flags | Observe compliance events; infer risk level; policy decides allow / flag / block. |
-| **E‑commerce** | Add to cart, checkout, payment validation, retries | Observe cart/checkout/payment events; infer intent; policy allow / observe / block (Block on excessive retries). |
+| **E‑commerce** | Add to cart, checkout, payment validation, retries | Observe cart/checkout/payment events; infer intent; policy allow / observe / block (Block on excessive retries). In Blazor: Commerce page. |
 | **Financial reporting** | ESG report submission, validation retries, multi-actor approvals | Observe reporting events and retries; infer intent; policy decides allow / observe / block. |
 | **Regulatory workflows** | Multi-stakeholder approvals, compliance verification, risk assessment | Observe workflow events (analyst, compliance, regulator, board); infer intent; policy decides allow / observe / warn / block. |
 
@@ -23,18 +26,18 @@ For the core flow (Observe → Infer → Decide), see [index](index.md) and [API
 
 | Profile | Role | Typical need |
 |---------|------|--------------|
-| **Backend / full-stack developer** | Implements Observe (event capture), policy rules, and integration with AI providers | Clear API (BehaviorSpace, Infer, Decide), provider options, env config. |
+| **Backend / full-stack developer** | Implements Observe (event capture), policy rules, and integration with AI providers | Clear API (BehaviorSpace, Infer, Decide), provider options, env config. In Blazor sample: Playground, Explain, Policy Lab, API endpoints. |
+| **Security / fraud** | Defines fraud, ATO, insider threat, zero-day, and API anomaly scenarios | ChainedIntentModel, RuleBased + LLM fallback, policy Block/Escalate/RateLimit. In Blazor: Intent Stream, ATO Demo, Insider Threat, Zero-Day, API Traffic demos. |
 | **Product / platform** | Defines “what behavior we care about” and “when to allow / block / observe” | Scenarios and policy examples; low/medium/high examples; sector mapping. |
 | **Security / risk** | Defines Block rules, thresholds, and audit | Policy order (Block first), retry/rate limits, localization for audit messages. |
-| **QA / test** | Validates behavior → intent → decision for key flows | Test cases (low/medium/high), mock provider, contract tests, sector scenarios. |
+| **QA / test** | Validates behavior → intent → decision for key flows | Test cases (low/medium/high), mock provider, contract tests, sector scenarios. In Blazor, demos are one-click runnable. |
 | **DevOps / SRE** | Runs services with API keys, regions, rate limits | Env vars, provider choice, no raw logging in prod. |
-| **Frontend / Blazor developer** | Uses intent infer, explain, timeline, policy lab in the UI | Sample.Blazor: Overview, Commerce, Explain, FraudLive, Sustainability, Timeline, PolicyLab, Sandbox pages; CQRS (Carbon, Greenwashing, OrderPlacement). |
 
 ---
 
 ## Example test cases by level
 
-These are **example use cases** you can implement and test with Intentum. They are grouped by **complexity** (low, medium, high) and by **usage** (AI-driven vs rule-based / normal). The [sample](https://github.com/keremvaris/Intentum/tree/master/samples/Intentum.Sample) and test project implement many of these as runnable scenarios and unit tests.
+These are **example use cases** you can implement and test with Intentum. They are grouped by **complexity** (low, medium, high) and by **usage** (AI-driven vs rule-based / normal). The [Sample (console)](https://github.com/keremvaris/Intentum/tree/master/samples/Intentum.Sample) and test project implement many of these as runnable scenarios and unit tests; **Sample.Blazor** offers fraud, ATO, insider threat, zero-day, API traffic, sustainability, and e‑commerce as one-click runnable demo pages.
 
 ### Low complexity (3–4 examples)
 
@@ -102,8 +105,16 @@ The sample and **WorkflowStatusTests** include these transitions for ESG report,
 
 ## How the sample and tests map to this
 
+All **web-based** samples (including the former Sample Web) are consolidated in **Intentum.Sample.Blazor**; there is no separate “Sample Web” project.
+
 - **Intentum.Sample** (console) runs: ESG/Carbon/EU Green Bond scenarios; **workflow process status** (Draft, InProgress, UnderReview, Approved, Rejected, Completed) for EU Green Bond, ESG, compliance, LMA; and **classic** examples (payment happy path, payment with retries, suspicious retries, support escalation, e‑commerce: add to cart, checkout success, checkout with retries, payment validation). Run: `dotnet run --project samples/Intentum.Sample`.
-- **Intentum.Sample.Blazor** (Blazor UI + API): Overview, Commerce, Explain, FraudLive, Sustainability, Timeline, PolicyLab, Sandbox, Settings, Signals, Graph, Heatmap pages; Carbon, Greenwashing, OrderPlacement CQRS; intent infer/explain/explain-tree, greenwashing detection, Dashboard, analytics, timeline, playground compare; SSE inference broadcast, fraud and sustainability simulation. Run: `dotnet run --project samples/Intentum.Sample.Blazor`.
-- **Test project** has: **LowLevelScenarioTests**, **MediumLevelScenarioTests**, **HighLevelScenarioTests**, **SectorScenarioTests** (ESG, Carbon, compliance + classic: Fintech, Support, E‑commerce), and **WorkflowStatusTests** (process status transitions: Draft→InProgress, full lifecycle to Approved/Completed, Rejected path, stuck Draft/InProgress, EU Green Bond style).
+- **Intentum.Sample.Blazor** (single web sample — Blazor UI + API):
+  - **Infer & Decide:** Playground (Sandbox), Explain (signal contributions + policy tree), Policy Lab.
+  - **Analyze:** Overview, Graph, Timeline, Heatmap, Signals.
+  - **Use cases / demos:** **Intent Stream** (live intent flow + Demo 1: Financial Fraud, SSE), **ATO Demo** (account takeover), **Insider Threat Demo**, **Zero-Day Demo**, **API Traffic Demo**, **Sustainability** (Greenwashing, Carbon, Live simulation), **Commerce** (e‑commerce order).
+  - **Config:** Settings (dashboard thresholds, etc.).
+  - **API:** intent infer/explain/explain-tree, greenwashing, fraud/ATO/zero-day/insider-threat/api-traffic endpoints, SSE inference, Dashboard stream.
+  - Run: `dotnet run --project samples/Intentum.Sample.Blazor`. For detailed demo flows, see [Blazor five demo specs](../case-studies/blazor-five-demo-specs.md).
+- **Test project** has: **LowLevelScenarioTests**, **MediumLevelScenarioTests**, **HighLevelScenarioTests**, **SectorScenarioTests** (ESG, Carbon, compliance + classic: Fintech, Support, E‑commerce), **WorkflowStatusTests** (process status transitions), **GreenwashingCaseStudyTests**, and others.
 
 See [Setup](setup.md) to run the samples and [Testing](testing.md) to run the tests. **Next step:** If you're done here → [Scenarios](scenarios.md) or [Examples overview](examples-overview.md).

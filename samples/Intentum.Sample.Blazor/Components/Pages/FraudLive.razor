@@ -16,6 +16,7 @@
                 <p class="fraud-live__subtitle" style="margin: 0;">Canlı niyet akışı (örnek senaryo); SSE ile anlık akış. <InfoIcon Text="@(_fraudLiveInfoText)" /></p>
             </div>
             <div class="fraud-live__controls">
+            <span class="fraud-live__control-label">Genel simülasyon (sürekli rastgele)</span>
             <button type="button" class="btn-fraud-primary" @onclick="ToggleSimulation" disabled="@_toggleBusy">
                 @(_running ? "Durdur" : "Başlat")
             </button>
@@ -47,6 +48,7 @@
         <h3 class="page-card h3" style="margin: 0 0 0.5rem 0;">Demo 1: Finans Dolandırıcılığı (Ahmet K.)</h3>
         <p class="fraud-demo1-intro">Olaylar zinciri: Login (yeni ülke IP) → ChangeContactEmail → HighValueTransfer → RequestNewCardExpressShipping. ChainedIntentModel (RuleBased + LlmIntentModel TimeDecay) her adımda çalışır.</p>
         <div class="fraud-demo1-controls">
+            <span class="fraud-live__control-label">Demo 1: Ahmet K. (4 adım, sabit senaryo)</span>
             <button type="button" class="btn-fraud-primary" @onclick="ToggleDemo1" disabled="@_demo1ToggleBusy">
                 @(_demo1Running ? "Durdur" : "Başlat Demo 1")
             </button>
@@ -58,10 +60,13 @@
         </div>
         @if (_demo1Events.Count > 0)
         {
-            <div class="fraud-demo1-geo">
-                <span class="fraud-demo1-geo-label">Coğrafi konum:</span>
-                <span class="fraud-demo1-geo-point fraud-demo1-geo--login">Login IP: @(_demo1LoginIp ?? "—") (kırmızı)</span>
-                <span class="fraud-demo1-geo-point fraud-demo1-geo--normal">Normal: @(_demo1NormalLocation ?? "—") (yeşil)</span>
+            <div class="fraud-demo1-geo-section">
+                <h4 class="fraud-demo1-geo-title">Coğrafi konum (harita)</h4>
+                <div id="fraud-demo1-geo-map" class="fraud-demo1-geo-map"></div>
+                <div class="fraud-demo1-geo-legend">
+                    <span class="fraud-demo1-geo-point fraud-demo1-geo--login">Login IP: @(_demo1LoginIp ?? "—") (şüpheli)</span>
+                    <span class="fraud-demo1-geo-point fraud-demo1-geo--normal">Normal: @(_demo1NormalLocation ?? "—") (kullanıcı baz çizgisi)</span>
+                </div>
             </div>
             <div class="fraud-demo1-events">
                 <strong>Olaylar ve Fraud Risk Skoru:</strong>
@@ -246,6 +251,44 @@
             await UpdateLineChart();
             await UpdateDecisionPie();
         }
+        if (_demo1Events.Count > 0)
+        {
+            await Task.Delay(120);
+            await UpdateGeoMapAsync();
+        }
+    }
+
+    private async Task UpdateGeoMapAsync()
+    {
+        try
+        {
+            var normalLoc = _demo1NormalLocation ?? "TR";
+            var lonLat = GetLonLatForCountry(normalLoc);
+            var loginLonLat = GetLonLatForLoginIp();
+            var ok = await JSRuntime.InvokeAsync<bool>("setIntentumGeoMapData",
+                "fraud-demo1-geo-map",
+                lonLat[0], lonLat[1], normalLoc,
+                loginLonLat[0], loginLonLat[1], "Login IP");
+            if (!ok) { /* world.json yüklenememiş veya element yok */ }
+        }
+        catch { /* ignore */ }
+    }
+
+    private static double[] GetLonLatForCountry(string country)
+    {
+        return country.ToUpperInvariant() switch
+        {
+            "TR" => new[] { 28.97, 41.01 },
+            "DE" => new[] { 10.45, 51.16 },
+            "US" => new[] { -95.71, 37.09 },
+            "NG" => new[] { 8.67, 9.08 },
+            _ => new[] { 28.97, 41.01 }
+        };
+    }
+
+    private static double[] GetLonLatForLoginIp()
+    {
+        return new[] { 8.67, 9.08 };
     }
 
     private async Task RefreshStatus()
@@ -570,6 +613,7 @@
         if (_gaugeEcharts != null) await _gaugeEcharts.DisposeAsync();
         if (_lineEcharts != null) await _lineEcharts.DisposeAsync();
         if (_pieEcharts != null) await _pieEcharts.DisposeAsync();
+        try { await JSRuntime.InvokeVoidAsync("IntentumECharts.dispose", "fraud-demo1-geo-map"); } catch { /* ignore */ }
     }
 
     private sealed record FraudStatus(bool Running, int EventsPerMinute, DateTimeOffset LastInferenceAt);

@@ -1,8 +1,8 @@
 # Kitle, proje tipleri ve örnek kullanımlar (TR)
 
-Bu sayfa Intentum’un **hangi tip projelerde** kullanıldığını, **kullanıcıların** kimler olduğunu (geliştirici profilleri) ve **düşük, orta ve yüksek** karmaşıklıkta **örnek test senaryolarını** — hem **AI tabanlı** hem **AI’sız (kural tabanlı)** kullanım için — anlatır. Ayrıca **sektör bazlı** örnekler (ESG, Carbon Accounting, Uyumluluk) verir; böylece Intentum’u kendi alanına uyarlayabilirsin.
+Bu sayfa Intentum’un **hangi tip projelerde** kullanıldığını, **kullanıcıların** kimler olduğunu (geliştirici profilleri) ve **düşük, orta ve yüksek** karmaşıklıkta **örnek test senaryolarını** — hem **AI tabanlı** hem **AI’sız (kural tabanlı)** kullanım için — anlatır. Ayrıca **sektör bazlı** örnekler (ESG, Carbon Accounting, Uyumluluk, güvenlik) verir; böylece Intentum’u kendi alanına uyarlayabilirsin.
 
-Çekirdek akış (Observe → Infer → Decide) için [ana sayfa](index.md) ve [API Referansı](api.md). Çalıştırılabilir senaryolar için [Sample (konsol)](https://github.com/keremvaris/Intentum/tree/master/samples/Intentum.Sample), [Sample.Blazor](https://github.com/keremvaris/Intentum/tree/master/samples/Intentum.Sample.Blazor) ve [Senaryolar](scenarios.md).
+**Çalıştırılabilir örnekler:** Tüm web tabanlı örnekler (eski Sample Web dahil) **Intentum.Sample.Blazor** projesinde toplanmıştır. Çekirdek akış için [ana sayfa](index.md) ve [API Referansı](api.md). Çalıştırılabilir senaryolar için [Sample (konsol)](https://github.com/keremvaris/Intentum/tree/master/samples/Intentum.Sample), [Sample.Blazor](https://github.com/keremvaris/Intentum/tree/master/samples/Intentum.Sample.Blazor) ve [Senaryolar](scenarios.md).
 
 ---
 
@@ -10,10 +10,13 @@ Bu sayfa Intentum’un **hangi tip projelerde** kullanıldığını, **kullanıc
 
 | Proje tipi | Tipik kullanım | Neden Intentum |
 |------------|----------------|----------------|
-| **ESG & Sürdürülebilirlik** | ESG raporlama, uyumluluk, metrik takibi, risk değerlendirme | ESG olaylarını (rapor hazırlama, uyumluluk incelemesi, doğrulama) Observe et; intent çıkar; policy Allow / Block / Observe ver. Deterministik değil (çok paydaşlı, uyumluluk kontrolleri). |
+| **Güvenlik & dolandırıcılık** | Finans dolandırıcılığı, hesap ele geçirme (ATO), şüpheli transfer | Olay zincirini (login yeni IP, e-posta değişikliği, yüksek transfer, hızlı kart talebi) Observe et; ChainedIntentModel + policy ile Block/Escalate. Blazor’da Demo 1 (Intent Stream) ve ATO Demo. |
+| **İçeriden tehdit & anomali** | Veri sızıntısı hazırlığı, normal baz çizgiden sapma | Baz çizgi vs son 48 saat davranışını Observe et; RuleBased intent; RequireAuth/Warn. Blazor’da İçeriden Tehdit Demo. |
+| **Sıfır-gün & API trafiği** | Bilinmeyen imza / bilinen davranış, rate limit, bot tespiti | Davranış modeli (PortScan → ExploitAttempt → LateralMove) veya yüksek istek hızı Observe; fallback LLM veya RuleBased; Block/RateLimit. Blazor’da Zero-Day Demo ve API Trafik Demo. |
+| **ESG & Sürdürülebilirlik** | ESG raporlama, uyumluluk, greenwashing, karbon metrik | ESG/karbon olaylarını Observe et; intent çıkar; policy Allow / Block / Observe. Blazor’da Sustainability (Greenwashing, Carbon, Live). |
 | **Carbon Accounting** | Karbon ayak izi hesaplama, doğrulama, denetim izleri | Karbon hesaplama ve doğrulama olaylarını Observe et; intent çıkar; uyumluluğa göre policy allow / flag / block. |
 | **Uyumluluk ve denetim** | ICMA, LMA uyumluluk kontrolleri, denetim izleri, risk bayrakları | Uyumluluk olaylarını Observe et; risk seviyesi çıkar; policy allow / flag / block. |
-| **E‑ticaret** | Sepete ekleme, checkout, ödeme doğrulama, tekrarlı denemeler | Sepet/checkout/ödeme olaylarını Observe et; intent çıkar; policy allow / observe / block (aşırı retry’da Block). |
+| **E‑ticaret** | Sepete ekleme, checkout, ödeme doğrulama, tekrarlı denemeler | Sepet/checkout/ödeme olaylarını Observe et; intent çıkar; policy allow / observe / block (aşırı retry’da Block). Blazor’da Commerce sayfası. |
 | **Finansal raporlama** | ESG rapor gönderimi, doğrulama retry’ları, çok aktörlü onaylar | Raporlama olayları ve retry’ları Observe et; intent çıkar; policy allow / observe / block. |
 | **Düzenleyici iş akışları** | Çok paydaşlı onaylar, uyumluluk doğrulama, risk değerlendirme | İş akışı olaylarını (analist, uyumluluk, düzenleyici, yönetim) Observe et; intent çıkar; policy allow / observe / warn / block. |
 
@@ -23,17 +26,18 @@ Bu sayfa Intentum’un **hangi tip projelerde** kullanıldığını, **kullanıc
 
 | Profil | Rol | Tipik ihtiyaç |
 |--------|-----|----------------|
-| **Backend / full-stack geliştirici** | Observe (olay yakalama), policy kuralları ve AI sağlayıcı entegrasyonunu uygular | Net API (BehaviorSpace, Infer, Decide), sağlayıcı seçenekleri, env config. |
+| **Backend / full-stack geliştirici** | Observe (olay yakalama), policy kuralları ve AI sağlayıcı entegrasyonunu uygular | Net API (BehaviorSpace, Infer, Decide), sağlayıcı seçenekleri, env config. Blazor sample’da Playground, Explain, Policy Lab, API endpoint’leri. |
+| **Güvenlik / fraud** | Dolandırıcılık, ATO, içeriden tehdit, zero-day ve API anomali senaryolarını tanımlar | ChainedIntentModel, RuleBased + LLM fallback, policy Block/Escalate/RateLimit. Blazor’da Intent Stream, ATO Demo, İçeriden Tehdit, Zero-Day, API Trafik demoları. |
 | **Ürün / platform** | “Hangi davranış önemli” ve “ne zaman allow / block / observe” tanımlar | Senaryolar ve policy örnekleri; düşük/orta/yüksek örnekler; sektör eşlemesi. |
 | **Güvenlik / risk** | Block kuralları, eşikler ve denetim mesajlarını tanımlar | Policy sırası (Block önce), retry/rate limit, denetim mesajları için yerelleştirme. |
-| **QA / test** | Ana akışlar için davranış → intent → karar doğrular | Test senaryoları (düşük/orta/yüksek), mock sağlayıcı, contract testler, sektör senaryoları. |
+| **QA / test** | Ana akışlar için davranış → intent → karar doğrular | Test senaryoları (düşük/orta/yüksek), mock sağlayıcı, contract testler, sektör senaryoları. Blazor’da demolar tek tıkla çalıştırılabilir. |
 | **DevOps / SRE** | API anahtarları, bölge, rate limit ile servisleri çalıştırır | Env var, sağlayıcı seçimi, prod’da ham log yok. |
 
 ---
 
 ## Seviyeye göre örnek test senaryoları
 
-Bunlar Intentum ile uygulayıp test edebileceğin **örnek kullanım senaryoları**. **Karmaşıklığa** (düşük, orta, yüksek) ve **kullanım türüne** (AI tabanlı vs kural tabanlı / normal) göre gruplanmıştır. [Sample](https://github.com/keremvaris/Intentum/tree/master/samples/Intentum.Sample) ve test projesi bunların bir kısmını çalıştırılabilir senaryo ve birim test olarak uygular.
+Bunlar Intentum ile uygulayıp test edebileceğin **örnek kullanım senaryoları**. **Karmaşıklığa** (düşük, orta, yüksek) ve **kullanım türüne** (AI tabanlı vs kural tabanlı / normal) göre gruplanmıştır. [Sample (konsol)](https://github.com/keremvaris/Intentum/tree/master/samples/Intentum.Sample) ve test projesi bunların bir kısmını çalıştırılabilir senaryo ve birim test olarak uygular; **Sample.Blazor** ise dolandırıcılık, ATO, içeriden tehdit, zero-day, API trafiği, sürdürülebilirlik ve e‑ticaret demolarını tek tıkla çalıştırılabilir sayfalar olarak sunar.
 
 ### Düşük karmaşıklık (3–4 örnek)
 
@@ -101,8 +105,16 @@ Sample ve **WorkflowStatusTests** bu geçişleri ESG raporu, uyumluluk, LMA kred
 
 ## Sample ve testler buna nasıl karşılık geliyor
 
+Tüm **web tabanlı** örnekler (eski Sample Web’deki sayfalar dahil) **Intentum.Sample.Blazor** projesinde toplanmıştır; ayrı bir “Sample Web” projesi yoktur.
+
 - **Intentum.Sample** (konsol) şunları çalıştırır: ESG/Carbon/EU Green Bond senaryoları; **iş akışı process status** (Draft, InProgress, UnderReview, Approved, Rejected, Completed) EU Green Bond, ESG, uyumluluk, LMA için; ve **klasik** örnekler (ödeme başarılı, tekrarlı ödeme, şüpheli tekrarlar, destek eskalasyonu, e‑ticaret: sepete ekleme, checkout başarılı, checkout tekrarlı, ödeme doğrulama).
-- **Intentum.Sample.Blazor** (Blazor UI + API): Overview, Commerce, Explain, FraudLive, Sustainability, Timeline, PolicyLab, Sandbox sayfaları; Carbon, Greenwashing, OrderPlacement; intent infer/explain/explain-tree, greenwashing tespiti, Dashboard, analytics, timeline, playground compare; SSE inference, dolandırıcılık ve sürdürülebilirlik simülasyonu. Çalıştırma: `dotnet run --project samples/Intentum.Sample.Blazor`.
-- **Test projesi** şunlara sahiptir: **LowLevelScenarioTests**, **MediumLevelScenarioTests**, **HighLevelScenarioTests**, **SectorScenarioTests** (ESG, Carbon, uyumluluk + klasik: Fintech, Destek, E‑ticaret), **WorkflowStatusTests** (process status geçişleri: Draft→InProgress, tam yaşam döngüsü Approved/Completed, Rejected yolu, takılı Draft/InProgress, EU Green Bond tarzı).
+- **Intentum.Sample.Blazor** (tek web örneği — Blazor UI + API):
+  - **Infer & Decide:** Playground (Sandbox), Explain (sinyal katkıları + politika ağacı), Policy Lab.
+  - **Analiz:** Overview, Graph, Timeline, Heatmap, Signals.
+  - **Use cases / demolar:** **Intent Stream** (canlı niyet akışı + Demo 1: Finans Dolandırıcılığı, SSE), **ATO Demo** (hesap ele geçirme), **İçeriden Tehdit Demo**, **Zero-Day Demo**, **API Trafik Demo**, **Sustainability** (Greenwashing, Carbon, Live simülasyonu), **Commerce** (e‑ticaret sipariş).
+  - **Config:** Settings (dashboard eşikleri vb.).
+  - API: intent infer/explain/explain-tree, greenwashing, dolandırıcılık/ATO/zero-day/insider-threat/api-traffic endpoint’leri, SSE inference, Dashboard stream.
+  - Çalıştırma: `dotnet run --project samples/Intentum.Sample.Blazor`. Detaylı demo akışları için [Blazor beş demo spesifikasyonu](../case-studies/blazor-five-demo-specs.md).
+- **Test projesi** şunlara sahiptir: **LowLevelScenarioTests**, **MediumLevelScenarioTests**, **HighLevelScenarioTests**, **SectorScenarioTests** (ESG, Carbon, uyumluluk + klasik: Fintech, Destek, E‑ticaret), **WorkflowStatusTests** (process status geçişleri), **GreenwashingCaseStudyTests** vb.
 
 Sample’ı çalıştırmak için [Kurulum](setup.md), testleri çalıştırmak için [Test](testing.md). **Sonraki adım:** Bu sayfayı bitirdiyseniz → [Senaryolar](scenarios.md) veya [Örnekler rehberi](examples-overview.md).
