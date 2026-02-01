@@ -13,6 +13,24 @@ Bu dosya **conventional commit** mesajlarından otomatik üretilir. Commit'te **
 
 ---
 
+## [unreleased]
+
+
+
+### Features
+
+- **Add interactive geo map and sidebar toggle** *(fraud-live)*
+
+- Add interactive world map to FraudLive Demo 1 showing normal and login IP locations
+- Implement JavaScript interop for ECharts world map initialization and data update
+- Enhance FraudLive UI with labels for demo control buttons and map legend
+- Add dashboard.js script to handle sidebar toggle with ARIA attributes for accessibility
+- Update dashboard CSS to manage sidebar visibility and transitions consistently
+- Modify MainLayout to set fixed sidebar ID and toggle button with ARIA-expanded attribute
+- Document runnable samples for fraud and related demos in audience.md and audience tr.md
+
+
+
 ## [1.1.4] - 2026-02-01
 
 
