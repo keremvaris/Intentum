@@ -18,6 +18,7 @@ Bu dosya **conventional commit** mesajlarından otomatik üretilir. Commit'te **
 
 
 
+
 ### Bug Fixes
 
 - **Improve image green score robustness** *(greenwashing)*
@@ -33,6 +34,55 @@ Refactors the SonarCloud CI workflow to pass exclusion paths via dedicated envir
 ### Miscellaneous
 
 - **Simplify SonarCloud exclusions handling in CI workflow** *(sonar)*
+
+
+
+
+### Testing
+
+- **Add comprehensive unit tests** *(behavior-pattern-detector)*
+
+- Add tests for BehaviorPatternDetector constructor null check
+- Verify GetBehaviorPatternsAsync returns ordered patterns by count
+- Test GetBehaviorPatternsAsync returns empty when no records
+- Validate GetPatternAnomaliesAsync returns empty when no records
+- Test GetPatternAnomaliesAsync returns anomalies when threshold met
+- Add tests for MatchTemplates with matching and non-matching cases
+- Implement FakeIntentHistoryRepository for test support
+
+test(observable-intent-model): add unit tests for inference behavior
+
+- Test constructor throws on null inner model
+- Verify Infer returns expected Intent from inner model
+- Confirm exceptions from inner model propagate correctly
+- Test Infer with empty BehaviorSpace calls inner correctly
+- Verify Infer passes precomputed vector to inner model
+
+test(onnx-intent-model): add constructor validation tests
+
+- Verify constructor throws when IntentLabels list is empty
+- Add TempFile helper for creating disposable temp files for tests
+
+test(persistence): add serialization and NoOpAuditStore tests
+
+- Test NoOpIntentAuditStore completes AppendAsync without errors
+- Verify BehaviorSpaceDocument round-trip serialization preserves data
+- Test BehaviorSpaceDocument handles empty and invalid MetadataJson
+- Verify BehaviorEventDocument round-trip serialization preserves data
+- Test IntentHistoryDocument round-trip serialization and empty metadata handling
+
+test(policy-execution-observability): add exception handling test
+
+- Verify DecideWithExecutionLog returns Observe decision when policy throws
+- Confirm exception details are recorded in audit log during failure
+
+test(tenant-aware-behavior-space-repository): add multitenancy tests
+
+- Add tests for GetByMetadataAsync filtering by current tenant
+- Verify behavior when tenant is null delegates to inner repository
+- Test GetByTimeWindowAsync filters results by tenant correctly
+- Verify deletion returns true when tenant owns space, false otherwise
+
 
 
 ## [1.1.2] - 2026-02-01
