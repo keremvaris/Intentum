@@ -16,7 +16,7 @@ Intentum CodeGen, CQRS + Intentum proje iskeleti oluşturur ve test assembly vey
    dotnet run --project src/Intentum.CodeGen/Intentum.CodeGen.csproj -- generate -a ./tests/MyApp.Tests/bin/Debug/net10.0/MyApp.Tests.dll -o ./MyApp
    # veya: -- generate -s features.yaml -o ./MyApp
    ```
-3. **Çalıştır:** Uygulama varsayılan portta (5000 veya 5150; `Properties/launchSettings.json`) açılır. **UI:** `http://localhost:5150/`, **API dokümanı:** `http://localhost:5150/scalar`.
+3. **Çalıştır:** Uygulama varsayılan portta (`Properties/launchSettings.json`, örn. 5000) açılır. **UI:** `http://localhost:5000/`, **API dokümanı:** `http://localhost:5000/scalar`.
 
 Mevcut dosyalar üzerine yazılmaz; CodeGen yalnızca eksik dosyaları ekler.
 
@@ -128,8 +128,8 @@ Mevcut dosyalar **üzerine yazılmaz**; CodeGen yalnızca eksik dosyaları yazar
 
 - **Stack:** ASP.NET Core, MediatR, FluentValidation, Intentum (Core, Runtime, AI), **Scalar** (API dokümanı), `wwwroot/` içinde statik **UI**.
 - **Endpoint’ler:** `POST /api/carbon/calculate` (Intentum Observe→Infer→Decide), `GET /api/carbon/report/{id}`, `POST /api/orders`.
-- **UI:** `http://localhost:5150/` — Carbon, Rapor ve Sipariş formları. **API dokümanı:** `http://localhost:5150/scalar`.
-- **Port:** `Properties/launchSettings.json` içinde 5150 (5000 meşgulse değiştirilebilir).
+- **UI:** `http://localhost:5000/` — Carbon, Rapor ve Sipariş formları. **API dokümanı:** `http://localhost:5000/scalar`.
+- **Port:** `Properties/launchSettings.json` içinde varsayılan 5000; gerekirse değiştirilebilir.
 - **Çalıştırma:** `dotnet run --project samples/Intentum.Sample.Web`.
 
 ---

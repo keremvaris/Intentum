@@ -1,7 +1,3 @@
-using Intentum.AI.Embeddings;
-using Intentum.AI.Mock;
-using Intentum.AI.Models;
-using Intentum.AI.Similarity;
 using Intentum.Core.Behavior;
 using Intentum.Core.Contracts;
 using Intentum.Runtime;
@@ -22,7 +18,7 @@ public class InferFunction
     {
         _model = model ?? throw new ArgumentNullException(nameof(model));
         _policy = policy ?? throw new ArgumentNullException(nameof(policy));
-        _logger = loggerFactory?.CreateLogger<InferFunction>() ?? throw new ArgumentNullException(nameof(loggerFactory));
+        _logger = loggerFactory.CreateLogger<InferFunction>();
     }
 
     [Function("InferIntent")]

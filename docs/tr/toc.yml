@@ -52,6 +52,8 @@ items:
         href: clustering-and-experiments-use-cases.md
       - name: Domain intent şablonları
         href: domain-intent-templates.md
+      - name: Hibrit mod ve kural tabanlı yedekleme
+        href: hybrid-mode-and-fallback.md
       - name: Gelişmiş Özellikler
         href: advanced-features.md
       - name: Agent framework entegrasyonu

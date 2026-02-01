@@ -52,6 +52,15 @@ public interface IIntentAnalytics
         CancellationToken cancellationToken = default);
 
     /// <summary>
+    /// Gets an intent graph snapshot for an entity within a time window: nodes (intent + confidence) and edges (transitions).
+    /// </summary>
+    Task<IntentGraphSnapshot> GetIntentGraphSnapshotAsync(
+        string entityId,
+        DateTimeOffset start,
+        DateTimeOffset end,
+        CancellationToken cancellationToken = default);
+
+    /// <summary>
     /// Exports intent history in the time window to JSON.
     /// </summary>
     Task<string> ExportToJsonAsync(

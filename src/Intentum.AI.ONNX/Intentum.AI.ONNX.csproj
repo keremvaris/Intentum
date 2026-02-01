@@ -1,0 +1,25 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <NoWarn>$(NoWarn);1591</NoWarn>
+    <PackageId>Intentum.AI.ONNX</PackageId>
+    <Authors>Intentum Contributors</Authors>
+    <Description>Local intent classification using ONNX Runtime. Implements IIntentModel for offline or low-latency inference.</Description>
+    <PackageTags>intent;behavior;onnx;local;inference;dotnet</PackageTags>
+    <RepositoryUrl>https://github.com/keremvaris/Intentum</RepositoryUrl>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Intentum.Core\Intentum.Core.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.ML.OnnxRuntime" Version="1.23.2" />
+  </ItemGroup>
+
+</Project>

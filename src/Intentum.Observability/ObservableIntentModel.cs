@@ -1,5 +1,4 @@
 using System.Diagnostics;
-using Intentum.AI.Models;
 using Intentum.Core.Behavior;
 using Intentum.Core.Contracts;
 using Intentum.Core.Intents;
@@ -21,7 +20,7 @@ public sealed class ObservableIntentModel : IIntentModel
     public Intent Infer(BehaviorSpace behaviorSpace, BehaviorVector? precomputedVector = null)
     {
         var stopwatch = Stopwatch.StartNew();
-        using var activity = IntentumActivitySource.Source.StartActivity(IntentumActivitySource.InferSpanName);
+        using var activity = IntentumActivitySource.Source.StartActivity();
 
         try
         {
@@ -29,10 +28,15 @@ public sealed class ObservableIntentModel : IIntentModel
 
             if (activity != null)
             {
+                activity.DisplayName = IntentumActivitySource.InferSpanName;
                 activity.SetTag("intentum.intent.name", intent.Name);
                 activity.SetTag("intentum.intent.confidence.level", intent.Confidence.Level);
+                activity.SetTag("intentum.intent.confidence.score", intent.Confidence.Score);
                 activity.SetTag("intentum.intent.signal.count", intent.Signals.Count);
                 activity.SetTag("intentum.behavior.event.count", behaviorSpace.Events.Count);
+                var signalSummary = GetBehaviorSignalSummary(behaviorSpace);
+                if (signalSummary != null)
+                    activity.SetTag("intentum.behavior.signal_summary", signalSummary);
             }
 
             IntentumMetrics.RecordIntentInference(intent, stopwatch.Elapsed);
@@ -45,5 +49,18 @@ public sealed class ObservableIntentModel : IIntentModel
             activity?.SetStatus(ActivityStatusCode.Error, ex.Message);
             throw;
         }
+    }
+
+    /// <summary>Builds a short summary of behavior signals for trace correlation (signal → intent).</summary>
+    private static string? GetBehaviorSignalSummary(BehaviorSpace behaviorSpace)
+    {
+        if (behaviorSpace.Events.Count == 0)
+            return null;
+        const int maxLen = 200;
+        var parts = behaviorSpace.Events
+            .Select(e => $"{e.Actor}:{e.Action}")
+            .ToList();
+        var s = string.Join(";", parts);
+        return s.Length <= maxLen ? s : s[..maxLen] + "...";
     }
 }

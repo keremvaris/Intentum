@@ -1,0 +1,128 @@
+@page "/graph"
+@rendermode InteractiveServer
+@inject HttpClient Http
+@inject NavigationManager Navigation
+@inject IJSRuntime JSRuntime
+@implements IAsyncDisposable
+
+<PageTitle>Intent Graph</PageTitle>
+
+<div class="page-card">
+    <h2 style="margin: 0 0 0.25rem 0;">Intent Graph</h2>
+    <p class="subtitle" style="margin: 0;">Intent'ler arası geçiş ve korelasyon (ECharts graph). <InfoIcon Text="@(_graphInfoText)" /></p>
+</div>
+
+<div class="page-card">
+    <h3 class="page-card h3" style="margin: 0 0 0.5rem 0;">Filtreler</h3>
+    <div class="dashboard-toolbar">
+        <label>Entity ID <input @bind="_entityId" placeholder="LiveDemo" /></label>
+        <label>From <input type="datetime-local" @bind="_from" /></label>
+        <label>To <input type="datetime-local" @bind="_to" /></label>
+        <button type="button" @onclick="LoadGraph">Yükle</button>
+    </div>
+    <p class="subtitle hint">Canlı veri için Intent Stream sayfasından simülasyonu başlatın; entity: LiveDemo.</p>
+</div>
+
+@if (_error != null)
+{
+    <div class="page-card"><p class="error">@_error</p></div>
+}
+
+<div class="page-card">
+    <h3 class="page-card h3" style="margin: 0 0 0.75rem 0;">Grafik <InfoIcon Text="@(_graphChartInfoText)" /></h3>
+    <div class="chart-container">
+    <div id="graph-chart" style="width: 100%; height: 500px;"></div>
+    @if (_chartInitFailed)
+    {
+        <div class="chart-loading-overlay"><span class="chart-loading-text chart-error-text">Grafik kütüphanesi yüklenemedi. ECharts script'inin yüklü olduğundan emin olun.</span></div>
+    }
+    else if (_loading)
+    {
+        <div class="chart-loading-overlay"><span class="chart-loading-text">Yükleniyor…</span></div>
+    }
+    </div>
+</div>
+
+@code {
+    private static readonly string _graphInfoText = "Bu sayfa, seçilen entity ve tarih aralığında intent'ler arasındaki geçişleri ve korelasyonu graf olarak gösterir. Node'lar intent'leri, kenarlar geçiş sıklığını temsil eder. Canlı veri için Intent Stream sayfasından simülasyonu başlatın.";
+    private static readonly string _graphChartInfoText = "Grafik sürüklenebilir ve zoom yapılabilir. Renkler güven skoruna göre: kırmızı düşük, sarı orta, yeşil yüksek.";
+    private string _entityId = "LiveDemo";
+    private DateTime _from = DateTime.UtcNow.AddDays(-7);
+    private DateTime _to = DateTime.UtcNow;
+    private bool _loading = true;
+    private string? _error;
+    private bool _chartInitFailed;
+    private EChartsInterop? _echarts;
+    private const string ChartId = "graph-chart";
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            _echarts = new EChartsInterop(JSRuntime, ChartId);
+            _chartInitFailed = !await _echarts.InitAsync();
+            if (!_chartInitFailed)
+                await LoadGraph();
+            StateHasChanged();
+        }
+    }
+
+    private async Task LoadGraph()
+    {
+        _loading = true;
+        _error = null;
+        StateHasChanged();
+        try
+        {
+            var from = new DateTimeOffset(_from.Kind == DateTimeKind.Unspecified ? DateTime.SpecifyKind(_from, DateTimeKind.Utc) : _from);
+            var to = new DateTimeOffset(_to.Kind == DateTimeKind.Unspecified ? DateTime.SpecifyKind(_to, DateTimeKind.Utc) : _to);
+            var baseUri = new Uri(Navigation.BaseUri).GetLeftPart(UriPartial.Authority);
+            var url = $"{baseUri}/api/intent/analytics/graph/{Uri.EscapeDataString(_entityId)}?from={Uri.EscapeDataString(from.ToString("o"))}&to={Uri.EscapeDataString(to.ToString("o"))}";
+            var snapshot = await Http.GetFromJsonAsync<GraphSnapshotResponse>(url);
+            if (snapshot?.Nodes != null && snapshot.Nodes.Count > 0)
+            {
+                var nodeColor = (double score) => score < 0.4 ? "#d32f2f" : score < 0.7 ? "#ffeb3b" : "#4caf50";
+                var nodes = snapshot.Nodes.Select(n => new
+                {
+                    id = n.Id,
+                    name = n.IntentName,
+                    value = Math.Round(n.ConfidenceScore, 4),
+                    itemStyle = new { color = nodeColor(n.ConfidenceScore) },
+                    label = new { show = true, formatter = $"{n.IntentName} ({n.ConfidenceScore:P0})" }
+                }).ToList();
+                var links = (snapshot.Edges ?? Array.Empty<GraphEdgeDto>()).Select(e => new { source = e.FromNodeId, target = e.ToNodeId, value = e.Weight }).ToList();
+                var option = new
+                {
+                    tooltip = new { },
+                    series = new[] { new { type = "graph", layout = "force", roam = true, label = new { show = true, position = "right" }, edgeSymbol = new[] { "circle", "arrow" }, edgeSymbolSize = new[] { 4, 10 }, data = nodes,
+                        links, lineStyle = new { opacity = 0.9, width = 2 }, force = new { repulsion = 100, edgeLength = 100 } } }
+                };
+                if (_echarts != null)
+                    await _echarts.SetOptionAsync(option);
+            }
+            else if (_echarts != null)
+            {
+                await _echarts.SetOptionAsync(new { title = new { text = "Bu pencerede node yok", left = "center" } });
+            }
+        }
+        catch (Exception ex)
+        {
+            _error = ex.Message;
+        }
+        finally
+        {
+            _loading = false;
+            StateHasChanged();
+        }
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        if (_echarts != null)
+            await _echarts.DisposeAsync();
+    }
+
+    private sealed record GraphSnapshotResponse(string EntityId, DateTimeOffset WindowStart, DateTimeOffset WindowEnd, IReadOnlyList<GraphNodeDto>? Nodes, IReadOnlyList<GraphEdgeDto>? Edges, DateTimeOffset SnapshotAt);
+    private sealed record GraphNodeDto(string Id, string IntentName, double ConfidenceScore);
+    private sealed record GraphEdgeDto(string FromNodeId, string ToNodeId, double Weight);
+}

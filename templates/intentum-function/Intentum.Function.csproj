@@ -12,8 +12,8 @@
     <PackageReference Include="Microsoft.Azure.Functions.Worker.Extensions.Http" Version="3.1.0" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="Intentum.AI" Version="1.0.0-alpha.0.1" />
-    <PackageReference Include="Intentum.Core" Version="1.0.0-alpha.0.1" />
-    <PackageReference Include="Intentum.Runtime" Version="1.0.0-alpha.0.1" />
+    <ProjectReference Include="../../src/Intentum.AI/Intentum.AI.csproj" />
+    <ProjectReference Include="../../src/Intentum.Core/Intentum.Core.csproj" />
+    <ProjectReference Include="../../src/Intentum.Runtime/Intentum.Runtime.csproj" />
   </ItemGroup>
 </Project>

@@ -1,45 +1,57 @@
 <Solution>
-  <Folder Name="/examples/">
-    <Project Path="examples/greenwashing-intent/Intentum.Example.GreenwashingIntent.csproj" />
-    <Project Path="examples/fraud-intent/Intentum.Example.FraudIntent.csproj" />
-    <Project Path="examples/ai-fallback-intent/Intentum.Example.AiFallback.csproj" />
-    <Project Path="examples/chained-intent/Intentum.Example.ChainedIntent.csproj" />
-    <Project Path="examples/time-decay-intent/Intentum.Example.TimeDecayIntent.csproj" />
-    <Project Path="examples/vector-normalization/Intentum.Example.VectorNormalization.csproj" />
-    <Project Path="examples/customer-intent/Intentum.Example.CustomerIntent.csproj" />
-  </Folder>
-  <Folder Name="/samples/">
-    <Project Path="samples/Intentum.Sample/Intentum.Sample.csproj" />
-    <Project Path="samples/Intentum.Sample.Web/Intentum.Sample.Web.csproj" />
-    <Project Path="samples/Intentum.VerifyAI/Intentum.VerifyAI.csproj" />
-  </Folder>
-  <Folder Name="/tests/">
-    <Project Path="tests/Intentum.Tests/Intentum.Tests.csproj" />
-    <Project Path="tests/Intentum.Tests.Integration/Intentum.Tests.Integration.csproj" />
-  </Folder>
-  <Folder Name="/benchmarks/">
-    <Project Path="benchmarks/Intentum.Benchmarks/Intentum.Benchmarks.csproj" />
-  </Folder>
-  <Folder Name="/src/">
-    <Project Path="src/Intentum.CodeGen/Intentum.CodeGen.csproj" />
-    <Project Path="src/Intentum.AI.AzureOpenAI/Intentum.AI.AzureOpenAI.csproj" />
-    <Project Path="src/Intentum.AI.Claude/Intentum.AI.Claude.csproj" />
-    <Project Path="src/Intentum.AI.Gemini/Intentum.AI.Gemini.csproj" />
-    <Project Path="src/Intentum.AI.Mistral/Intentum.AI.Mistral.csproj" />
-    <Project Path="src/Intentum.AI.OpenAI/Intentum.AI.OpenAI.csproj" />
-    <Project Path="src/Intentum.Providers/Intentum.Providers.csproj" />
-    <Project Path="src/Intentum.AI/Intentum.AI.csproj" />
-    <Project Path="src/Intentum.AI.Caching.Redis/Intentum.AI.Caching.Redis.csproj" />
-    <Project Path="src/Intentum.Clustering/Intentum.Clustering.csproj" />
-    <Project Path="src/Intentum.Core/Intentum.Core.csproj" />
-    <Project Path="src/Intentum.Events/Intentum.Events.csproj" />
-    <Project Path="src/Intentum.Experiments/Intentum.Experiments.csproj" />
-    <Project Path="src/Intentum.MultiTenancy/Intentum.MultiTenancy.csproj" />
-    <Project Path="src/Intentum.Explainability/Intentum.Explainability.csproj" />
-    <Project Path="src/Intentum.Runtime/Intentum.Runtime.csproj" />
-    <Project Path="src/Intentum.Simulation/Intentum.Simulation.csproj" />
-    <Project Path="src/Intentum.Versioning/Intentum.Versioning.csproj" />
-    <Project Path="src/Intentum.Persistence.Redis/Intentum.Persistence.Redis.csproj" />
-    <Project Path="src/Intentum.Persistence.MongoDB/Intentum.Persistence.MongoDB.csproj" />
-  </Folder>
+  <Configurations>
+    <Platform Name="Any CPU"/>
+    <Platform Name="x64"/>
+    <Platform Name="x86"/>
+  </Configurations>
+  <Project Path="benchmarks/Intentum.Benchmarks/Intentum.Benchmarks.csproj"/>
+  <Project Path="examples/ai-fallback-intent/Intentum.Example.AiFallback.csproj"/>
+  <Project Path="examples/chained-intent/Intentum.Example.ChainedIntent.csproj"/>
+  <Project Path="examples/customer-intent/Intentum.Example.CustomerIntent.csproj"/>
+  <Project Path="examples/fraud-intent/Intentum.Example.FraudIntent.csproj"/>
+  <Project Path="examples/greenwashing-intent/Intentum.Example.GreenwashingIntent.csproj"/>
+  <Project Path="examples/hello-intentum/Intentum.Example.HelloIntentum.csproj"/>
+  <Project Path="examples/time-decay-intent/Intentum.Example.TimeDecayIntent.csproj"/>
+  <Project Path="examples/vector-normalization/Intentum.Example.VectorNormalization.csproj"/>
+  <Project Path="samples/Intentum.Sample/Intentum.Sample.csproj"/>
+  <Project Path="samples/Intentum.Sample.Blazor/Intentum.Sample.Blazor.csproj"/>
+  <Project Path="samples/Intentum.Sample.Web/Intentum.Sample.Web.csproj"/>
+  <Project Path="samples/Intentum.VerifyAI/Intentum.VerifyAI.csproj"/>
+  <Project Path="src/Intentum.AI/Intentum.AI.csproj"/>
+  <Project Path="src/Intentum.AI.AzureOpenAI/Intentum.AI.AzureOpenAI.csproj"/>
+  <Project Path="src/Intentum.AI.Claude/Intentum.AI.Claude.csproj"/>
+  <Project Path="src/Intentum.AI.Gemini/Intentum.AI.Gemini.csproj"/>
+  <Project Path="src/Intentum.AI.Mistral/Intentum.AI.Mistral.csproj"/>
+  <Project Path="src/Intentum.AI.ONNX/Intentum.AI.ONNX.csproj"/>
+  <Project Path="src/Intentum.AI.OpenAI/Intentum.AI.OpenAI.csproj"/>
+  <Project Path="src/Intentum.AI.Caching.Redis/Intentum.AI.Caching.Redis.csproj"/>
+  <Project Path="src/Intentum.Analytics/Intentum.Analytics.csproj"/>
+  <Project Path="src/Intentum.AspNetCore/Intentum.AspNetCore.csproj"/>
+  <Project Path="src/Intentum.Clustering/Intentum.Clustering.csproj"/>
+  <Project Path="src/Intentum.CodeGen/Intentum.CodeGen.csproj"/>
+  <Project Path="src/Intentum.Core/Intentum.Core.csproj"/>
+  <Project Path="src/Intentum.Events/Intentum.Events.csproj"/>
+  <Project Path="src/Intentum.Experiments/Intentum.Experiments.csproj"/>
+  <Project Path="src/Intentum.Explainability/Intentum.Explainability.csproj"/>
+  <Project Path="src/Intentum.Logging/Intentum.Logging.csproj"/>
+  <Project Path="src/Intentum.MultiTenancy/Intentum.MultiTenancy.csproj"/>
+  <Project Path="src/Intentum.Observability/Intentum.Observability.csproj"/>
+  <Project Path="src/Intentum.Persistence/Intentum.Persistence.csproj"/>
+  <Project Path="src/Intentum.Persistence.EntityFramework/Intentum.Persistence.EntityFramework.csproj"/>
+  <Project Path="src/Intentum.Persistence.MongoDB/Intentum.Persistence.MongoDB.csproj"/>
+  <Project Path="src/Intentum.Persistence.Redis/Intentum.Persistence.Redis.csproj"/>
+  <Project Path="src/Intentum.Providers/Intentum.Providers.csproj"/>
+  <Project Path="src/Intentum.Runtime/Intentum.Runtime.csproj"/>
+  <Project Path="src/Intentum.Runtime.PolicyStore/Intentum.Runtime.PolicyStore.csproj"/>
+  <Project Path="src/Intentum.Simulation/Intentum.Simulation.csproj"/>
+  <Project Path="src/Intentum.Streaming.Kafka/Intentum.Streaming.Kafka.csproj"/>
+  <Project Path="src/Intentum.Testing/Intentum.Testing.csproj"/>
+  <Project Path="src/Intentum.Versioning/Intentum.Versioning.csproj"/>
+  <Project Path="templates/intentum-backgroundservice/Intentum.BackgroundService.csproj"/>
+  <Project Path="templates/intentum-cqrs/Intentum.Cqrs.Web.csproj"/>
+  <Project Path="templates/intentum-function/Intentum.Function.csproj"/>
+  <Project Path="templates/intentum-webapi/Intentum.WebApi.csproj"/>
+  <Project Path="tests/Intentum.Tests/Intentum.Tests.csproj"/>
+  <Project Path="tests/Intentum.Tests.Integration/Intentum.Tests.Integration.csproj"/>
+  <Project Path="tools/Intentum.Cli/Intentum.Cli.csproj"/>
 </Solution>

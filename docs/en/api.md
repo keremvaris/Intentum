@@ -225,7 +225,7 @@ The following packages add optional capabilities. For detailed usage (what it is
 | **IIntentExplainer** | Explains how intent was inferred (signal contributions, text summary). |
 | **IntentExplainer** | `GetSignalContributions(intent)` → list of **SignalContribution** (Source, Description, Weight, ContributionPercent); `GetExplanation(intent, maxSignals?)` → string. |
 | **IIntentTreeExplainer** | Builds a decision tree for policy path (matched rule, signal nodes). |
-| **IntentTreeExplainer** | `ExplainTree(intent, policy, behaviorSpace?)` → **IntentDecisionTree** (IntentSummary, SignalNodes, MatchedRule). |
+| **IntentTreeExplainer** | `GetIntentTree(intent, policy, behaviorSpace?)` → **IntentDecisionTree** (IntentSummary, SignalNodes, MatchedRule). |
 | **SignalContribution** | Source, Description, Weight, ContributionPercent. |
 
 ### Simulation (`Intentum.Simulation`)
@@ -272,7 +272,7 @@ The following packages add optional capabilities. For detailed usage (what it is
 
 ## Sample Web HTTP API (`Intentum.Sample.Web`)
 
-The web sample exposes HTTP endpoints for intent inference, explainability, greenwashing detection, and analytics. Run with `dotnet run --project samples/Intentum.Sample.Web`; UI at http://localhost:5150/, API docs at http://localhost:5150/scalar.
+The web sample exposes HTTP endpoints for intent inference, explainability, greenwashing detection, and analytics. Run with `dotnet run --project samples/Intentum.Sample.Web`; UI and API docs at the URL shown (default http://localhost:5000/ and http://localhost:5000/scalar).
 
 | Method | Path | Description |
 |--------|------|-------------|
@@ -282,7 +282,8 @@ The web sample exposes HTTP endpoints for intent inference, explainability, gree
 | POST | `/api/intent/playground/compare` | Compare inference across multiple registered models. Body: `{ "events": [...], "modelNames": ["Default", "Mock"] }`. Returns per-model intent and decision. |
 | GET | `/api/intent/history` | Paginated intent history (in-memory in sample). Query: `skip`, `take`. |
 | GET | `/api/intent/analytics/summary` | Dashboard summary: confidence trends, decision distribution, anomaly list. |
-| GET | `/api/intent/analytics/timeline/{entityId}` | Intent timeline for entity. Query: `start`, `end` (ISO8601). Returns time-ordered points (intent, confidence, decision). |
+| GET | `/api/intent/analytics/timeline/{entityId}` | Intent timeline for entity. Query: `from`, `to` (ISO8601). Returns time-ordered points (intent, confidence, decision). |
+| GET | `/api/intent/analytics/graph/{entityId}` | Intent graph snapshot for entity. Query: `from`, `to`. Returns nodes (intent + confidence) and edges (transitions) for visualization. |
 | GET | `/api/intent/analytics/export/json` | Export analytics to JSON. |
 | GET | `/api/intent/analytics/export/csv` | Export analytics to CSV. |
 | POST | `/api/greenwashing/analyze` | Analyze report for greenwashing. Body: `{ "report": "...", "sourceType": "Report", "language": "tr", "imageBase64": null }`. Returns intent, decision, signals, suggested actions, `sourceMetadata`, `visualResult` (if image sent). |

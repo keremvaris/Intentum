@@ -1,6 +1,5 @@
 using System.Text.Json;
 using Intentum.Core.Intents;
-using Intentum.Runtime.Policy;
 
 namespace Intentum.Runtime.PolicyStore;
 
@@ -23,11 +22,11 @@ public static class SafeConditionBuilder
         var predicates = new List<Func<Intent, bool>>();
         foreach (var c in conditions)
         {
-            var prop = (c.Property ?? "").Trim().ToLowerInvariant();
+            var prop = c.Property.Trim().ToLowerInvariant();
             if (!AllowedProperties.Contains(prop))
                 throw new ArgumentException($"Policy condition property not allowed: {c.Property}. Allowed: intent.name, intent.confidence.level, intent.confidence.score.", nameof(conditions));
 
-            var op = (c.Operator ?? "eq").Trim().ToLowerInvariant();
+            var op = c.Operator.Trim().ToLowerInvariant();
             if (!AllowedOperators.Contains(op))
                 throw new ArgumentException($"Policy condition operator not allowed: {c.Operator}. Allowed: eq, ne, contains, gte, lte, gt, lt.", nameof(conditions));
 
@@ -63,7 +62,7 @@ public static class SafeConditionBuilder
         {
             "eq" => string.Equals(actual, expected, StringComparison.OrdinalIgnoreCase),
             "ne" => !string.Equals(actual, expected, StringComparison.OrdinalIgnoreCase),
-            "contains" => actual != null && expected != null && actual.Contains(expected, StringComparison.OrdinalIgnoreCase),
+            "contains" => actual.Contains(expected, StringComparison.OrdinalIgnoreCase),
             _ => false
         };
     }

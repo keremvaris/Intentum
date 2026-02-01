@@ -1112,6 +1112,53 @@ table.signals td {
   font-size: 0.85rem;
 }
 
+/* Explain: contribution bars and reasoning */
+.explain-result .reasoning {
+  margin: 0.5rem 0;
+  padding: 0.5rem 0.75rem;
+  background: rgba(255, 255, 255, 0.04);
+  border-radius: var(--radius-sm);
+  font-size: 0.9rem;
+}
+.contrib-bars {
+  margin: 1rem 0;
+}
+.contrib-bar-row {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 0.5rem;
+  font-size: 0.9rem;
+}
+.contrib-label {
+  min-width: 12rem;
+  font-family: "JetBrains Mono", monospace;
+  font-size: 0.85rem;
+}
+.contrib-bar-wrap {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+.contrib-bar {
+  height: 0.75rem;
+  min-width: 2px;
+  background: var(--primary);
+  border-radius: var(--radius-sm);
+  transition: width 0.2s ease;
+}
+.contrib-pct {
+  min-width: 3rem;
+  color: var(--text-muted);
+  font-size: 0.85rem;
+}
+.contrib-bars .empty {
+  color: var(--text-muted);
+  font-size: 0.9rem;
+  margin: 0;
+}
+
 /* --- Monitoring: KPI cards --- */
 .kpi-grid {
   display: grid;
@@ -1303,6 +1350,81 @@ table.signals td {
   background: rgba(56, 189, 248, 0.1);
   border-color: var(--accent);
 }
+
+/* --- Intent Graph & Heatmap (Dashboard) --- */
+.graph-toolbar,
+.heatmap-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+}
+
+.graph-toolbar label,
+.heatmap-toolbar label {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.9rem;
+}
+
+.graph-toolbar input,
+.heatmap-toolbar input {
+  padding: 0.4rem 0.6rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+  color: var(--text);
+}
+
+.graph-toolbar button,
+.heatmap-toolbar button {
+  padding: 0.45rem 0.9rem;
+  font-size: 0.9rem;
+  background: var(--accent);
+  color: var(--bg);
+  border: none;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  font-family: inherit;
+}
+
+.graph-container {
+  margin-bottom: 1.5rem;
+}
+
+.graph-edges {
+  margin-top: 0.5rem;
+  font-size: 0.85rem;
+}
+
+.heatmap-container {
+  margin-bottom: 1.5rem;
+}
+
+.heatmap-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.9rem;
+}
+
+.heatmap-table th,
+.heatmap-table td {
+  padding: 0.5rem 0.75rem;
+  text-align: left;
+  border-bottom: 1px solid var(--border);
+}
+
+.heatmap-cell {
+  font-weight: 500;
+  border-radius: var(--radius-sm);
+}
+
+.heatmap-high { background: rgba(52, 211, 153, 0.25); }
+.heatmap-med { background: rgba(252, 211, 77, 0.2); }
+.heatmap-low { background: rgba(251, 191, 36, 0.25); }
+.heatmap-vlow { background: rgba(248, 113, 113, 0.2); }
 
 /* --- History table (recent inferences) --- */
 .history-table {

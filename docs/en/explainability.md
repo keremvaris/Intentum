@@ -1,6 +1,21 @@
 # Intent explainability
 
-Intentum provides **signal-based explainability** (which behaviors contributed and by how much) and optional **reasoning** (short text from the model or rule).
+Intentum provides **signal-based explainability** (which behaviors contributed and by how much), **rule trace / reasoning** (short text from the model or rule), and **confidence breakdown** (score and level). The explanation API unifies these in a single response.
+
+## Explanation API response (feature contribution + rule trace + confidence breakdown)
+
+`POST /api/intent/explain` (Sample Web) returns a single JSON object:
+
+| Field | Description |
+|-------|-------------|
+| **IntentName** | Inferred intent name. |
+| **Confidence** | Confidence level (e.g. High, Medium, Low). |
+| **ConfidenceScore** | Numeric confidence score (0–1). |
+| **Reasoning** | Rule trace or short "why" from the model (e.g. which rule matched, or "Fallback: LLM"). |
+| **Explanation** | Human-readable summary: intent, confidence, top signal contributors, and reasoning. |
+| **SignalContributions** | Per-signal contribution: Source, Description, Weight, ContributionPercent (ordered by contribution). |
+
+Use **SignalContributions** for feature contribution bars; **Reasoning** for rule trace; **Confidence** and **ConfidenceScore** for confidence breakdown. The **Explanation** string is the full readable summary.
 
 ## Signal contributions
 

@@ -105,7 +105,7 @@ public static class IntentumLogger
         {
             EventCount = space.Events.Count,
             Events = events,
-            Metadata = space.Metadata
+            space.Metadata
         };
 
         return System.Text.Json.JsonSerializer.Serialize(data);

@@ -24,8 +24,11 @@ using Intentum.Sample.Web.Features.CarbonFootprintCalculation.Validators;
 using Intentum.Sample.Web.Features.GreenwashingDetection;
 using Intentum.Sample.Web.Features.OrderPlacement.Commands;
 using MediatR;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.Extensions.Caching.Memory;
 using Scalar.AspNetCore;
+using Timer = System.Timers.Timer;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -109,14 +112,53 @@ builder.Services.AddIntentAnalytics();
 builder.Services.AddScoped<IIntentExplainer, IntentExplainer>();
 builder.Services.AddIntentTreeExplainer();
 
+// Dashboard: in-memory config + SSE broadcaster
+builder.Services.AddSingleton<DashboardConfigStore>();
+builder.Services.AddSingleton<SseInferenceBroadcaster>();
+
+// Fraud simulation: state + hosted service
+builder.Services.AddSingleton<FraudSimulationState>();
+builder.Services.AddHostedService<FraudSimulationService>();
+
+builder.Services.AddHttpClient();
+
 // Add Intentum ASP.NET Core integration
 builder.Services.AddIntentum();
 builder.Services.AddIntentumHealthChecks();
 
+builder.Services.AddAuthorization(o =>
+{
+    o.FallbackPolicy = o.DefaultPolicy = new AuthorizationPolicyBuilder().RequireAssertion(_ => true).Build();
+});
+builder.Services.AddControllersWithViews();
+builder.Services.AddServerSideBlazor();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddOpenApi();
 
 var app = builder.Build();
+
+// Dashboard: serve HTML before any other middleware (avoids 403 from auth/filters)
+var dashboardHtmlEarly = """
+<!DOCTYPE html>
+<html lang="tr">
+<head><meta charset="utf-8"/><meta name="viewport" content="width=device-width, initial-scale=1"/><base href="/dashboard/"/><title>Intentum Dashboard</title><link rel="stylesheet" href="/dashboard.css"/><script src="https://cdn.jsdelivr.net/npm/echarts@5/dist/echarts.min.js"></script><script src="/echarts-interop.js"></script></head>
+<body><div id="app">Yükleniyor…</div><script src="/dashboard/_framework/blazor.server.js" autostart="false"></script><script>Blazor.start({ configureSignalR: function (b) { b.withUrl("/dashboard/_blazor"); } });</script></body>
+</html>
+""";
+app.Use(async (ctx, next) =>
+{
+    if (ctx.Request.Method != "GET" || !ctx.Request.Path.StartsWithSegments("/dashboard")) { await next(ctx); return; }
+    var path = ctx.Request.Path.Value ?? "";
+    if (path == "/dashboard") { ctx.Response.Redirect("/dashboard/", false); return; }
+    if (path == "/dashboard/" || path.StartsWith("/dashboard/", StringComparison.Ordinal))
+    {
+        ctx.Response.ContentType = "text/html; charset=utf-8";
+        ctx.Response.StatusCode = 200;
+        await ctx.Response.WriteAsync(dashboardHtmlEarly);
+        return;
+    }
+    await next(ctx);
+});
 
 // Ensure in-memory database is created (schema)
 using (var scope = app.Services.CreateScope())
@@ -127,7 +169,7 @@ using (var scope = app.Services.CreateScope())
 
 app.UseExceptionHandler(err => err.Run(async ctx =>
 {
-    var ex = ctx.Features.Get<Microsoft.AspNetCore.Diagnostics.IExceptionHandlerFeature>()?.Error;
+    var ex = ctx.Features.Get<IExceptionHandlerFeature>()?.Error;
     if (ex is ValidationException validationException)
     {
         ctx.Response.StatusCode = 400;
@@ -146,8 +188,43 @@ app.UseIntentumBehaviorObservation(new BehaviorObservationOptions
     GetAction = ctx => $"{ctx.Request.Method.ToLowerInvariant()}_{ctx.Request.Path.Value?.Replace("/", "_")}"
 });
 
+app.UseAuthorization();
 app.UseDefaultFiles();
+// Blazor at /dashboard: /dashboard/_framework/* → /_framework/* so static files serve it
+app.Use(next => async ctx =>
+{
+    if (ctx.Request.Path.StartsWithSegments("/dashboard/_framework"))
+        ctx.Request.Path = "/_framework" + ctx.Request.Path.Value!["/dashboard/_framework".Length..];
+    await next(ctx);
+});
 app.UseStaticFiles();
+app.UseRouting();
+
+app.MapBlazorHub("/dashboard/_blazor");
+app.MapGet("/dashboard", () => Results.Redirect("/dashboard/")).ExcludeFromDescription();
+// Dashboard: minimal API returns HTML directly (no MVC/Razor pipeline → no 403)
+var dashboardHtml = """
+    <!DOCTYPE html>
+    <html lang="tr">
+    <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <base href="/dashboard/" />
+        <title>Intentum Dashboard</title>
+        <link rel="stylesheet" href="/dashboard.css" />
+        <script src="https://cdn.jsdelivr.net/npm/echarts@5/dist/echarts.min.js"></script>
+        <script src="/echarts-interop.js"></script>
+    </head>
+    <body>
+        <div id="app">Yükleniyor…</div>
+        <script src="/dashboard/_framework/blazor.server.js" autostart="false"></script>
+        <script>Blazor.start({ configureSignalR: function (b) { b.withUrl("/dashboard/_blazor"); } });</script>
+    </body>
+    </html>
+    """;
+app.MapGet("/dashboard/", () => Results.Content(dashboardHtml, "text/html; charset=utf-8")).AllowAnonymous().ExcludeFromDescription();
+app.MapGet("/dashboard/{*path}", (string? path) => { _ = path; return Results.Content(dashboardHtml, "text/html; charset=utf-8"); }).AllowAnonymous().ExcludeFromDescription();
+app.MapControllers();
 
 app.MapOpenApi();
 app.MapScalarApiReference();
@@ -215,7 +292,7 @@ app.MapPost("/api/intent/infer", async (
         HistoryId: id));
 }).WithName("InferIntent").Produces(200);
 
-// --- Intent explainability (infer + explanation + signal contributions) ---
+// --- Intent explainability (feature contribution + rule trace + confidence breakdown) ---
 app.MapPost("/api/intent/explain", (InferIntentRequest req, IIntentModel model, IIntentExplainer explainer) =>
 {
     var space = new BehaviorSpace();
@@ -228,6 +305,8 @@ app.MapPost("/api/intent/explain", (InferIntentRequest req, IIntentModel model, 
     {
         IntentName = intent.Name,
         Confidence = intent.Confidence.Level,
+        ConfidenceScore = intent.Confidence.Score,
+        intent.Reasoning,
         Explanation = explanation,
         SignalContributions = contributions.Select(c => new { c.Source, c.Description, c.Weight, c.ContributionPercent })
     });
@@ -329,6 +408,163 @@ app.MapGet("/api/intent/analytics/timeline/{entityId}", async (
     return Results.Json(timeline);
 }).WithName("GetIntentTimeline").Produces(200);
 
+app.MapGet("/api/intent/analytics/graph/{entityId}", async (
+    string entityId,
+    DateTimeOffset? from,
+    DateTimeOffset? to,
+    IIntentAnalytics analytics) =>
+{
+    var start = from ?? DateTimeOffset.UtcNow.AddDays(-7);
+    var end = to ?? DateTimeOffset.UtcNow;
+    var snapshot = await analytics.GetIntentGraphSnapshotAsync(entityId, start, end);
+    return Results.Json(snapshot);
+}).WithName("GetIntentGraphSnapshot").Produces(200);
+
+// --- Dashboard: overview (active intents, dominant, global confidence, signal rate) ---
+const int DashboardOverviewWindowMinutes = 15;
+app.MapGet("/api/dashboard/overview", async (
+    string? _,
+    IIntentHistoryRepository historyRepository) =>
+{
+    var end = DateTimeOffset.UtcNow;
+    var start = end.AddMinutes(-DashboardOverviewWindowMinutes);
+    var records = await historyRepository.GetByTimeWindowAsync(start, end);
+    var list = records.ToList();
+
+    if (list.Count == 0)
+    {
+        return Results.Json(new
+        {
+            activeIntents = Array.Empty<object>(),
+            dominantIntent = (string?)null,
+            globalConfidenceScore = 0.0,
+            signalRate = 0
+        });
+    }
+
+    var byIntent = list
+        .GroupBy(r => r.IntentName, StringComparer.OrdinalIgnoreCase)
+        .Select(g => new { Name = g.Key, Confidence = g.Average(x => x.ConfidenceScore), Count = g.Count() })
+        .OrderByDescending(x => x.Confidence)
+        .Take(10)
+        .ToList();
+
+    var activeIntents = byIntent.Select(x => new { name = x.Name, confidence = Math.Round(x.Confidence, 4) }).ToList<object>();
+    var dominantIntent = byIntent.OrderByDescending(x => x.Count).First().Name;
+    var globalConfidenceScore = Math.Round(list.Average(r => r.ConfidenceScore), 4);
+    var lastMinuteStart = end.AddMinutes(-1);
+    var signalRate = list.Count(r => r.RecordedAt >= lastMinuteStart);
+
+    return Results.Json(new
+    {
+        activeIntents,
+        dominantIntent,
+        globalConfidenceScore,
+        signalRate
+    });
+}).WithName("GetDashboardOverview").Produces(200);
+
+// --- Dashboard: signals (history filtered by intent + time) ---
+app.MapGet("/api/signals", async (
+    string? intent,
+    DateTimeOffset? from,
+    DateTimeOffset? to,
+    int? limit,
+    IIntentHistoryRepository historyRepository) =>
+{
+    var start = from ?? DateTimeOffset.UtcNow.AddDays(-7);
+    var end = to ?? DateTimeOffset.UtcNow;
+    var take = Math.Clamp(limit ?? 50, 1, 200);
+    var records = await historyRepository.GetByTimeWindowAsync(start, end);
+    var filtered = string.IsNullOrWhiteSpace(intent)
+        ? records
+        : records.Where(r => string.Equals(r.IntentName, intent.Trim(), StringComparison.OrdinalIgnoreCase));
+    var ordered = filtered.OrderByDescending(r => r.RecordedAt).Take(take).ToList();
+    var items = ordered.Select(r =>
+    {
+        var meta = r.Metadata;
+        var eventsSummary = meta != null && (meta.TryGetValue("EventsSummary", out var es) || meta.TryGetValue("eventsSummary", out es) || meta.TryGetValue("Source", out es) || meta.TryGetValue("source", out es))
+            ? es.ToString() ?? "—"
+            : "—";
+        return new
+        {
+            r.Id,
+            r.IntentName,
+            r.RecordedAt,
+            eventsSummary,
+            r.ConfidenceLevel,
+            decision = r.Decision.ToString(),
+            r.ConfidenceScore
+        };
+    });
+    return Results.Json(items);
+}).WithName("GetSignals").Produces(200);
+
+// --- Dashboard: config (GET/PUT) ---
+app.MapGet("/api/dashboard/config", (DashboardConfigStore store) =>
+{
+    var c = store.Get();
+    return Results.Json(new
+    {
+        c.ConfidenceThreshold,
+        c.SlidingWindowMinutes,
+        c.DecayFactor,
+        c.Provider
+    });
+}).WithName("GetDashboardConfig").Produces(200);
+
+app.MapPut("/api/dashboard/config", (DashboardConfigRequest? req, DashboardConfigStore store) =>
+{
+    var current = store.Get();
+    var threshold = req?.ConfidenceThreshold ?? current.ConfidenceThreshold;
+    var window = req?.SlidingWindowMinutes ?? current.SlidingWindowMinutes;
+    var decay = req?.DecayFactor ?? current.DecayFactor;
+    var provider = req?.Provider ?? current.Provider;
+    store.Set(new DashboardConfig(threshold, window, decay, provider));
+    return Results.Json(store.Get());
+}).WithName("PutDashboardConfig").Produces(200);
+
+// --- Dashboard: SSE stream (fraud sim / overview push) ---
+app.MapGet("/api/dashboard/stream", async (
+    HttpContext ctx,
+    SseInferenceBroadcaster broadcaster,
+    CancellationToken cancellationToken) =>
+{
+    ctx.Response.ContentType = "text/event-stream";
+    ctx.Response.Headers.CacheControl = "no-cache";
+    ctx.Response.Headers.Connection = "keep-alive";
+    await ctx.Response.StartAsync(cancellationToken);
+    var cts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, ctx.RequestAborted);
+    await foreach (var bytes in broadcaster.SubscribeAsync(cts.Token))
+    {
+        await ctx.Response.Body.WriteAsync(bytes, cts.Token);
+        await ctx.Response.Body.FlushAsync(cts.Token);
+    }
+}).WithName("GetDashboardStream").Produces(200);
+
+// --- Fraud simulation: start / stop / status ---
+app.MapPost("/api/fraud-simulation/start", (FraudSimulationState state) =>
+{
+    state.Start();
+    return Results.Ok(new { running = true });
+}).WithName("FraudSimulationStart").Produces(200);
+
+app.MapPost("/api/fraud-simulation/stop", (FraudSimulationState state) =>
+{
+    state.Stop();
+    return Results.Ok(new { running = false });
+}).WithName("FraudSimulationStop").Produces(200);
+
+app.MapGet("/api/fraud-simulation/status", (FraudSimulationState state) =>
+{
+    return Results.Json(new
+    {
+        running = state.Running,
+        eventsPerMinute = state.EventsPerMinute,
+        lastInferenceAt = state.LastInferenceAt
+    });
+}).WithName("FraudSimulationStatus").Produces(200);
+
 // --- Greenwashing: report text (+ dil, görsel) → behavior space → intent → policy → suggested actions ---
 app.MapPost("/api/greenwashing/analyze", (GreenwashingAnalyzeRequest req) =>
 {
@@ -429,7 +665,7 @@ app.MapGet("/api/greenwashing/recent", (int? limit) =>
 }).WithName("GetGreenwashingRecent").Produces(200);
 
 // Periyodik mock analiz (gerçek zamanlı akış hissi)
-var mockTimer = new System.Timers.Timer(30_000) { AutoReset = true };
+var mockTimer = new Timer(30_000) { AutoReset = true };
 mockTimer.Elapsed += (_, _) => GreenwashingRecentStore.AddMockEntry();
 app.Lifetime.ApplicationStarted.Register(() => mockTimer.Start());
 app.Lifetime.ApplicationStopping.Register(() => mockTimer.Stop());

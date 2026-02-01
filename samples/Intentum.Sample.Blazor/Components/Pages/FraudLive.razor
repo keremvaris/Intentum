@@ -1,0 +1,466 @@
+@page "/fraud-live"
+@rendermode InteractiveServer
+@inject HttpClient Http
+@inject IHttpClientFactory HttpFactory
+@inject NavigationManager Navigation
+@inject IJSRuntime JSRuntime
+@implements IAsyncDisposable
+
+<PageTitle>Intent Stream</PageTitle>
+
+<div class="fraud-live">
+    <div class="page-card">
+        <header class="fraud-live__header" style="margin-bottom: 0;">
+            <div>
+                <h2 class="fraud-live__title" style="margin: 0 0 0.25rem 0;">Intent Stream – Canlı niyet akışı</h2>
+                <p class="fraud-live__subtitle" style="margin: 0;">Canlı niyet akışı (örnek senaryo); SSE ile anlık akış. <InfoIcon Text="@(_fraudLiveInfoText)" /></p>
+            </div>
+            <div class="fraud-live__controls">
+            <button type="button" class="btn-fraud-primary" @onclick="ToggleSimulation" disabled="@_toggleBusy">
+                @(_running ? "Durdur" : "Başlat")
+            </button>
+            <span class="status-pill @(_running ? "status-pill--running" : "status-pill--stopped")">
+                @(_running ? "Çalışıyor" : "Durduruldu")
+            </span>
+            @if (_status != null)
+            {
+                <span class="fraud-live__meta">Son 1 dk: <strong>@_status.EventsPerMinute</strong> inference</span>
+            }
+            @if (_sseError != null)
+            {
+                <span class="fraud-live__sse-error">SSE: @_sseError</span>
+            }
+        </div>
+    </header>
+    </div>
+
+    <div class="page-card fraud-live__intro fraud-intro-card">
+        <p class="fraud-intro-card__text">
+            Bu ekran Intentum’un <strong>niyet çıkarımı</strong> ve <strong>politika motorunu</strong> canlı gösterir:
+            davranış olayları modele gider, intent ve güven skoru hesaplanır, politika kurallarına göre
+            <strong>Allow</strong>, <strong>Warn</strong>, <strong>Block</strong> veya <strong>Escalate</strong> kararı verilir.
+            Simülasyonu başlatarak gerçek zamanlı akışı izleyebilirsiniz.
+        </p>
+    </div>
+
+    <div class="page-card">
+        <h3 class="page-card h3" style="margin: 0 0 0.75rem 0;">Anlık özet (KPI) <InfoIcon Text="Son inference'ın risk skoru, son 1 dakikadaki inference sayısı, dominant intent ve oturum toplam kayıt sayısı. Başlat ile simülasyon açılır, SSE ile veri akar." /></h3>
+    <div class="kpi-grid fraud-kpi-grid" style="margin-bottom: 0;">
+        <div class="card kpi-card kpi-card--risk @(ConfidenceClass(_lastConfidence ?? 0))">
+            <span class="kpi-card__label">Risk skoru (son)</span>
+            <span class="kpi-card__value">@(_lastConfidence?.ToString("P0") ?? "—")</span>
+        </div>
+        <div class="card kpi-card kpi-card--metric">
+            <span class="kpi-card__label">Son 1 dk</span>
+            <span class="kpi-card__value">@(_status?.EventsPerMinute ?? 0) <span class="kpi-card__unit">inference</span></span>
+        </div>
+        <div class="card kpi-card kpi-card--metric">
+            <span class="kpi-card__label">Dominant intent</span>
+            <span class="kpi-card__value kpi-card__value--text">@(_lastIntent ?? "—")</span>
+        </div>
+        <div class="card kpi-card kpi-card--metric">
+            <span class="kpi-card__label">Toplam (oturum)</span>
+            <span class="kpi-card__value">@_recent.Count <span class="kpi-card__unit">kayıt</span></span>
+        </div>
+    </div>
+    </div>
+
+    <div class="page-card">
+        <h3 class="page-card h3" style="margin: 0 0 0.75rem 0;">Grafikler <InfoIcon Text="Risk göstergesi son güven skorunu gauge ile gösterir; zaman serisi son inference'ların skorunu çizgi grafikte gösterir. Karar dağılımı ve canlı ticker aşağıdaki kartta." /></h3>
+    <div class="fraud-charts-grid">
+        <div class="fraud-chart-card card">
+            <h3 class="fraud-chart-card__title">Risk göstergesi</h3>
+            <div id="fraud-gauge" class="fraud-gauge"></div>
+        </div>
+        <div class="fraud-chart-card card fraud-chart-card--wide">
+            <h3 class="fraud-chart-card__title">Güven skoru zaman serisi</h3>
+            <div id="fraud-line" class="fraud-line-chart"></div>
+            @if (_lineData.Count == 0 && _running)
+            {
+                <p class="fraud-chart-placeholder">Veri geliyor…</p>
+            }
+            @if (_lineData.Count == 0 && !_running)
+            {
+                <p class="fraud-chart-placeholder">Simülasyonu başlattığınızda grafik dolacak.</p>
+            }
+        </div>
+    </div>
+    </div>
+
+    @if (!_running && _recent.Count > 0)
+    {
+        var summary = GetFraudLiveSummary();
+        <div class="page-card sustainability-live-result fraud-live-result">
+            <h3 class="page-card h3" style="margin: 0 0 0.75rem 0;">Simülasyon sonucu <InfoIcon Text="Durdurulduğunda toplanan inference'lar intent ve karar dağılımı ile özetlenir; eğilim ve olası gelecek metni gösterilir." /></h3>
+            <div class="sustainability-live-result__grid">
+                <div class="sustainability-live-result__stats">
+                    <p><strong>Dönem:</strong> @summary.PeriodStart.ToLocalTime().ToString("yyyy-MM-dd HH:mm") — @summary.PeriodEnd.ToLocalTime().ToString("HH:mm:ss")</p>
+                    <p><strong>Toplam inference:</strong> @summary.TotalEvents</p>
+                    <p><strong>Ortalama güven skoru:</strong> @summary.AverageScore.ToString("P1")</p>
+                    <p><strong>Baskın intent:</strong> <strong>@summary.DominantIntent</strong> (@summary.DominantIntentPercent.ToString("N0")%)</p>
+                </div>
+                <div class="sustainability-live-result__distribution">
+                    <strong>Intent dağılımı</strong>
+                    <ul class="sustainability-live-result__list">
+                        @foreach (var row in summary.IntentDistribution)
+                        {
+                            <li><span class="sustainability-intent-badge">@row.IntentName</span> @row.Count olay (@row.Percent.ToString("N0")%)</li>
+                        }
+                    </ul>
+                    <strong style="margin-top: 0.5rem;">Karar dağılımı</strong>
+                    <ul class="sustainability-live-result__list">
+                        @foreach (var row in summary.DecisionDistribution)
+                        {
+                            <li><span class="decision-badge decision-badge--@(row.Decision.ToLowerInvariant())">@row.Decision</span> @row.Count (@row.Percent.ToString("N0")%)</li>
+                        }
+                    </ul>
+                </div>
+            </div>
+            <div class="sustainability-live-result__verdict">
+                <strong>Değerlendirme:</strong> @summary.VerdictText
+            </div>
+            @if (!string.IsNullOrEmpty(summary.FutureOutlookText))
+            {
+                <div class="sustainability-live-result__outlook">
+                    <strong>Eğilim ve olası gelecek:</strong> @summary.FutureOutlookText
+                </div>
+            }
+        </div>
+    }
+
+    <div class="page-card">
+        <h3 class="page-card h3" style="margin: 0 0 0.75rem 0;">Karar dağılımı ve canlı ticker <InfoIcon Text="Sol: Allow, Block, Warn vb. kararların pasta grafikte dağılımı. Sağ: Son inference'ların listesi; zaman, intent, karar ve güven. Block/Warn satırları vurgulanır." /></h3>
+    <div class="fraud-charts-grid">
+        <div class="fraud-chart-card card">
+            <h3 class="fraud-chart-card__title">Karar dağılımı</h3>
+            <div id="fraud-decision-pie" class="fraud-pie-chart"></div>
+            @if (_recent.Count == 0)
+            {
+                <p class="fraud-chart-placeholder">Henüz kayıt yok.</p>
+            }
+        </div>
+        <div class="fraud-chart-card card fraud-chart-card--wide">
+            <h3 class="fraud-chart-card__title">Son inference'lar (canlı ticker)</h3>
+            <div class="ticker-wrap ticker-wrap--modern">
+                <ul class="ticker-list ticker-list--modern">
+                    @foreach (var item in _recent.Take(30))
+                    {
+                        <li class="ticker-item @(item.Decision == "Block" || item.Decision == "Warn" ? "ticker-item--alert" : "")">
+                            <span class="ticker-item__time">@item.RecordedAt.ToLocalTime().ToString("HH:mm:ss")</span>
+                            <span class="ticker-item__intent">@item.IntentName</span>
+                            <span class="decision-badge decision-badge--@(item.Decision.ToLowerInvariant())">@item.Decision</span>
+                            <span class="ticker-item__confidence @(ConfidenceClass(item.ConfidenceScore))">@item.ConfidenceScore.ToString("P0")</span>
+                            <span class="ticker-item__events muted">@(item.EventsSummary ?? "—")</span>
+                        </li>
+                    }
+                </ul>
+                @if (_recent.Count == 0)
+                {
+                    <p class="fraud-chart-placeholder">Simülasyonu başlattığınızda liste dolacak.</p>
+                }
+            </div>
+        </div>
+    </div>
+    </div>
+</div>
+
+@code {
+    private static readonly string _fraudLiveInfoText = "Bu sayfa canlı niyet akışını gösterir. Başlat ile simülasyon başlar, SSE ile backend sürekli inference üretir; KPI, gauge, zaman serisi ve karar dağılımı anlık güncellenir. Durdur ile akış durur. Entity: LiveDemo; Graph/Timeline/Signals sayfalarında bu veriyi kullanabilirsiniz.";
+    private bool _running;
+    private bool _toggleBusy;
+    private string? _sseError;
+    private FraudStatus? _status;
+    private double? _lastConfidence;
+    private string? _lastIntent;
+    private readonly List<InferenceEvent> _recent = new();
+    private CancellationTokenSource? _sseCts;
+    private EChartsInterop? _gaugeEcharts;
+    private EChartsInterop? _lineEcharts;
+    private EChartsInterop? _pieEcharts;
+    private readonly List<(double t, double v)> _lineData = new();
+    private const int MaxLinePoints = 60;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await RefreshStatus();
+        // Başka sayfaya gidip gelince SSE kopar; simülasyon hâlâ çalışıyorsa akışı yeniden bağla.
+        if (_running)
+            _ = ConnectSse();
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            _gaugeEcharts = new EChartsInterop(JSRuntime, "fraud-gauge");
+            _lineEcharts = new EChartsInterop(JSRuntime, "fraud-line");
+            _pieEcharts = new EChartsInterop(JSRuntime, "fraud-decision-pie");
+            await _gaugeEcharts.InitAsync();
+            await _lineEcharts.InitAsync();
+            await _pieEcharts.InitAsync();
+            await UpdateGauge(_lastConfidence ?? 0);
+            await UpdateLineChart();
+            await UpdateDecisionPie();
+        }
+    }
+
+    private async Task RefreshStatus()
+    {
+        try
+        {
+            var baseUri = new Uri(Navigation.BaseUri).GetLeftPart(UriPartial.Authority);
+            _status = await Http.GetFromJsonAsync<FraudStatus>(baseUri + "/api/fraud-simulation/status");
+            _running = _status?.Running ?? false;
+        }
+        catch { /* ignore */ }
+        StateHasChanged();
+    }
+
+    private async Task ToggleSimulation()
+    {
+        _toggleBusy = true;
+        StateHasChanged();
+        try
+        {
+            var baseUri = new Uri(Navigation.BaseUri).GetLeftPart(UriPartial.Authority);
+            if (_running)
+            {
+                await Http.PostAsync(baseUri + "/api/fraud-simulation/stop", null);
+                _sseCts?.Cancel();
+            }
+            else
+            {
+                await Http.PostAsync(baseUri + "/api/fraud-simulation/start", null);
+                _ = ConnectSse();
+            }
+            await RefreshStatus();
+        }
+        finally
+        {
+            _toggleBusy = false;
+            StateHasChanged();
+        }
+    }
+
+    private async Task ConnectSse()
+    {
+        _sseCts?.Cancel();
+        _sseCts = new CancellationTokenSource();
+        _sseError = null;
+        try
+        {
+            var baseUri = new Uri(Navigation.BaseUri).GetLeftPart(UriPartial.Authority);
+            var url = baseUri + "/api/dashboard/stream";
+            var sseClient = HttpFactory.CreateClient("Intentum.SSE");
+            using var req = new HttpRequestMessage(HttpMethod.Get, url);
+            using var res = await sseClient.SendAsync(req, HttpCompletionOption.ResponseHeadersRead, _sseCts.Token);
+            res.EnsureSuccessStatusCode();
+            await using var stream = await res.Content.ReadAsStreamAsync(_sseCts.Token);
+            using var reader = new StreamReader(stream);
+            while (!_sseCts.Token.IsCancellationRequested)
+            {
+                var line = await reader.ReadLineAsync(_sseCts.Token);
+                if (line?.StartsWith("data: ") == true)
+                {
+                    var json = line.Substring(6).Trim();
+                    if (string.IsNullOrEmpty(json)) continue;
+                    try
+                    {
+                        var ev = System.Text.Json.JsonSerializer.Deserialize<InferenceEvent>(json, _jsonOptions);
+                        if (ev != null)
+                        {
+                            _recent.Insert(0, ev);
+                            if (_recent.Count > 100) _recent.RemoveAt(_recent.Count - 1);
+                            _lastConfidence = ev.ConfidenceScore;
+                            _lastIntent = ev.IntentName;
+                            _lineData.Insert(0, (DateTimeOffset.UtcNow.ToUnixTimeMilliseconds(), ev.ConfidenceScore));
+                            if (_lineData.Count > MaxLinePoints) _lineData.RemoveAt(_lineData.Count - 1);
+                            await InvokeAsync(StateHasChanged);
+                            await UpdateGauge(ev.ConfidenceScore);
+                            await UpdateLineChart();
+                            await UpdateDecisionPie();
+                        }
+                    }
+                    catch { /* skip bad event */ }
+                }
+            }
+        }
+        catch (OperationCanceledException) { _sseError = null; }
+        catch (Exception ex)
+        {
+            _sseError = ex.Message;
+            await InvokeAsync(StateHasChanged);
+        }
+    }
+
+    private static readonly System.Text.Json.JsonSerializerOptions _jsonOptions = new()
+    {
+        PropertyNameCaseInsensitive = true,
+        PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase
+    };
+
+    private async Task UpdateGauge(double value)
+    {
+        if (_gaugeEcharts == null) return;
+        var pct = Math.Round(value * 100, 0);
+        var option = new
+        {
+            series = new[]
+            {
+                new
+                {
+                    type = "gauge",
+                    startAngle = 180,
+                    endAngle = 0,
+                    min = 0,
+                    max = 100,
+                    progress = new { show = true, width = 18, roundCap = true },
+                    detail = new { valueAnimation = true, formatter = "{value}%", offsetCenter = new[] { "0%", "75%" }, fontSize = 18, fontWeight = "bold" },
+                    data = new[] { new { value = pct } },
+                    axisLine = new
+                    {
+                        roundCap = true,
+                        lineStyle = new
+                        {
+                            width = 18,
+                            color = new object[] { new object[] { 0.3, "#4caf50" }, new object[] { 0.7, "#ff9800" }, new object[] { 1.0, "#d32f2f" } }
+                        }
+                    },
+                    pointer = new { show = false },
+                    axisTick = new { show = false },
+                    splitLine = new { show = false }
+                }
+            }
+        };
+        await _gaugeEcharts.SetOptionAsync(option);
+    }
+
+    private async Task UpdateLineChart()
+    {
+        if (_lineEcharts == null) return;
+        var data = _lineData.OrderBy(x => x.t).Select(x => new object[] { x.t, Math.Round(x.v, 4) }).ToList();
+        var option = new
+        {
+            tooltip = new { trigger = "axis", axisPointer = new { type = "cross" } },
+            grid = new { left = "3%", right = "4%", bottom = "3%", top = "8%", containLabel = true },
+            xAxis = new { type = "time", boundaryGap = false, axisLine = new { show = true }, splitLine = new { show = false } },
+            yAxis = new { type = "value", min = 0, max = 1, axisLine = new { show = false }, splitLine = new { lineStyle = new { type = "dashed", opacity = 0.4 } }, axisLabel = new { formatter = "{value}" } },
+            series = new[]
+            {
+                new { type = "line", data, smooth = true, symbol = "circle", symbolSize = 6, lineStyle = new { width = 2 }, areaStyle = new { opacity = 0.2 } }
+            }
+        };
+        await _lineEcharts.SetOptionAsync(option);
+    }
+
+    private async Task UpdateDecisionPie()
+    {
+        if (_pieEcharts == null) return;
+        var groups = _recent.GroupBy(x => x.Decision, StringComparer.OrdinalIgnoreCase)
+            .OrderByDescending(g => g.Count())
+            .Select(g => new { name = g.Key, value = g.Count() })
+            .ToList();
+        if (groups.Count == 0)
+        {
+            await _pieEcharts.SetOptionAsync(new { title = new { text = "Veri yok", left = "center", top = "center", textStyle = new { fontSize = 14, color = "#999" } } });
+            return;
+        }
+        var colors = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
+        {
+            ["Allow"] = "#4caf50",
+            ["Observe"] = "#2196f3",
+            ["Warn"] = "#ff9800",
+            ["Block"] = "#d32f2f",
+            ["Escalate"] = "#9c27b0",
+            ["RequireAuth"] = "#607d8b"
+        };
+        var pieData = groups.Select(g => new { g.name, g.value, itemStyle = new { color = colors.GetValueOrDefault(g.name, "#9e9e9e") } }).ToList();
+        var option = new
+        {
+            tooltip = new { trigger = "item", formatter = "{b}: {c} ({d}%)" },
+            legend = new { orient = "vertical", right = "4%", top = "center", textStyle = new { fontSize = 12 } },
+            series = new[]
+            {
+                new { type = "pie", radius = new[] { "45%", "70%" }, center = new[] { "40%", "50%" }, data = pieData, emphasis = new { itemStyle = new { shadowBlur = 10, shadowOffsetX = 0 } }, label = new { show = true, formatter = "{b}\n{c}" } }
+            }
+        };
+        await _pieEcharts.SetOptionAsync(option);
+    }
+
+    private static string ConfidenceClass(double score) => score < 0.4 ? "low" : score < 0.7 ? "medium" : "high";
+
+    private FraudLiveSummaryResult GetFraudLiveSummary()
+    {
+        if (_recent.Count == 0)
+            return new FraudLiveSummaryResult(DateTimeOffset.MinValue, DateTimeOffset.MinValue, 0, 0, "", 0, Array.Empty<FraudIntentDistRow>(), Array.Empty<FraudDecisionDistRow>(), "", "");
+        var ordered = _recent.OrderBy(e => e.RecordedAt).ToList();
+        var first = ordered.First().RecordedAt;
+        var last = ordered.Last().RecordedAt;
+        var total = _recent.Count;
+        var avgScore = _recent.Average(e => e.ConfidenceScore);
+        var byIntent = _recent.GroupBy(e => e.IntentName, StringComparer.OrdinalIgnoreCase)
+            .Select(g => new FraudIntentDistRow(g.Key, g.Count(), 100.0 * g.Count() / total))
+            .OrderByDescending(x => x.Count)
+            .ToList();
+        var byDecision = _recent.GroupBy(e => e.Decision, StringComparer.OrdinalIgnoreCase)
+            .Select(g => new FraudDecisionDistRow(g.Key, g.Count(), 100.0 * g.Count() / total))
+            .OrderByDescending(x => x.Count)
+            .ToList();
+        var dominant = byIntent.First();
+        var blockPct = byDecision.FirstOrDefault(x => string.Equals(x.Decision, "Block", StringComparison.OrdinalIgnoreCase))?.Percent ?? 0;
+        var warnPct = byDecision.FirstOrDefault(x => string.Equals(x.Decision, "Warn", StringComparison.OrdinalIgnoreCase))?.Percent ?? 0;
+        var verdict = BuildFraudVerdictText(total, dominant.IntentName, dominant.Percent, avgScore, blockPct, warnPct);
+        var futureOutlook = BuildFraudFutureOutlook(ordered);
+        return new FraudLiveSummaryResult(first, last, total, avgScore, dominant.IntentName, dominant.Percent, byIntent, byDecision, verdict, futureOutlook);
+    }
+
+    private static string BuildFraudVerdictText(int total, string dominantIntent, double dominantPct, double avgScore, double blockPct, double warnPct)
+    {
+        var parts = new List<string>();
+        parts.Add($"Oturumda toplam {total} inference toplandı.");
+        parts.Add($"Baskın intent {dominantIntent} (%{dominantPct:N0}).");
+        parts.Add($"Ortalama güven skoru %{avgScore:P0}.");
+        if (blockPct > 0 || warnPct > 0)
+            parts.Add($"Block %{blockPct:N0}, Warn %{warnPct:N0}; bu oranlar yüksekse risk veya izleme ihtiyacı artabilir.");
+        return string.Join(" ", parts);
+    }
+
+    private static string BuildFraudFutureOutlook(IReadOnlyList<InferenceEvent> ordered)
+    {
+        if (ordered.Count < 4)
+            return "Veri az; daha uzun simülasyon ile eğilim ve öngörü güçlendirilebilir.";
+        var mid = ordered.Count / 2;
+        var firstHalf = ordered.Take(mid).ToList();
+        var secondHalf = ordered.Skip(mid).ToList();
+        var blockFirst = 100.0 * firstHalf.Count(e => string.Equals(e.Decision, "Block", StringComparison.OrdinalIgnoreCase)) / firstHalf.Count;
+        var blockSecond = 100.0 * secondHalf.Count(e => string.Equals(e.Decision, "Block", StringComparison.OrdinalIgnoreCase)) / secondHalf.Count;
+        var avgFirst = firstHalf.Average(e => e.ConfidenceScore);
+        var avgSecond = secondHalf.Average(e => e.ConfidenceScore);
+        var parts = new List<string>();
+        if (blockSecond - blockFirst >= 5)
+            parts.Add("Dönem sonuna doğru Block oranı arttı; bu eğilim sürerse risk yüksek kalabilir.");
+        else if (blockFirst - blockSecond >= 5)
+            parts.Add("Dönem sonunda Block oranı düştü; olumlu sinyal.");
+        if (avgSecond - avgFirst <= -0.05)
+            parts.Add("Güven skoru dönem sonunda düşüş gösteriyor; izleme önerilir.");
+        else if (avgSecond - avgFirst >= 0.05)
+            parts.Add("Güven skoru dönem sonunda yükseldi; olumlu sinyal.");
+        if (parts.Count == 0)
+            parts.Add("Eğilim belirgin değil; daha uzun simülasyon ile öngörü netleşebilir.");
+        return string.Join(" ", parts);
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        _sseCts?.Cancel();
+        if (_gaugeEcharts != null) await _gaugeEcharts.DisposeAsync();
+        if (_lineEcharts != null) await _lineEcharts.DisposeAsync();
+        if (_pieEcharts != null) await _pieEcharts.DisposeAsync();
+    }
+
+    private sealed record FraudStatus(bool Running, int EventsPerMinute, DateTimeOffset LastInferenceAt);
+    private sealed record InferenceEvent(string Id, string IntentName, string ConfidenceLevel, double ConfidenceScore, string Decision, string? EventsSummary, DateTimeOffset RecordedAt);
+    private sealed record FraudLiveSummaryResult(DateTimeOffset PeriodStart, DateTimeOffset PeriodEnd, int TotalEvents, double AverageScore, string DominantIntent, double DominantIntentPercent, IReadOnlyList<FraudIntentDistRow> IntentDistribution, IReadOnlyList<FraudDecisionDistRow> DecisionDistribution, string VerdictText, string FutureOutlookText);
+    private sealed record FraudIntentDistRow(string IntentName, int Count, double Percent);
+    private sealed record FraudDecisionDistRow(string Decision, int Count, double Percent);
+}

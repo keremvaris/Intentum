@@ -1,6 +1,7 @@
 using Intentum.Core.Behavior;
 using Intentum.Core.Contracts;
 using Intentum.Core.Intents;
+using Intentum.Core.Pipeline;
 
 namespace Intentum.Core.Models;
 
@@ -14,11 +15,12 @@ public sealed record RuleMatch(string Name, double Score, string? Reasoning = nu
 
 /// <summary>
 /// Intent inference using rule-based evaluation (no LLM). Fast, deterministic, explainable.
+/// Uses the resolution pipeline internally (signal → vector → rule inference → confidence).
 /// Use as the primary model in ChainedIntentModel so that LLM is only called when rules do not match or confidence is low.
 /// </summary>
 public sealed class RuleBasedIntentModel : IIntentModel
 {
-    private readonly IReadOnlyList<Func<BehaviorSpace, RuleMatch?>> _rules;
+    private readonly IIntentModel _pipeline;
 
     /// <summary>
     /// Creates a rule-based intent model with the given rules. First matching rule wins.
@@ -26,41 +28,11 @@ public sealed class RuleBasedIntentModel : IIntentModel
     /// <param name="rules">Ordered list of rules. Each rule returns a RuleMatch when it applies, or null to skip.</param>
     public RuleBasedIntentModel(IEnumerable<Func<BehaviorSpace, RuleMatch?>> rules)
     {
-        _rules = rules.ToList();
+        var step = new RuleBasedInferenceStep(rules ?? throw new ArgumentNullException(nameof(rules)));
+        _pipeline = new IntentResolutionPipeline(step);
     }
 
     /// <inheritdoc />
     public Intent Infer(BehaviorSpace behaviorSpace, BehaviorVector? precomputedVector = null)
-    {
-        var vector = precomputedVector ?? behaviorSpace.ToVector();
-
-        foreach (var rule in _rules)
-        {
-            var match = rule(behaviorSpace);
-            if (match == null)
-                continue;
-
-            var confidence = IntentConfidence.FromScore(Math.Clamp(match.Score, 0, 1));
-            var signals = vector.Dimensions.Select(d =>
-                new IntentSignal("rule", d.Key, d.Value)).ToList();
-
-            return new Intent(
-                Name: match.Name,
-                Signals: signals,
-                Confidence: confidence,
-                Reasoning: match.Reasoning
-            );
-        }
-
-        var unknownConfidence = IntentConfidence.FromScore(0);
-        var unknownSignals = vector.Dimensions.Select(d =>
-            new IntentSignal("rule", d.Key, d.Value)).ToList();
-
-        return new Intent(
-            Name: "Unknown",
-            Signals: unknownSignals,
-            Confidence: unknownConfidence,
-            Reasoning: "No rule matched"
-        );
-    }
+        => _pipeline.Infer(behaviorSpace, precomputedVector);
 }

@@ -1,0 +1,79 @@
+@page "/commerce"
+@using System.Text.Json.Serialization
+@inject HttpClient Http
+@inject NavigationManager Navigation
+
+<PageTitle>Commerce</PageTitle>
+
+<h2>Commerce / Sipariş demo</h2>
+<p class="subtitle">Place order API ile sipariş oluşturma; Intentum'un sipariş/akış senaryolarında kullanım örneği.</p>
+
+<div class="dashboard-toolbar commerce-form">
+    <label>Ürün ID <input @bind="_productId" placeholder="PROD-001" /></label>
+    <label>Miktar <input type="number" @bind="_quantity" min="1" /></label>
+    <label>Müşteri ID <input @bind="_customerId" placeholder="CUST-001" /></label>
+    <button type="button" @onclick="PlaceOrder" disabled="@_loading">Sipariş ver</button>
+</div>
+
+@if (_loading)
+{
+    <p class="muted">Yükleniyor…</p>
+}
+@if (_error != null)
+{
+    <p class="error">@_error</p>
+}
+@if (_result != null)
+{
+    <div class="card">
+        <h3>Sipariş oluşturuldu</h3>
+        <p><strong>Order ID:</strong> <code>@_result.OrderId</code></p>
+        <p><strong>Ürün:</strong> @_result.ProductId, <strong>Miktar:</strong> @_result.Quantity</p>
+    </div>
+}
+
+@code {
+    private string _productId = "PROD-001";
+    private int _quantity = 1;
+    private string _customerId = "CUST-001";
+    private bool _loading;
+    private string? _error;
+    private PlaceOrderResultDto? _result;
+
+    private async Task PlaceOrder()
+    {
+        _loading = true;
+        _error = null;
+        _result = null;
+        StateHasChanged();
+        try
+        {
+            var baseUri = new Uri(Navigation.BaseUri).GetLeftPart(UriPartial.Authority);
+            var body = new { productId = _productId, quantity = _quantity, customerId = _customerId };
+            var opts = new System.Text.Json.JsonSerializerOptions { PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase };
+            var res = await Http.PostAsJsonAsync(baseUri + "/api/orders", body, opts);
+            if (res.IsSuccessStatusCode)
+            {
+                _result = await res.Content.ReadFromJsonAsync<PlaceOrderResultDto>();
+            }
+            else
+            {
+                _error = res.ReasonPhrase ?? "Sipariş oluşturulamadı.";
+            }
+        }
+        catch (Exception ex)
+        {
+            _error = ex.Message;
+        }
+        finally
+        {
+            _loading = false;
+            StateHasChanged();
+        }
+    }
+
+    private sealed record PlaceOrderResultDto(
+        [property: JsonPropertyName("orderId")] string OrderId,
+        [property: JsonPropertyName("productId")] string ProductId,
+        [property: JsonPropertyName("quantity")] int Quantity);
+}

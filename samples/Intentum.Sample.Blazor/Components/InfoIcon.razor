@@ -1,0 +1,10 @@
+@* Bilgi ikonu: hover'da açıklama gösterir (ne işe yarar, nasıl kullanılır). *@
+<span class="info-wrap">
+    <span class="info-icon" aria-label="Bilgi">i</span>
+    <span class="info-tooltip">@Text</span>
+</span>
+
+@code {
+    [Parameter, EditorRequired]
+    public string Text { get; set; } = "";
+}

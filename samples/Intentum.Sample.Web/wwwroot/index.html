@@ -3,6 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1 1'><rect width='1' height='1' fill='%234a90d9'/></svg>" />
   <title>Intentum Örnek Uygulama</title>
   <link rel="stylesheet" href="/app.css" />
 </head>
@@ -13,6 +14,7 @@
       <span class="tagline">Gerçek hayat senaryoları: dolandırıcılık riski, segmentasyon, sağlık & banka</span>
     </div>
     <nav>
+      <a href="/dashboard">Dashboard (Blazor)</a>
       <a href="/scalar" target="_blank" rel="noopener">API</a>
       <a href="/health" target="_blank" rel="noopener">Sağlık</a>
     </nav>
@@ -312,6 +314,25 @@
           </table>
         </div>
         <div id="history-loading" class="muted" style="display: none;">Yükleniyor…</div>
+        <h3 class="section-subtitle">Intent Graph (node–edge, zaman filtresi)</h3>
+        <div class="graph-toolbar">
+          <label>Entity ID <input type="text" id="graph-entity-id" value="IntentumSampleWeb" placeholder="entityId" /></label>
+          <label>Başlangıç <input type="datetime-local" id="graph-from" /></label>
+          <label>Bitiş <input type="datetime-local" id="graph-to" /></label>
+          <button type="button" id="graph-load">Graf yükle</button>
+        </div>
+        <div id="graph-container" class="graph-container">
+          <div id="graph-nodes" class="graph-nodes" aria-live="polite"></div>
+          <div id="graph-edges" class="graph-edges muted" aria-live="polite"></div>
+        </div>
+        <h3 class="section-subtitle">Confidence Heatmap (intent × zaman, eşik vurgulama)</h3>
+        <div class="heatmap-toolbar">
+          <label>Entity ID <input type="text" id="heatmap-entity-id" value="IntentumSampleWeb" placeholder="entityId" /></label>
+          <label>Başlangıç <input type="datetime-local" id="heatmap-from" /></label>
+          <label>Bitiş <input type="datetime-local" id="heatmap-to" /></label>
+          <button type="button" id="heatmap-load">Heatmap yükle</button>
+        </div>
+        <div id="heatmap-container" class="heatmap-container" aria-live="polite"></div>
         <h3 class="section-subtitle">Son greenwashing analizleri (demo, gerçek zamanlı mock)</h3>
         <div class="table-wrap">
           <table class="history-table" id="greenwashing-recent-table">

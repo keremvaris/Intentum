@@ -946,11 +946,11 @@ app.MapHealthChecks("/health");
 
 ## Intent Tree
 
-**Nedir:** **Intentum.Explainability** **IIntentTreeExplainer** sunar: çıkarılmış intent ve policy verildiğinde **karar ağacı** (hangi kural eşleşti, sinyal düğümleri, intent özeti) oluşturur. `ExplainTree(intent, policy, behaviorSpace?)` ile `IntentDecisionTree` alırsınız.
+**Nedir:** **Intentum.Explainability** **IIntentTreeExplainer** sunar: çıkarılmış intent ve policy verildiğinde **karar ağacı** (hangi kural eşleşti, sinyal düğümleri, intent özeti) oluşturur. `GetIntentTree(intent, policy, behaviorSpace?)` ile `IntentDecisionTree` alırsınız.
 
 **Ne işe yarar:** Policy’nin neden Allow/Block döndüğünü açıklamak: kural adı, koşul, sinyaller ağaç formunda (UI veya denetim).
 
-**Kullanım:** **Intentum.Explainability** ekleyin, `AddIntentTreeExplainer()` ile kaydedin. Inference ve policy değerlendirmesinden sonra `treeExplainer.ExplainTree(intent, policy, space)` çağırın. Sample Web: `POST /api/intent/explain-tree` (infer ile aynı body).
+**Kullanım:** **Intentum.Explainability** ekleyin, `AddIntentTreeExplainer()` ile kaydedin. Inference ve policy değerlendirmesinden sonra `treeExplainer.GetIntentTree(intent, policy, space)` çağırın. Sample Web: `POST /api/intent/explain-tree` (infer ile aynı body).
 
 ---
 

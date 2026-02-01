@@ -310,7 +310,7 @@ public class SimilarityEngineTests
         // Arrange
         var engine1 = new SimpleAverageSimilarityEngine();
         var engine2 = new WeightedAverageSimilarityEngine();
-        IIntentSimilarityEngine[] engines = new IIntentSimilarityEngine[] { engine1, engine2 };
+        IIntentSimilarityEngine[] engines = [engine1, engine2];
         var composite = new CompositeSimilarityEngine(engines);
 
         var embeddings = new[]
@@ -410,11 +410,11 @@ public class SimilarityEngineTests
     public void CompositeSimilarityEngine_WithLlmIntentModel_WorksCorrectly()
     {
         // Arrange
-        IIntentSimilarityEngine[] engines = new IIntentSimilarityEngine[]
-        {
+        IIntentSimilarityEngine[] engines =
+        [
             new SimpleAverageSimilarityEngine(),
             new CosineSimilarityEngine()
-        };
+        ];
         var composite = new CompositeSimilarityEngine(engines);
         var model = new LlmIntentModel(
             new MockEmbeddingProvider(),

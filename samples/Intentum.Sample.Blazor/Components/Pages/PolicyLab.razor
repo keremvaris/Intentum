@@ -1,0 +1,85 @@
+@page "/policy-lab"
+@rendermode InteractiveServer
+@using System.Text.Json.Serialization
+@inject HttpClient Http
+@inject NavigationManager Navigation
+
+<PageTitle>Policy Lab</PageTitle>
+
+<div class="page-card">
+    <h2 style="margin: 0 0 0.25rem 0;">Policy Lab</h2>
+    <p class="subtitle" style="margin: 0;">Politika motorunun kuralları ve bu giriş için karar ne olurdu simülatörü. <InfoIcon Text="@(_policyLabInfoText)" /></p>
+</div>
+
+<div class="page-card">
+    <h3 class="page-card h3" style="margin: 0 0 0.5rem 0;">Kurallar (IntentPolicyBuilder) <InfoIcon Text="@(_rulesInfoText)" /></h3>
+    <p class="muted">Program.cs içinde tanımlı kurallar; intent + sinyallere göre karar verilir.</p>
+    <div class="table-wrap">
+        <table class="history-table">
+            <thead><tr><th>Kural adı</th><th>Karar</th><th>Koşul (özet)</th></tr></thead>
+            <tbody>
+                <tr><td>ExcessiveRetry</td><td><span class="badge">Block</span></td><td>Retry içeren sinyal sayısı ≥ 3</td></tr>
+                <tr><td>LowConfidence</td><td><span class="badge">Escalate</span></td><td>Güven seviyesi Low</td></tr>
+                <tr><td>SensitiveAction</td><td><span class="badge">RequireAuth</span></td><td>Sinyal açıklamasında "sensitive"</td></tr>
+                <tr><td>HighFrequency</td><td><span class="badge">RateLimit</span></td><td>Sinyal sayısı > 10</td></tr>
+                <tr><td>HighConfidence</td><td><span class="badge">Allow</span></td><td>Güven High veya Certain</td></tr>
+                <tr><td>MediumConfidence</td><td><span class="badge">Observe</span></td><td>Güven Medium</td></tr>
+                <tr><td>LowConfidenceWarn</td><td><span class="badge">Warn</span></td><td>Güven Low</td></tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<div class="page-card">
+    <h3 class="page-card h3" style="margin: 0 0 0.5rem 0;">Örnek değerlendir <InfoIcon Text="Olayları JSON formatında girin ve Bu giriş için karar ne olurdu ile infer + politika değerlendirmesi yapın. Sonuçta güven seviyesi ve karar (Allow, Block, Warn vb.) gösterilir. Detay için Explain veya Playground kullanın." /></h3>
+    <p class="muted">Olayları girin; infer ile intent ve politika kararı alın.</p>
+    <div class="dashboard-toolbar">
+        <label>Olaylar (JSON) <textarea @bind="_eventsJson" rows="3" style="width: 100%; max-width: 400px;" placeholder='[{"actor":"user","action":"login"},{"actor":"user","action":"retry"}]'></textarea></label>
+        <button type="button" @onclick="Evaluate" disabled="@_loading">Bu giriş için karar ne olurdu?</button>
+    </div>
+    @if (_loading) { <p class="muted">Yükleniyor…</p> }
+    @if (_evalError != null) { <p class="error">@_evalError</p> }
+    @if (_evalResult != null)
+    {
+        <div class="card">
+            <h4>Sonuç</h4>
+            <p><strong>Güven seviyesi:</strong> @_evalResult.Confidence</p>
+            <p><strong>Karar:</strong> <span class="badge">@_evalResult.Decision</span></p>
+        </div>
+    }
+    <p class="muted">Detaylı açıklama için <NavLink href="explain">Explain</NavLink> veya <NavLink href="sandbox">Playground</NavLink> kullanın.</p>
+</div>
+
+@code {
+    private static readonly string _policyLabInfoText = "Bu sayfa politika motorunun kurallarını listeler ve örnek olay seti ile karar simülasyonu yapar. Infer sonrası politika kuralları uygulanır; Allow, Block, Warn, Escalate vb. karar döner.";
+    private static readonly string _rulesInfoText = "Kurallar öncelik sırasına göre değerlendirilir. Örn. ExcessiveRetry (retry ≥ 3) Block, LowConfidence Escalate, HighConfidence Allow. Koşullar sinyal içeriği ve güven seviyesine göre eşleşir.";
+    private string _eventsJson = "[{\"actor\":\"user\",\"action\":\"login\"},{\"actor\":\"user\",\"action\":\"retry\"}]";
+    private bool _loading;
+    private string? _evalError;
+    private EvalResultDto? _evalResult;
+
+    private async Task Evaluate()
+    {
+        _loading = true;
+        _evalError = null;
+        _evalResult = null;
+        StateHasChanged();
+        try
+        {
+            var events = System.Text.Json.JsonSerializer.Deserialize<object[]>(_eventsJson);
+            if (events == null || events.Length == 0) { _evalError = "En az bir olay girin."; return; }
+            var body = new { events, entityId = "PolicyLab" };
+            var baseUri = new Uri(Navigation.BaseUri).GetLeftPart(UriPartial.Authority);
+            var res = await Http.PostAsJsonAsync(baseUri + "/api/intent/infer", body);
+            res.EnsureSuccessStatusCode();
+            var raw = await res.Content.ReadFromJsonAsync<InferResponseDto>();
+            if (raw != null)
+                _evalResult = new EvalResultDto(raw.Decision, raw.Confidence);
+        }
+        catch (Exception ex) { _evalError = ex.Message; }
+        finally { _loading = false; StateHasChanged(); }
+    }
+
+    private sealed record InferResponseDto([property: JsonPropertyName("decision")] string Decision, [property: JsonPropertyName("confidence")] string Confidence);
+    private sealed record EvalResultDto(string Decision, string Confidence);
+}

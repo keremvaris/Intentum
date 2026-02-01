@@ -18,7 +18,7 @@ public static class BehaviorSpaceAssertions
         string actor,
         string action)
     {
-        Assert.Contains(space.Events, e => e.Actor == actor && e.Action == action);
+        Assert.Contains(space.Events, e => { _ = e; return e.Actor == actor && e.Action == action; });
     }
 
     /// <summary>
@@ -34,7 +34,7 @@ public static class BehaviorSpaceAssertions
     /// </summary>
     public static void ContainsActor(BehaviorSpace space, string actor)
     {
-        Assert.Contains(space.Events, e => e.Actor == actor);
+        Assert.Contains(space.Events, e => { _ = e; return e.Actor == actor; });
     }
 
     /// <summary>
@@ -42,7 +42,7 @@ public static class BehaviorSpaceAssertions
     /// </summary>
     public static void ContainsAction(BehaviorSpace space, string action)
     {
-        Assert.Contains(space.Events, e => e.Action == action);
+        Assert.Contains(space.Events, e => { _ = e; return e.Action == action; });
     }
 }
 

@@ -218,8 +218,8 @@ Runs ESG, Carbon, EU Green Bond, workflow, and classic (payment, support, e‑co
 dotnet run --project samples/Intentum.Sample.Web
 ```
 
-- **UI:** http://localhost:5150/ (or the port in `launchSettings.json`) — **Örnekler** (carbon, orders, greenwashing, intent infer, explain) and **Dashboard** (analytics, son çıkarımlar, son greenwashing analizleri)
-- **API docs (Scalar):** http://localhost:5150/scalar
+- **UI:** http://localhost:5000/ (or the port in `launchSettings.json`) — **Örnekler** (carbon, orders, greenwashing, intent infer, explain) and **Dashboard** (analytics, son çıkarımlar, son greenwashing analizleri)
+- **API docs (Scalar):** http://localhost:5000/scalar
 - **Endpoints:**
   - Carbon: `POST /api/carbon/calculate`, `GET /api/carbon/report/{id}`
   - Orders: `POST /api/orders`

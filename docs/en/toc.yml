@@ -52,6 +52,8 @@ items:
         href: clustering-and-experiments-use-cases.md
       - name: Domain intent templates
         href: domain-intent-templates.md
+      - name: Hybrid mode and rule-based fallback
+        href: hybrid-mode-and-fallback.md
       - name: Advanced Features
         href: advanced-features.md
       - name: Agent framework integration

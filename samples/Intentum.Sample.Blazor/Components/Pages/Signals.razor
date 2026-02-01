@@ -1,0 +1,138 @@
+@page "/signals"
+@rendermode InteractiveServer
+@inject HttpClient Http
+@inject NavigationManager Navigation
+
+<PageTitle>Signal Explorer</PageTitle>
+
+<div class="page-card">
+    <h2 style="margin: 0 0 0.25rem 0;">Signal Explorer</h2>
+    <p class="subtitle" style="margin: 0;">Intent'leri tetikleyen ham sinyaller. <InfoIcon Text="@(_signalsInfoText)" /></p>
+</div>
+
+<div class="page-card">
+    <h3 class="page-card h3" style="margin: 0 0 0.5rem 0;">Filtreler</h3>
+    <div class="dashboard-toolbar">
+        <label>Intent (filtre) <input @bind="_intentFilter" placeholder="boş = tümü" /></label>
+        <label>From <input type="datetime-local" @bind="_from" /></label>
+        <label>To <input type="datetime-local" @bind="_to" /></label>
+        <label>Limit <input type="number" @bind="_limit" min="1" max="200" style="width:4rem" /></label>
+        <button type="button" @onclick="LoadSignals">Yükle</button>
+        <span class="export-links">
+            <a href="@GetExportJsonUrl()" target="_blank" rel="noopener" class="export-link">JSON indir</a>
+            <a href="@GetExportCsvUrl()" target="_blank" rel="noopener" class="export-link">CSV indir</a>
+        </span>
+    </div>
+</div>
+
+@if (_loading)
+{
+    <div class="page-card"><p class="muted">Yükleniyor…</p></div>
+}
+else if (_error != null)
+{
+    <div class="page-card"><p class="error">@_error</p></div>
+}
+else
+{
+    <div class="page-card">
+    <h3 class="page-card h3" style="margin: 0 0 0.75rem 0;">Sinyal listesi <InfoIcon Text="@(_signalsTableInfoText)" /></h3>
+    <div class="table-wrap">
+        <table class="history-table">
+            <thead>
+                <tr>
+                    <th>Id</th>
+                    <th>Intent</th>
+                    <th>Zaman</th>
+                    <th>Olay özeti</th>
+                    <th>Güven</th>
+                    <th>Karar</th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (_signals?.Count > 0)
+                {
+                    @foreach (var s in _signals)
+                    {
+                        <tr>
+                            <td><code>@s.Id</code></td>
+                            <td>@s.IntentName</td>
+                            <td>@s.RecordedAt.ToLocalTime().ToString("g")</td>
+                            <td><span class="events-summary" title="@s.EventsSummary">@s.EventsSummary</span></td>
+                            <td>@s.ConfidenceLevel (@s.ConfidenceScore.ToString("P0"))</td>
+                            <td><span class="badge">@s.Decision</span></td>
+                        </tr>
+                    }
+                }
+                else
+                {
+                    <tr><td colspan="6" class="empty-state">Bu filtrede kayıt yok. Intent Stream sayfasından simülasyonu başlatarak canlı veri ekleyebilirsiniz.</td></tr>
+                }
+            </tbody>
+        </table>
+    </div>
+    </div>
+}
+
+@code {
+    private static readonly string _signalsInfoText = "Bu sayfa, infer edilmiş intent sonuçlarını (sinyalleri) listeler: hangi olay seti hangi intent ve güven skoruyla eşleşmiş, politika kararı ne olmuş. Intent filtresi ve tarih aralığı ile sınırlayabilirsiniz. JSON/CSV export ile veriyi dışa aktarabilirsiniz.";
+    private static readonly string _signalsTableInfoText = "Her satır bir inference kaydıdır: Id, intent adı, zaman, olay özeti, güven seviyesi ve politika kararı (Allow, Block, Warn vb.) gösterilir.";
+    private string _intentFilter = "";
+    private DateTime _from = DateTime.UtcNow.AddDays(-7);
+    private DateTime _to = DateTime.UtcNow;
+    private int _limit = 50;
+    private bool _loading = true;
+    private string? _error;
+    private IReadOnlyList<SignalDto>? _signals;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadSignals();
+    }
+
+    private string GetApiBase() => new Uri(Navigation.BaseUri).GetLeftPart(UriPartial.Authority);
+
+    private string GetExportJsonUrl()
+    {
+        var from = new DateTimeOffset(_from.Kind == DateTimeKind.Unspecified ? DateTime.SpecifyKind(_from, DateTimeKind.Utc) : _from);
+        var to = new DateTimeOffset(_to.Kind == DateTimeKind.Unspecified ? DateTime.SpecifyKind(_to, DateTimeKind.Utc) : _to);
+        var origin = GetApiBase();
+        return $"{origin}/api/intent/analytics/export/json?from={Uri.EscapeDataString(from.ToString("o"))}&to={Uri.EscapeDataString(to.ToString("o"))}";
+    }
+
+    private string GetExportCsvUrl()
+    {
+        var from = new DateTimeOffset(_from.Kind == DateTimeKind.Unspecified ? DateTime.SpecifyKind(_from, DateTimeKind.Utc) : _from);
+        var to = new DateTimeOffset(_to.Kind == DateTimeKind.Unspecified ? DateTime.SpecifyKind(_to, DateTimeKind.Utc) : _to);
+        var origin = GetApiBase();
+        return $"{origin}/api/intent/analytics/export/csv?from={Uri.EscapeDataString(from.ToString("o"))}&to={Uri.EscapeDataString(to.ToString("o"))}";
+    }
+
+    private async Task LoadSignals()
+    {
+        _loading = true;
+        _error = null;
+        StateHasChanged();
+        try
+        {
+            var from = new DateTimeOffset(_from.Kind == DateTimeKind.Unspecified ? DateTime.SpecifyKind(_from, DateTimeKind.Utc) : _from);
+            var to = new DateTimeOffset(_to.Kind == DateTimeKind.Unspecified ? DateTime.SpecifyKind(_to, DateTimeKind.Utc) : _to);
+            var baseUri = new Uri(Navigation.BaseUri).GetLeftPart(UriPartial.Authority);
+            var query = $"?from={Uri.EscapeDataString(from.ToString("o"))}&to={Uri.EscapeDataString(to.ToString("o"))}&limit={_limit}";
+            if (!string.IsNullOrWhiteSpace(_intentFilter))
+                query += "&intent=" + Uri.EscapeDataString(_intentFilter.Trim());
+            _signals = await Http.GetFromJsonAsync<List<SignalDto>>(baseUri + "/api/signals" + query);
+        }
+        catch (Exception ex)
+        {
+            _error = ex.Message;
+        }
+        finally
+        {
+            _loading = false;
+            StateHasChanged();
+        }
+    }
+
+    private sealed record SignalDto(string Id, string IntentName, DateTimeOffset RecordedAt, string? EventsSummary, string ConfidenceLevel, string Decision, double ConfidenceScore);
+}

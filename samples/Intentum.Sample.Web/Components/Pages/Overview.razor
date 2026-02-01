@@ -1,0 +1,120 @@
+@page "/"
+@using System.Text.Json.Serialization
+@inject HttpClient Http
+@inject NavigationManager Navigation
+
+<PageTitle>Overview</PageTitle>
+
+<h2>Intent Intelligence Hub</h2>
+<p class="subtitle">Intentum ne yapar? Olaylar → Niyet → Politika → Karar → Analiz.</p>
+
+<section class="pipeline-block">
+    <h3 class="section-subtitle">Intentum pipeline</h3>
+    <ol class="pipeline-steps">
+        <li><strong>Davranış olayları</strong> — Olayları girin</li>
+        <li><strong>Niyet + güven</strong> — Model infer eder</li>
+        <li><strong>Politika kuralları</strong> — Kurallar değerlendirilir</li>
+        <li><strong>Karar</strong> — Allow / Block / Escalate / …</li>
+        <li><strong>Analiz & izlenebilirlik</strong> — Timeline, grafik, export</li>
+    </ol>
+    <div class="quick-actions">
+        <NavLink href="sandbox" class="action-btn">Playground'da dene</NavLink>
+        <NavLink href="explain" class="action-btn">Explain'de açıkla</NavLink>
+        <NavLink href="fraud-live" class="action-btn">Intent Stream başlat</NavLink>
+        <NavLink href="sustainability" class="action-btn">Sustainability demo</NavLink>
+        <NavLink href="commerce" class="action-btn">Sipariş demo</NavLink>
+        <a href="@_exportJsonUrl" target="_blank" rel="noopener" class="action-btn action-btn-export">JSON indir</a>
+        <a href="@_exportCsvUrl" target="_blank" rel="noopener" class="action-btn action-btn-export">CSV indir</a>
+    </div>
+</section>
+
+@if (_loading)
+{
+    <p class="muted">Yükleniyor…</p>
+}
+else if (_error != null)
+{
+    <p class="error">@_error</p>
+}
+else
+{
+    <h3 class="section-subtitle">Sistemin şu anki durumu</h3>
+    <div class="kpi-grid overview-cards">
+        <div class="card">
+            <h3>Dominant Intent</h3>
+            <p class="kpi-value dominant">@(_overview?.DominantIntent ?? "—")</p>
+        </div>
+        <div class="card">
+            <h3>Global Confidence</h3>
+            <p class="kpi-value @(ConfidenceClass(_overview?.GlobalConfidenceScore ?? 0))">@((_overview?.GlobalConfidenceScore ?? 0).ToString("P0"))</p>
+        </div>
+        <div class="card">
+            <h3>Signal Rate</h3>
+            <p class="kpi-value">@(_overview?.SignalRate ?? 0) / dk</p>
+        </div>
+    </div>
+    @if (_overview?.ActiveIntents?.Count > 0)
+    {
+        <h3 class="section-subtitle">Active Intents</h3>
+        <div class="intent-cards">
+            @foreach (var intent in _overview.ActiveIntents)
+            {
+                <div class="card intent-card">
+                    <span class="intent-name">@intent.Name</span>
+                    <span class="intent-confidence @(ConfidenceClass(intent.Confidence))">@intent.Confidence.ToString("P0")</span>
+                </div>
+            }
+        </div>
+    }
+    else
+    {
+        <p class="muted cta-empty">İlk veriyi oluşturmak için Playground'da infer et veya Intent Stream'i başlat.</p>
+    }
+}
+
+@code {
+    private DashboardOverview? _overview;
+    private bool _loading = true;
+    private string? _error;
+    private string _exportJsonUrl = "#";
+    private string _exportCsvUrl = "#";
+
+    protected override void OnInitialized()
+    {
+        var to = DateTimeOffset.UtcNow;
+        var from = to.AddDays(-7);
+        var baseUri = Navigation.Uri;
+        var origin = new Uri(baseUri).GetLeftPart(UriPartial.Authority);
+        _exportJsonUrl = $"{origin}/api/intent/analytics/export/json?from={Uri.EscapeDataString(from.ToString("o"))}&to={Uri.EscapeDataString(to.ToString("o"))}";
+        _exportCsvUrl = $"{origin}/api/intent/analytics/export/csv?from={Uri.EscapeDataString(from.ToString("o"))}&to={Uri.EscapeDataString(to.ToString("o"))}";
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            var baseUri = new Uri(Navigation.BaseUri).GetLeftPart(UriPartial.Authority);
+            var apiUri = new Uri(baseUri + "/api/dashboard/overview");
+            _overview = await Http.GetFromJsonAsync<DashboardOverview>(apiUri);
+        }
+        catch (Exception ex)
+        {
+            _error = ex.Message;
+        }
+        finally
+        {
+            _loading = false;
+        }
+    }
+
+    private static string ConfidenceClass(double score) =>
+        score < 0.4 ? "low" : score < 0.7 ? "medium" : "high";
+
+    private sealed record DashboardOverview(
+        [property: JsonPropertyName("activeIntents")] IReadOnlyList<ActiveIntentDto>? ActiveIntents,
+        [property: JsonPropertyName("dominantIntent")] string? DominantIntent,
+        [property: JsonPropertyName("globalConfidenceScore")] double GlobalConfidenceScore,
+        [property: JsonPropertyName("signalRate")] int SignalRate);
+
+    private sealed record ActiveIntentDto([property: JsonPropertyName("name")] string Name, [property: JsonPropertyName("confidence")] double Confidence);
+}

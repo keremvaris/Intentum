@@ -1,0 +1,24 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <RootNamespace>Intentum.Cli</RootNamespace>
+    <AssemblyName>intentum</AssemblyName>
+    <PackageId>Intentum.Cli</PackageId>
+    <Description>Intentum CLI: create project, validate model/policy, run infer.</Description>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\Intentum.Core\Intentum.Core.csproj" />
+    <ProjectReference Include="..\..\src\Intentum.Runtime\Intentum.Runtime.csproj" />
+    <ProjectReference Include="..\..\src\Intentum.AI\Intentum.AI.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="System.CommandLine" Version="2.0.0-beta4.22272.1" />
+  </ItemGroup>
+
+</Project>

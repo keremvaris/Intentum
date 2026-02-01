@@ -124,6 +124,63 @@ public sealed class IntentAnalyticsTests
         Assert.Contains(timeline.Points, p => p.IntentName == "Test" && (p.ConfidenceLevel == "High" || p.ConfidenceLevel == "Certain"));
     }
 
+    [Fact]
+    public async Task GetIntentGraphSnapshotAsync_ReturnsNodesAndEdgesForEntity()
+    {
+        var analytics = await CreateAnalyticsWithSampleDataAsync();
+        var now = DateTimeOffset.UtcNow;
+        var start = now.AddDays(-1);
+        var end = now.AddDays(1);
+
+        var snapshot = await analytics.GetIntentGraphSnapshotAsync("bs1", start, end);
+
+        Assert.Equal("bs1", snapshot.EntityId);
+        Assert.Equal(start, snapshot.WindowStart);
+        Assert.Equal(end, snapshot.WindowEnd);
+        Assert.Equal(2, snapshot.Nodes.Count);
+        Assert.Single(snapshot.Edges);
+        Assert.Equal(snapshot.Nodes[0].Id, snapshot.Edges[0].FromNodeId);
+        Assert.Equal(snapshot.Nodes[1].Id, snapshot.Edges[0].ToNodeId);
+    }
+
+    [Fact]
+    public async Task IntentProfileService_GetProfileAsync_ReturnsLabelsAndTopIntents()
+    {
+        var analytics = await CreateAnalyticsWithSampleDataAsync();
+        var profileService = new IntentProfileService(analytics);
+        var now = DateTimeOffset.UtcNow;
+        var start = now.AddDays(-1);
+        var end = now.AddDays(1);
+
+        var profile = await profileService.GetProfileAsync("bs1", start, end);
+
+        Assert.Equal("bs1", profile.EntityId);
+        Assert.Equal(2, profile.PointCount);
+        Assert.True(profile.AverageConfidenceScore > 0);
+        Assert.True(profile.TopIntents.ContainsKey("Test"));
+        Assert.Equal(2, profile.TopIntents["Test"]);
+        Assert.NotEmpty(profile.Labels);
+    }
+
+    [Fact]
+    public async Task IntentProfileService_GetProfileAsync_WhenNoData_ReturnsEmptyProfile()
+    {
+        var analytics = await CreateAnalyticsWithSampleDataAsync();
+        var profileService = new IntentProfileService(analytics);
+        var now = DateTimeOffset.UtcNow;
+        var start = now.AddDays(-1);
+        var end = now.AddDays(1);
+
+        var profile = await profileService.GetProfileAsync("nonexistent", start, end);
+
+        Assert.Equal("nonexistent", profile.EntityId);
+        Assert.Equal(0, profile.PointCount);
+        Assert.Empty(profile.Labels);
+        Assert.Empty(profile.TopIntents);
+        Assert.Equal(0, profile.AverageConfidenceScore);
+        Assert.Equal(0, profile.HighConfidencePercent);
+    }
+
     private sealed class InMemoryIntentHistoryRepository : IIntentHistoryRepository
     {
         private readonly List<IntentHistoryRecord> _records = new();

@@ -34,12 +34,14 @@ Detay için [Test](testing.md), script’ler için [Yerel entegrasyon testleri](
 
 ## Neler kapsanıyor (özet)
 
-- **Çekirdek:** BehaviorSpace, ToVector, niyet güveni, politika motoru (Evaluate, EvaluateWithRule), rate limit, yerelleştirme.
-- **Modeller:** Kural tabanlı, chained, multi-stage, LLM (mock + mock HTTP ile sağlayıcı parsing).
-- **Analitik:** IntentAnalytics (trendler, dağılım, anomaliler, timeline, export).
+- **Çekirdek:** BehaviorSpace, ToVector, niyet güveni, politika motoru (Evaluate, EvaluateWithRule), rate limit, yerelleştirme; intent çözümleme pipeline; behavior space sanitization (anonimleştirme/maskeleme).
+- **Modeller:** Kural tabanlı, chained, multi-stage, sliding window, LLM (mock + mock HTTP ile sağlayıcı parsing); ONNX intent model (constructor/options).
+- **Analitik:** IntentAnalytics (trendler, dağılım, anomaliler, timeline, export, intent graph snapshot).
 - **Açıklanabilirlik:** IntentExplainer, IntentTreeExplainer, karar ağacı.
+- **Gözlemlenebilirlik:** Politika çalıştırma kaydı (DecideWithExecutionLog), metrikler.
 - **Kalıcılık:** In-memory repo (history + behavior space); birim testler için EF/Redis/Mongo gerekmez.
 - **Simülasyon:** BehaviorSpaceSimulator, ScenarioRunner.
+- **Streaming:** BoundedMemoryBehaviorStreamConsumer, WindowedBatchBuffer.
 - **Kalıplar:** BehaviorPatternDetector, şablon eşleme.
 - **Politika store:** FilePolicyStore, SafeConditionBuilder (deklaratif kurallar).
 

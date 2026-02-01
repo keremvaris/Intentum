@@ -52,7 +52,7 @@ public static class SustainabilityReporter
             return space;
 
         var vagueSets = string.IsNullOrWhiteSpace(language)
-            ? new[] { VaguePatternsEn, VaguePatternsTr, VaguePatternsDe }
+            ? [VaguePatternsEn, VaguePatternsTr, VaguePatternsDe]
             : language.ToLowerInvariant() switch
             {
                 "tr" => new[] { VaguePatternsTr },

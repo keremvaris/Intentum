@@ -1,0 +1,106 @@
+@page "/graph"
+@inject HttpClient Http
+@inject NavigationManager Navigation
+@inject IJSRuntime JSRuntime
+@implements IAsyncDisposable
+
+<PageTitle>Intent Graph</PageTitle>
+
+<h2>Intent Graph</h2>
+<p class="subtitle">Intent'ler arası geçiş ve korelasyon (ECharts graph).</p>
+
+<div class="dashboard-toolbar">
+    <label>Entity ID <input @bind="_entityId" placeholder="IntentumSampleWeb" /></label>
+    <label>From <input type="datetime-local" @bind="_from" /></label>
+    <label>To <input type="datetime-local" @bind="_to" /></label>
+    <button type="button" @onclick="LoadGraph">Yükle</button>
+</div>
+
+@if (_loading)
+{
+    <p class="muted">Yükleniyor…</p>
+}
+@if (_error != null)
+{
+    <p class="error">@_error</p>
+}
+<div id="graph-chart" style="width: 100%; height: 500px;"></div>
+
+@code {
+    private string _entityId = "IntentumSampleWeb";
+    private DateTime _from = DateTime.UtcNow.AddDays(-7);
+    private DateTime _to = DateTime.UtcNow;
+    private bool _loading = true;
+    private string? _error;
+    private EChartsInterop? _echarts;
+    private const string ChartId = "graph-chart";
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            _echarts = new EChartsInterop(JSRuntime, ChartId);
+            await _echarts.InitAsync();
+            await LoadGraph();
+        }
+    }
+
+    private async Task LoadGraph()
+    {
+        _loading = true;
+        _error = null;
+        StateHasChanged();
+        try
+        {
+            var from = new DateTimeOffset(_from.Kind == DateTimeKind.Unspecified ? DateTime.SpecifyKind(_from, DateTimeKind.Utc) : _from);
+            var to = new DateTimeOffset(_to.Kind == DateTimeKind.Unspecified ? DateTime.SpecifyKind(_to, DateTimeKind.Utc) : _to);
+            var baseUri = new Uri(Navigation.BaseUri).GetLeftPart(UriPartial.Authority);
+            var url = $"{baseUri}/api/intent/analytics/graph/{Uri.EscapeDataString(_entityId)}?from={Uri.EscapeDataString(from.ToString("o"))}&to={Uri.EscapeDataString(to.ToString("o"))}";
+            var snapshot = await Http.GetFromJsonAsync<GraphSnapshotResponse>(url);
+            if (snapshot?.Nodes != null && snapshot.Nodes.Count > 0)
+            {
+                var nodeColor = (double score) => score < 0.4 ? "#d32f2f" : score < 0.7 ? "#ffeb3b" : "#4caf50";
+                var nodes = snapshot.Nodes.Select(n => new
+                {
+                    id = n.Id,
+                    name = n.IntentName,
+                    value = Math.Round(n.ConfidenceScore, 4),
+                    itemStyle = new { color = nodeColor(n.ConfidenceScore) },
+                    label = new { show = true, formatter = $"{n.IntentName} ({n.ConfidenceScore:P0})" }
+                }).ToList();
+                var links = (snapshot.Edges ?? Array.Empty<GraphEdgeDto>()).Select(e => new { source = e.FromNodeId, target = e.ToNodeId, value = e.Weight }).ToList();
+                var option = new
+                {
+                    tooltip = new { },
+                    series = new[] { new { type = "graph", layout = "force", roam = true, label = new { show = true, position = "right" }, edgeSymbol = new[] { "circle", "arrow" }, edgeSymbolSize = new[] { 4, 10 }, data = nodes,
+                        links, lineStyle = new { opacity = 0.9, width = 2 }, force = new { repulsion = 100, edgeLength = 100 } } }
+                };
+                if (_echarts != null)
+                    await _echarts.SetOptionAsync(option);
+            }
+            else if (_echarts != null)
+            {
+                await _echarts.SetOptionAsync(new { title = new { text = "Bu pencerede node yok", left = "center" } });
+            }
+        }
+        catch (Exception ex)
+        {
+            _error = ex.Message;
+        }
+        finally
+        {
+            _loading = false;
+            StateHasChanged();
+        }
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        if (_echarts != null)
+            await _echarts.DisposeAsync();
+    }
+
+    private sealed record GraphSnapshotResponse(string EntityId, DateTimeOffset WindowStart, DateTimeOffset WindowEnd, IReadOnlyList<GraphNodeDto>? Nodes, IReadOnlyList<GraphEdgeDto>? Edges, DateTimeOffset SnapshotAt);
+    private sealed record GraphNodeDto(string Id, string IntentName, double ConfidenceScore);
+    private sealed record GraphEdgeDto(string FromNodeId, string ToNodeId, double Weight);
+}

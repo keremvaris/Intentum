@@ -1,0 +1,772 @@
+@page "/sustainability"
+@rendermode InteractiveServer
+@using System.Text.Json.Serialization
+@using Intentum.Sample.Blazor.Data
+@inject HttpClient Http
+@inject IHttpClientFactory HttpFactory
+@inject NavigationManager Navigation
+@inject IJSRuntime JSRuntime
+@implements IAsyncDisposable
+
+<PageTitle>Sustainability & Greenwashing</PageTitle>
+
+<div class="page-card">
+    <h2 style="margin: 0 0 0.25rem 0;">Sustainability & Greenwashing</h2>
+    <p class="subtitle" style="margin: 0;">Gerçek veriyle eğitilmiş bakış: etiketli kamu kaynakları, intent sınıfları ve model sinyalleri. <InfoIcon Text="@(_sustainabilityInfoText)" /></p>
+</div>
+
+<div class="page-card">
+    <div class="explain-tabs">
+        <button type="button" class="@(_tab == "greenwashing" ? "active" : "")" @onclick="@(() => _tab = "greenwashing")">Greenwashing</button>
+        <button type="button" class="@(_tab == "carbon" ? "active" : "")" @onclick="@(() => _tab = "carbon")">Carbon</button>
+        <button type="button" class="@(_tab == "live" ? "active" : "")" @onclick="@(() => _tab = "live")">Live</button>
+    </div>
+</div>
+
+@if (_tab == "greenwashing")
+{
+    @* Hero: gerçek veri hikayesi *@
+    <div class="page-card sustainability-hero">
+        <h3 class="page-card h3" style="margin: 0 0 0.75rem 0;">Gerçek veriyle eğitilmiş bakış <InfoIcon Text="Bu ekran docs/case-studies verisine dayanır: 53 etiketli kamu kaynağı (ClientEarth, Guardian, ASA, Mendeley, Reuters vb.), 5 intent sınıfı, Mendeley DataGreenwash 1980–2022. Metodoloji greenwashing-metrics.md ve GreenwashingCaseStudyTests ile doğrulanır." /></h3>
+        <div class="sustainability-stats">
+            <div class="sustainability-stat"><span class="sustainability-stat-value">@GreenwashingLabeledSources.TotalCount</span><span class="sustainability-stat-label">etiketli kamu kaynağı</span></div>
+            <div class="sustainability-stat"><span class="sustainability-stat-value">5</span><span class="sustainability-stat-label">intent sınıfı</span></div>
+            <div class="sustainability-stat"><span class="sustainability-stat-value">9</span><span class="sustainability-stat-label">ClientEarth fosil yakıt profili</span></div>
+            <div class="sustainability-stat"><span class="sustainability-stat-value">5</span><span class="sustainability-stat-label">model sinyali</span></div>
+        </div>
+        <p class="muted" style="margin: 0.75rem 0 0 0; font-size: 0.9rem;">Kaynaklar: ClientEarth Greenwashing Files, The Sustainable Agency, Guardian, BBC, ASA, Reuters, Mendeley ESG and Greenwashing (CC BY 4.0).</p>
+    </div>
+
+    @* Model hangi sinyallere bakıyor? *@
+    <div class="page-card">
+        <h3 class="page-card h3" style="margin: 0 0 0.5rem 0;">Model hangi sinyallere bakıyor? <InfoIcon Text="Belge → BehaviorSpace dönüşümü (SustainabilityReporter.AnalyzeReport): metinden çıkarılan sinyal sayıları. Bu 5 boyut GreenwashingIntentModel ve politika kuralları için kullanılır." /></h3>
+        <ul class="sustainability-signals">
+            <li><strong>Belirsiz iddialar</strong> — vague claims (sürdürülebilir gelecek, yeşil dönüşüm, net zero vb.)</li>
+            <li><strong>Kanıtsız karşılaştırmalar</strong> — unsubstantiated comparisons (daha az, daha iyi, daha yeşil)</li>
+            <li><strong>Metriksiz veri</strong> — metrics without proof (% azalım, ton CO2, doğrulanmamış rakamlar)</li>
+            <li><strong>Baz yılı manipülasyonu</strong> — baseline manipulation (seçilmiş baz, referans yılı)</li>
+            <li><strong>Doğa görseli (veri yok)</strong> — nature imagery without data (görsel analiz; metin pipeline'da opsiyonel)</li>
+        </ul>
+    </div>
+
+    @* Intent sınıfları *@
+    <div class="page-card">
+        <h3 class="page-card h3" style="margin: 0 0 0.5rem 0;">Intent sınıfları <InfoIcon Text="GreenwashingIntentModel çıktısı: her belge bu 5 sınıftan birine atanır. Politika kuralları (CriticalGreenwashing, NeedsVerification, Monitor, LowRisk) buna göre karar verir." /></h3>
+        <div class="sustainability-intents">
+            <span class="sustainability-intent sustainability-intent-genuine">GenuineSustainability</span>
+            <span class="sustainability-intent sustainability-intent-unintentional">UnintentionalMisrepresentation</span>
+            <span class="sustainability-intent sustainability-intent-selective">SelectiveDisclosure</span>
+            <span class="sustainability-intent sustainability-intent-strategic">StrategicObfuscation</span>
+            <span class="sustainability-intent sustainability-intent-active">ActiveGreenwashing</span>
+        </div>
+        <p class="muted" style="margin: 0.5rem 0 0 0; font-size: 0.85rem;">GenuineSustainability: şeffaf, GRI uyumlu raporlar. ActiveGreenwashing: yanıltıcı yeşil pazarlama (ClientEarth profilleri). Diğerleri ara spektrum.</p>
+    </div>
+
+    @* Rapor metni analizi: nasıl çalışır + form *@
+    <div class="page-card sustainability-report-intro fraud-intro-card">
+        <h3 class="page-card h3" style="margin: 0 0 0.5rem 0;">Bu kısım nasıl çalışır? <InfoIcon Text="@(_reportIntroInfoText)" /></h3>
+        <p class="sustainability-report-intro__text">
+            <strong>Rapor metni analizi</strong>, tek bir sürdürülebilirlik metnini (rapor, basın bülteni, sosyal medya vb.) Intentum ile değerlendirir.
+            Metni yapıştırıp <strong>Kaynak</strong> tipini seçin ve <strong>Analiz et</strong>e basın. Backend metni sinyallere çevirir (belirsiz iddialar, kanıtsız karşılaştırmalar, metriksiz veri vb.),
+            <strong>GreenwashingIntentModel</strong> ile intent atar (GenuineSustainability → ActiveGreenwashing spektrumu), politika motoru <strong>Allow / Warn / Escalate</strong> kararı verir ve önerilen aksiyonları döner.
+            Sonuç ekranda: intent adı, güven skoru, karar ve önerilen aksiyonlar. Aynı metodoloji ClientEarth, Guardian, ASA case-studies ile uyumludur.
+        </p>
+    </div>
+    <div class="page-card">
+        <h3 class="page-card h3" style="margin: 0 0 0.5rem 0;">Rapor metni analizi <InfoIcon Text="@(_greenwashingInfoText)" /></h3>
+        <p class="muted">Sürdürülebilirlik raporu metnini yapıştırın; aynı metodoloji ClientEarth, Guardian, ASA kaynaklarında kullanıldı.</p>
+        <div class="dashboard-toolbar">
+            <label>Rapor metni <textarea @bind="_reportText" rows="5" style="width: 100%; max-width: 500px;" placeholder="Örnek: Şirketimiz 2030'a kadar net sıfır taahhüt etmiştir. Scope 3 tedarikçi doğrulaması devam ediyor."></textarea></label>
+            <label>Kaynak <select @bind="_sourceType"><option value="Report">Rapor</option><option value="PressRelease">Basın bülteni</option><option value="SocialMedia">Sosyal medya</option><option value="InvestorPresentation">Yatırımcı sunumu</option></select></label>
+            <button type="button" @onclick="AnalyzeGreenwashing" disabled="@_loading">Analiz et</button>
+        </div>
+        @if (_loading && _tab == "greenwashing") { <p class="muted">Yükleniyor…</p> }
+        @if (_greenError != null) { <p class="error">@_greenError</p> }
+        @if (_greenResult != null)
+        {
+            <div class="card" style="margin-top: 1rem;">
+                <h4>Sonuç</h4>
+                <p><strong>Intent:</strong> @_greenResult.IntentName</p>
+                <p><strong>Güven:</strong> @_greenResult.Confidence (@_greenResult.ConfidenceScore.ToString("P0"))</p>
+                <p><strong>Karar:</strong> <span class="badge">@_greenResult.Decision</span></p>
+                @if (_greenResult.SuggestedActions?.Count > 0)
+                {
+                    <p><strong>Önerilen aksiyonlar:</strong></p>
+                    <ul>
+                        @foreach (var a in _greenResult.SuggestedActions) { <li>@a</li> }
+                    </ul>
+                }
+            </div>
+        }
+    </div>
+
+    @* ClientEarth: Fosil yakıt şirketleri *@
+    <div class="page-card">
+        <h3 class="page-card h3" style="margin: 0 0 0.5rem 0;">ClientEarth: Fosil yakıt şirketleri <InfoIcon Text="ClientEarth Greenwashing Files: reklam vs gerçeklik. Her profil insan etiketi ActiveGreenwashing ile etiketli; Intentum aynı metodoloji ile metin analizi yapabilir." /></h3>
+        <p class="muted" style="margin: 0 0 0.75rem 0;">Kaynak: ClientEarth (DeSmog ile). Profillere tıklayarak orijinal analizi okuyabilirsiniz.</p>
+        <div class="sustainability-company-grid">
+            @foreach (var row in _clientEarthRows)
+            {
+                <a href="@row.Url" target="_blank" rel="noopener noreferrer" class="sustainability-company-card">
+                    <span class="sustainability-company-name">@row.Notes</span>
+                    <span class="sustainability-company-label">@row.HumanLabel</span>
+                </a>
+            }
+        </div>
+    </div>
+
+    @* Etiketli kaynaklar tablosu *@
+    <div class="page-card">
+        <h3 class="page-card h3" style="margin: 0 0 0.5rem 0;">Etiketli kaynaklar <InfoIcon Text="greenwashing-labeled-sources.csv'den seçilmiş kaynaklar. Etiket ve kaynağa göre filtreleyebilirsiniz. Tam set: docs/case-studies." /></h3>
+        <div class="sustainability-filters">
+            <label>Etiket <select @bind="_filterLabel">
+                <option value="">Tümü</option>
+                <option value="ActiveGreenwashing">ActiveGreenwashing</option>
+                <option value="SelectiveDisclosure">SelectiveDisclosure</option>
+                <option value="StrategicObfuscation">StrategicObfuscation</option>
+                <option value="UnintentionalMisrepresentation">UnintentionalMisrepresentation</option>
+                <option value="GenuineSustainability">GenuineSustainability</option>
+                <option value="dataset">dataset</option>
+                <option value="greenwashing">greenwashing</option>
+            </select></label>
+            <label>Kaynak <select @bind="_filterSource">
+                <option value="">Tümü</option>
+                @foreach (var s in _sourceNames)
+                { <option value="@s">@s</option> }
+            </select></label>
+        </div>
+        <div class="table-wrap">
+            <table class="history-table">
+                <thead><tr><th>Kaynak</th><th>Etiket</th><th>Not</th><th>Link</th></tr></thead>
+                <tbody>
+                    @foreach (var r in _filteredSources)
+                    {
+                        <tr>
+                            <td>@r.SourceName</td>
+                            <td><span class="badge sustainability-badge">@r.HumanLabel</span></td>
+                            <td><span class="events-summary" title="@r.Notes">@r.Notes</span></td>
+                            <td><a href="@r.Url" target="_blank" rel="noopener noreferrer" class="sustainability-link">Aç</a></td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+        <p class="muted" style="margin-top: 0.5rem; font-size: 0.85rem;">@_filteredSources.Count kaynak gösteriliyor (toplam @GreenwashingLabeledSources.TotalCount).</p>
+    </div>
+
+    @* Son analizler *@
+    <div class="page-card">
+        <h3 class="page-card h3" style="margin: 0 0 0.5rem 0;">Son analizler <InfoIcon Text="Bu oturumda yapılan greenwashing analizleri; önizleme, intent, karar ve kaynak tipi." /></h3>
+        <div class="table-wrap">
+            <table class="history-table">
+                <thead><tr><th>Önizleme</th><th>Intent</th><th>Karar</th><th>Kaynak</th><th>Tarih</th></tr></thead>
+                <tbody>
+                    @if (_recentAnalyses?.Count > 0)
+                    {
+                        @foreach (var r in _recentAnalyses)
+                        {
+                            <tr data-id="@r.Id">
+                                <td><span class="events-summary">@r.ReportPreview</span></td>
+                                <td>@r.IntentName</td>
+                                <td><span class="badge">@r.Decision</span></td>
+                                <td>@(r.SourceType ?? "—")</td>
+                                <td>@r.AnalyzedAt.ToLocalTime().ToString("g")</td>
+                            </tr>
+                        }
+                    }
+                    else { <tr><td colspan="5">Henüz analiz yok.</td></tr> }
+                </tbody>
+            </table>
+        </div>
+    </div>
+}
+
+@if (_tab == "carbon")
+{
+    <div class="page-card sustainability-carbon-intro fraud-intro-card">
+        <h3 class="page-card h3" style="margin: 0 0 0.5rem 0;">Bu sekme ne işe yarar? <InfoIcon Text="@(_carbonIntroInfoText)" /></h3>
+        <p class="sustainability-carbon-intro__text">
+            <strong>Carbon</strong> sekmesi, bir <strong>karbon raporu talebinin</strong> Intentum ile nasıl değerlendirilebileceğini gösterir.
+            Gerçek bir emisyon hesaplayıcı değildir; <strong>niyet çıkarımı</strong> ve <strong>politika motoru</strong> ile talebin Allow / Warn / Block kararını simüle eder.
+            Şirket (Actor) ve kapsam (Scope) girip <strong>Hesapla</strong>ya basın; backend davranış sinyallerinden intent çıkarır, politika kurallarına göre karar verir.
+            İzin verilirse bir rapor ID döner, <strong>Raporu gör</strong> ile örnek rapor görüntülenir. Gerçek uygulamada bu akış, rapor oluşturma öncesi güvenlik veya uyum kontrolü olarak kullanılabilir.
+        </p>
+    </div>
+    <div class="page-card">
+        <h3 class="page-card h3" style="margin: 0 0 0.5rem 0;">Carbon rapor talebi <InfoIcon Text="@(_carbonInfoText)" /></h3>
+        <p class="muted">Şirket ve kapsam girip Hesapla ile talebi gönderin; Intentum karar verir, rapor ID alırsanız Raporu gör ile önizleyin.</p>
+        <div class="dashboard-toolbar">
+            <label>Şirket (Actor) <input @bind="_carbonActor" placeholder="Acme Corp" /></label>
+            <label>Kapsam (Scope) <input @bind="_carbonScope" placeholder="Scope1" /></label>
+            <button type="button" @onclick="CalculateCarbon" disabled="@_loading">Hesapla</button>
+        </div>
+        @if (_loading && _tab == "carbon") { <p class="muted">Yükleniyor…</p> }
+        @if (_carbonError != null) { <p class="error">@_carbonError</p> }
+        @if (_carbonReportId != null)
+        {
+            <div class="card">
+                <p><strong>Rapor ID:</strong> <code>@_carbonReportId</code></p>
+                <button type="button" @onclick="LoadCarbonReport" disabled="@_loading">Raporu gör</button>
+            </div>
+        }
+        @if (_carbonReport != null)
+        {
+            <div class="card" style="margin-top: 1rem;">
+                <h4>Rapor</h4>
+                <p><strong>Başlık:</strong> @_carbonReport.Title</p>
+                <p><strong>Güven:</strong> @_carbonReport.ConfidenceLevel</p>
+                <p><strong>Oluşturulma:</strong> @_carbonReport.GeneratedAt.ToLocalTime().ToString("g")</p>
+            </div>
+        }
+    </div>
+}
+
+@if (_tab == "live")
+{
+    <div class="page-card sustainability-live">
+        <h3 class="page-card h3" style="margin: 0 0 0.5rem 0;">Şirket zaman çizelgesi (Live) <InfoIcon Text="Simüle edilen tarih ilerler (aylık/günlük/saatlik); her tik bir sustainability event üretir. SSE ile grafik ve ticker anlık güncellenir." /></h3>
+        <div class="sustainability-live-controls">
+            <label>Şirket
+                <select @bind="_liveCompanyId">
+                    @foreach (var c in _liveCompanies)
+                    { <option value="@c.Id">@c.Name</option> }
+                </select>
+            </label>
+            <label>Granularite
+                <select @bind="_liveGranularity">
+                    <option value="Hourly">Saatlik</option>
+                    <option value="Daily">Günlük</option>
+                    <option value="Monthly">Aylık</option>
+                </select>
+            </label>
+            <button type="button" class="btn-fraud-primary" @onclick="ToggleLiveSimulation" disabled="@_liveToggleBusy">
+                @(_liveRunning ? "Durdur" : "Başlat")
+            </button>
+            <span class="status-pill @(_liveRunning ? "status-pill--running" : "status-pill--stopped")">
+                @(_liveRunning ? "Çalışıyor" : "Durduruldu")
+            </span>
+            @if (_liveStatus != null)
+            {
+                <span class="sustainability-live-meta">Simüle tarih: <strong>@FormatSimulatedAt(_liveStatus.SimulatedAt)</strong></span>
+            }
+            @if (_liveSseError != null)
+            {
+                <span class="fraud-live__sse-error">SSE: @_liveSseError</span>
+            }
+        </div>
+    </div>
+    <div class="page-card">
+        <h3 class="page-card h3" style="margin: 0 0 0.75rem 0;">Güven skoru zaman serisi</h3>
+        <div id="sustainability-line" class="sustainability-line-chart"></div>
+        @if (_liveLineData.Count == 0 && _liveRunning)
+        {
+            <p class="fraud-chart-placeholder">Veri geliyor…</p>
+        }
+        @if (_liveLineData.Count == 0 && !_liveRunning)
+        {
+            <p class="fraud-chart-placeholder">Başlat ile simülasyonu açın; grafik dolacak.</p>
+        }
+    </div>
+    @if (!_liveRunning && _liveEvents.Count > 0)
+    {
+        var summary = GetLiveSummary();
+        <div class="page-card sustainability-live-result">
+            <h3 class="page-card h3" style="margin: 0 0 0.75rem 0;">Simülasyon sonucu <InfoIcon Text="Durdurulduğunda toplanan olaylar intent dağılımı ve ortalama skor ile özetlenir; değerlendirme metni ve dönem içi eğilime göre olası gelecek projeksiyonu gösterilir." /></h3>
+            <div class="sustainability-live-result__grid">
+                <div class="sustainability-live-result__stats">
+                    <p><strong>Dönem:</strong> @summary.PeriodStart.ToString("yyyy-MM-dd") — @summary.PeriodEnd.ToString("yyyy-MM-dd")</p>
+                    <p><strong>Şirket:</strong> @summary.CompanyName · <strong>Toplam olay:</strong> @summary.TotalEvents</p>
+                    <p><strong>Ortalama güven skoru:</strong> @summary.AverageScore.ToString("P1")</p>
+                    <p><strong>Baskın intent:</strong> <span class="sustainability-intent-badge">@summary.DominantIntent</span> (@summary.DominantIntentPercent.ToString("N0")%)</p>
+                </div>
+                <div class="sustainability-live-result__distribution">
+                    <strong>Intent dağılımı</strong>
+                    <ul class="sustainability-live-result__list">
+                        @foreach (var row in summary.IntentDistribution)
+                        {
+                            <li><span class="sustainability-intent sustainability-intent-@(IntentCssClass(row.IntentName))">@row.IntentName</span> @row.Count olay (@row.Percent.ToString("N0")%)</li>
+                        }
+                    </ul>
+                </div>
+            </div>
+            <div class="sustainability-live-result__verdict">
+                <strong>Değerlendirme:</strong> @summary.VerdictText
+            </div>
+            @if (!string.IsNullOrEmpty(summary.FutureOutlookText))
+            {
+                <div class="sustainability-live-result__outlook">
+                    <strong>Eğilim ve olası gelecek:</strong> @summary.FutureOutlookText
+                </div>
+            }
+            @if (summary.Target20302050 is { } target2030)
+            {
+                <div class="sustainability-live-result__targets">
+                    <strong>2030 / 2050 hedef tahmini</strong> <InfoIcon Text="Simüle dönemdeki eğilimden lineer ekstrapolasyon; gerçek hedefler değil, gösterge niteliğindedir." />
+                    <div class="sustainability-live-result__targets-grid">
+                        <div class="sustainability-live-result__target-box">
+                            <span class="sustainability-live-result__target-year">2030</span>
+                            <p><span class="sustainability-intent sustainability-intent-active">ActiveGreenwashing</span> tahmini @FormatTargetPct(target2030.Year2030ActivePct)</p>
+                            <p><span class="sustainability-intent sustainability-intent-genuine">GenuineSustainability</span> tahmini @FormatTargetPct(target2030.Year2030GenuinePct)</p>
+                        </div>
+                        <div class="sustainability-live-result__target-box">
+                            <span class="sustainability-live-result__target-year">2050</span>
+                            <p><span class="sustainability-intent sustainability-intent-active">ActiveGreenwashing</span> tahmini @FormatTargetPct(target2030.Year2050ActivePct)</p>
+                            <p><span class="sustainability-intent sustainability-intent-genuine">GenuineSustainability</span> tahmini @FormatTargetPct(target2030.Year2050GenuinePct)</p>
+                        </div>
+                    </div>
+                    <p class="sustainability-live-result__targets-note">Bu tahminler sadece bu iki gösterge için simüle verideki eğilimin lineer ekstrapolasyonudur; diğer intent'ler dahil değildir. 0% ve 100% modelin alt/üst sınırıdır (eğilim güçlüyse sınır değer kullanılır). Net zero / ESG hedefleriyle birlikte yorumlanmalıdır.</p>
+                </div>
+            }
+        </div>
+    }
+    <div class="page-card">
+        <h3 class="page-card h3" style="margin: 0 0 0.75rem 0;">Son olaylar (ticker)</h3>
+        <div class="ticker-wrap ticker-wrap--modern">
+            <ul class="ticker-list ticker-list--modern">
+                @foreach (var item in _liveEvents.Take(30))
+                {
+                    <li class="ticker-item @(item.IntentName == "ActiveGreenwashing" ? "ticker-item--alert" : "")">
+                        <span class="ticker-item__time">@item.SimulatedAt.ToString("yyyy-MM-dd HH:mm")</span>
+                        <span class="ticker-item__intent">@item.CompanyName</span>
+                        <span class="sustainability-intent-badge">@item.IntentName</span>
+                        <span class="ticker-item__confidence @(ConfidenceClass(item.ConfidenceScore))">@item.ConfidenceScore.ToString("P0")</span>
+                    </li>
+                }
+            </ul>
+            @if (_liveEvents.Count == 0)
+            {
+                <p class="fraud-chart-placeholder">Simülasyonu başlattığınızda liste dolacak.</p>
+            }
+        </div>
+    </div>
+}
+
+@code {
+    private static readonly string _sustainabilityInfoText = "Bu sayfa sürdürülebilirlik ve greenwashing senaryolarını gerçek veriyle sunar: 53 etiketli kamu kaynağı (ClientEarth, Guardian, ASA, Mendeley vb.), 5 intent sınıfı, model sinyalleri ve rapor metni analizi. Carbon sekmesinde karbon raporu hesaplanıp görüntülenir.";
+    private static readonly string _reportIntroInfoText = "Rapor metni analizi: tek metin girişi → sinyal çıkarımı → intent + politika kararı + öneriler. ClientEarth/Guardian/ASA metodolojisi ile uyumlu.";
+    private static readonly string _greenwashingInfoText = "Rapor metnini yapıştırıp Analiz et ile gönderin. Intentum intent ve güven skoru hesaplar, politika kararı (Allow, Warn, Escalate vb.) ve önerilen aksiyonlar döner. Aynı metodoloji case-studies'teki etiketli kaynaklarda kullanıldı.";
+    private static readonly string _carbonIntroInfoText = "Carbon sekmesi: karbon raporu talebini (Actor + Scope) Intentum niyet + politika ile değerlendirme demosu. Gerçek emisyon hesaplaması yapılmaz; Allow/Warn/Block kararı ve örnek rapor ID gösterilir.";
+    private static readonly string _carbonInfoText = "Şirket (Actor) ve kapsam (Scope) girip Hesapla ile talebi gönderin. Intentum politika kararı verir; izin verilirse rapor ID döner, Raporu gör ile örnek rapor açılır.";
+
+    private string _tab = "greenwashing";
+    private string _reportText = "";
+    private string _sourceType = "Report";
+    private string _carbonActor = "Acme Corp";
+    private string _carbonScope = "Scope1";
+    private string _filterLabel = "";
+    private string _filterSource = "";
+    private bool _loading;
+    private string? _greenError;
+    private string? _carbonError;
+    private GreenwashingResultDto? _greenResult;
+    private string? _carbonReportId;
+    private CarbonReportDto? _carbonReport;
+    private IReadOnlyList<GreenwashingRecentDto>? _recentAnalyses;
+
+    private IReadOnlyList<GreenwashingLabeledSources.Row> _clientEarthRows = Array.Empty<GreenwashingLabeledSources.Row>();
+    private IReadOnlyList<string> _sourceNames = Array.Empty<string>();
+
+    private IReadOnlyList<GreenwashingLabeledSources.Row> _filteredSources => ApplyFilters(GreenwashingLabeledSources.GetAll());
+
+    // Live tab
+    private static readonly (string Id, string Name)[] _liveCompanies =
+    {
+        ("shell", "Shell"), ("total", "Total"), ("aramco", "Aramco"), ("chevron", "Chevron"),
+        ("drax", "Drax"), ("equinor", "Equinor"), ("exxonmobil", "ExxonMobil"), ("ineos", "INEOS"), ("rwe", "RWE")
+    };
+    private string _liveCompanyId = "shell";
+    private string _liveGranularity = "Monthly";
+    private bool _liveRunning;
+    private bool _liveToggleBusy;
+    private SustainabilityStatusDto? _liveStatus;
+    private string? _liveSseError;
+    private readonly List<SustainabilityTimelineEventDto> _liveEvents = new();
+    private readonly List<(double t, double v)> _liveLineData = new();
+    private CancellationTokenSource? _sseCts;
+    private EChartsInterop? _sustainabilityLineEcharts;
+    private const int MaxLiveLinePoints = 200;
+    private static readonly System.Text.Json.JsonSerializerOptions _liveJsonOptions = new()
+    {
+        PropertyNameCaseInsensitive = true,
+        PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase
+    };
+
+    protected override async Task OnInitializedAsync()
+    {
+        var all = GreenwashingLabeledSources.GetAll();
+        _clientEarthRows = all.Where(r => r.SourceName == "ClientEarth").ToList();
+        _sourceNames = all.Select(r => r.SourceName).Distinct().OrderBy(x => x).ToList();
+        await LoadRecentGreenwashing();
+        await RefreshLiveStatus();
+        if (_liveRunning)
+            _ = ConnectSustainabilitySse();
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (_tab != "live")
+        {
+            if (_sustainabilityLineEcharts != null)
+            {
+                await _sustainabilityLineEcharts.DisposeAsync();
+                _sustainabilityLineEcharts = null;
+            }
+            return;
+        }
+        if (_sustainabilityLineEcharts == null)
+        {
+            _sustainabilityLineEcharts = new EChartsInterop(JSRuntime, "sustainability-line");
+            await _sustainabilityLineEcharts.InitAsync();
+            await UpdateSustainabilityLineChart();
+        }
+    }
+
+    private IReadOnlyList<GreenwashingLabeledSources.Row> ApplyFilters(IReadOnlyList<GreenwashingLabeledSources.Row> list)
+    {
+        var q = list.AsEnumerable();
+        if (!string.IsNullOrEmpty(_filterLabel)) q = q.Where(r => r.HumanLabel == _filterLabel);
+        if (!string.IsNullOrEmpty(_filterSource)) q = q.Where(r => r.SourceName == _filterSource);
+        return q.ToList();
+    }
+
+    private string GetApiBase()
+    {
+        return new Uri(Navigation.BaseUri).GetLeftPart(UriPartial.Authority);
+    }
+
+    private async Task LoadRecentGreenwashing()
+    {
+        try
+        {
+            var baseUri = GetApiBase();
+            _recentAnalyses = await Http.GetFromJsonAsync<List<GreenwashingRecentDto>>(baseUri + "/api/greenwashing/recent?limit=15");
+        }
+        catch { _recentAnalyses = new List<GreenwashingRecentDto>(); }
+        StateHasChanged();
+    }
+
+    private async Task AnalyzeGreenwashing()
+    {
+        _loading = true;
+        _greenError = null;
+        _greenResult = null;
+        StateHasChanged();
+        try
+        {
+            var baseUri = GetApiBase();
+            var body = new { report = _reportText, sourceType = _sourceType, language = "TR" };
+            var opts = new System.Text.Json.JsonSerializerOptions { PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase };
+            var res = await Http.PostAsJsonAsync(baseUri + "/api/greenwashing/analyze", body, opts);
+            res.EnsureSuccessStatusCode();
+            _greenResult = await res.Content.ReadFromJsonAsync<GreenwashingResultDto>();
+            await LoadRecentGreenwashing();
+        }
+        catch (Exception ex) { _greenError = ex.Message; }
+        finally { _loading = false; StateHasChanged(); }
+    }
+
+    private async Task CalculateCarbon()
+    {
+        _loading = true;
+        _carbonError = null;
+        _carbonReportId = null;
+        _carbonReport = null;
+        StateHasChanged();
+        try
+        {
+            var baseUri = GetApiBase();
+            var body = new { actor = _carbonActor, scope = _carbonScope };
+            var opts = new System.Text.Json.JsonSerializerOptions { PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase };
+            var res = await Http.PostAsJsonAsync(baseUri + "/api/carbon/calculate", body, opts);
+            if (res.IsSuccessStatusCode)
+            {
+                var data = await res.Content.ReadFromJsonAsync<CarbonCalculateOkDto>();
+                _carbonReportId = data?.ReportId?.ToString();
+            }
+            else
+            {
+                var err = await res.Content.ReadFromJsonAsync<CarbonCalculateErrorDto>();
+                _carbonError = err?.Error ?? res.ReasonPhrase;
+            }
+        }
+        catch (Exception ex) { _carbonError = ex.Message; }
+        finally { _loading = false; StateHasChanged(); }
+    }
+
+    private async Task LoadCarbonReport()
+    {
+        if (string.IsNullOrEmpty(_carbonReportId)) return;
+        _loading = true;
+        _carbonError = null;
+        StateHasChanged();
+        try
+        {
+            var baseUri = GetApiBase();
+            _carbonReport = await Http.GetFromJsonAsync<CarbonReportDto>(baseUri + "/api/carbon/report/" + Uri.EscapeDataString(_carbonReportId));
+            if (_carbonReport == null) _carbonError = "Rapor bulunamadı.";
+        }
+        catch (Exception ex) { _carbonError = ex.Message; }
+        finally { _loading = false; StateHasChanged(); }
+    }
+
+    private async Task RefreshLiveStatus()
+    {
+        try
+        {
+            var baseUri = GetApiBase();
+            _liveStatus = await Http.GetFromJsonAsync<SustainabilityStatusDto>(baseUri + "/api/sustainability-simulation/status");
+            _liveRunning = _liveStatus?.Running ?? false;
+        }
+        catch { /* ignore */ }
+        StateHasChanged();
+    }
+
+    private async Task ToggleLiveSimulation()
+    {
+        _liveToggleBusy = true;
+        StateHasChanged();
+        try
+        {
+            var baseUri = GetApiBase();
+            if (_liveRunning)
+            {
+                await Http.PostAsync(baseUri + "/api/sustainability-simulation/stop", null);
+                _sseCts?.Cancel();
+            }
+            else
+            {
+                var body = new { companyId = _liveCompanyId, granularity = _liveGranularity };
+                var opts = new System.Text.Json.JsonSerializerOptions { PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase };
+                await Http.PostAsJsonAsync(baseUri + "/api/sustainability-simulation/start", body, opts);
+                _ = ConnectSustainabilitySse();
+            }
+            await RefreshLiveStatus();
+        }
+        finally
+        {
+            _liveToggleBusy = false;
+            StateHasChanged();
+        }
+    }
+
+    private async Task ConnectSustainabilitySse()
+    {
+        _sseCts?.Cancel();
+        _sseCts = new CancellationTokenSource();
+        _liveSseError = null;
+        try
+        {
+            var baseUri = GetApiBase();
+            var url = baseUri + "/api/sustainability/stream";
+            var sseClient = HttpFactory.CreateClient("Intentum.SSE");
+            using var req = new HttpRequestMessage(HttpMethod.Get, url);
+            using var res = await sseClient.SendAsync(req, HttpCompletionOption.ResponseHeadersRead, _sseCts.Token);
+            res.EnsureSuccessStatusCode();
+            await using var stream = await res.Content.ReadAsStreamAsync(_sseCts.Token);
+            using var reader = new StreamReader(stream);
+            while (!_sseCts.Token.IsCancellationRequested)
+            {
+                var line = await reader.ReadLineAsync(_sseCts.Token);
+                if (line?.StartsWith("data: ") == true)
+                {
+                    var json = line.Substring(6).Trim();
+                    if (string.IsNullOrEmpty(json)) continue;
+                    try
+                    {
+                        var ev = System.Text.Json.JsonSerializer.Deserialize<SustainabilityTimelineEventDto>(json, _liveJsonOptions);
+                        if (ev != null)
+                        {
+                            _liveEvents.Insert(0, ev);
+                            if (_liveEvents.Count > 100) _liveEvents.RemoveAt(_liveEvents.Count - 1);
+                            var t = ev.SimulatedAt.ToUnixTimeMilliseconds();
+                            _liveLineData.Insert(0, (t, ev.ConfidenceScore));
+                            if (_liveLineData.Count > MaxLiveLinePoints) _liveLineData.RemoveAt(_liveLineData.Count - 1);
+                            await InvokeAsync(StateHasChanged);
+                            await UpdateSustainabilityLineChart();
+                        }
+                    }
+                    catch { /* skip bad event */ }
+                }
+            }
+        }
+        catch (OperationCanceledException) { _liveSseError = null; }
+        catch (Exception ex)
+        {
+            _liveSseError = ex.Message;
+            await InvokeAsync(StateHasChanged);
+        }
+    }
+
+    private static string FormatTargetPct(double pct)
+    {
+        if (pct <= 0) return "0% (alt sınır)";
+        if (pct >= 100) return "100% (üst sınır)";
+        return pct.ToString("N0") + "%";
+    }
+
+    private static string FormatSimulatedAt(DateTimeOffset d)
+    {
+        if (d.TimeOfDay.Ticks == 0 && d.Day == 1)
+            return d.ToString("yyyy-MM");
+        return d.ToString("yyyy-MM-dd HH:mm");
+    }
+
+    private static string ConfidenceClass(double score) => score < 0.4 ? "low" : score < 0.7 ? "medium" : "high";
+
+    private static string IntentCssClass(string intentName) => intentName switch
+    {
+        "GenuineSustainability" => "genuine",
+        "UnintentionalMisrepresentation" => "unintentional",
+        "SelectiveDisclosure" => "selective",
+        "StrategicObfuscation" => "strategic",
+        "ActiveGreenwashing" => "active",
+        _ => "genuine"
+    };
+
+    private LiveSummaryResult GetLiveSummary()
+    {
+        if (_liveEvents.Count == 0)
+            return new LiveSummaryResult(DateTimeOffset.MinValue, DateTimeOffset.MinValue, "", 0, 0, "", 0, Array.Empty<IntentDistRow>(), "", "", null);
+        var ordered = _liveEvents.OrderBy(e => e.SimulatedAt).ToList();
+        var first = ordered.First().SimulatedAt;
+        var last = ordered.Last().SimulatedAt;
+        var companyName = ordered.First().CompanyName;
+        var total = _liveEvents.Count;
+        var avgScore = _liveEvents.Average(e => e.ConfidenceScore);
+        var byIntent = _liveEvents.GroupBy(e => e.IntentName, StringComparer.OrdinalIgnoreCase)
+            .Select(g => new IntentDistRow(g.Key, g.Count(), 100.0 * g.Count() / total))
+            .OrderByDescending(x => x.Count)
+            .ToList();
+        var dominant = byIntent.First();
+        var activePct = byIntent.FirstOrDefault(x => string.Equals(x.IntentName, "ActiveGreenwashing", StringComparison.OrdinalIgnoreCase))?.Percent ?? 0;
+        var genuinePct = byIntent.FirstOrDefault(x => string.Equals(x.IntentName, "GenuineSustainability", StringComparison.OrdinalIgnoreCase))?.Percent ?? 0;
+        var verdict = BuildVerdictText(companyName, total, dominant.IntentName, dominant.Percent, avgScore, activePct, genuinePct);
+        var futureOutlook = BuildFutureOutlook(ordered);
+        var target20302050 = BuildTarget20302050(ordered);
+        return new LiveSummaryResult(first, last, companyName, total, avgScore, dominant.IntentName, dominant.Percent, byIntent, verdict, futureOutlook, target20302050);
+    }
+
+    private static Target20302050? BuildTarget20302050(IReadOnlyList<SustainabilityTimelineEventDto> ordered)
+    {
+        if (ordered.Count < 4) return null;
+        var first = ordered.First().SimulatedAt;
+        var last = ordered.Last().SimulatedAt;
+        var totalDays = (last - first).TotalDays;
+        if (totalDays < 30) return null;
+        var totalYears = totalDays / 365.25;
+        var mid = ordered.Count / 2;
+        var firstHalf = ordered.Take(mid).ToList();
+        var secondHalf = ordered.Skip(mid).ToList();
+        var activeFirst = 100.0 * firstHalf.Count(e => string.Equals(e.IntentName, "ActiveGreenwashing", StringComparison.OrdinalIgnoreCase)) / firstHalf.Count;
+        var activeSecond = 100.0 * secondHalf.Count(e => string.Equals(e.IntentName, "ActiveGreenwashing", StringComparison.OrdinalIgnoreCase)) / secondHalf.Count;
+        var genuineFirst = 100.0 * firstHalf.Count(e => string.Equals(e.IntentName, "GenuineSustainability", StringComparison.OrdinalIgnoreCase)) / firstHalf.Count;
+        var genuineSecond = 100.0 * secondHalf.Count(e => string.Equals(e.IntentName, "GenuineSustainability", StringComparison.OrdinalIgnoreCase)) / secondHalf.Count;
+        var halfYears = totalYears / 2;
+        if (halfYears < 0.1) return null;
+        var annualActive = (activeSecond - activeFirst) / halfYears;
+        var annualGenuine = (genuineSecond - genuineFirst) / halfYears;
+        var lastYear = last.Year;
+        var yearsTo2030 = 2030 - lastYear;
+        var yearsTo2050 = 2050 - lastYear;
+        var y2030Active = Math.Clamp(activeSecond + annualActive * yearsTo2030, 0, 100);
+        var y2030Genuine = Math.Clamp(genuineSecond + annualGenuine * yearsTo2030, 0, 100);
+        var y2050Active = Math.Clamp(activeSecond + annualActive * yearsTo2050, 0, 100);
+        var y2050Genuine = Math.Clamp(genuineSecond + annualGenuine * yearsTo2050, 0, 100);
+        return new Target20302050(y2030Active, y2030Genuine, y2050Active, y2050Genuine);
+    }
+
+    private static string BuildFutureOutlook(IReadOnlyList<SustainabilityTimelineEventDto> ordered)
+    {
+        if (ordered.Count < 4)
+            return "Veri az; daha uzun simülasyon ile eğilim ve gelecek projeksiyonu güçlendirilebilir.";
+        var mid = ordered.Count / 2;
+        var firstHalf = ordered.Take(mid).ToList();
+        var secondHalf = ordered.Skip(mid).ToList();
+        var activeFirst = 100.0 * firstHalf.Count(e => string.Equals(e.IntentName, "ActiveGreenwashing", StringComparison.OrdinalIgnoreCase)) / firstHalf.Count;
+        var activeSecond = 100.0 * secondHalf.Count(e => string.Equals(e.IntentName, "ActiveGreenwashing", StringComparison.OrdinalIgnoreCase)) / secondHalf.Count;
+        var genuineFirst = 100.0 * firstHalf.Count(e => string.Equals(e.IntentName, "GenuineSustainability", StringComparison.OrdinalIgnoreCase)) / firstHalf.Count;
+        var genuineSecond = 100.0 * secondHalf.Count(e => string.Equals(e.IntentName, "GenuineSustainability", StringComparison.OrdinalIgnoreCase)) / secondHalf.Count;
+        var avgFirst = firstHalf.Average(e => e.ConfidenceScore);
+        var avgSecond = secondHalf.Average(e => e.ConfidenceScore);
+        var parts = new List<string>();
+        if (activeSecond - activeFirst >= 5)
+            parts.Add("Dönem sonuna doğru ActiveGreenwashing oranı arttı; bu eğilim sürerse gelecek dönemde yeşil yıkama sinyali yüksek kalabilir.");
+        else if (activeFirst - activeSecond >= 5)
+            parts.Add("Dönem sonunda ActiveGreenwashing oranı düştü; olumlu bir gelişme.");
+        if (genuineSecond - genuineFirst >= 5)
+            parts.Add("Şeffaf raporlama eğilimi (GenuineSustainability) dönem sonunda güçlendi; sürdürülmesi önerilir.");
+        else if (genuineFirst - genuineSecond >= 5)
+            parts.Add("Dönem sonunda GenuineSustainability oranı azaldı; izleme önerilir.");
+        if (avgSecond - avgFirst <= -0.05)
+            parts.Add("Güven skoru dönem sonunda düşüş gösteriyor; risk artışı açısından takip edilmeli.");
+        else if (avgSecond - avgFirst >= 0.05)
+            parts.Add("Güven skoru dönem sonunda yükseldi; olumlu sinyal.");
+        if (parts.Count == 0)
+            parts.Add("Eğilim belirgin değil; daha uzun simülasyon ile projeksiyon netleşebilir.");
+        return string.Join(" ", parts);
+    }
+
+    private static string BuildVerdictText(string companyName, int total, string dominantIntent, double dominantPct, double avgScore, double activePct, double genuinePct)
+    {
+        var parts = new List<string>();
+        parts.Add($"{companyName} için simüle edilen dönemde toplam {total} olay toplandı.");
+        parts.Add($"En sık görülen niyet {dominantIntent} (%{dominantPct:N0}).");
+        parts.Add($"Ortalama güven skoru %{avgScore:P0}.");
+        if (activePct > 0)
+            parts.Add($"ActiveGreenwashing payı %{activePct:N0}; bu oran yüksekse dönem içinde yeşil yıkama sinyali ağırlıklı demektir.");
+        if (genuinePct > 0 && genuinePct >= 25)
+            parts.Add($"GenuineSustainability payı %{genuinePct:N0}; şeffaf raporlama eğilimi görülüyor.");
+        return string.Join(" ", parts);
+    }
+
+    private async Task UpdateSustainabilityLineChart()
+    {
+        if (_sustainabilityLineEcharts == null) return;
+        var data = _liveLineData.OrderBy(x => x.t).Select(x => new object[] { x.t, Math.Round(x.v, 4) }).ToList();
+        var option = new
+        {
+            tooltip = new { trigger = "axis", axisPointer = new { type = "cross" } },
+            grid = new { left = "3%", right = "4%", bottom = "3%", top = "8%", containLabel = true },
+            xAxis = new { type = "time", boundaryGap = false, axisLine = new { show = true }, splitLine = new { show = false } },
+            yAxis = new { type = "value", min = 0, max = 1, axisLine = new { show = false }, splitLine = new { lineStyle = new { type = "dashed", opacity = 0.4 } }, axisLabel = new { formatter = "{value}" } },
+            series = new[]
+            {
+                new { type = "line", data, smooth = true, symbol = "circle", symbolSize = 6, lineStyle = new { width = 2 }, areaStyle = new { opacity = 0.2 } }
+            }
+        };
+        await _sustainabilityLineEcharts.SetOptionAsync(option);
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        _sseCts?.Cancel();
+        if (_sustainabilityLineEcharts != null) await _sustainabilityLineEcharts.DisposeAsync();
+    }
+
+    private sealed record SustainabilityStatusDto(bool Running, string CompanyId, string Granularity, DateTimeOffset SimulatedAt, DateTimeOffset StartAt);
+    private sealed record SustainabilityTimelineEventDto(DateTimeOffset SimulatedAt, string CompanyId, string CompanyName, string IntentName, double ConfidenceScore, string Granularity);
+    private sealed record LiveSummaryResult(DateTimeOffset PeriodStart, DateTimeOffset PeriodEnd, string CompanyName, int TotalEvents, double AverageScore, string DominantIntent, double DominantIntentPercent, IReadOnlyList<IntentDistRow> IntentDistribution, string VerdictText, string FutureOutlookText, Target20302050? Target20302050);
+    private sealed record Target20302050(double Year2030ActivePct, double Year2030GenuinePct, double Year2050ActivePct, double Year2050GenuinePct);
+    private sealed record IntentDistRow(string IntentName, int Count, double Percent);
+
+    private sealed record GreenwashingResultDto(
+        [property: JsonPropertyName("intentName")] string IntentName,
+        [property: JsonPropertyName("confidence")] string Confidence,
+        [property: JsonPropertyName("confidenceScore")] double ConfidenceScore,
+        [property: JsonPropertyName("decision")] string Decision,
+        [property: JsonPropertyName("suggestedActions")] IReadOnlyList<string>? SuggestedActions);
+    private sealed record GreenwashingRecentDto(
+        [property: JsonPropertyName("id")] string Id,
+        [property: JsonPropertyName("reportPreview")] string ReportPreview,
+        [property: JsonPropertyName("intentName")] string IntentName,
+        [property: JsonPropertyName("decision")] string Decision,
+        [property: JsonPropertyName("sourceType")] string? SourceType,
+        [property: JsonPropertyName("analyzedAt")] DateTimeOffset AnalyzedAt);
+    private sealed record CarbonCalculateOkDto([property: JsonPropertyName("reportId")] Guid? ReportId);
+    private sealed record CarbonCalculateErrorDto([property: JsonPropertyName("error")] string? Error);
+    private sealed record CarbonReportDto(
+        [property: JsonPropertyName("reportId")] string ReportId,
+        [property: JsonPropertyName("title")] string Title,
+        [property: JsonPropertyName("confidenceLevel")] string ConfidenceLevel,
+        [property: JsonPropertyName("generatedAt")] DateTime GeneratedAt);
+}

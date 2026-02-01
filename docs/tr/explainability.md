@@ -19,7 +19,7 @@ Intentum **sinyal tabanlı açıklanabilirlik** (hangi davranışların ne kadar
 
 **IIntentTreeExplainer** policy yolunu **karar ağacı** olarak oluşturur: hangi kural eşleşti, sinyal düğümleri, intent özeti. Policy’nin neden Allow/Block döndüğünü ağaç formunda göstermek (denetim veya UI) için kullanın.
 
-- **IntentTreeExplainer.ExplainTree(intent, policy, behaviorSpace?)** **IntentDecisionTree** (IntentSummary, SignalNodes, MatchedRule) döndürür.
+- **IntentTreeExplainer.GetIntentTree(intent, policy, behaviorSpace?)** **IntentDecisionTree** (IntentSummary, SignalNodes, MatchedRule) döndürür.
 - Sample Web: `POST /api/intent/explain-tree` (infer ile aynı body) ağaç JSON’unu döndürür.
 
 Kurulum ve seçenekler için [Gelişmiş Özellikler – Intent Tree](advanced-features.md#intent-tree) bölümüne bakın.
@@ -34,5 +34,5 @@ Sample.Web: `POST /api/intent/explain` sinyal katkılarını ve açıklama metni
 |-------------------|--------------------------------|----------|
 | Sinyal katkıları   | `IIntentExplainer.GetSignalContributions` | Hangi davranışlar ne kadar katkı yaptı |
 | Açıklama metni    | `IIntentExplainer.GetExplanation` | Tek metin: ad, güven, en önemli sinyaller, reasoning |
-| Intent ağacı      | `IIntentTreeExplainer.ExplainTree` | Karar ağacı: eşleşen kural, sinyal düğümleri; Sample: `POST /api/intent/explain-tree` |
+| Intent ağacı      | `IIntentTreeExplainer.GetIntentTree` | Karar ağacı: eşleşen kural, sinyal düğümleri; Sample: `POST /api/intent/explain-tree` |
 | Reasoning         | `Intent.Reasoning` (model tarafından set edilir) | Kural veya LLM'den kısa "neden"; varsa açıklamaya eklenir |

@@ -1,0 +1,117 @@
+@page "/timeline"
+@inject HttpClient Http
+@inject NavigationManager Navigation
+@inject IJSRuntime JSRuntime
+@implements IAsyncDisposable
+
+<PageTitle>Timeline</PageTitle>
+
+<h2>Timeline / Evolution</h2>
+<p class="subtitle">Intent confidence zaman içinde nasıl değişmiş?</p>
+
+<div class="dashboard-toolbar">
+    <label>Entity ID <input @bind="_entityId" placeholder="IntentumSampleWeb" /></label>
+    <label>From <input type="datetime-local" @bind="_from" /></label>
+    <label>To <input type="datetime-local" @bind="_to" /></label>
+    <button type="button" @onclick="LoadTimeline">Yükle</button>
+</div>
+
+@if (_loading)
+{
+    <p class="muted">Yükleniyor…</p>
+}
+@if (_error != null)
+{
+    <p class="error">@_error</p>
+}
+<div id="timeline-chart" style="width: 100%; height: 400px;"></div>
+
+@code {
+    private string _entityId = "IntentumSampleWeb";
+    private DateTime _from = DateTime.UtcNow.AddDays(-7);
+    private DateTime _to = DateTime.UtcNow;
+    private bool _loading = true;
+    private string? _error;
+    private EChartsInterop? _echarts;
+    private const string ChartId = "timeline-chart";
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            _echarts = new EChartsInterop(JSRuntime, ChartId);
+            await _echarts.InitAsync();
+            await SetDefaultDates();
+            await LoadTimeline();
+        }
+    }
+
+    private async Task SetDefaultDates()
+    {
+        var to = DateTimeOffset.UtcNow;
+        var from = to.AddDays(-7);
+        _to = to.UtcDateTime;
+        _from = from.UtcDateTime;
+        await Task.CompletedTask;
+    }
+
+    private async Task LoadTimeline()
+    {
+        _loading = true;
+        _error = null;
+        StateHasChanged();
+        try
+        {
+            var from = new DateTimeOffset(_from.Kind == DateTimeKind.Unspecified ? DateTime.SpecifyKind(_from, DateTimeKind.Utc) : _from);
+            var to = new DateTimeOffset(_to.Kind == DateTimeKind.Unspecified ? DateTime.SpecifyKind(_to, DateTimeKind.Utc) : _to);
+            var baseUri = new Uri(Navigation.BaseUri).GetLeftPart(UriPartial.Authority);
+            var url = $"{baseUri}/api/intent/analytics/timeline/{Uri.EscapeDataString(_entityId)}?from={Uri.EscapeDataString(from.ToString("o"))}&to={Uri.EscapeDataString(to.ToString("o"))}";
+            var timeline = await Http.GetFromJsonAsync<TimelineResponse>(url);
+            if (timeline?.Points != null && timeline.Points.Count > 0)
+            {
+                var byIntent = timeline.Points
+                    .GroupBy(p => p.IntentName, StringComparer.OrdinalIgnoreCase)
+                    .OrderBy(g => g.Key)
+                    .ToList();
+                var series = byIntent.Select(g => new
+                {
+                    name = g.Key,
+                    type = "line",
+                    data = g.OrderBy(p => p.RecordedAt).Select(p => new object[] { p.RecordedAt.ToUnixTimeMilliseconds(), Math.Round(p.ConfidenceScore, 4) }).ToList()
+                }).ToList();
+                var option = new
+                {
+                    tooltip = new { trigger = "axis" },
+                    legend = new { data = byIntent.Select(g => g.Key).ToList() },
+                    xAxis = new { type = "time" },
+                    yAxis = new { type = "value", min = 0, max = 1, axisLabel = new { formatter = "{value}" } },
+                    series
+                };
+                if (_echarts != null)
+                    await _echarts.SetOptionAsync(option);
+            }
+            else if (_echarts != null)
+            {
+                await _echarts.SetOptionAsync(new { title = new { text = "Bu pencerede veri yok", left = "center" } });
+            }
+        }
+        catch (Exception ex)
+        {
+            _error = ex.Message;
+        }
+        finally
+        {
+            _loading = false;
+            StateHasChanged();
+        }
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        if (_echarts != null)
+            await _echarts.DisposeAsync();
+    }
+
+    private sealed record TimelineResponse(string EntityId, DateTimeOffset Start, DateTimeOffset End, IReadOnlyList<TimelinePointDto>? Points);
+    private sealed record TimelinePointDto(DateTimeOffset RecordedAt, string IntentName, double ConfidenceScore);
+}

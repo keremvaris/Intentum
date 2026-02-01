@@ -13,6 +13,7 @@ The **Intentum.Observability** package provides:
   - `intentum.policy.decision.count` (counter) — policy decisions; tag: `decision` (Allow, Block, Observe, etc.)
   - `intentum.behavior.space.size` (histogram) — behavior space event count
 - **ObservablePolicyEngine.DecideWithMetrics** — extension: `intent.DecideWithMetrics(policy)` records the decision and returns the same result as `intent.Decide(policy)`.
+- **ObservablePolicyEngine.DecideWithExecutionLog** — extension: `(decision, record) = intent.DecideWithExecutionLog(policy)` returns a **PolicyExecutionRecord** (IntentName, MatchedRuleName, Decision, DurationMs, Success, ExceptionMessage, ExceptionTrace) for logging. When evaluation throws, the record has Success = false and ExceptionMessage/ExceptionTrace; the method returns (Observe, record) so you can log the failure trace.
 
 ## How to use
 
@@ -31,8 +32,14 @@ sw.Stop();
 IntentumMetrics.RecordIntentInference(intent, sw.Elapsed);
 IntentumMetrics.RecordBehaviorSpaceSize(space);
 
-// Policy decision
+// Policy decision (metrics only)
 var decision = intent.DecideWithMetrics(policy);
+
+// Policy decision with execution log (for logging matched rule, intent, decision, duration; on failure, record has ExceptionMessage and ExceptionTrace)
+var (decision2, record) = intent.DecideWithExecutionLog(policy);
+logger.LogInformation("Policy: {Intent} -> {Decision} (rule: {Rule}, {Duration}ms)", record.IntentName, record.Decision, record.MatchedRuleName, record.DurationMs);
+if (!record.Success)
+    logger.LogError("Policy evaluation failed: {Message}\n{Trace}", record.ExceptionMessage, record.ExceptionTrace);
 ```
 
 ## Example dashboard (Grafana)
@@ -53,10 +60,10 @@ Suggested panels when exporting to Grafana (or any Prometheus-compatible backend
 
 The **Intentum.Observability** package also exposes **OpenTelemetry spans** via **IntentumActivitySource**:
 
-- **intentum.infer** — Span for each intent inference; tags: intent name, confidence level/score, signal count, behavior event count.
-- **intentum.policy.evaluate** — Span for each policy evaluation; tags: policy decision, matched rule name.
+- **intentum.infer** — Span for each intent inference; tags: `intentum.intent.name`, `intentum.intent.confidence.level`, `intentum.intent.confidence.score`, `intentum.intent.signal.count`, `intentum.behavior.event.count`, `intentum.behavior.signal_summary` (truncated list of actor:action for signal→intent correlation).
+- **intentum.policy.evaluate** — Span for each policy evaluation; tags: `intentum.policy.decision`, `intentum.intent.name`, `intentum.intent.confidence.level`, `intentum.policy.matched_rule`.
 
-When you use **ObservableIntentModel** and **DecideWithMetrics**, these spans are emitted automatically. Configure your OpenTelemetry TracerProvider to add the Intentum activity source so traces appear in Jaeger, Zipkin, or any OTLP backend.
+When you use **ObservableIntentModel** and **DecideWithMetrics**, these spans are emitted automatically. Configure your OpenTelemetry TracerProvider to add the Intentum activity source (`IntentumActivitySource.Source.Name`) so traces appear in Jaeger, Zipkin, or any OTLP backend. Export: use the standard OTLP trace exporter in your tracer provider configuration.
 
 ---
 

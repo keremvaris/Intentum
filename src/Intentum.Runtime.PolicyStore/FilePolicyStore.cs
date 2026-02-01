@@ -69,13 +69,13 @@ public sealed class FilePolicyStore : IPolicyStore
     private static IntentPolicy BuildPolicy(PolicyDocument doc)
     {
         var policy = new IntentPolicy();
-        foreach (var ruleDoc in doc.Rules ?? [])
+        foreach (var ruleDoc in doc.Rules)
         {
             if (string.IsNullOrWhiteSpace(ruleDoc.Name))
                 continue;
 
             var decision = Enum.TryParse<PolicyDecision>(ruleDoc.Decision, true, out var d) ? d : PolicyDecision.Observe;
-            var condition = SafeConditionBuilder.Build(ruleDoc.Conditions ?? []);
+            var condition = SafeConditionBuilder.Build(ruleDoc.Conditions);
             policy.AddRule(new PolicyRule(ruleDoc.Name, condition, decision));
         }
         return policy;

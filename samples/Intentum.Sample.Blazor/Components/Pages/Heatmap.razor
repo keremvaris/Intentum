@@ -1,0 +1,192 @@
+@page "/heatmap"
+@rendermode InteractiveServer
+@inject HttpClient Http
+@inject NavigationManager Navigation
+@inject IJSRuntime JSRuntime
+@implements IAsyncDisposable
+
+<PageTitle>Güven Isı Haritası</PageTitle>
+
+<div class="heatmap-page">
+    <header class="heatmap-header">
+        <h1 class="heatmap-title">Güven Isı Haritası</h1>
+        <p class="heatmap-subtitle">Y = Niyet, X = Zaman dilimi; renk = ortalama güven skoru (0–1). <InfoIcon Text="@(_heatmapInfoText)" /></p>
+    </header>
+
+    <div class="page-card heatmap-filters-card">
+        <h2 class="heatmap-filters-title">Filtreler</h2>
+        <div class="heatmap-toolbar">
+            <div class="heatmap-toolbar-group">
+                <label class="heatmap-label">Entity ID</label>
+                <input type="text" class="heatmap-input" @bind="_entityId" placeholder="LiveDemo" />
+            </div>
+            <div class="heatmap-toolbar-group">
+                <label class="heatmap-label">Başlangıç</label>
+                <input type="datetime-local" class="heatmap-input" @bind="_from" />
+            </div>
+            <div class="heatmap-toolbar-group">
+                <label class="heatmap-label">Bitiş</label>
+                <input type="datetime-local" class="heatmap-input" @bind="_to" />
+            </div>
+            <div class="heatmap-toolbar-group">
+                <label class="heatmap-label">Pencere</label>
+                <select class="heatmap-select" @bind="_bucketMinutes">
+                    <option value="15">15 dk</option>
+                    <option value="60">1 saat</option>
+                    <option value="360">6 saat</option>
+                </select>
+            </div>
+            <div class="heatmap-toolbar-actions">
+                <button type="button" class="heatmap-btn-load" @onclick="LoadHeatmap">Yükle</button>
+            </div>
+        </div>
+        <p class="heatmap-hint">Canlı veri için Intent Stream sayfasından simülasyonu başlatın; entity: LiveDemo.</p>
+    </div>
+
+    @if (_error != null)
+    {
+        <div class="page-card heatmap-error-card"><p class="error">@_error</p></div>
+    }
+
+    <div class="page-card heatmap-chart-card">
+        <h2 class="heatmap-chart-title">Isı haritası <InfoIcon Text="@(_heatmapChartInfoText)" /></h2>
+        <div class="heatmap-chart-wrap">
+            <div id="heatmap-chart" class="heatmap-chart-el" aria-hidden="@(_loading || _chartInitFailed)"></div>
+            @if (_chartInitFailed)
+            {
+                <div class="heatmap-overlay"><span class="heatmap-overlay-text heatmap-overlay-error">Grafik kütüphanesi yüklenemedi.</span></div>
+            }
+            else if (_loading)
+            {
+                <div class="heatmap-overlay"><span class="heatmap-overlay-text">Yükleniyor…</span></div>
+            }
+            else if (_hasData && _heatmapDataCount == 0)
+            {
+                <div class="heatmap-overlay"><span class="heatmap-overlay-text heatmap-empty">Bu entity ve tarih aralığında kayıt yok.</span></div>
+            }
+        </div>
+        <p class="heatmap-legend-caption">Renk ölçeği: kırmızı = düşük güven (0), yeşil = yüksek güven (1).</p>
+    </div>
+</div>
+
+@code {
+    private static readonly string _heatmapInfoText = "Heatmap, intent'lerin zaman dilimlerine göre ortalama güven skorunu renklerle gösterir. Y ekseninde intent'ler, X ekseninde zaman dilimleri (15 dk, 1 saat veya 6 saat). Kırmızı düşük, sarı orta, yeşil yüksek güven.";
+    private static readonly string _heatmapChartInfoText = "Pencere boyutunu değiştirerek farklı zaman çözünürlüğünde analiz yapabilirsiniz. Hücreye tıklayarak detay gösterilir.";
+    private string _entityId = "LiveDemo";
+    private DateTime _from = DateTime.UtcNow.AddDays(-7);
+    private DateTime _to = DateTime.UtcNow;
+    private int _bucketMinutes = 60;
+    private bool _loading = true;
+    private string? _error;
+    private bool _chartInitFailed;
+    private bool _hasData;
+    private int _heatmapDataCount;
+    private EChartsInterop? _echarts;
+    private const string ChartId = "heatmap-chart";
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            _echarts = new EChartsInterop(JSRuntime, ChartId);
+            _chartInitFailed = !await _echarts.InitAsync();
+            if (!_chartInitFailed)
+            {
+                await SetDefaultDates();
+                await LoadHeatmap();
+            }
+            StateHasChanged();
+        }
+    }
+
+    private async Task SetDefaultDates()
+    {
+        var to = DateTimeOffset.UtcNow;
+        var from = to.AddDays(-7);
+        _to = to.UtcDateTime;
+        _from = from.UtcDateTime;
+        await Task.CompletedTask;
+    }
+
+    private static DateTimeOffset BucketStart(DateTimeOffset t, int bucketMinutes)
+    {
+        var ticks = t.UtcTicks / TimeSpan.FromMinutes(bucketMinutes).Ticks * TimeSpan.FromMinutes(bucketMinutes).Ticks;
+        return new DateTimeOffset(ticks, TimeSpan.Zero);
+    }
+
+    private async Task LoadHeatmap()
+    {
+        _loading = true;
+        _error = null;
+        _hasData = false;
+        _heatmapDataCount = 0;
+        StateHasChanged();
+        try
+        {
+            var from = new DateTimeOffset(_from.Kind == DateTimeKind.Unspecified ? DateTime.SpecifyKind(_from, DateTimeKind.Utc) : _from);
+            var to = new DateTimeOffset(_to.Kind == DateTimeKind.Unspecified ? DateTime.SpecifyKind(_to, DateTimeKind.Utc) : _to);
+            var baseUri = new Uri(Navigation.BaseUri).GetLeftPart(UriPartial.Authority);
+            var url = $"{baseUri}/api/intent/analytics/timeline/{Uri.EscapeDataString(_entityId)}?from={Uri.EscapeDataString(from.ToString("o"))}&to={Uri.EscapeDataString(to.ToString("o"))}";
+            var timeline = await Http.GetFromJsonAsync<TimelineResponse>(url);
+            _hasData = true;
+            if (timeline?.Points != null && timeline.Points.Count > 0)
+            {
+                var intents = timeline.Points.Select(p => p.IntentName).Distinct(StringComparer.OrdinalIgnoreCase).OrderBy(x => x).ToList();
+                var intentIndex = intents.Select((name, i) => (name, i)).ToDictionary(x => x.name, x => x.i, StringComparer.OrdinalIgnoreCase);
+                var grouped = timeline.Points
+                    .GroupBy(p => (Bucket: BucketStart(p.RecordedAt, _bucketMinutes), Intent: p.IntentName.ToLowerInvariant()))
+                    .Select(g => new { g.Key.Bucket, Intent = intents.First(i => string.Equals(i, g.Key.Intent, StringComparison.OrdinalIgnoreCase)), Avg = g.Average(x => x.ConfidenceScore) })
+                    .ToList();
+                var buckets = grouped.Select(x => x.Bucket).Distinct().OrderBy(x => x).ToList();
+                var bucketIndex = buckets.Select((b, i) => (b, i)).ToDictionary(x => x.b, x => x.i);
+                var heatmapData = grouped
+                    .Select(g => new object[] { bucketIndex.GetValueOrDefault(g.Bucket, 0), intentIndex.GetValueOrDefault(g.Intent, 0), Math.Round(g.Avg, 4) })
+                    .ToList();
+                _heatmapDataCount = heatmapData.Count;
+                var bucketLabels = buckets.Select(b => b.ToLocalTime().ToString("dd/MM HH:mm")).ToList();
+                var option = new
+                {
+                    tooltip = new { position = "top" },
+                    grid = new { left = "12%", right = "4%", top = "8%", bottom = "18%", containLabel = true },
+                    xAxis = new { type = "category", data = bucketLabels, splitArea = new { show = true }, axisLabel = new { rotate = 45 } },
+                    yAxis = new { type = "category", data = intents, splitArea = new { show = true } },
+                    visualMap = new
+                    {
+                        min = 0,
+                        max = 1,
+                        calculable = true,
+                        orient = "horizontal",
+                        left = "center",
+                        bottom = "2%",
+                        inRange = new { color = new[] { "#d32f2f", "#ffeb3b", "#4caf50" } }
+                    },
+                    series = new[] { new { name = "Confidence", type = "heatmap", data = heatmapData, label = new { show = true }, emphasis = new { itemStyle = new { shadowBlur = 10, shadowColor = "rgba(0,0,0,0.3)" } } } }
+                };
+                if (_echarts != null)
+                    await _echarts.SetHeatmapOptionAsync(option);
+            }
+            else if (_echarts != null)
+            {
+                await _echarts.SetOptionAsync(new { title = new { text = "Bu pencerede veri yok", left = "center", top = "center", textStyle = new { color = "#999", fontSize = 14 } } });
+            }
+        }
+        catch (Exception ex)
+        {
+            _error = ex.Message;
+        }
+        finally
+        {
+            _loading = false;
+            StateHasChanged();
+        }
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        if (_echarts != null)
+            await _echarts.DisposeAsync();
+    }
+
+    private sealed record TimelineResponse(string EntityId, DateTimeOffset Start, DateTimeOffset End, IReadOnlyList<TimelinePointDto>? Points);
+    private sealed record TimelinePointDto(DateTimeOffset RecordedAt, string IntentName, double ConfidenceScore);
+}

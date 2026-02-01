@@ -1,0 +1,202 @@
+@page "/fraud-live"
+@inject HttpClient Http
+@inject NavigationManager Navigation
+@inject IJSRuntime JSRuntime
+@implements IAsyncDisposable
+
+<PageTitle>Intent Stream</PageTitle>
+
+<h2>Intent Stream – Canlı niyet akışı</h2>
+<p class="subtitle">Canlı niyet akışı (örnek: risk senaryosu); SSE + ECharts.</p>
+
+<div class="dashboard-toolbar">
+    <button type="button" @onclick="ToggleSimulation" disabled="@_toggleBusy">
+        @(_running ? "Durdur" : "Başlat")
+    </button>
+    @if (_status != null)
+    {
+        <span class="muted">Durum: @(_status.Running ? "Çalışıyor" : "Durduruldu") | Son 1 dk: @_status.EventsPerMinute inference</span>
+    }
+</div>
+
+<div class="kpi-grid overview-cards" style="margin-bottom: 1rem;">
+    <div class="card">
+        <h3>Risk skoru (son)</h3>
+        <p class="kpi-value @(ConfidenceClass(_lastConfidence ?? 0))">@(_lastConfidence?.ToString("P0") ?? "—")</p>
+    </div>
+    <div class="card">
+        <h3>Son 1 dk</h3>
+        <p class="kpi-value">@(_status?.EventsPerMinute ?? 0) inference</p>
+    </div>
+    <div class="card">
+        <h3>Dominant</h3>
+        <p class="kpi-value dominant">@(_lastIntent ?? "—")</p>
+    </div>
+</div>
+
+<div class="fraud-charts">
+    <div id="fraud-gauge" style="width: 200px; height: 180px; display: inline-block;"></div>
+    <div id="fraud-line" style="width: 100%; height: 200px; min-width: 300px;"></div>
+</div>
+
+<h3 class="section-subtitle">Son inference'lar (ticker)</h3>
+<div class="ticker-wrap">
+    <ul class="ticker-list">
+        @foreach (var item in _recent.Take(25))
+        {
+            <li class="@(item.Decision == "Block" || item.Decision == "Warn" ? "ticker-warn" : "")">
+                @item.RecordedAt.ToLocalTime().ToString("HH:mm:ss") @item.IntentName @item.Decision (@item.ConfidenceScore.ToString("P0"))
+                <span class="muted">@item.EventsSummary</span>
+            </li>
+        }
+    </ul>
+</div>
+
+@code {
+    private bool _running;
+    private bool _toggleBusy;
+    private FraudStatus? _status;
+    private double? _lastConfidence;
+    private string? _lastIntent;
+    private readonly List<InferenceEvent> _recent = new();
+    private CancellationTokenSource? _sseCts;
+    private EChartsInterop? _gaugeEcharts;
+    private EChartsInterop? _lineEcharts;
+    private readonly List<(double t, double v)> _lineData = new();
+    private const int MaxLinePoints = 50;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await RefreshStatus();
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            _gaugeEcharts = new EChartsInterop(JSRuntime, "fraud-gauge");
+            _lineEcharts = new EChartsInterop(JSRuntime, "fraud-line");
+            await _gaugeEcharts.InitAsync();
+            await _lineEcharts.InitAsync();
+            await UpdateGauge(_lastConfidence ?? 0);
+            await UpdateLineChart();
+        }
+        else
+        {
+            if (_gaugeEcharts != null) await _gaugeEcharts.ResizeAsync();
+            if (_lineEcharts != null) await _lineEcharts.ResizeAsync();
+        }
+    }
+
+    private async Task RefreshStatus()
+    {
+        try
+        {
+            var baseUri = new Uri(Navigation.BaseUri).GetLeftPart(UriPartial.Authority);
+            _status = await Http.GetFromJsonAsync<FraudStatus>(baseUri + "/api/fraud-simulation/status");
+            _running = _status?.Running ?? false;
+        }
+        catch { /* ignore */ }
+        StateHasChanged();
+    }
+
+    private async Task ToggleSimulation()
+    {
+        _toggleBusy = true;
+        StateHasChanged();
+        try
+        {
+            var baseUri = new Uri(Navigation.BaseUri).GetLeftPart(UriPartial.Authority);
+            if (_running)
+            {
+                await Http.PostAsync(baseUri + "/api/fraud-simulation/stop", null);
+                _sseCts?.Cancel();
+            }
+            else
+            {
+                await Http.PostAsync(baseUri + "/api/fraud-simulation/start", null);
+                _ = ConnectSse();
+            }
+            await RefreshStatus();
+        }
+        finally
+        {
+            _toggleBusy = false;
+            StateHasChanged();
+        }
+    }
+
+    private async Task ConnectSse()
+    {
+        _sseCts?.Cancel();
+        _sseCts = new CancellationTokenSource();
+        try
+        {
+            var baseUri = new Uri(Navigation.BaseUri).GetLeftPart(UriPartial.Authority);
+            var url = baseUri + "/api/dashboard/stream";
+            using var req = new HttpRequestMessage(HttpMethod.Get, url);
+            using var res = await Http.SendAsync(req, HttpCompletionOption.ResponseHeadersRead, _sseCts.Token);
+            res.EnsureSuccessStatusCode();
+            await using var stream = await res.Content.ReadAsStreamAsync(_sseCts.Token);
+            using var reader = new StreamReader(stream);
+            while (!_sseCts.Token.IsCancellationRequested)
+            {
+                var line = await reader.ReadLineAsync(_sseCts.Token);
+                if (line?.StartsWith("data: ") == true)
+                {
+                    var json = line.Substring(6).Trim();
+                    if (string.IsNullOrEmpty(json)) continue;
+                    try
+                    {
+                        var ev = System.Text.Json.JsonSerializer.Deserialize<InferenceEvent>(json);
+                        if (ev != null)
+                        {
+                            _recent.Insert(0, ev);
+                            if (_recent.Count > 50) _recent.RemoveAt(_recent.Count - 1);
+                            _lastConfidence = ev.ConfidenceScore;
+                            _lastIntent = ev.IntentName;
+                            _lineData.Insert(0, (DateTimeOffset.UtcNow.ToUnixTimeMilliseconds(), ev.ConfidenceScore));
+                            if (_lineData.Count > MaxLinePoints) _lineData.RemoveAt(_lineData.Count - 1);
+                            await InvokeAsync(StateHasChanged);
+                            await UpdateGauge(ev.ConfidenceScore);
+                            await UpdateLineChart();
+                        }
+                    }
+                    catch { /* skip bad event */ }
+                }
+            }
+        }
+        catch (OperationCanceledException) { }
+        catch (Exception) { /* disconnect */ }
+    }
+
+    private async Task UpdateGauge(double value)
+    {
+        if (_gaugeEcharts == null) return;
+        var option = new
+        {
+            series = new[] { new { type = "gauge", startAngle = 180, endAngle = 0, min = 0, max = 1, progress = new { show = true }, detail = new { formatter = "{value}%", offsetCenter = new[] { "0%", "70%" } }, data = new[] { new { value = Math.Round(value * 100, 0) } }, axisLine = new { lineStyle = new { width = 20 } } } }
+        };
+        await _gaugeEcharts.SetOptionAsync(option);
+    }
+
+    private async Task UpdateLineChart()
+    {
+        if (_lineEcharts == null) return;
+        var data = _lineData.OrderBy(x => x.t).Select(x => new object[] { x.t, x.v }).ToList();
+        var option = new { tooltip = new { trigger = "axis" }, xAxis = new { type = "time" }, yAxis = new { type = "value", min = 0, max = 1 }, series = new[] { new { type = "line", data, smooth = true } } };
+        await _lineEcharts.SetOptionAsync(option);
+    }
+
+    private static string ConfidenceClass(double score) => score < 0.4 ? "low" : score < 0.7 ? "medium" : "high";
+
+    public async ValueTask DisposeAsync()
+    {
+        _sseCts?.Cancel();
+        if (_gaugeEcharts != null) { await _gaugeEcharts.DisposeAsync(); _gaugeEcharts = null; }
+        if (_lineEcharts != null) { await _lineEcharts.DisposeAsync(); _lineEcharts = null; }
+    }
+
+    private sealed record FraudStatus(bool Running, int EventsPerMinute, DateTimeOffset LastInferenceAt);
+    private sealed record InferenceEvent(string Id, string IntentName, string ConfidenceLevel, double ConfidenceScore, string Decision, string? EventsSummary, DateTimeOffset RecordedAt);
+}

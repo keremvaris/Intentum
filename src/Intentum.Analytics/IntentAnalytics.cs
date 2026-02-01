@@ -191,6 +191,43 @@ public sealed class IntentAnalytics : IIntentAnalytics
     }
 
     /// <inheritdoc />
+    public async Task<IntentGraphSnapshot> GetIntentGraphSnapshotAsync(
+        string entityId,
+        DateTimeOffset start,
+        DateTimeOffset end,
+        CancellationToken cancellationToken = default)
+    {
+        var records = (await _historyRepository.GetByEntityIdAsync(entityId, start, end, cancellationToken))
+            .OrderBy(r => r.RecordedAt)
+            .ToList();
+
+        var nodes = records
+            .Select(r => new IntentGraphNode(
+                r.Id,
+                r.IntentName,
+                r.ConfidenceScore,
+                r.ConfidenceLevel,
+                r.RecordedAt))
+            .ToList();
+
+        var edges = new List<IntentGraphEdge>();
+        for (var i = 0; i < records.Count - 1; i++)
+        {
+            var from = records[i];
+            var to = records[i + 1];
+            edges.Add(new IntentGraphEdge(from.Id, to.Id, to.RecordedAt));
+        }
+
+        return new IntentGraphSnapshot(
+            entityId,
+            start,
+            end,
+            nodes,
+            edges,
+            DateTimeOffset.UtcNow);
+    }
+
+    /// <inheritdoc />
     public async Task<string> ExportToJsonAsync(
         DateTimeOffset start,
         DateTimeOffset end,

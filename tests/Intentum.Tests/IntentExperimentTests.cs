@@ -28,8 +28,8 @@ public class IntentExperimentTests
         var policy = TestHelpers.CreateDefaultPolicy();
         var space = TestHelpers.CreateSimpleSpace();
         var experiment = new IntentExperiment().AddVariant("a", model, policy);
-        var runSync = experiment.Run(new[] { space });
-        var runAsync = await experiment.RunAsync(new[] { space });
+        var runSync = experiment.Run([space]);
+        var runAsync = await experiment.RunAsync([space]);
         Assert.Single(runSync);
         Assert.Single(runAsync);
         Assert.Equal(runSync[0].Decision, runAsync[0].Decision);

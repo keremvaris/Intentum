@@ -35,6 +35,7 @@
     <ProjectReference Include="..\..\src\Intentum.AI.Gemini\Intentum.AI.Gemini.csproj" />
     <ProjectReference Include="..\..\src\Intentum.AI.Mistral\Intentum.AI.Mistral.csproj" />
     <ProjectReference Include="..\..\src\Intentum.AI.AzureOpenAI\Intentum.AI.AzureOpenAI.csproj" />
+    <ProjectReference Include="..\..\src\Intentum.AI.ONNX\Intentum.AI.ONNX.csproj" />
     <ProjectReference Include="..\..\src\Intentum.Testing\Intentum.Testing.csproj" />
     <ProjectReference Include="..\..\src\Intentum.Persistence\Intentum.Persistence.csproj" />
     <ProjectReference Include="..\..\src\Intentum.Analytics\Intentum.Analytics.csproj" />
@@ -43,6 +44,7 @@
     <ProjectReference Include="..\..\src\Intentum.Events\Intentum.Events.csproj" />
     <ProjectReference Include="..\..\src\Intentum.Experiments\Intentum.Experiments.csproj" />
     <ProjectReference Include="..\..\src\Intentum.Explainability\Intentum.Explainability.csproj" />
+    <ProjectReference Include="..\..\src\Intentum.Observability\Intentum.Observability.csproj" />
     <ProjectReference Include="..\..\src\Intentum.MultiTenancy\Intentum.MultiTenancy.csproj" />
     <ProjectReference Include="..\..\src\Intentum.Simulation\Intentum.Simulation.csproj" />
     <ProjectReference Include="..\..\src\Intentum.Versioning\Intentum.Versioning.csproj" />

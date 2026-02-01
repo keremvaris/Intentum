@@ -34,12 +34,14 @@ See [Testing](testing.md) for details and [Local integration tests](local-integr
 
 ## What is covered (summary)
 
-- **Core:** BehaviorSpace, ToVector, intent confidence, policy engine (Evaluate, EvaluateWithRule), rate limit, localization.
-- **Models:** Rule-based, chained, multi-stage, LLM (mock + provider parsing with mock HTTP).
-- **Analytics:** IntentAnalytics (trends, distribution, anomalies, timeline, export).
+- **Core:** BehaviorSpace, ToVector, intent confidence, policy engine (Evaluate, EvaluateWithRule), rate limit, localization; intent resolution pipeline; behavior space sanitization (anonymization/masking).
+- **Models:** Rule-based, chained, multi-stage, sliding window, LLM (mock + provider parsing with mock HTTP); ONNX intent model (constructor/options).
+- **Analytics:** IntentAnalytics (trends, distribution, anomalies, timeline, export, intent graph snapshot).
 - **Explainability:** IntentExplainer, IntentTreeExplainer, decision tree.
+- **Observability:** Policy execution log (DecideWithExecutionLog), metrics.
 - **Persistence:** In-memory repo (history + behavior space), EF/Redis/Mongo not required for unit tests.
 - **Simulation:** BehaviorSpaceSimulator, ScenarioRunner.
+- **Streaming:** BoundedMemoryBehaviorStreamConsumer, WindowedBatchBuffer.
 - **Patterns:** BehaviorPatternDetector, template matching.
 - **Policy store:** FilePolicyStore, SafeConditionBuilder (declarative rules).
 

@@ -111,6 +111,8 @@ Intentum is built on eight principles:
 
 ## Getting Started (5 minutes)
 
+**Run the minimal example first:** `dotnet run --project examples/hello-intentum` — one signal, one intent, console output. See [examples/hello-intentum](examples/hello-intentum) and [Examples overview](docs/en/examples-overview.md).
+
 ### 1. Install packages
 
 ```bash

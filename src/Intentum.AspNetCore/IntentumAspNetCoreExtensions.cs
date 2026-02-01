@@ -1,4 +1,3 @@
-using Intentum.AI.Embeddings;
 using Intentum.Core.Behavior;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.DependencyInjection;

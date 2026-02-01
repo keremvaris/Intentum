@@ -1,4 +1,3 @@
-using Intentum.Persistence.EntityFramework;
 using Intentum.Persistence.Repositories;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;

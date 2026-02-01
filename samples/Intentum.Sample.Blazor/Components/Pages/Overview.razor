@@ -1,0 +1,319 @@
+@page "/"
+@rendermode InteractiveServer
+@inject HttpClient Http
+@inject IJSRuntime JSRuntime
+@inject NavigationManager Navigation
+@implements IAsyncDisposable
+
+<PageTitle>Intent Intelligence Hub</PageTitle>
+
+<div class="overview-page">
+    <header class="overview-header">
+        <h1 class="overview-title">Intent Intelligence Hub</h1>
+        <p class="overview-subtitle">Intentum ne yapar? Olaylar → Niyet → Politika → Karar → Analiz.</p>
+    </header>
+
+    <div class="page-card">
+        <div class="card-header-row">
+            <h3 class="section-subtitle">Intentum pipeline</h3>
+            <InfoIcon Text="Intentum'un iş akışı: 1) Davranış olayları (actor, action) girin. 2) Model niyet + güven skoru çıkarır. 3) Politika kuralları değerlendirilir. 4) Karar (Allow/Block/Escalate vb.) verilir. 5) Sonuçlar analiz ve export ile izlenebilir. Alttaki butonlarla ilgili sayfalara gidebilirsiniz." />
+        </div>
+        <ol class="pipeline-steps">
+            <li><strong>Davranış olayları</strong> — Olayları girin</li>
+            <li><strong>Niyet + güven</strong> — Model infer eder</li>
+            <li><strong>Politika kuralları</strong> — Kurallar değerlendirilir</li>
+            <li><strong>Karar</strong> — Allow / Block / Escalate / …</li>
+            <li><strong>Analiz & izlenebilirlik</strong> — Timeline, grafik, export</li>
+        </ol>
+        <div class="quick-actions">
+            <NavLink href="sandbox" class="action-btn">Playground'da dene</NavLink>
+            <NavLink href="explain" class="action-btn">Explain'de açıkla</NavLink>
+            <NavLink href="fraud-live" class="action-btn">Intent Stream başlat</NavLink>
+            <NavLink href="sustainability" class="action-btn">Sustainability demo</NavLink>
+            <NavLink href="commerce" class="action-btn">Sipariş demo</NavLink>
+            <a href="@_exportJsonUrl" target="_blank" rel="noopener" class="action-btn action-btn-export">JSON indir</a>
+            <a href="@_exportCsvUrl" target="_blank" rel="noopener" class="action-btn action-btn-export">CSV indir</a>
+        </div>
+    </div>
+
+    @if (_loading)
+    {
+        <div class="overview-loading">
+            <p class="muted">Yükleniyor…</p>
+        </div>
+    }
+    else if (_error != null)
+    {
+        <p class="error">@_error</p>
+    }
+    else
+    {
+        <div class="page-card">
+            <div class="card-header-row">
+                <h3 class="section-subtitle">Anlık özet (KPI)</h3>
+                <InfoIcon Text="Son 15 dakika ve son 7 güne ait özet metrikler. Dominant Intent: En sık görülen niyet adı. Global Confidence: Ortalama güven skoru (0–1). Signal Rate: Dakikadaki inference sayısı. Toplam inference: Son 7 gündeki toplam çıkarım sayısı." />
+            </div>
+            <section class="overview-kpis">
+                <div class="card overview-kpi overview-kpi--dominant">
+                    <span class="overview-kpi__label">Dominant Intent</span>
+                    <span class="overview-kpi__value overview-kpi__value--text">@(_overview?.DominantIntent ?? "—")</span>
+                </div>
+                <div class="card overview-kpi overview-kpi--confidence @(ConfidenceClass(_overview?.GlobalConfidenceScore ?? 0))">
+                    <span class="overview-kpi__label">Global Confidence</span>
+                    <span class="overview-kpi__value">@((_overview?.GlobalConfidenceScore ?? 0).ToString("P0"))</span>
+                </div>
+                <div class="card overview-kpi">
+                    <span class="overview-kpi__label">Signal Rate</span>
+                    <span class="overview-kpi__value">@(_overview?.SignalRate ?? 0) <span class="overview-kpi__unit">/ dk</span></span>
+                </div>
+                <div class="card overview-kpi">
+                    <span class="overview-kpi__label">Toplam inference (7 gün)</span>
+                    <span class="overview-kpi__value">@(_summary?.TotalInferences ?? 0)</span>
+                </div>
+            </section>
+        </div>
+
+        @if (_anomalyMessage != null)
+        {
+            <div class="card overview-anomaly page-card">
+                <strong>Anomali:</strong> @_anomalyMessage
+            </div>
+        }
+
+        <div class="page-card">
+            <div class="card-header-row">
+                <h3 class="section-subtitle">Grafikler</h3>
+                <InfoIcon Text="Sol: Son 15 dakikada niyet dağılımı (pasta). Sağ: Son 7 günde karar dağılımı (Allow, Block, Warn vb.). Veri yoksa Playground veya Intent Stream'den infer üretin." />
+            </div>
+            <section class="overview-charts">
+            <div class="card overview-chart-card">
+                <h3 class="overview-chart-title">Intent dağılımı (son 15 dk)</h3>
+                <div id="overview-intent-pie" class="overview-chart"></div>
+                @if (_overview?.ActiveIntents?.Count == 0)
+                {
+                    <p class="overview-chart-empty">Veri yok</p>
+                }
+            </div>
+            <div class="card overview-chart-card">
+                <h3 class="overview-chart-title">Karar dağılımı (7 gün)</h3>
+                <div id="overview-decision-pie" class="overview-chart"></div>
+                @if (_decisionCounts.Count == 0)
+                {
+                    <p class="overview-chart-empty">Veri yok</p>
+                }
+            </div>
+            </section>
+        </div>
+
+        <div class="page-card">
+            <div class="card-header-row">
+                <h3 class="section-subtitle">Güven trendi (son 7 gün, saatlik)</h3>
+                <InfoIcon Text="Zaman içinde ortalama güven skorunun nasıl değiştiğini gösterir. Saatlik kovalara göre hesaplanır. Düşüş veya yükseliş trendlerini izleyebilirsiniz." />
+            </div>
+            <div class="card overview-chart-card overview-chart-card--wide">
+                <div id="overview-trend-line" class="overview-chart overview-chart--tall"></div>
+                @if (_trendPoints.Count == 0)
+                {
+                    <p class="overview-chart-empty">Veri yok</p>
+                }
+            </div>
+        </div>
+
+        <div class="page-card">
+            <div class="card-header-row">
+                <h3 class="overview-section-title">Active Intents</h3>
+                <InfoIcon Text="Son 15 dakikada tespit edilen niyetler ve ortalama güven skorları. Her bir pill (etiket) bir niyet adı ve yüzde güven gösterir. Renk: düşük (kırmızı), orta (turuncu), yüksek (yeşil)." />
+            </div>
+            @if (_overview?.ActiveIntents?.Count > 0)
+            {
+                <div class="overview-intent-pills">
+                    @foreach (var intent in _overview.ActiveIntents)
+                    {
+                        <div class="overview-pill @(ConfidenceClass(intent.Confidence))">
+                            <span class="overview-pill__name">@intent.Name</span>
+                            <span class="overview-pill__conf">@intent.Confidence.ToString("P0")</span>
+                        </div>
+                    }
+                </div>
+            }
+            else if (_overview != null)
+            {
+                <p class="empty-state">İlk veriyi oluşturmak için Playground'da infer et veya Intent Stream'i başlat.</p>
+            }
+        </div>
+    }
+</div>
+
+@code {
+    private DashboardOverview? _overview;
+    private AnalyticsSummaryDto? _summary;
+    private bool _loading = true;
+    private string? _error;
+    private string? _anomalyMessage;
+    private EChartsInterop? _intentPie;
+    private EChartsInterop? _decisionPie;
+    private EChartsInterop? _trendLine;
+    private bool _chartsInited;
+    private List<(string Decision, int Count)> _decisionCounts = new();
+    private List<(long Time, double Score)> _trendPoints = new();
+    private string _exportJsonUrl = "#";
+    private string _exportCsvUrl = "#";
+
+    private string GetApiBase() => new Uri(Navigation.BaseUri).GetLeftPart(UriPartial.Authority);
+
+    protected override void OnInitialized()
+    {
+        var to = DateTimeOffset.UtcNow;
+        var from = to.AddDays(-7);
+        var origin = GetApiBase();
+        _exportJsonUrl = $"{origin}/api/intent/analytics/export/json?from={Uri.EscapeDataString(from.ToString("o"))}&to={Uri.EscapeDataString(to.ToString("o"))}";
+        _exportCsvUrl = $"{origin}/api/intent/analytics/export/csv?from={Uri.EscapeDataString(from.ToString("o"))}&to={Uri.EscapeDataString(to.ToString("o"))}";
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            var baseUri = GetApiBase();
+            var overviewTask = Http.GetFromJsonAsync<DashboardOverview>(baseUri + "/api/dashboard/overview");
+            var end = DateTimeOffset.UtcNow;
+            var start = end.AddDays(-7);
+            var summaryUrl = baseUri + $"/api/intent/analytics/summary?from={Uri.EscapeDataString(start.ToString("o"))}&to={Uri.EscapeDataString(end.ToString("o"))}";
+            var summaryTask = Http.GetFromJsonAsync<AnalyticsSummaryDto>(summaryUrl);
+            await Task.WhenAll(overviewTask, summaryTask);
+            _overview = await overviewTask;
+            _summary = await summaryTask;
+            if (_summary?.Anomalies?.Count > 0)
+            {
+                var a = _summary.Anomalies[0];
+                _anomalyMessage = a.Description;
+                _ = (a.Id, a.DetectedAt, a.WindowStart, a.WindowEnd, a.Severity, a.Metadata);
+            }
+            var dist = _summary?.DecisionDistribution;
+            _decisionCounts = (dist?.CountByDecision ?? new Dictionary<string, int>())
+                .Select(kv => (kv.Key, kv.Value)).OrderByDescending(x => x.Value).ToList();
+            _ = (dist?.Start, dist?.End, dist?.TotalCount);
+            _trendPoints = AggregateTrendPoints(_summary?.ConfidenceTrend ?? new List<ConfidenceTrendPointDto>());
+        }
+        catch (Exception ex)
+        {
+            _error = ex.Message;
+        }
+        finally
+        {
+            _loading = false;
+        }
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (_loading || _overview == null || _chartsInited) return;
+        _intentPie = new EChartsInterop(JSRuntime, "overview-intent-pie");
+        _decisionPie = new EChartsInterop(JSRuntime, "overview-decision-pie");
+        _trendLine = new EChartsInterop(JSRuntime, "overview-trend-line");
+        if (!await _intentPie.InitAsync() || !await _decisionPie.InitAsync() || !await _trendLine.InitAsync())
+            return;
+        _chartsInited = true;
+        await UpdateIntentPie();
+        await UpdateDecisionPie();
+        await UpdateTrendLine();
+        StateHasChanged();
+    }
+
+    private static List<(long Time, double Score)> AggregateTrendPoints(IReadOnlyList<ConfidenceTrendPointDto> trend)
+    {
+        if (trend.Count == 0) return new List<(long, double)>();
+        var byBucket = trend
+            .GroupBy(p => (p.BucketStart, p.BucketEnd, p.ConfidenceLevel))
+            .Select(g =>
+            {
+                var totalCount = g.Sum(x => x.Count);
+                var weighted = totalCount > 0 ? g.Sum(x => x.AverageScore * x.Count) / totalCount : 0d;
+                return (g.Key.BucketStart, weighted);
+            })
+            .OrderBy(x => x.BucketStart)
+            .ToList();
+        return byBucket.Select(x => (x.BucketStart.ToUnixTimeMilliseconds(), Math.Round(x.weighted, 4))).ToList();
+    }
+
+    private async Task UpdateIntentPie()
+    {
+        if (_intentPie == null || _overview?.ActiveIntents == null || _overview.ActiveIntents.Count == 0) return;
+        var data = _overview.ActiveIntents.Select(i => new { name = i.Name, value = Math.Round(i.Confidence * 100, 1) }).ToList();
+        var option = new
+        {
+            tooltip = new { trigger = "item", formatter = "{b}: {c}%" },
+            legend = new { bottom = "0%", left = "center" },
+            series = new[] { new { type = "pie", radius = new[] { "40%", "65%" }, center = new[] { "50%", "45%" }, data, label = new { formatter = "{b}\n{c}%" } } }
+        };
+        await _intentPie.SetOptionAsync(option);
+    }
+
+    private async Task UpdateDecisionPie()
+    {
+        if (_decisionPie == null) return;
+        if (_decisionCounts.Count == 0)
+        {
+            await _decisionPie.SetOptionAsync(new { title = new { text = "Veri yok", left = "center", top = "center", textStyle = new { color = "#999" } } });
+            return;
+        }
+        var colors = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
+        {
+            ["Allow"] = "#4caf50", ["Block"] = "#d32f2f", ["Warn"] = "#ff9800",
+            ["Escalate"] = "#9c27b0", ["Observe"] = "#2196f3", ["RequireAuth"] = "#607d8b"
+        };
+        var data = _decisionCounts.Select(d => new { name = d.Decision, value = d.Count, itemStyle = new { color = colors.GetValueOrDefault(d.Decision, "#9e9e9e") } }).ToList();
+        var option = new
+        {
+            tooltip = new { trigger = "item", formatter = "{b}: {c} ({d}%)" },
+            legend = new { bottom = "0%", left = "center" },
+            series = new[] { new { type = "pie", radius = new[] { "40%", "65%" }, center = new[] { "50%", "45%" }, data, label = new { formatter = "{b}\n{c}" } } }
+        };
+        await _decisionPie.SetOptionAsync(option);
+    }
+
+    private async Task UpdateTrendLine()
+    {
+        if (_trendLine == null) return;
+        if (_trendPoints.Count == 0)
+        {
+            await _trendLine.SetOptionAsync(new { title = new { text = "Veri yok", left = "center", top = "center", textStyle = new { color = "#999" } } });
+            return;
+        }
+        var data = _trendPoints.Select(p => new object[] { p.Time, p.Score }).ToList();
+        var option = new
+        {
+            tooltip = new { trigger = "axis" },
+            grid = new { left = "3%", right = "4%", bottom = "10%", top = "8%", containLabel = true },
+            xAxis = new { type = "time", boundaryGap = false },
+            yAxis = new { type = "value", min = 0, max = 1, axisLabel = new { formatter = "{value}" } },
+            series = new[] { new { type = "line", data, smooth = true, symbol = "circle", symbolSize = 6, lineStyle = new { width = 2 }, areaStyle = new { opacity = 0.2 } } }
+        };
+        await _trendLine.SetOptionAsync(option);
+    }
+
+    private static string ConfidenceClass(double score) => score < 0.4 ? "low" : score < 0.7 ? "medium" : "high";
+
+    public async ValueTask DisposeAsync()
+    {
+        if (_intentPie != null) await _intentPie.DisposeAsync();
+        if (_decisionPie != null) await _decisionPie.DisposeAsync();
+        if (_trendLine != null) await _trendLine.DisposeAsync();
+    }
+
+    private sealed record DashboardOverview(IReadOnlyList<ActiveIntentDto>? ActiveIntents, string? DominantIntent, double GlobalConfidenceScore, int SignalRate);
+    private sealed record ActiveIntentDto(string Name, double Confidence);
+
+    private sealed record AnalyticsSummaryDto(
+        DateTimeOffset Start,
+        DateTimeOffset End,
+        int TotalInferences,
+        int UniqueBehaviorSpaces,
+        List<ConfidenceTrendPointDto>? ConfidenceTrend,
+        DecisionDistributionDto? DecisionDistribution,
+        List<AnomalyDto>? Anomalies);
+
+    private sealed record ConfidenceTrendPointDto(DateTimeOffset BucketStart, DateTimeOffset BucketEnd, string ConfidenceLevel, int Count, double AverageScore);
+    private sealed record DecisionDistributionDto(DateTimeOffset Start, DateTimeOffset End, int TotalCount, Dictionary<string, int> CountByDecision);
+    private sealed record AnomalyDto(string Id, string Description, DateTimeOffset DetectedAt, DateTimeOffset WindowStart, DateTimeOffset WindowEnd, double Severity, Dictionary<string, object>? Metadata);
+}

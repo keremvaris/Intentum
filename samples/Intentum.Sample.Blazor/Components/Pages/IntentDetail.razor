@@ -1,0 +1,144 @@
+@page "/intent/{IntentName}"
+@rendermode InteractiveServer
+@inject HttpClient Http
+@inject NavigationManager Navigation
+@inject IJSRuntime JSRuntime
+
+<PageTitle>Intent: @IntentName</PageTitle>
+
+<div class="page-card">
+    <h2 style="margin: 0 0 0.25rem 0;">Intent Detail: @IntentName</h2>
+    <p class="subtitle" style="margin: 0;">Tek intent — confidence geçmişi ve sinyaller. <InfoIcon Text="@(_intentDetailInfoText)" /></p>
+</div>
+
+@if (_loading)
+{
+    <div class="page-card"><p class="muted">Yükleniyor…</p></div>
+}
+else if (_error != null)
+{
+    <div class="page-card"><p class="error">@_error</p></div>
+}
+else
+{
+    <div class="page-card">
+        <h3 class="page-card h3" style="margin: 0 0 0.5rem 0;">Özet <InfoIcon Text="@(_intentSummaryInfoText)" /></h3>
+        <div class="kpi-grid overview-cards" style="margin-bottom: 0;">
+            <div class="card">
+                <h3>Son ortalama güven</h3>
+                <p class="kpi-value">@(_avgConfidence?.ToString("P0") ?? "—")</p>
+            </div>
+            <div class="card">
+                <h3>Kayıt sayısı</h3>
+                <p class="kpi-value">@(_pointCount)</p>
+            </div>
+        </div>
+    </div>
+    @if (_timelinePoints?.Count > 0)
+    {
+        <div class="page-card">
+            <h3 class="page-card h3" style="margin: 0 0 0.75rem 0;">Confidence geçmişi <InfoIcon Text="Bu intent için zaman içinde güven skorunun nasıl değiştiğini gösterir." /></h3>
+            <div id="detail-timeline-chart" style="width: 100%; height: 200px;"></div>
+        </div>
+    }
+    <div class="page-card">
+    <h3 class="page-card h3" style="margin: 0 0 0.75rem 0;">Son sinyaller (bu intent) <InfoIcon Text="Bu intent ile eşleşen son inference kayıtları: zaman, olay özeti, güven ve politika kararı." /></h3>
+    <div class="table-wrap">
+        <table class="history-table">
+            <thead><tr><th>Id</th><th>Zaman</th><th>Olay özeti</th><th>Güven</th><th>Karar</th></tr></thead>
+            <tbody>
+                @if (_signals?.Count > 0)
+                {
+                    @foreach (var s in _signals)
+                    {
+                        <tr>
+                            <td><code>@s.Id</code></td>
+                            <td>@s.RecordedAt.ToLocalTime().ToString("g")</td>
+                            <td><span class="events-summary" title="@s.EventsSummary">@s.EventsSummary</span></td>
+                            <td>@s.ConfidenceLevel (@s.ConfidenceScore.ToString("P0"))</td>
+                            <td><span class="badge">@s.Decision</span></td>
+                        </tr>
+                    }
+                }
+                else
+                {
+                    <tr><td colspan="5">Kayıt yok.</td></tr>
+                }
+            </tbody>
+        </table>
+    </div>
+    </div>
+}
+
+@code {
+    private static readonly string _intentDetailInfoText = "Bu sayfa tek bir intent için detay gösterir: seçilen intent'in son 7 gündeki ortalama güven skoru, kayıt sayısı, zaman serisi grafiği ve son sinyal listesi. URL'deki intent adına göre veri yüklenir.";
+    private static readonly string _intentSummaryInfoText = "Bu intent için penceredeki ortalama güven ve toplam kayıt sayısı. Overview veya Graph sayfasından bir intent seçerek buraya gelebilirsiniz.";
+    [Parameter]
+    public string IntentName { get; set; } = "";
+
+    private bool _loading = true;
+    private bool _chartPending;
+    private string? _error;
+    private double? _avgConfidence;
+    private int _pointCount;
+    private IReadOnlyList<TimelinePointDto>? _timelinePoints;
+    private IReadOnlyList<SignalDto>? _signals;
+    private EChartsInterop? _echarts;
+    private const string DefaultEntityId = "LiveDemo";
+
+    protected override async Task OnParametersSetAsync()
+    {
+        if (!string.IsNullOrEmpty(IntentName))
+            await LoadDetail();
+    }
+
+    private async Task LoadDetail()
+    {
+        _loading = true;
+        _error = null;
+        StateHasChanged();
+        try
+        {
+            var to = DateTimeOffset.UtcNow;
+            var from = to.AddDays(-7);
+            var baseUri = new Uri(Navigation.BaseUri).GetLeftPart(UriPartial.Authority);
+
+            var timelineUrl = $"{baseUri}/api/intent/analytics/timeline/{Uri.EscapeDataString(DefaultEntityId)}?from={Uri.EscapeDataString(from.ToString("o"))}&to={Uri.EscapeDataString(to.ToString("o"))}";
+            var timeline = await Http.GetFromJsonAsync<TimelineResponse>(timelineUrl);
+            _timelinePoints = timeline?.Points?.Where(p => string.Equals(p.IntentName, IntentName, StringComparison.OrdinalIgnoreCase)).OrderBy(p => p.RecordedAt).ToList() ?? new List<TimelinePointDto>();
+            _pointCount = _timelinePoints.Count;
+            _avgConfidence = _timelinePoints.Count > 0 ? _timelinePoints.Average(p => p.ConfidenceScore) : null;
+            _chartPending = _timelinePoints.Count > 0;
+
+            var signalsUrl = $"{baseUri}/api/signals?intent={Uri.EscapeDataString(IntentName)}&from={Uri.EscapeDataString(from.ToString("o"))}&to={Uri.EscapeDataString(to.ToString("o"))}&limit=20";
+            _signals = await Http.GetFromJsonAsync<List<SignalDto>>(signalsUrl);
+        }
+        catch (Exception ex)
+        {
+            _error = ex.Message;
+        }
+        finally
+        {
+            _loading = false;
+            StateHasChanged();
+        }
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (_chartPending && _timelinePoints?.Count > 0 && JSRuntime != null)
+        {
+            _chartPending = false;
+            _echarts = new EChartsInterop(JSRuntime, "detail-timeline-chart");
+            await _echarts.InitAsync();
+            var data = _timelinePoints.OrderBy(p => p.RecordedAt).Select(p => new object[] { p.RecordedAt.ToUnixTimeMilliseconds(), Math.Round(p.ConfidenceScore, 4) }).ToList();
+            var option = new { tooltip = new { trigger = "axis" }, xAxis = new { type = "time" }, yAxis = new { type = "value", min = 0, max = 1 }, series = new[] { new { type = "line", data } } };
+            await _echarts.SetOptionAsync(option);
+            StateHasChanged();
+        }
+    }
+
+    private sealed record TimelineResponse(string ResponseEntityId, DateTimeOffset Start, DateTimeOffset End, IReadOnlyList<TimelinePointDto>? Points);
+    private sealed record TimelinePointDto(DateTimeOffset RecordedAt, string IntentName, double ConfidenceScore);
+    private sealed record SignalDto(string Id, DateTimeOffset RecordedAt, string? EventsSummary, string ConfidenceLevel, string Decision, double ConfidenceScore);
+}

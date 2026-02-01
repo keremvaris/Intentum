@@ -214,7 +214,7 @@ Aşağıdaki paketler opsiyonel yetenek ekler. Detaylı kullanım (nedir, ne zam
 | **IIntentExplainer** | Intent'in nasıl çıkarıldığını açıklar (sinyal katkıları, metin özeti). |
 | **IntentExplainer** | `GetSignalContributions(intent)` → **SignalContribution** listesi; `GetExplanation(intent, maxSignals?)` → string. |
 | **IIntentTreeExplainer** | Policy yolunu ağaç olarak oluşturur (eşleşen kural, sinyal düğümleri). |
-| **IntentTreeExplainer** | `ExplainTree(intent, policy, behaviorSpace?)` → **IntentDecisionTree** (IntentSummary, SignalNodes, MatchedRule). |
+| **IntentTreeExplainer** | `GetIntentTree(intent, policy, behaviorSpace?)` → **IntentDecisionTree** (IntentSummary, SignalNodes, MatchedRule). |
 | **SignalContribution** | Source, Description, Weight, ContributionPercent. |
 
 ### Simulation (`Intentum.Simulation`)
@@ -274,7 +274,7 @@ Aşağıdaki paketler opsiyonel yetenek ekler. Detaylı kullanım (nedir, ne zam
 
 ## Örnek Web HTTP API (`Intentum.Sample.Web`)
 
-Web örneği intent çıkarımı, açıklanabilirlik, greenwashing tespiti ve analytics için HTTP endpoint’leri sunar. `dotnet run --project samples/Intentum.Sample.Web` ile çalıştırın; UI http://localhost:5150/, API dokümanları http://localhost:5150/scalar.
+Web örneği intent çıkarımı, açıklanabilirlik, greenwashing tespiti ve analytics için HTTP endpoint’leri sunar. `dotnet run --project samples/Intentum.Sample.Web` ile çalıştırın; UI ve API dokümanları çalıştırma sonrası gösterilen URL'dedir (varsayılan http://localhost:5000/ ve http://localhost:5000/scalar).
 
 | Method | Path | Açıklama |
 |--------|------|----------|

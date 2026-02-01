@@ -16,6 +16,18 @@ This page groups Intentum **examples** and **samples** by difficulty and ties th
 
 ## Simple examples
 
+### [hello-intentum](https://github.com/keremvaris/Intentum/tree/master/examples/hello-intentum) — 5-minute quick start
+
+**Concept:** One signal, one intent, console output. Minimal "Hello Intentum" to run in under a minute.
+
+**Real-life:** First touch: observe one behavior (`user:hello`), infer one intent (`Greeting`), apply policy (Allow), print result.
+
+```bash
+dotnet run --project examples/hello-intentum
+```
+
+---
+
 ### [vector-normalization](https://github.com/keremvaris/Intentum/tree/master/examples/vector-normalization)
 
 **Concept:** Behavior vector normalization (Cap, L1, SoftCap) so repeated events don’t dominate the score.

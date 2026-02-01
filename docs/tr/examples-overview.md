@@ -16,6 +16,18 @@ Bu sayfa Intentum **örneklerini** ve **sample** uygulamalarını zorluk dereces
 
 ## Basit örnekler
 
+### [hello-intentum](https://github.com/keremvaris/Intentum/tree/master/examples/hello-intentum) — 5 dakikada başla
+
+**Kavram:** Tek sinyal, tek niyet, konsol çıktısı. Bir dakikada çalıştırılabilecek minimal "Hello Intentum".
+
+**Gerçek hayat:** İlk adım: tek davranış gözle (`user:hello`), tek niyet çıkar (`Greeting`), politika uygula (Allow), sonucu yazdır.
+
+```bash
+dotnet run --project examples/hello-intentum
+```
+
+---
+
 ### [vector-normalization](https://github.com/keremvaris/Intentum/tree/master/examples/vector-normalization)
 
 **Kavram:** Davranış vektörü normalleştirme (Cap, L1, SoftCap); tekrarlayan olaylar skoru boğmasın.

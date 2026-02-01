@@ -1,4 +1,3 @@
-using Intentum.Analytics;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace Intentum.Analytics;
@@ -23,6 +22,15 @@ public static class AnalyticsExtensions
     public static IServiceCollection AddBehaviorPatternDetector(this IServiceCollection services)
     {
         services.AddScoped<IBehaviorPatternDetector, BehaviorPatternDetector>();
+        return services;
+    }
+
+    /// <summary>
+    /// Adds intent-based profile service (timeline → labels, top intents, confidence summary) to the service collection.
+    /// </summary>
+    public static IServiceCollection AddIntentProfileService(this IServiceCollection services)
+    {
+        services.AddScoped<IIntentProfileService, IntentProfileService>();
         return services;
     }
 }

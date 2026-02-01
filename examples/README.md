@@ -9,6 +9,7 @@ Minimal runnable examples for real-world use cases. Each example focuses on **on
 
 | Example | Description |
 |--------|-------------|
+| [hello-intentum](hello-intentum/) | **5-minute quick start:** one signal, one intent, console output. Minimal "Hello Intentum". |
 | [fraud-intent](fraud-intent/) | Fraud / abuse intent detection: infer risk from login failures, IP change, retries, captcha, password reset; policy → StepUpAuth / Allow / Monitor. See [Domain intent templates — Fraud](docs/en/domain-intent-templates.md#fraud--security). |
 | [customer-intent](customer-intent/) | Customer intent (purchase, info gathering, support): infer from browse, cart, checkout, search, FAQ, contact; policy → Allow / Observe / route by intent. See [Domain intent templates — Customer](docs/en/domain-intent-templates.md#customer-intent). |
 | [greenwashing-intent](greenwashing-intent/) | Greenwashing detection: infer from report text and signals; policy for ESG/claims. See [Greenwashing detection how-to](docs/en/greenwashing-detection-howto.md). |
@@ -22,6 +23,7 @@ Minimal runnable examples for real-world use cases. Each example focuses on **on
 From the repo root:
 
 ```bash
+dotnet run --project examples/hello-intentum
 dotnet run --project examples/fraud-intent
 dotnet run --project examples/customer-intent
 dotnet run --project examples/greenwashing-intent

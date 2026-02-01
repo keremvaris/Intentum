@@ -8,14 +8,9 @@ namespace Intentum.Sample.Web.Api;
 /// Wraps an intent model and downgrades confidence by one level (Certain→High, High→Medium, Medium→Low, Low→Low).
 /// Used in the Playground to show how different "model strictness" leads to different policy decisions (Allow vs Observe/Block).
 /// </summary>
-internal sealed class StrictConfidenceIntentModel : IIntentModel
+internal sealed class StrictConfidenceIntentModel(IIntentModel inner) : IIntentModel
 {
-    private readonly IIntentModel _inner;
-
-    public StrictConfidenceIntentModel(IIntentModel inner)
-    {
-        _inner = inner ?? throw new ArgumentNullException(nameof(inner));
-    }
+    private readonly IIntentModel _inner = inner ?? throw new ArgumentNullException(nameof(inner));
 
     public Intent Infer(BehaviorSpace behaviorSpace, BehaviorVector? precomputedVector = null)
     {

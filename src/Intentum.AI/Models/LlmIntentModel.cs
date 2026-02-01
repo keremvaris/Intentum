@@ -3,45 +3,33 @@ using Intentum.AI.Similarity;
 using Intentum.Core.Behavior;
 using Intentum.Core.Contracts;
 using Intentum.Core.Intents;
+using Intentum.Core.Pipeline;
 
 namespace Intentum.AI.Models;
 
 /// <summary>
 /// AI-assisted intent inference using embeddings and similarity scoring.
+/// Uses the resolution pipeline internally (signal → vector → LLM inference → confidence).
 /// Uses dimension counts as weights when the engine supports it; uses time decay when the engine implements ITimeAwareSimilarityEngine.
 /// </summary>
-public sealed class LlmIntentModel(
-    IIntentEmbeddingProvider embeddingProvider,
-    IIntentSimilarityEngine similarityEngine) : IIntentModel
+public sealed class LlmIntentModel : IIntentModel
 {
-    public Intent Infer(BehaviorSpace behaviorSpace, BehaviorVector? precomputedVector = null)
+    private readonly IIntentModel _pipeline;
+
+    /// <summary>
+    /// Creates an LLM intent model with the given embedding provider and similarity engine.
+    /// </summary>
+    public LlmIntentModel(
+        IIntentEmbeddingProvider embeddingProvider,
+        IIntentSimilarityEngine similarityEngine)
     {
-        var vector = precomputedVector ?? behaviorSpace.ToVector();
-
-        var embeddings = vector.Dimensions.Keys
-            .Select(embeddingProvider.Embed)
-            .ToList();
-
-        double score;
-        if (similarityEngine is ITimeAwareSimilarityEngine timeAware)
-            score = timeAware.CalculateIntentScoreWithTimeDecay(behaviorSpace, embeddings);
-        else
-            score = similarityEngine.CalculateIntentScore(embeddings, vector.Dimensions);
-
-        var confidence = IntentConfidence.FromScore(score);
-
-        var signals = embeddings.Select(e =>
-            new IntentSignal(
-                Source: "ai",
-                Description: e.Source,
-                Weight: e.Score))
-            .ToList();
-
-        return new Intent(
-            Name: "AI-Inferred-Intent",
-            Signals: signals,
-            Confidence: confidence,
-            Reasoning: null
-        );
+        var step = new LlmInferenceStep(
+            embeddingProvider ?? throw new ArgumentNullException(nameof(embeddingProvider)),
+            similarityEngine ?? throw new ArgumentNullException(nameof(similarityEngine)));
+        _pipeline = new IntentResolutionPipeline(step);
     }
+
+    /// <inheritdoc />
+    public Intent Infer(BehaviorSpace behaviorSpace, BehaviorVector? precomputedVector = null)
+        => _pipeline.Infer(behaviorSpace, precomputedVector);
 }

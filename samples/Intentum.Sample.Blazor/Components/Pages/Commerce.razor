@@ -1,0 +1,149 @@
+@page "/commerce"
+@rendermode InteractiveServer
+@using System.Text.Json.Serialization
+@inject HttpClient Http
+@inject NavigationManager Navigation
+
+<PageTitle>E-Ticaret & Sipariş</PageTitle>
+
+<div class="page-card">
+    <h2 style="margin: 0 0 0.25rem 0;">E-Ticaret & Sipariş</h2>
+    <p class="subtitle" style="margin: 0;">Intentum'un sipariş/checkout akışında niyet ve risk değerlendirmesi nasıl kullanılabileceğini gösteren demo. <InfoIcon Text="@(_commerceInfoText)" /></p>
+</div>
+
+<div class="page-card commerce-5n1k">
+    <h3 class="page-card h3" style="margin: 0 0 0.75rem 0;">Bu demo ne anlama geliyor? (5N1K) <InfoIcon Text="Sayfanın amacını kısa cevaplarla özetler: Ne, Neden, Nerede, Ne zaman, Nasıl, Kim." /></h3>
+    <ul class="commerce-5n1k-list">
+        <li><strong>Ne:</strong> Sipariş oluşturma API'si + Intentum ile niyet/risk değerlendirmesi fikri.</li>
+        <li><strong>Neden:</strong> Sahte sipariş, bot, dolandırıcılık veya anormal davranışı tespit etmek; otomatik onay, inceleme veya red kararı vermek.</li>
+        <li><strong>Nerede:</strong> Checkout / sipariş onayı aşamasında, backend'de (sepetteki ürünler + müşteri davranışı birlikte değerlendirilir).</li>
+        <li><strong>Ne zaman:</strong> Müşteri «Siparişi tamamla» veya «Öde» butonuna bastığında; ödeme öncesi veya sonrası politika kurallarına göre.</li>
+        <li><strong>Nasıl:</strong> Müşteri davranışı (geçmiş siparişler, oturum hızı, cihaz) + sipariş bağlamı (tutar, ürün tipi) Intentum'a gider → niyet skoru ve politika kararı (Allow / Review / Block) döner → checkout buna göre ilerler veya manuel incelemeye alınır.</li>
+        <li><strong>Kim:</strong> E-ticaret platformları, marketplace'ler, perakende backend ekipleri; dolandırıcılık önleme veya kullanıcı niyeti analizi için.</li>
+    </ul>
+</div>
+
+<div class="page-card">
+    <h3 class="page-card h3" style="margin: 0 0 0.5rem 0;">Bu akışta Intentum nerede? <InfoIcon Text="Gerçek sistemde: Sepet → Checkout → Backend sipariş + davranış verisini Intentum'a gönderir → Niyet/risk skoru ve karar (Allow/Review/Block) döner → Sipariş onaylanır, ertelenir veya reddedilir. Bu demo'da sadece sipariş oluşturma simüle ediliyor; Intentum entegrasyonu eklenebilir." /></h3>
+    <p class="muted" style="margin: 0;">Sepet → Checkout → <strong>[Intentum: niyet/risk]</strong> → Onay / İnceleme / Red. Bu sayfada sadece sipariş oluşturma adımı gösteriliyor; canlıda bu adımda Intentum çağrılır ve karar buna göre verilir.</p>
+</div>
+
+<div class="page-card">
+    <h3 class="page-card h3" style="margin: 0 0 0.5rem 0;">Sipariş girişi <InfoIcon Text="Ürün kodu, miktar ve müşteri kodu girip Sipariş ver ile API çağrısı yapın. Aşağıdaki örnek senaryolarla formu hızlıca doldurup farklı durumları deneyebilirsiniz." /></h3>
+    <div class="commerce-form">
+        <div class="commerce-field">
+            <label>Ürün kodu</label>
+            <input type="text" @bind="_productId" placeholder="örn. PROD-001" />
+        </div>
+        <div class="commerce-field">
+            <label>Miktar</label>
+            <input type="number" @bind="_quantity" min="1" max="999" />
+        </div>
+        <div class="commerce-field">
+            <label>Müşteri kodu</label>
+            <input type="text" @bind="_customerId" placeholder="örn. CUST-001" />
+        </div>
+    </div>
+    <p class="muted" style="margin: 0.5rem 0 0.75rem 0; font-size: 0.9rem;">Örnek senaryolar (formu doldurur):</p>
+    <div class="commerce-scenarios">
+        <button type="button" class="commerce-scenario-btn" @onclick="@(() => FillScenario("daily"))">Günlük alışveriş</button>
+        <button type="button" class="commerce-scenario-btn" @onclick="@(() => FillScenario("bulk"))">Toplu sipariş</button>
+        <button type="button" class="commerce-scenario-btn" @onclick="@(() => FillScenario("new"))">Yeni müşteri</button>
+        <button type="button" class="commerce-scenario-btn" @onclick="@(() => FillScenario("high"))">Yüksek tutar</button>
+    </div>
+    <div style="margin-top: 1rem;">
+        <button type="button" class="commerce-submit-btn" @onclick="PlaceOrder" disabled="@_loading">Sipariş ver</button>
+    </div>
+</div>
+
+@if (_loading)
+{
+    <div class="page-card"><p class="muted">Sipariş oluşturuluyor…</p></div>
+}
+@if (_error != null)
+{
+    <div class="page-card"><p class="error">@_error</p></div>
+}
+@if (_result != null)
+{
+    <div class="page-card">
+        <h3 class="page-card h3" style="margin: 0 0 0.5rem 0;">Sipariş oluşturuldu</h3>
+        <div class="commerce-result">
+            <p><strong>Sipariş no:</strong> <code>@_result.OrderId</code></p>
+            <p><strong>Ürün:</strong> @_result.ProductId · <strong>Miktar:</strong> @_result.Quantity adet</p>
+        </div>
+        <div class="commerce-note">
+            <strong>Gerçek uygulamada:</strong> Bu adımda Intentum, davranış + sipariş bağlamına göre niyet/risk skoru üretir ve politika kararı (Allow / İnceleme / Red) döner; checkout buna göre ilerler veya manuel incelemeye alınır.
+        </div>
+    </div>
+}
+
+@code {
+    private static readonly string _commerceInfoText = "Bu sayfa e-ticaret senaryosunda Intentum kullanımını örnekler: Sipariş oluşturma API'si ile checkout adımı simüle edilir. Canlıda bu noktada Intentum niyet/risk değerlendirmesi yapılır; Allow / Review / Block kararına göre sipariş onaylanır veya ertelenir.";
+
+    private string _productId = "PROD-001";
+    private int _quantity = 1;
+    private string _customerId = "CUST-001";
+    private bool _loading;
+    private string? _error;
+    private PlaceOrderResultDto? _result;
+
+    private void FillScenario(string key)
+    {
+        switch (key)
+        {
+            case "daily":
+                _productId = "PROD-001";
+                _quantity = 1;
+                _customerId = "CUST-001";
+                break;
+            case "bulk":
+                _productId = "PROD-002";
+                _quantity = 50;
+                _customerId = "CUST-001";
+                break;
+            case "new":
+                _productId = "PROD-001";
+                _quantity = 2;
+                _customerId = "CUST-NEW";
+                break;
+            case "high":
+                _productId = "PROD-PREM";
+                _quantity = 5;
+                _customerId = "CUST-VIP";
+                break;
+        }
+        StateHasChanged();
+    }
+
+    private string GetApiBase()
+    {
+        return new Uri(Navigation.BaseUri).GetLeftPart(UriPartial.Authority);
+    }
+
+    private async Task PlaceOrder()
+    {
+        _loading = true;
+        _error = null;
+        _result = null;
+        StateHasChanged();
+        try
+        {
+            var baseUri = GetApiBase();
+            var body = new { productId = _productId, quantity = _quantity, customerId = _customerId };
+            var opts = new System.Text.Json.JsonSerializerOptions { PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase };
+            var res = await Http.PostAsJsonAsync(baseUri + "/api/orders", body, opts);
+            if (res.IsSuccessStatusCode)
+                _result = await res.Content.ReadFromJsonAsync<PlaceOrderResultDto>();
+            else
+                _error = res.ReasonPhrase ?? "Sipariş oluşturulamadı.";
+        }
+        catch (Exception ex) { _error = ex.Message; }
+        finally { _loading = false; StateHasChanged(); }
+    }
+
+    private sealed record PlaceOrderResultDto(
+        [property: JsonPropertyName("orderId")] string OrderId,
+        [property: JsonPropertyName("productId")] string ProductId,
+        [property: JsonPropertyName("quantity")] int Quantity);
+}

@@ -1,0 +1,151 @@
+@page "/sandbox"
+@rendermode InteractiveServer
+@using System.Text.Json.Serialization
+@inject HttpClient Http
+@inject NavigationManager Navigation
+
+<PageTitle>Playground</PageTitle>
+
+<div class="page-card">
+    <div class="card-header-row">
+        <h2 style="margin: 0; font-size: 1.35rem;">Playground</h2>
+        <InfoIcon Text="@("Bu sayfa Intentum'un çekirdek işlevini dener: Davranış olayları (actor, action) girersiniz; tek model ile Infer veya birden fazla model ile Karşılaştır yaparsınız. Sonuç: niyet adı, güven, politika kararı. Açıkla ile neden bu karar verildiğini görebilirsiniz.")" />
+    </div>
+    <p class="subtitle" style="margin: 0.5rem 0 1rem 0;">Aynı davranış, farklı modeller → Infer veya Modelleri karşılaştır.</p>
+
+    <div class="card" style="padding: 1.25rem; margin-bottom: 1rem;">
+        <div class="card-header-row">
+            <h3 class="page-card h3" style="margin: 0 0 0.5rem 0;">Olay girişi</h3>
+            <InfoIcon Text="@("JSON formatında davranış olayları: her öğe actor ve action içermeli. Gönder (Infer): Varsayılan model ile tek çıkarım. Modelleri karşılaştır: Default, Mock, Strict modelleri aynı olaylarla çalıştırır; farklı niyet veya karar görebilirsiniz. Replay: Son gönderilen olayları tekrar gönderir.")" />
+        </div>
+        <div class="dashboard-toolbar" style="margin-bottom: 0;">
+            <label>Olaylar (JSON) <textarea @bind="_eventsJson" rows="4" style="width: 100%; max-width: 500px;" placeholder='[{"actor":"user","action":"login"},{"actor":"user","action":"retry"}]'></textarea></label>
+        </div>
+        <div class="playground-buttons" style="margin-top: 0.75rem;">
+            <button type="button" @onclick="Infer" disabled="@_loading">Gönder (Infer)</button>
+            <button type="button" @onclick="Compare" disabled="@_loading">Modelleri karşılaştır</button>
+            <button type="button" @onclick="Replay" disabled="@(_lastEvents == null || _loading)">Replay</button>
+            <NavLink href="explain" class="action-btn action-btn-secondary">Açıkla</NavLink>
+        </div>
+    </div>
+
+    @if (_loading) { <p class="muted">Yükleniyor…</p> }
+    @if (_error != null) { <p class="error">@_error</p> }
+    @if (_result != null && _compareResults == null)
+    {
+        <div class="card page-card">
+            <div class="card-header-row">
+                <h3 style="margin: 0;">Sonuç (Infer)</h3>
+                <InfoIcon Text="Tek model çıkarımı sonucu: Karar (Allow/Block/Warn vb.), Güven seviyesi, History Id (kayıt kimliği). Bu sonucu Explain sayfasında aynı olaylarla açıklayabilirsiniz." />
+            </div>
+            <p><strong>Karar:</strong> @_result.Decision</p>
+            <p><strong>Güven:</strong> @_result.Confidence</p>
+            <p><strong>History Id:</strong> @_result.HistoryId</p>
+        </div>
+    }
+    @if (_compareResults != null)
+    {
+        <div class="page-card">
+            <div class="card-header-row">
+                <h3 class="section-subtitle" style="margin: 0;">Model karşılaştırması</h3>
+                <InfoIcon Text="Aynı olaylar üzerinde Default, Mock ve Strict modellerinin çıktıları. Her kart: model adı, çıkarılan intent, güven skoru, politika kararı. Modeller farklı güven veya kural davranışı nedeniyle farklı karar verebilir." />
+            </div>
+            <div class="compare-cards">
+                @foreach (var r in _compareResults)
+                {
+                    <div class="card compare-card">
+                        <h4>@r.Provider</h4>
+                        <p><strong>Intent:</strong> @r.IntentName</p>
+                        <p><strong>Güven:</strong> @r.ConfidenceLevel (@r.ConfidenceScore.ToString("P0"))</p>
+                        <p><strong>Karar:</strong> <span class="badge">@r.Decision</span></p>
+                    </div>
+                }
+            </div>
+        </div>
+    }
+</div>
+
+@code {
+    private string _eventsJson = "[{\"actor\":\"user\",\"action\":\"login\"},{\"actor\":\"user\",\"action\":\"retry\"}]";
+    private string? _lastEvents;
+    private bool _loading;
+    private string? _error;
+    private InferResultDto? _result;
+    private IReadOnlyList<CompareResultDto>? _compareResults;
+
+    private string GetApiBase() => new Uri(Navigation.BaseUri).GetLeftPart(UriPartial.Authority);
+
+    private async Task DoInfer(string json)
+    {
+        _loading = true;
+        _error = null;
+        _result = null;
+        _compareResults = null;
+        StateHasChanged();
+        try
+        {
+            var events = System.Text.Json.JsonSerializer.Deserialize<System.Text.Json.JsonElement[]>(json);
+            if (events == null || events.Length == 0) { _error = "En az bir olay girin."; return; }
+            var body = new { events, entityId = "Playground" };
+            var res = await Http.PostAsJsonAsync(GetApiBase() + "/api/intent/infer", body);
+            res.EnsureSuccessStatusCode();
+            _result = await res.Content.ReadFromJsonAsync<InferResultDto>();
+            _lastEvents = json;
+        }
+        catch (Exception ex)
+        {
+            _error = ex.Message;
+        }
+        finally
+        {
+            _loading = false;
+            StateHasChanged();
+        }
+    }
+
+    private async Task Infer() => await DoInfer(_eventsJson);
+
+    private async Task Compare()
+    {
+        _loading = true;
+        _error = null;
+        _result = null;
+        _compareResults = null;
+        StateHasChanged();
+        try
+        {
+            var events = System.Text.Json.JsonSerializer.Deserialize<EventItem[]>(_eventsJson);
+            if (events == null || events.Length == 0) { _error = "En az bir olay girin."; return; }
+            var body = new { events = events.Select(e => new { e.Actor, e.Action }).ToList() };
+            var res = await Http.PostAsJsonAsync(GetApiBase() + "/api/intent/playground/compare", body);
+            res.EnsureSuccessStatusCode();
+            var data = await res.Content.ReadFromJsonAsync<CompareResponseDto>();
+            _compareResults = data?.Results ?? Array.Empty<CompareResultDto>();
+            _lastEvents = _eventsJson;
+        }
+        catch (Exception ex)
+        {
+            _error = ex.Message;
+        }
+        finally
+        {
+            _loading = false;
+            StateHasChanged();
+        }
+    }
+
+    private async Task Replay()
+    {
+        if (_lastEvents != null) await DoInfer(_lastEvents);
+    }
+
+    private sealed record EventItem(string Actor, string Action);
+    private sealed record InferResultDto(string Decision, string Confidence, string? HistoryId);
+    private sealed record CompareResultDto(
+        [property: JsonPropertyName("provider")] string Provider,
+        [property: JsonPropertyName("intentName")] string IntentName,
+        [property: JsonPropertyName("confidenceLevel")] string ConfidenceLevel,
+        [property: JsonPropertyName("confidenceScore")] double ConfidenceScore,
+        [property: JsonPropertyName("decision")] string Decision);
+    private sealed record CompareResponseDto([property: JsonPropertyName("results")] IReadOnlyList<CompareResultDto>? Results);
+}

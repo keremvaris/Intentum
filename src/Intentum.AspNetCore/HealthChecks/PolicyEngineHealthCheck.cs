@@ -10,13 +10,12 @@ namespace Intentum.AspNetCore.HealthChecks;
 /// </summary>
 public sealed class PolicyEngineHealthCheck : IHealthCheck
 {
-    public async Task<HealthCheckResult> CheckHealthAsync(
+    public Task<HealthCheckResult> CheckHealthAsync(
         HealthCheckContext context,
         CancellationToken cancellationToken = default)
     {
         try
         {
-            // Create a test intent and policy
             var testIntent = new Intent(
                 Name: "HealthCheckIntent",
                 Signals: new List<IntentSignal>(),
@@ -28,22 +27,17 @@ public sealed class PolicyEngineHealthCheck : IHealthCheck
                     i => i.Confidence.Level == "High",
                     PolicyDecision.Allow));
 
-            // Test policy evaluation
             var decision = IntentPolicyEngine.Evaluate(testIntent, testPolicy);
-
             if (decision == PolicyDecision.Allow)
-            {
-                return HealthCheckResult.Healthy("Policy engine is healthy");
-            }
-
-            return HealthCheckResult.Degraded(
-                $"Policy engine returned unexpected decision: {decision}");
+                return Task.FromResult(HealthCheckResult.Healthy("Policy engine is healthy"));
+            return Task.FromResult(HealthCheckResult.Degraded(
+                $"Policy engine returned unexpected decision: {decision}"));
         }
         catch (Exception ex)
         {
-            return HealthCheckResult.Unhealthy(
+            return Task.FromResult(HealthCheckResult.Unhealthy(
                 "Policy engine health check failed",
-                ex);
+                ex));
         }
     }
 }

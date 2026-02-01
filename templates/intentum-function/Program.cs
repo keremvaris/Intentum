@@ -4,13 +4,12 @@ using Intentum.AI.Models;
 using Intentum.AI.Similarity;
 using Intentum.Core.Contracts;
 using Intentum.Runtime.Policy;
-using Microsoft.Azure.Functions.Worker;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 
 var host = new HostBuilder()
     .ConfigureFunctionsWorkerDefaults()
-    .ConfigureServices((context, services) =>
+    .ConfigureServices((_, services) =>
     {
         services.AddSingleton<IIntentEmbeddingProvider, MockEmbeddingProvider>();
         services.AddSingleton<IIntentSimilarityEngine, SimpleAverageSimilarityEngine>();

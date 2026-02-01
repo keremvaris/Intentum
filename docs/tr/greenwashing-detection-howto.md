@@ -170,8 +170,8 @@ Web örneği UI ve HTTP API ile tam greenwashing akışı içerir.
 dotnet run --project samples/Intentum.Sample.Web
 ```
 
-- **UI:** http://localhost:5150/ → **Örnekler** → **Greenwashing tespiti**
-- **API dokümanları:** http://localhost:5150/scalar
+- **UI:** http://localhost:5000/ → **Örnekler** → **Greenwashing tespiti**
+- **API dokümanları:** http://localhost:5000/scalar
 
 **Endpoint'ler:**
 

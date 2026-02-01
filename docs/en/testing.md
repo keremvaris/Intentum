@@ -47,7 +47,8 @@ dotnet test tests/Intentum.Tests/Intentum.Tests.csproj -v n
 | **Webhook / Events** | **WebhookIntentEventHandler**: AddWebhook options, HandleAsync posts to mock HttpClient; **AddIntentumEvents** DI registration. |
 | **Experiments** | **IntentExperiment**: AddVariant, SplitTraffic, RunAsync with mock model/policy. |
 | **Simulation** | **BehaviorSpaceSimulator**: FromSequence, GenerateRandom (with seed). |
-| **Explainability** | **IntentExplainer**: GetSignalContributions, GetExplanation. |
+| **Explainability** | **IntentExplainer**: GetSignalContributions, GetExplanation. **IntentTreeExplainer**: GetIntentTree (decision tree, matched rule, signal nodes). |
+| **Policy observability** | **DecideWithExecutionLog**: execution record (matched rule, intent name, decision, duration, success, exception); **DecideWithMetrics** consistency. |
 | **Multi-tenancy** | **TenantAwareBehaviorSpaceRepository**: SaveAsync injects TenantId, GetByIdAsync filters by tenant; uses in-memory repo. |
 | **Versioning** | **PolicyVersionTracker**: Add, Current, Rollback, Rollforward, SetCurrent; **VersionedPolicy**. |
 

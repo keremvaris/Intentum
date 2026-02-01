@@ -316,13 +316,23 @@ explainForm?.addEventListener("submit", async (e) => {
       el.innerHTML = `<pre class="result err fade-in">${JSON.stringify(data, null, 2)}</pre>`;
       return;
     }
-    const rows = (data.signalContributions || []).map(
+    const contribs = data.signalContributions || [];
+    const rows = contribs.map(
       (c) => `<tr><td>${escapeHtml(c.source)}</td><td>${escapeHtml(c.description)}</td><td>${c.weight}</td><td>${c.contributionPercent != null ? c.contributionPercent.toFixed(1) + "%" : "-"}</td></tr>`
     ).join("");
+    const bars = contribs.map(
+      (c) => {
+        const pct = c.contributionPercent != null ? Math.min(100, Math.max(0, c.contributionPercent)) : 0;
+        return `<div class="contrib-bar-row"><span class="contrib-label">${escapeHtml(c.description)}</span><div class="contrib-bar-wrap"><div class="contrib-bar" style="width:${pct}%"></div><span class="contrib-pct">${pct.toFixed(0)}%</span></div></div>`;
+      }
+    ).join("");
+    const reasoningHtml = data.reasoning ? `<p class="reasoning"><strong>Kural / gerekçe:</strong> ${escapeHtml(data.reasoning)}</p>` : "";
     el.innerHTML = `
-      <div class="fade-in">
-        <p><strong>Niyet</strong> ${escapeHtml(data.intentName)} · <strong>Güven</strong> ${escapeHtml(data.confidence)}</p>
+      <div class="fade-in explain-result">
+        <p><strong>Niyet</strong> ${escapeHtml(data.intentName)} · <strong>Güven</strong> ${escapeHtml(data.confidence)}${data.confidenceScore != null ? ` (${Number(data.confidenceScore).toFixed(2)})` : ""}</p>
+        ${reasoningHtml}
         <p class="subtitle">${escapeHtml(data.explanation || "")}</p>
+        <div class="contrib-bars">${bars || "<p class=\"empty\">Sinyal katkısı yok</p>"}</div>
         <div class="table-wrap">
           <table class="signals">
             <thead><tr><th>Kaynak</th><th>Açıklama</th><th>Ağırlık</th><th>Katkı %</th></tr></thead>
@@ -677,6 +687,14 @@ function setMonitoringDates(from, to) {
   const toEl = document.getElementById("mon-to");
   if (fromEl) fromEl.value = toLocalISO(from);
   if (toEl) toEl.value = toLocalISO(to);
+  const graphFrom = document.getElementById("graph-from");
+  const graphTo = document.getElementById("graph-to");
+  const heatmapFrom = document.getElementById("heatmap-from");
+  const heatmapTo = document.getElementById("heatmap-to");
+  if (graphFrom) graphFrom.value = toLocalISO(from);
+  if (graphTo) graphTo.value = toLocalISO(to);
+  if (heatmapFrom) heatmapFrom.value = toLocalISO(from);
+  if (heatmapTo) heatmapTo.value = toLocalISO(to);
 }
 
 function getMonitoringDates() {
@@ -879,6 +897,81 @@ function updateExportLinks() {
 
 document.getElementById("export-json")?.addEventListener("click", () => updateExportLinks());
 document.getElementById("export-csv")?.addEventListener("click", () => updateExportLinks());
+
+/* --- Intent Graph: fetch graph snapshot and render nodes/edges --- */
+async function loadGraph() {
+  const entityId = document.getElementById("graph-entity-id")?.value?.trim() || "IntentumSampleWeb";
+  const fromEl = document.getElementById("graph-from");
+  const toEl = document.getElementById("graph-to");
+  const from = fromEl?.value ? new Date(fromEl.value) : defaultFrom();
+  const to = toEl?.value ? new Date(toEl.value) : defaultTo();
+  const fromStr = encodeURIComponent(from.toISOString());
+  const toStr = encodeURIComponent(to.toISOString());
+  const nodesEl = document.getElementById("graph-nodes");
+  const edgesEl = document.getElementById("graph-edges");
+  if (!nodesEl || !edgesEl) return;
+  nodesEl.innerHTML = "<p class=\"muted\">Yükleniyor…</p>";
+  edgesEl.textContent = "";
+  try {
+    const res = await api(`/api/intent/analytics/graph/${encodeURIComponent(entityId)}?from=${fromStr}&to=${toStr}`);
+    const data = await res.json();
+    if (!res.ok) {
+      nodesEl.innerHTML = `<p class="result err">${escapeHtml(JSON.stringify(data))}</p>`;
+      return;
+    }
+    const nodes = data.nodes || [];
+    const edges = data.edges || [];
+    nodesEl.innerHTML = nodes.length === 0
+      ? "<p class=\"muted\">Bu pencerede node yok. Entity ID ve tarih aralığını kontrol edin.</p>"
+      : `<div class="graph-nodes-list"><table class="history-table"><thead><tr><th>Id</th><th>Niyet</th><th>Güven (skor)</th><th>Seviye</th><th>Zaman</th></tr></thead><tbody>${
+          nodes.map((n) => `<tr title="Confidence: ${n.confidenceScore}"><td><code>${escapeHtml(n.id)}</code></td><td>${escapeHtml(n.intentName)}</td><td>${n.confidenceScore?.toFixed(2) ?? "-"}</td><td>${escapeHtml(n.confidenceLevel ?? "")}</td><td>${n.recordedAt ? new Date(n.recordedAt).toLocaleString("tr-TR") : ""}</td></tr>`).join("")
+        }</tbody></table></div>`;
+    edgesEl.textContent = edges.length === 0 ? "Geçiş yok." : `Geçişler: ${edges.length} (${edges.map((e) => e.fromNodeId + " → " + e.toNodeId).join(", ")})`;
+  } catch (err) {
+    nodesEl.innerHTML = `<p class="result err">${escapeHtml(err.message)}</p>`;
+  }
+}
+
+document.getElementById("graph-load")?.addEventListener("click", loadGraph);
+
+/* --- Confidence Heatmap: fetch timeline and render intent × time grid --- */
+async function loadHeatmap() {
+  const entityId = document.getElementById("heatmap-entity-id")?.value?.trim() || "IntentumSampleWeb";
+  const fromEl = document.getElementById("heatmap-from");
+  const toEl = document.getElementById("heatmap-to");
+  const from = fromEl?.value ? new Date(fromEl.value) : defaultFrom();
+  const to = toEl?.value ? new Date(toEl.value) : defaultTo();
+  const fromStr = encodeURIComponent(from.toISOString());
+  const toStr = encodeURIComponent(to.toISOString());
+  const container = document.getElementById("heatmap-container");
+  if (!container) return;
+  container.innerHTML = "<p class=\"muted\">Yükleniyor…</p>";
+  try {
+    const res = await api(`/api/intent/analytics/timeline/${encodeURIComponent(entityId)}?from=${fromStr}&to=${toStr}`);
+    const data = await res.json();
+    if (!res.ok) {
+      container.innerHTML = `<p class="result err">${escapeHtml(JSON.stringify(data))}</p>`;
+      return;
+    }
+    const points = data.points || [];
+    if (points.length === 0) {
+      container.innerHTML = "<p class=\"muted\">Bu pencerede veri yok. Entity ID ve tarih aralığını kontrol edin.</p>";
+      return;
+    }
+    const threshold = 0.6;
+    const rows = points.map((p) => {
+      const score = p.confidenceScore ?? 0;
+      const level = (score >= 0.85 ? "high" : score >= 0.6 ? "med" : score >= 0.3 ? "low" : "vlow");
+      const time = p.recordedAt ? new Date(p.recordedAt).toLocaleString("tr-TR") : "";
+      return `<tr><td>${escapeHtml(p.intentName ?? "")}</td><td>${time}</td><td class="heatmap-cell heatmap-${level}" title="Confidence: ${score}">${(score * 100).toFixed(0)}%</td><td>${escapeHtml(p.confidenceLevel ?? "")}</td></tr>`;
+    }).join("");
+    container.innerHTML = `<div class="table-wrap"><table class="heatmap-table"><thead><tr><th>Niyet</th><th>Zaman</th><th>Güven</th><th>Seviye</th></tr></thead><tbody>${rows}</tbody></table></div><p class="muted">Eşik: &lt;30% düşük, 30–60% orta, 60–85% yüksek, ≥85% çok yüksek.</p>`;
+  } catch (err) {
+    container.innerHTML = `<p class="result err">${escapeHtml(err.message)}</p>`;
+  }
+}
+
+document.getElementById("heatmap-load")?.addEventListener("click", loadHeatmap);
 
 /* --- Greenwashing: son analizler (gerçek zamanlı mock) --- */
 let greenwashingRecentInterval = null;

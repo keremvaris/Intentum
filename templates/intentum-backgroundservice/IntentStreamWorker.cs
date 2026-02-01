@@ -6,7 +6,7 @@ using Intentum.Runtime.Policy;
 
 namespace Intentum.BackgroundService;
 
-public sealed class IntentStreamWorker : BackgroundService
+public sealed class IntentStreamWorker : Microsoft.Extensions.Hosting.BackgroundService
 {
     private readonly IBehaviorStreamConsumer _consumer;
     private readonly IIntentModel _model;
@@ -32,7 +32,7 @@ public sealed class IntentStreamWorker : BackgroundService
             foreach (var e in batch.Events)
                 space.Observe(e);
             var intent = _model.Infer(space);
-            var decision = intent.Decide(_policy);
+            _ = intent.Decide(_policy);
             // TODO: persist or publish (intent, decision); e.g. IIntentHistoryRepository, message bus
         }
     }

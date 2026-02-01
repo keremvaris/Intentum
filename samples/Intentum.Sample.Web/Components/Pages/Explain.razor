@@ -1,0 +1,208 @@
+@page "/explain"
+@using System.Text.Json.Serialization
+@inject HttpClient Http
+@inject NavigationManager Navigation
+@inject IJSRuntime JSRuntime
+@implements IAsyncDisposable
+
+<PageTitle>Explainability</PageTitle>
+
+<h2>Explainability</h2>
+<p class="subtitle">Neden bu intent seçildi? Sinyal katkıları ve politika ağacı.</p>
+
+<p class="muted">Olayları girin ve "Açıkla" ile sinyal katkılarını ve politika izini görün.</p>
+
+<div class="dashboard-toolbar">
+    <label>Olaylar (JSON) <textarea @bind="_eventsJson" rows="3" style="width: 100%; max-width: 400px;" placeholder='[{"actor":"user","action":"login"},{"actor":"user","action":"retry"}]'></textarea></label>
+    <button type="button" @onclick="RunExplain">Açıkla</button>
+</div>
+
+@if (_loading)
+{
+    <p class="muted">Yükleniyor…</p>
+}
+@if (_error != null)
+{
+    <p class="error">@_error</p>
+}
+@if (_explanation != null || _treeResult != null)
+{
+    <div class="explain-tabs">
+        <button type="button" class="@(_viewTab == "signals" ? "active" : "")" @onclick="@(() => _viewTab = "signals")">Sinyal katkıları</button>
+        <button type="button" class="@(_viewTab == "tree" ? "active" : "")" @onclick="@(() => _viewTab = "tree")">Politika ağacı</button>
+    </div>
+
+    @if (_viewTab == "signals" && _explanation != null)
+    {
+        <div class="card" style="margin-bottom: 1rem;">
+            <h3>Intent: @_explanation.IntentName</h3>
+            <p><strong>Güven:</strong> @_explanation.Confidence (@_explanation.ConfidenceScore.ToString("P2"))</p>
+            @if (!string.IsNullOrEmpty(_explanation.Explanation))
+            {
+                <p><strong>Açıklama:</strong> @_explanation.Explanation</p>
+            }
+        </div>
+        @if (_explanation.SignalContributions?.Count > 0)
+        {
+            <h3 class="section-subtitle">Sinyal katkıları</h3>
+            <div id="explain-bar-chart" style="width: 100%; height: 250px;"></div>
+            <div class="table-wrap">
+                <table class="history-table">
+                    <thead><tr><th>Kaynak</th><th>Açıklama</th><th>Ağırlık</th><th>Katkı %</th></tr></thead>
+                    <tbody>
+                        @foreach (var c in _explanation.SignalContributions)
+                        {
+                            <tr>
+                                <td>@c.Source</td>
+                                <td>@c.Description</td>
+                                <td>@c.Weight.ToString("F4")</td>
+                                <td>@((c.ContributionPercent * 100).ToString("F1"))%</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+    }
+
+    @if (_viewTab == "tree" && _treeResult != null)
+    {
+        <h3 class="section-subtitle">Politika ağacı</h3>
+        <div class="tree-cards">
+            <div class="card tree-card">
+                <h4>Karar</h4>
+                <p class="tree-decision">@_treeResult.Decision</p>
+                @if (!string.IsNullOrEmpty(_treeResult.MatchedRuleName))
+                {
+                    <p class="muted">Kural: @_treeResult.MatchedRuleName</p>
+                }
+            </div>
+            <div class="card tree-card">
+                <h4>Intent özeti</h4>
+                <p><strong>@_treeResult.Intent?.Name</strong> — @_treeResult.Intent?.ConfidenceLevel (@(_treeResult.Intent?.ConfidenceScore.ToString("P0") ?? ""))</p>
+            </div>
+            @if (!string.IsNullOrEmpty(_treeResult.BehaviorSummary))
+            {
+                <div class="card tree-card">
+                    <h4>Davranış özeti</h4>
+                    <p class="tree-behavior">@_treeResult.BehaviorSummary</p>
+                </div>
+            }
+            @if (_treeResult.Signals?.Count > 0)
+            {
+                <div class="card tree-card tree-signals">
+                    <h4>Sinyaller</h4>
+                    <ul>
+                        @foreach (var s in _treeResult.Signals)
+                        {
+                            <li><strong>@s.Source</strong>: @s.Description (ağırlık @s.Weight.ToString("F2"))</li>
+                        }
+                    </ul>
+                </div>
+            }
+        </div>
+    }
+}
+
+@code {
+    private string _eventsJson = "[{\"actor\":\"user\",\"action\":\"login\"},{\"actor\":\"user\",\"action\":\"retry\"}]";
+    private bool _loading;
+    private string? _error;
+    private ExplainResponse? _explanation;
+    private ExplainTreeDto? _treeResult;
+    private string _viewTab = "signals";
+    private EChartsInterop? _echarts;
+    private bool _chartNeedsInit;
+
+    private async Task RunExplain()
+    {
+        _loading = true;
+        _error = null;
+        _explanation = null;
+        _treeResult = null;
+        _chartNeedsInit = false;
+        if (_echarts != null)
+        {
+            await _echarts.DisposeAsync();
+            _echarts = null;
+        }
+        StateHasChanged();
+        try
+        {
+            object[]? events;
+            try
+            {
+                events = System.Text.Json.JsonSerializer.Deserialize<object[]>(_eventsJson);
+            }
+            catch
+            {
+                _error = "Geçersiz JSON.";
+                return;
+            }
+            if (events == null || events.Length == 0)
+            {
+                _error = "En az bir olay girin.";
+                return;
+            }
+            var baseUri = new Uri(Navigation.BaseUri).GetLeftPart(UriPartial.Authority);
+            var body = new { events };
+            var opts = new System.Text.Json.JsonSerializerOptions { PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase };
+            var res = await Http.PostAsJsonAsync(baseUri + "/api/intent/explain", body, opts);
+            res.EnsureSuccessStatusCode();
+            _explanation = await res.Content.ReadFromJsonAsync<ExplainResponse>();
+            if (_explanation?.SignalContributions?.Count > 0)
+                _chartNeedsInit = true;
+
+            var treeRes = await Http.PostAsJsonAsync(baseUri + "/api/intent/explain-tree", body, opts);
+            if (treeRes.IsSuccessStatusCode)
+                _treeResult = await treeRes.Content.ReadFromJsonAsync<ExplainTreeDto>();
+        }
+        catch (Exception ex)
+        {
+            _error = ex.Message;
+        }
+        finally
+        {
+            _loading = false;
+            StateHasChanged();
+        }
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (!_chartNeedsInit || _explanation?.SignalContributions == null || _explanation.SignalContributions.Count == 0 || JSRuntime == null)
+            return;
+        _chartNeedsInit = false;
+        if (_echarts != null)
+        {
+            await _echarts.DisposeAsync();
+            _echarts = null;
+        }
+        _echarts = new EChartsInterop(JSRuntime, "explain-bar-chart");
+        await _echarts.InitAsync();
+        var data = _explanation.SignalContributions.Select((c, i) => new { value = c.ContributionPercent * 100, name = c.Source ?? c.Description ?? $"#{i}" }).ToList();
+        var option = new { tooltip = new { }, xAxis = new { type = "category", data = data.Select(d => d.name).ToList() }, yAxis = new { type = "value", name = "%" }, series = new[] { new { type = "bar", data = data.Select(d => d.value).ToList() } } };
+        await _echarts.SetOptionAsync(option);
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        if (_echarts != null)
+        {
+            await _echarts.DisposeAsync();
+            _echarts = null;
+        }
+    }
+
+    private sealed record ExplainResponse(string IntentName, string Confidence, double ConfidenceScore, string? Explanation, List<SignalContributionDto>? SignalContributions);
+    private sealed record SignalContributionDto(string? Source, string? Description, double Weight, double ContributionPercent);
+
+    private sealed record ExplainTreeDto(
+        [property: JsonPropertyName("decision")] string Decision,
+        [property: JsonPropertyName("matchedRuleName")] string? MatchedRuleName,
+        [property: JsonPropertyName("intent")] ExplainTreeIntentDto? Intent,
+        [property: JsonPropertyName("signals")] IReadOnlyList<ExplainTreeSignalDto>? Signals,
+        [property: JsonPropertyName("behaviorSummary")] string? BehaviorSummary);
+    private sealed record ExplainTreeIntentDto([property: JsonPropertyName("name")] string Name, [property: JsonPropertyName("confidenceLevel")] string ConfidenceLevel, [property: JsonPropertyName("confidenceScore")] double ConfidenceScore);
+    private sealed record ExplainTreeSignalDto([property: JsonPropertyName("source")] string Source, [property: JsonPropertyName("description")] string Description, [property: JsonPropertyName("weight")] double Weight);
+}

@@ -117,6 +117,30 @@ public class WebhookIntentEventHandlerTests
     }
 
     [Fact]
+    public async Task HandleAsync_WithIntentCreated_SendsCorrectEventType()
+    {
+        var options = new IntentumEventsOptions();
+        options.AddWebhook("https://example.com/hook", ["IntentCreated"]);
+        var capture = new CaptureHttpHandler { StatusCode = HttpStatusCode.OK };
+        var eventHandler = new WebhookIntentEventHandler(CreateHttpClientFactory(capture), Options.Create(options));
+        var payload = CreatePayload();
+
+        await eventHandler.HandleAsync(payload, IntentumEventType.IntentCreated);
+
+        Assert.Single(capture.Requests);
+        var body = await capture.Requests[0].Content!.ReadAsStringAsync();
+        Assert.Contains("IntentCreated", body);
+    }
+
+    [Fact]
+    public void IntentumEventType_IncludesTelemetryEvents()
+    {
+        Assert.Equal(IntentumEventType.IntentCreated, (IntentumEventType)2);
+        Assert.Equal(IntentumEventType.IntentResolved, (IntentumEventType)4);
+        Assert.Equal(IntentumEventType.ConfidenceChanged, (IntentumEventType)5);
+    }
+
+    [Fact]
     public void AddIntentumEvents_RegistersServices()
     {
         var services = new ServiceCollection();

@@ -1,0 +1,26 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <NoWarn>$(NoWarn);1591</NoWarn>
+    <PackageId>Intentum.Streaming.Kafka</PackageId>
+    <Authors>Intentum Contributors</Authors>
+    <Description>Kafka adapter for Intentum: consume behavior events from a topic, map to BehaviorEventBatch, with retry and error handling.</Description>
+    <PackageTags>intent;behavior;kafka;streaming;dotnet</PackageTags>
+    <RepositoryUrl>https://github.com/keremvaris/Intentum</RepositoryUrl>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Intentum.Core\Intentum.Core.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Confluent.Kafka" Version="2.8.0" />
+  </ItemGroup>
+
+</Project>
