@@ -13,7 +13,7 @@ Bu dosya **conventional commit** mesajlarından otomatik üretilir. Commit'te **
 
 ---
 
-## [unreleased]
+## [1.1.2] - 2026-02-01
 
 
 
@@ -33,6 +33,21 @@ Bu dosya **conventional commit** mesajlarından otomatik üretilir. Commit'te **
 - Increase test coverage threshold from 70% to 80% with exclusion files for low coverage areas
 - Consolidate Program.cs service registrations and middleware into ProgramConfiguration
 - Improve IntentStreamWorker comment for production usage regarding intent persistence or publishing
+
+
+
+- **Replace Array.Empty with empty array literals and improve code clarity** *(core)*
+
+- Use [] instead of Array.Empty<T>() for empty collections in multiple places for consistency
+- Refactor duplicate inline BehaviorSpace construction into a reusable method
+- Extract event processing logic in FraudLive.razor and Sustainability.razor into async helper methods
+- Change C# collection initializations from {} to [] for better readability in sample projects
+- Stabilize SonarCloud new code reference branch to master to prevent baseline drift
+- Update GitHub workflow to read sonar exclusions dynamically from properties file
+- Use "using" declaration for CancellationTokenSource to ensure proper disposal
+- Change some List initializations from new() to new [] for explicitness
+- Modify Intents and SignalContribution related code to use [] instead of Array.Empty
+- Add minor style improvements such as changing severity level in Rider settings and formatting arrays consistently
 
 
 
