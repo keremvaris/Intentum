@@ -13,7 +13,29 @@ Bu dosya **conventional commit** mesajlarından otomatik üretilir. Commit'te **
 
 ---
 
-## [unreleased]
+## [1.1.0] - 2026-02-01
+
+
+
+
+### Features
+
+- **Add UI for intent explanation, graph, and heatmap visualization** *(samples)*
+
+- Add intent contribution bars and reasoning display in web sample app
+- Implement intent graph snapshot view with nodes and edges display
+- Add confidence heatmap visualization with intent x time grid
+- Include filtering controls for date ranges in analytics dashboard
+- Update API docs for new graph endpoints and query parameters
+- Add Blazor and Web sample _Imports.razor and appsettings files
+- Provide base styles and dashboard CSS enhancements for visualization
+- Fix typo in IntentTreeExplainer method name from ExplainTree to GetIntentTree
+- Introduce BehaviorSpace sanitization utilities for GDPR compliance
+- Add unit tests for behavior event stream and sanitization logic
+- Add error boundary and layout improvements to sample apps
+- Exclude tools directory from sonarcloud analysis configuration
+
+
 
 
 
