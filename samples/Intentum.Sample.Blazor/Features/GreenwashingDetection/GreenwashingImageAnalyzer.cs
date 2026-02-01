@@ -44,6 +44,9 @@ public static class GreenwashingImageAnalyzer
     /// </summary>
     public static double ComputeGreenScore(Image<Rgba32> image)
     {
+        if (image.Width == 0 || image.Height == 0)
+            return 0;
+
         double sumR = 0, sumG = 0, sumB = 0;
         int count = 0;
         const int maxPixels = 10_000;
@@ -64,8 +67,14 @@ public static class GreenwashingImageAnalyzer
                 }
             }
         });
-        if (count == 0) return 0;
+
+        if (count == 0)
+            return 0;
+
         var total = sumR + sumG + sumB;
+        if (total <= 0)
+            return 0;
+
         return Math.Min(1.0, sumG / total * 3); // *3 so that pure green -> ~1
     }
 }

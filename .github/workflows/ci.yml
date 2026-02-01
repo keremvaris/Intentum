@@ -46,10 +46,13 @@ jobs:
           COVEXCL=$(grep '^sonar.coverage.exclusions=' .sonarcloud.properties | cut -d= -f2- | tr -d '\r')
           echo "exclusions=$EXCL" >> "$GITHUB_OUTPUT"
           echo "coverage_exclusions=$COVEXCL" >> "$GITHUB_OUTPUT"
+          echo "Exclusions length: ${#EXCL}, coverage exclusions length: ${#COVEXCL}"
 
       - name: SonarCloud begin
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+          SONAR_EXCLUSIONS: ${{ steps.sonar-props.outputs.exclusions }}
+          SONAR_COVERAGE_EXCLUSIONS: ${{ steps.sonar-props.outputs.coverage_exclusions }}
         run: |
           .sonar/scanner/dotnet-sonarscanner begin \
             /k:"${{ env.SONAR_PROJECT_KEY }}" \
@@ -57,8 +60,8 @@ jobs:
             /d:sonar.token="$SONAR_TOKEN" \
             /d:sonar.host.url="https://sonarcloud.io" \
             /d:sonar.cs.opencover.reportsPaths="${{ github.workspace }}/TestResults/coverage.opencover.xml" \
-            /d:sonar.exclusions="${{ steps.sonar-props.outputs.exclusions }}" \
-            /d:sonar.coverage.exclusions="${{ steps.sonar-props.outputs.coverage_exclusions }}"
+            /d:sonar.exclusions="$SONAR_EXCLUSIONS" \
+            /d:sonar.coverage.exclusions="$SONAR_COVERAGE_EXCLUSIONS"
 
       - name: Restore
         run: dotnet restore Intentum.slnx
