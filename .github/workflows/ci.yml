@@ -51,7 +51,8 @@ jobs:
             /d:sonar.projectBaseDir="${{ github.workspace }}" \
             /d:sonar.cs.opencover.reportsPaths="**/*.opencover.xml" \
             /d:sonar.exclusions="**/samples/**,**/examples/**,**/docs/**,**/templates/**,**/tools/**,**/.github/**,**/tests/**,**/benchmarks/**,**/BenchmarkDotNet.Artifacts/**,**/scripts/**,**/release.sh" \
-            /d:sonar.coverage.exclusions="**/Intentum.CodeGen/**,**/*ServiceCollectionExtensions.cs,**/*CachingExtensions.cs,**/MultiTenancyExtensions.cs,**/Intentum.AI.Claude/**,**/Intentum.Persistence.MongoDB/**,**/Intentum.Persistence.Redis/**,**/Intentum.MultiTenancy/**,**/*RateLimitException.cs,**/LlmIntentModelExtensions.cs,**/Intentum.AI.ONNX/**,**/Intentum.Persistence/**/Migrations/**,**/Intentum.Observability/**,**/Intentum.Analytics/**"
+            /d:sonar.coverage.exclusions="**/Intentum.CodeGen/**,**/*ServiceCollectionExtensions.cs,**/*CachingExtensions.cs,**/MultiTenancyExtensions.cs,**/Intentum.AI.Claude/**,**/Intentum.Persistence.MongoDB/**,**/Intentum.Persistence.Redis/**,**/Intentum.MultiTenancy/**,**/*RateLimitException.cs,**/LlmIntentModelExtensions.cs,**/Intentum.AI.ONNX/**,**/Intentum.Persistence/**/Migrations/**,**/Intentum.Observability/**,**/Intentum.Analytics/**,**/Intentum.Persistence.EntityFramework/**,**/Intentum.Streaming.Kafka/**,**/Intentum.AspNetCore/**,**/Intentum.Logging/**,**/Intentum.Runtime.PolicyStore/**,**/Intentum.Testing/**,**/src/**/Tests/**"
+          # coverage.exclusions: CodeGen, *Extensions, optional providers, EF/Kafka/AspNetCore/Logging/PolicyStore/Testing, src/**/Tests (see docs/test-plan.md)
           # Sonar config lives only here (no .sonarcloud.properties). New code: set in SonarCloud UI → Project Settings → New Code → Previous version.
 
       - name: Restore
