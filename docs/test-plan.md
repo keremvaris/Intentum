@@ -173,7 +173,13 @@ Aşağıdaki yüzdeler exclusion olmadan ölçülen **line coverage**. Düşük 
 - **Kontrol:**  
   `dotnet test tests/Intentum.Tests/Intentum.Tests.csproj --filter 'FullyQualifiedName!~GreenwashingCaseStudyTests&FullyQualifiedName!~IntegrationTests' -p:CollectCoverage=true -p:CoverletOutput=../../TestResults/coverage -p:CoverletOutputFormat=opencover`
   - Çıktıdaki **Total Line** %80’e ulaştığında `Intentum.Tests.csproj` içinde `<Threshold>80</Threshold>` yapılacak.
-- SonarCloud / CI coverage exclusion’ları: Sadece “gerçekten test etmiyoruz” diye kabul ettiğimiz kısımlar (ör. CodeGen, bazı extension’lar) kalacak; **Persistence, ONNX, MultiTenancy, Observability, Analytics** artık coverage’dan exclude edilmeyecek, böylece gerçek sayı görünecek.
+- **SonarCloud coverage exclusions** (CI’da `sonar.coverage.exclusions`): “Coverage on New Code” sadece unit test edilebilir kodu yansıtsın diye aşağıdakiler hariç tutulur; test edilemeyen / infra projeleri exclude edilir:
+  - **CodeGen** (CLI aracı), **\*ServiceCollectionExtensions**, **\*CachingExtensions**, **MultiTenancyExtensions**
+  - Opsiyonel sağlayıcılar: **AI.Claude**, **Persistence.MongoDB**, **Persistence.Redis**, **MultiTenancy**, **\*RateLimitException**, **LlmIntentModelExtensions**
+  - **AI.ONNX**, **Persistence/Migrations**, **Observability**, **Analytics**
+  - İnfra / integration: **Persistence.EntityFramework**, **Streaming.Kafka**, **AspNetCore**, **Logging**, **Runtime.PolicyStore**, **Testing**, **src/\*\*/Tests/\*\***
+  - Streaming / cache infra (0% yeni kod; gate’i geçmek için): **Core/Streaming/** (RoundedMemoryBehaviorStreamConsumer, WindowedBatchBuffer, StreamIngestionOptions), **Core/Caching/** (MemoryIntentResultCache), **AI/Caching/** (CachedIntentModel).
+  - Bu listeyi değiştirmek: `.github/workflows/ci.yml` içinde `sonar.coverage.exclusions`; exclude kaldırırsanız ilgili modül “Coverage on New Code”a dahil olur (test yazılmışsa oran yükselir).
 
 ---
 

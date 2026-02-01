@@ -68,9 +68,7 @@ public static class GreenwashingImageAnalyzer
             }
         });
 
-        if (count == 0)
-            return 0;
-
+        // count >= 1 here: we return early when Width/Height is 0, and the loop runs at least one iteration otherwise
         var total = sumR + sumG + sumB;
         if (total <= 0)
             return 0;
