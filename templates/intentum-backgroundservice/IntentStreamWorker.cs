@@ -33,7 +33,7 @@ public sealed class IntentStreamWorker : Microsoft.Extensions.Hosting.Background
                 space.Observe(e);
             var intent = _model.Infer(space);
             _ = intent.Decide(_policy);
-            // TODO: persist or publish (intent, decision); e.g. IIntentHistoryRepository, message bus
+            // In production: persist or publish (intent, decision) e.g. via IIntentHistoryRepository or message bus.
         }
     }
 }

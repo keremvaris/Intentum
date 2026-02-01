@@ -107,8 +107,11 @@ else
         }
     }
 
-    private static string ConfidenceClass(double score) =>
-        score < 0.4 ? "low" : score < 0.7 ? "medium" : "high";
+    private static string ConfidenceClass(double score)
+    {
+        if (score < 0.4) return "low";
+        return score < 0.7 ? "medium" : "high";
+    }
 
     private sealed record DashboardOverview(
         [property: JsonPropertyName("activeIntents")] IReadOnlyList<ActiveIntentDto>? ActiveIntents,

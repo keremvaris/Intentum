@@ -26,4 +26,4 @@ builder.Services.AddSingleton(_ => new IntentPolicyBuilder()
 builder.Services.AddHostedService<IntentStreamWorker>();
 
 var host = builder.Build();
-host.Run();
+await host.RunAsync();

@@ -15,7 +15,7 @@ public static class GreenwashingRecentStore
     public static void Add(GreenwashingRecentItem item)
     {
         Items.Enqueue(item);
-        while (Items.Count > MaxItems && Items.TryDequeue(out _)) { }
+        while (Items.Count > MaxItems && Items.TryDequeue(out _)) { /* drain until at or below MaxItems */ }
     }
 
     public static IReadOnlyList<GreenwashingRecentItem> GetRecent(int limit = 10)

@@ -531,7 +531,7 @@
             if (_liveRunning)
             {
                 await Http.PostAsync(baseUri + "/api/sustainability-simulation/stop", null);
-                _sseCts?.Cancel();
+                if (_sseCts != null) await _sseCts.CancelAsync();
             }
             else
             {
@@ -551,7 +551,8 @@
 
     private async Task ConnectSustainabilitySse()
     {
-        _sseCts?.Cancel();
+        if (_sseCts != null) await _sseCts.CancelAsync();
+        _sseCts?.Dispose();
         _sseCts = new CancellationTokenSource();
         _liveSseError = null;
         try
@@ -611,7 +612,11 @@
         return d.ToString("yyyy-MM-dd HH:mm");
     }
 
-    private static string ConfidenceClass(double score) => score < 0.4 ? "low" : score < 0.7 ? "medium" : "high";
+    private static string ConfidenceClass(double score)
+    {
+        if (score < 0.4) return "low";
+        return score < 0.7 ? "medium" : "high";
+    }
 
     private static string IntentCssClass(string intentName) => intentName switch
     {
@@ -628,16 +633,16 @@
         if (_liveEvents.Count == 0)
             return new LiveSummaryResult(DateTimeOffset.MinValue, DateTimeOffset.MinValue, "", 0, 0, "", 0, Array.Empty<IntentDistRow>(), "", "", null);
         var ordered = _liveEvents.OrderBy(e => e.SimulatedAt).ToList();
-        var first = ordered.First().SimulatedAt;
-        var last = ordered.Last().SimulatedAt;
-        var companyName = ordered.First().CompanyName;
+        var first = ordered[0].SimulatedAt;
+        var last = ordered[^1].SimulatedAt;
+        var companyName = ordered[0].CompanyName;
         var total = _liveEvents.Count;
         var avgScore = _liveEvents.Average(e => e.ConfidenceScore);
         var byIntent = _liveEvents.GroupBy(e => e.IntentName, StringComparer.OrdinalIgnoreCase)
             .Select(g => new IntentDistRow(g.Key, g.Count(), 100.0 * g.Count() / total))
             .OrderByDescending(x => x.Count)
             .ToList();
-        var dominant = byIntent.First();
+        var dominant = byIntent[0];
         var activePct = byIntent.FirstOrDefault(x => string.Equals(x.IntentName, "ActiveGreenwashing", StringComparison.OrdinalIgnoreCase))?.Percent ?? 0;
         var genuinePct = byIntent.FirstOrDefault(x => string.Equals(x.IntentName, "GenuineSustainability", StringComparison.OrdinalIgnoreCase))?.Percent ?? 0;
         var verdict = BuildVerdictText(companyName, total, dominant.IntentName, dominant.Percent, avgScore, activePct, genuinePct);
@@ -649,8 +654,8 @@
     private static Target20302050? BuildTarget20302050(IReadOnlyList<SustainabilityTimelineEventDto> ordered)
     {
         if (ordered.Count < 4) return null;
-        var first = ordered.First().SimulatedAt;
-        var last = ordered.Last().SimulatedAt;
+        var first = ordered[0].SimulatedAt;
+        var last = ordered[^1].SimulatedAt;
         var totalDays = (last - first).TotalDays;
         if (totalDays < 30) return null;
         var totalYears = totalDays / 365.25;
@@ -739,7 +744,9 @@
 
     public async ValueTask DisposeAsync()
     {
-        _sseCts?.Cancel();
+        if (_sseCts != null) await _sseCts.CancelAsync();
+        _sseCts?.Dispose();
+        _sseCts = null;
         if (_sustainabilityLineEcharts != null) await _sustainabilityLineEcharts.DisposeAsync();
     }
 

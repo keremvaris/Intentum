@@ -1,3 +1,4 @@
+using System.Security.Cryptography;
 using Intentum.Core.Behavior;
 using Intentum.Core.Contracts;
 using Intentum.Persistence.Repositories;
@@ -35,7 +36,6 @@ public sealed class FraudSimulationService(
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
-        var rnd = new Random();
         while (!stoppingToken.IsCancellationRequested)
         {
             if (!state.Running)
@@ -52,12 +52,12 @@ public sealed class FraudSimulationService(
                 var history = scope.ServiceProvider.GetRequiredService<IIntentHistoryRepository>();
                 var broadcaster = scope.ServiceProvider.GetRequiredService<SseInferenceBroadcaster>();
 
-                var count = rnd.Next(1, 4);
+                var count = RandomNumberGenerator.GetInt32(1, 4);
                 var space = new BehaviorSpace();
                 var eventsSummary = new List<string>();
                 for (var i = 0; i < count; i++)
                 {
-                    var (actor, action) = EventPool[rnd.Next(EventPool.Length)];
+                    var (actor, action) = EventPool[RandomNumberGenerator.GetInt32(EventPool.Length)];
                     space.Observe(new BehaviorEvent(actor, action, DateTimeOffset.UtcNow));
                     eventsSummary.Add($"{actor}:{action}");
                 }

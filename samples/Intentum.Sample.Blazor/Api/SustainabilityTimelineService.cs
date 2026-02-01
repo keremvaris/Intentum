@@ -1,3 +1,5 @@
+using System.Security.Cryptography;
+
 namespace Intentum.Sample.Blazor.Api;
 
 /// <summary>
@@ -34,7 +36,6 @@ public sealed class SustainabilityTimelineService(
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
-        var rnd = new Random();
         while (!stoppingToken.IsCancellationRequested)
         {
             if (!state.Running)
@@ -57,9 +58,9 @@ public sealed class SustainabilityTimelineService(
                 var activeWeight = 0.1 + greenwashBias;
                 var otherWeight = (1.0 - genuineWeight - activeWeight) / 3;
 
-                var intentIndex = WeightedRandom(rnd, genuineWeight, otherWeight, otherWeight, otherWeight);
+                var intentIndex = WeightedRandom(genuineWeight, otherWeight, otherWeight, otherWeight);
                 var intentName = Intents[intentIndex];
-                var score = 0.4 + rnd.NextDouble() * 0.5;
+                var score = 0.4 + SecureRandomDouble() * 0.5;
 
                 var ev = new SustainabilityTimelineEvent(simulatedAt, companyId, companyName, intentName, score, granularity);
                 broadcaster.Broadcast(ev);
@@ -73,9 +74,14 @@ public sealed class SustainabilityTimelineService(
         }
     }
 
-    private static int WeightedRandom(Random rnd, double w0, double w1, double w2, double w3)
+    private static double SecureRandomDouble()
     {
-        var t = rnd.NextDouble();
+        return RandomNumberGenerator.GetInt32(0, int.MaxValue) / (double)int.MaxValue;
+    }
+
+    private static int WeightedRandom(double w0, double w1, double w2, double w3)
+    {
+        var t = SecureRandomDouble();
         if (t < w0) return 0;
         t -= w0;
         if (t < w1) return 1;

@@ -50,7 +50,7 @@ jobs:
             /d:sonar.host.url="https://sonarcloud.io" \
             /d:sonar.cs.opencover.reportsPaths="${{ github.workspace }}/TestResults/coverage.opencover.xml" \
             /d:sonar.exclusions="**/samples/**,**/examples/**,**/docs/**,**/templates/**,**/.github/**,**/tests/**,**/benchmarks/**,**/BenchmarkDotNet.Artifacts/**,**/scripts/**,**/release.sh" \
-            /d:sonar.coverage.exclusions="**/Intentum.CodeGen/**,**/*ServiceCollectionExtensions.cs,**/*CachingExtensions.cs,**/Intentum.AI.Claude/**,**/Intentum.Persistence.MongoDB/**,**/Intentum.Persistence.Redis/**,**/*RateLimitException.cs,**/LlmIntentModelExtensions.cs"
+            /d:sonar.coverage.exclusions="**/Intentum.CodeGen/**,**/*ServiceCollectionExtensions.cs,**/*CachingExtensions.cs,**/MultiTenancyExtensions.cs,**/Intentum.AI.Claude/**,**/Intentum.Persistence.MongoDB/**,**/Intentum.Persistence.Redis/**,**/Intentum.MultiTenancy/**,**/*RateLimitException.cs,**/LlmIntentModelExtensions.cs,**/Intentum.AI.ONNX/**,**/Intentum.Persistence/**,**/Intentum.Observability/**,**/Intentum.Analytics/**"
 
       - name: Restore
         run: dotnet restore Intentum.slnx
@@ -58,17 +58,20 @@ jobs:
       - name: Build
         run: dotnet build Intentum.slnx --no-restore
 
-      # Coverage: coverlet.msbuild writes to fixed path so SonarCloud finds it (no GUID subdir; sonar.cs.opencover.reportsPaths does not support wildcards).
-      # Threshold=70 until test plan (docs/test-plan.md) raises coverage to 80%; no file exclusions.
-      # Exclude Integration tests (Category=Integration) and GreenwashingCaseStudyTests (require downloaded data; no DataGreenwash/HTML in CI).
-      - name: Test
+      # Coverage: coverlet.msbuild instruments at *build* time and applies ExcludeByFile. Build test project with CollectCoverage so exclusion/threshold apply; then run tests with --no-build.
+      # Threshold=80; ONNX/Persistence/MultiTenancy/Observability/Analytics excluded until test plan (docs/test-plan.md) raises real coverage.
+      - name: Build tests with coverage
         run: |
           mkdir -p TestResults
-          dotnet test tests/Intentum.Tests/Intentum.Tests.csproj --no-build \
-            --filter 'FullyQualifiedName!~GreenwashingCaseStudyTests&FullyQualifiedName!~IntegrationTests' \
+          dotnet build tests/Intentum.Tests/Intentum.Tests.csproj --no-restore \
             -p:CollectCoverage=true \
             -p:CoverletOutput=../../TestResults/coverage \
-            -p:CoverletOutputFormat=opencover \
+            -p:CoverletOutputFormat=opencover
+
+      - name: Test
+        run: |
+          dotnet test tests/Intentum.Tests/Intentum.Tests.csproj --no-build \
+            --filter 'FullyQualifiedName!~GreenwashingCaseStudyTests&FullyQualifiedName!~IntegrationTests' \
             --results-directory TestResults
           test -f TestResults/coverage.opencover.xml && echo "Coverage file: $(wc -l < TestResults/coverage.opencover.xml) lines" || (echo "::error::coverage.opencover.xml not found"; exit 1)
 

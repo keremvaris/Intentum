@@ -226,7 +226,7 @@
             if (_running)
             {
                 await Http.PostAsync(baseUri + "/api/fraud-simulation/stop", null);
-                _sseCts?.Cancel();
+                if (_sseCts != null) await _sseCts.CancelAsync();
             }
             else
             {
@@ -244,7 +244,8 @@
 
     private async Task ConnectSse()
     {
-        _sseCts?.Cancel();
+        if (_sseCts != null) await _sseCts.CancelAsync();
+        _sseCts?.Dispose();
         _sseCts = new CancellationTokenSource();
         _sseError = null;
         try
@@ -387,15 +388,19 @@
         await _pieEcharts.SetOptionAsync(option);
     }
 
-    private static string ConfidenceClass(double score) => score < 0.4 ? "low" : score < 0.7 ? "medium" : "high";
+    private static string ConfidenceClass(double score)
+    {
+        if (score < 0.4) return "low";
+        return score < 0.7 ? "medium" : "high";
+    }
 
     private FraudLiveSummaryResult GetFraudLiveSummary()
     {
         if (_recent.Count == 0)
             return new FraudLiveSummaryResult(DateTimeOffset.MinValue, DateTimeOffset.MinValue, 0, 0, "", 0, Array.Empty<FraudIntentDistRow>(), Array.Empty<FraudDecisionDistRow>(), "", "");
         var ordered = _recent.OrderBy(e => e.RecordedAt).ToList();
-        var first = ordered.First().RecordedAt;
-        var last = ordered.Last().RecordedAt;
+        var first = ordered[0].RecordedAt;
+        var last = ordered[^1].RecordedAt;
         var total = _recent.Count;
         var avgScore = _recent.Average(e => e.ConfidenceScore);
         var byIntent = _recent.GroupBy(e => e.IntentName, StringComparer.OrdinalIgnoreCase)
@@ -406,7 +411,7 @@
             .Select(g => new FraudDecisionDistRow(g.Key, g.Count(), 100.0 * g.Count() / total))
             .OrderByDescending(x => x.Count)
             .ToList();
-        var dominant = byIntent.First();
+        var dominant = byIntent[0];
         var blockPct = byDecision.FirstOrDefault(x => string.Equals(x.Decision, "Block", StringComparison.OrdinalIgnoreCase))?.Percent ?? 0;
         var warnPct = byDecision.FirstOrDefault(x => string.Equals(x.Decision, "Warn", StringComparison.OrdinalIgnoreCase))?.Percent ?? 0;
         var verdict = BuildFraudVerdictText(total, dominant.IntentName, dominant.Percent, avgScore, blockPct, warnPct);
@@ -452,7 +457,9 @@
 
     public async ValueTask DisposeAsync()
     {
-        _sseCts?.Cancel();
+        if (_sseCts != null) await _sseCts.CancelAsync();
+        _sseCts?.Dispose();
+        _sseCts = null;
         if (_gaugeEcharts != null) await _gaugeEcharts.DisposeAsync();
         if (_lineEcharts != null) await _lineEcharts.DisposeAsync();
         if (_pieEcharts != null) await _pieEcharts.DisposeAsync();

@@ -32,5 +32,5 @@ var app = builder.Build();
 app.MapOpenApi();
 app.MapScalarApiReference();
 app.MapGet("/", () => "Intentum CQRS + Intentum sample. See /scalar for API docs.");
-app.Run();
-public partial class Program;
+await app.RunAsync();
+public static partial class Program;

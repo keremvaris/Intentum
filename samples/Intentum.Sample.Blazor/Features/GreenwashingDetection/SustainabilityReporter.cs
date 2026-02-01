@@ -29,13 +29,15 @@ public static class SustainabilityReporter
         "grün", "nachhaltig"
     ];
 
+    private static readonly TimeSpan RegexTimeout = TimeSpan.FromSeconds(5);
+
     private static readonly Regex MetricsPattern = new(
         @"%\s*(reduction|increase|improvement|azalım|artış|iyileştirme)|(%\d+)|(\d+\s*(ton|kg|kWh|CO2|CO₂|emisyon|su))",
-        RegexOptions.IgnoreCase);
+        RegexOptions.IgnoreCase, RegexTimeout);
 
     private static readonly Regex UnsubstantiatedComparisonPattern = new(
         @"(more|less|better|greener)\s+(than|ever)|(daha\s+(az|çok|iyi|yeşil))\s+(su|enerji|ever)?",
-        RegexOptions.IgnoreCase);
+        RegexOptions.IgnoreCase, RegexTimeout);
 
     private static readonly string[] BaselineManipulationPatterns =
     [
@@ -65,8 +67,8 @@ public static class SustainabilityReporter
         {
             foreach (var pattern in patterns)
             {
-                var count = Regex.Count(report, Regex.Escape(pattern), RegexOptions.IgnoreCase);
-                for (var i = 0; i < Math.Min(count, 10); i++)
+                var count = Regex.Count(report, Regex.Escape(pattern), RegexOptions.IgnoreCase, RegexTimeout);
+                foreach (var _ in Enumerable.Range(0, Math.Min(count, 10)))
                     space.Observe("language", "claim.vague");
             }
         }

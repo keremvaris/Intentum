@@ -3,6 +3,7 @@ using Intentum.AI.Mock;
 using Intentum.AI.Models;
 using Intentum.AI.Similarity;
 using Intentum.AspNetCore;
+using Intentum.WebApi;
 using Intentum.Core.Behavior;
 using Intentum.Core.Contracts;
 using Intentum.Runtime;
@@ -46,9 +47,12 @@ app.MapPost("/api/intent/infer", (InferRequest req, IIntentModel model, IntentPo
 
 app.MapGet("/", () => "Intentum Web API. POST /api/intent/infer with body: { \"events\": [ { \"actor\": \"user\", \"action\": \"login\" } ] }. Health: /health");
 
-app.Run();
+await app.RunAsync();
 
-internal record InferRequest(IReadOnlyList<EventDto> Events);
-internal record EventDto(string Actor, string Action);
+public static partial class Program;
 
-public partial class Program;
+namespace Intentum.WebApi
+{
+    internal record InferRequest(IReadOnlyList<EventDto> Events);
+    internal record EventDto(string Actor, string Action);
+}

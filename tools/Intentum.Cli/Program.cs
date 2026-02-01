@@ -8,6 +8,25 @@ namespace Intentum.Cli;
 
 internal static class Program
 {
+    private static void SetSafePath(ProcessStartInfo psi)
+    {
+        var dotnetDir = Path.GetDirectoryName(ResolveDotnetPath());
+        if (!string.IsNullOrEmpty(dotnetDir))
+            psi.Environment["PATH"] = dotnetDir;
+    }
+
+    private static string ResolveDotnetPath()
+    {
+        var mainModule = Process.GetCurrentProcess().MainModule;
+        if (mainModule?.FileName is { } path &&
+            (path.EndsWith("dotnet", StringComparison.OrdinalIgnoreCase) || path.EndsWith("dotnet.exe", StringComparison.OrdinalIgnoreCase)))
+            return path;
+        var dotnetRoot = Environment.GetEnvironmentVariable("DOTNET_ROOT");
+        if (!string.IsNullOrEmpty(dotnetRoot))
+            return Path.Combine(dotnetRoot, OperatingSystem.IsWindows() ? "dotnet.exe" : "dotnet");
+        return OperatingSystem.IsWindows() ? "dotnet.exe" : "dotnet";
+    }
+
     private static async Task<int> Main(string[] args)
     {
         var root = new RootCommand("Intentum CLI: create project, validate model/policy, run infer.");
@@ -29,12 +48,14 @@ internal static class Program
         cmd.SetHandler((nameVal, outputVal, templateVal) =>
         {
             var dir = outputVal.FullName;
-            using var process = Process.Start(new ProcessStartInfo
+            var psi = new ProcessStartInfo
             {
-                FileName = "dotnet",
+                FileName = ResolveDotnetPath(),
                 ArgumentList = { "new", templateVal, "-n", nameVal, "-o", dir },
                 UseShellExecute = false
-            });
+            };
+            SetSafePath(psi);
+            using var process = Process.Start(psi);
             process?.WaitForExit();
             return Task.FromResult(process?.ExitCode ?? 1);
         }, name, output, template);

@@ -66,7 +66,6 @@ public static class GreenwashingImageAnalyzer
         });
         if (count == 0) return 0;
         var total = sumR + sumG + sumB;
-        if (total <= 0) return 0;
-        return Math.Min(1.0, sumG / total * 3); // *3 so that pure green -> ~1
+        return total <= 0 ? 0 : Math.Min(1.0, sumG / total * 3); // *3 so that pure green -> ~1
     }
 }

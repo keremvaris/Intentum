@@ -108,10 +108,10 @@
         {
             var baseUri = new Uri(Navigation.BaseUri).GetLeftPart(UriPartial.Authority);
             if (_running)
-            {
+                {
                 await Http.PostAsync(baseUri + "/api/fraud-simulation/stop", null);
-                _sseCts?.Cancel();
-            }
+                if (_sseCts != null) await _sseCts.CancelAsync();
+                }
             else
             {
                 await Http.PostAsync(baseUri + "/api/fraud-simulation/start", null);
@@ -128,7 +128,8 @@
 
     private async Task ConnectSse()
     {
-        _sseCts?.Cancel();
+        if (_sseCts != null) await _sseCts.CancelAsync();
+        _sseCts?.Dispose();
         _sseCts = new CancellationTokenSource();
         try
         {
@@ -188,11 +189,17 @@
         await _lineEcharts.SetOptionAsync(option);
     }
 
-    private static string ConfidenceClass(double score) => score < 0.4 ? "low" : score < 0.7 ? "medium" : "high";
+    private static string ConfidenceClass(double score)
+    {
+        if (score < 0.4) return "low";
+        return score < 0.7 ? "medium" : "high";
+    }
 
     public async ValueTask DisposeAsync()
     {
-        _sseCts?.Cancel();
+        if (_sseCts != null) await _sseCts.CancelAsync();
+        _sseCts?.Dispose();
+        _sseCts = null;
         if (_gaugeEcharts != null) { await _gaugeEcharts.DisposeAsync(); _gaugeEcharts = null; }
         if (_lineEcharts != null) { await _lineEcharts.DisposeAsync(); _lineEcharts = null; }
     }

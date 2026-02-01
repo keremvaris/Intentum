@@ -137,11 +137,13 @@ builder.Services.AddOpenApi();
 
 var app = builder.Build();
 
+const string DashboardBasePath = "/dashboard/";
+
 // Dashboard: serve HTML before any other middleware (avoids 403 from auth/filters)
-var dashboardHtmlEarly = """
+var dashboardHtmlEarly = $$"""
 <!DOCTYPE html>
 <html lang="tr">
-<head><meta charset="utf-8"/><meta name="viewport" content="width=device-width, initial-scale=1"/><base href="/dashboard/"/><title>Intentum Dashboard</title><link rel="stylesheet" href="/dashboard.css"/><script src="https://cdn.jsdelivr.net/npm/echarts@5/dist/echarts.min.js"></script><script src="/echarts-interop.js"></script></head>
+<head><meta charset="utf-8"/><meta name="viewport" content="width=device-width, initial-scale=1"/><base href="{{DashboardBasePath}}"/><title>Intentum Dashboard</title><link rel="stylesheet" href="/dashboard.css"/><script src="https://cdn.jsdelivr.net/npm/echarts@5/dist/echarts.min.js"></script><script src="/echarts-interop.js"></script></head>
 <body><div id="app">Yükleniyor…</div><script src="/dashboard/_framework/blazor.server.js" autostart="false"></script><script>Blazor.start({ configureSignalR: function (b) { b.withUrl("/dashboard/_blazor"); } });</script></body>
 </html>
 """;
@@ -149,8 +151,8 @@ app.Use(async (ctx, next) =>
 {
     if (ctx.Request.Method != "GET" || !ctx.Request.Path.StartsWithSegments("/dashboard")) { await next(ctx); return; }
     var path = ctx.Request.Path.Value ?? "";
-    if (path == "/dashboard") { ctx.Response.Redirect("/dashboard/", false); return; }
-    if (path == "/dashboard/" || path.StartsWith("/dashboard/", StringComparison.Ordinal))
+    if (path == "/dashboard") { ctx.Response.Redirect(DashboardBasePath, false); return; }
+    if (path == DashboardBasePath || path.StartsWith(DashboardBasePath, StringComparison.Ordinal))
     {
         ctx.Response.ContentType = "text/html; charset=utf-8";
         ctx.Response.StatusCode = 200;
@@ -201,15 +203,15 @@ app.UseStaticFiles();
 app.UseRouting();
 
 app.MapBlazorHub("/dashboard/_blazor");
-app.MapGet("/dashboard", () => Results.Redirect("/dashboard/")).ExcludeFromDescription();
+app.MapGet("/dashboard", () => Results.Redirect(DashboardBasePath)).ExcludeFromDescription();
 // Dashboard: minimal API returns HTML directly (no MVC/Razor pipeline → no 403)
-var dashboardHtml = """
+var dashboardHtml = $$"""
     <!DOCTYPE html>
     <html lang="tr">
     <head>
         <meta charset="utf-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
-        <base href="/dashboard/" />
+        <base href="{{DashboardBasePath}}" />
         <title>Intentum Dashboard</title>
         <link rel="stylesheet" href="/dashboard.css" />
         <script src="https://cdn.jsdelivr.net/npm/echarts@5/dist/echarts.min.js"></script>
@@ -222,7 +224,7 @@ var dashboardHtml = """
     </body>
     </html>
     """;
-app.MapGet("/dashboard/", () => Results.Content(dashboardHtml, "text/html; charset=utf-8")).AllowAnonymous().ExcludeFromDescription();
+app.MapGet(DashboardBasePath, () => Results.Content(dashboardHtml, "text/html; charset=utf-8")).AllowAnonymous().ExcludeFromDescription();
 app.MapGet("/dashboard/{*path}", (string? path) => { _ = path; return Results.Content(dashboardHtml, "text/html; charset=utf-8"); }).AllowAnonymous().ExcludeFromDescription();
 app.MapControllers();
 

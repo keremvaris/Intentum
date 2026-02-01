@@ -59,13 +59,17 @@
             var snapshot = await Http.GetFromJsonAsync<GraphSnapshotResponse>(url);
             if (snapshot?.Nodes != null && snapshot.Nodes.Count > 0)
             {
-                var nodeColor = (double score) => score < 0.4 ? "#d32f2f" : score < 0.7 ? "#ffeb3b" : "#4caf50";
+                static string NodeColor(double score)
+                {
+                    if (score < 0.4) return "#d32f2f";
+                    return score < 0.7 ? "#ffeb3b" : "#4caf50";
+                }
                 var nodes = snapshot.Nodes.Select(n => new
                 {
                     id = n.Id,
                     name = n.IntentName,
                     value = Math.Round(n.ConfidenceScore, 4),
-                    itemStyle = new { color = nodeColor(n.ConfidenceScore) },
+                    itemStyle = new { color = NodeColor(n.ConfidenceScore) },
                     label = new { show = true, formatter = $"{n.IntentName} ({n.ConfidenceScore:P0})" }
                 }).ToList();
                 var links = (snapshot.Edges ?? Array.Empty<GraphEdgeDto>()).Select(e => new { source = e.FromNodeId, target = e.ToNodeId, value = e.Weight }).ToList();
