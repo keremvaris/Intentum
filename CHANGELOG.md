@@ -13,7 +13,7 @@ Bu dosya **conventional commit** mesajlarından otomatik üretilir. Commit'te **
 
 ---
 
-## [unreleased]
+## [1.1.3] - 2026-02-01
 
 
 
@@ -26,6 +26,19 @@ Bu dosya **conventional commit** mesajlarından otomatik üretilir. Commit'te **
 Adds checks for zero-dimension images and cases where total color sum is zero or negative to prevent potential division by zero errors and ensure accurate calculation in edge scenarios.
 
 Refactors the SonarCloud CI workflow to pass exclusion paths via dedicated environment variables. This enhances reliability and addresses potential issues with very long command-line strings.
+
+
+
+- **Adjust color sum calculation logic** *(greenwashing)*
+
+- Remove redundant zero count check after loop
+- Add comment explaining early return condition for dimensions
+
+docs(test-plan): update SonarCloud coverage exclusions details
+
+- Clarify exclusions to reflect only truly untestable code
+- List specific projects and extensions excluded from coverage
+- Explain how to modify exclusions in CI workflow configuration
 
 
 
