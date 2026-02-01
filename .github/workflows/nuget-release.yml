@@ -31,7 +31,7 @@ jobs:
           MinVerVersionOverride: ${{ github.event.inputs.version_override }}
         run: dotnet build Intentum.slnx -c Release --no-restore
       - name: Test
-        run: dotnet test tests/Intentum.Tests/Intentum.Tests.csproj -c Release --no-build --filter "Category!=Integration&FullyQualifiedName\!~GreenwashingCaseStudyTests"
+        run: dotnet test tests/Intentum.Tests/Intentum.Tests.csproj -c Release --no-build --filter 'FullyQualifiedName!~GreenwashingCaseStudyTests&FullyQualifiedName!~IntegrationTests'
       - name: Pack
         env:
           MinVerVersionOverride: ${{ github.event.inputs.version_override }}

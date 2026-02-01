@@ -58,22 +58,19 @@ public sealed class OnnxIntentModelTests
         Assert.Equal(expectedLevel, result);
     }
 
-    private const string MissingFixtureMessage =
-        "Minimal ONNX fixture not found. Run: python3 scripts/generate_minimal_onnx.py (requires: pip install onnx).";
-
     /// <summary>LogitsToIntent is private static; test via reflection with a real OrtValue from minimal session.</summary>
-    [SkippableFact]
+    [Fact]
     public void LogitsToIntent_WithValidOrtValue_ReturnsArgmaxAndSoftmaxConfidence()
     {
-        Skip.If(MinimalOnnxPath() == null, MissingFixtureMessage);
-
-        var path = MinimalOnnxPath()!;
+        var path = MinimalOnnxPath();
+        Assert.NotNull(path);
         using var session = new InferenceSession(path);
         var inputName = session.InputNames[0];
         var outputName = session.OutputNames[0];
         var inputFloats = new[] { 0.1f, 0.2f };
         using var inputOrt = OrtValue.CreateTensorValueFromMemory(inputFloats, [1L, 2]);
-        using var outputs = session.Run(null, new Dictionary<string, OrtValue> { { inputName, inputOrt } }, [outputName]);
+        using var runOptions = new RunOptions();
+        using var outputs = session.Run(runOptions, new Dictionary<string, OrtValue> { { inputName, inputOrt } }, [outputName]);
         var outputOrt = outputs[0];
 
         var method = typeof(OnnxIntentModel).GetMethod("LogitsToIntent", BindingFlags.Static | BindingFlags.NonPublic);
@@ -85,12 +82,11 @@ public sealed class OnnxIntentModelTests
         Assert.True(confidence >= 0 && confidence <= 1);
     }
 
-    [SkippableFact]
+    [Fact]
     public void Infer_WhenMinimalOnnxAvailable_ReturnsIntentFromModel()
     {
-        Skip.If(MinimalOnnxPath() == null, MissingFixtureMessage);
-
-        var path = MinimalOnnxPath()!;
+        var path = MinimalOnnxPath();
+        Assert.NotNull(path);
         var options = new OnnxIntentModelOptions(
             ModelPath: path,
             IntentLabels: ["A", "B", "C"]);
@@ -106,12 +102,11 @@ public sealed class OnnxIntentModelTests
         Assert.True(intent.Confidence.Score >= 0 && intent.Confidence.Score <= 1);
     }
 
-    [SkippableFact]
+    [Fact]
     public void Infer_WithPrecomputedVector_UsesVectorInsteadOfSpace()
     {
-        Skip.If(MinimalOnnxPath() == null, MissingFixtureMessage);
-
-        var path = MinimalOnnxPath()!;
+        var path = MinimalOnnxPath();
+        Assert.NotNull(path);
         var options = new OnnxIntentModelOptions(
             ModelPath: path,
             IntentLabels: ["X", "Y", "Z"]);
@@ -126,12 +121,11 @@ public sealed class OnnxIntentModelTests
         Assert.True(intent.Confidence.Score >= 0 && intent.Confidence.Score <= 1);
     }
 
-    [SkippableFact]
+    [Fact]
     public void Constructor_WhenIntentLabelsCountMismatchModelOutput_ThrowsArgumentException()
     {
-        Skip.If(MinimalOnnxPath() == null, MissingFixtureMessage);
-
-        var path = MinimalOnnxPath()!;
+        var path = MinimalOnnxPath();
+        Assert.NotNull(path);
         var options = new OnnxIntentModelOptions(
             ModelPath: path,
             IntentLabels: ["OnlyOne"]); // model has 3 outputs
@@ -141,12 +135,11 @@ public sealed class OnnxIntentModelTests
         Assert.Contains("must match", ex.Message);
     }
 
-    [SkippableFact]
+    [Fact]
     public void Constructor_WhenFeatureDimensionNamesCountMismatchInput_ThrowsArgumentException()
     {
-        Skip.If(MinimalOnnxPath() == null, MissingFixtureMessage);
-
-        var path = MinimalOnnxPath()!;
+        var path = MinimalOnnxPath();
+        Assert.NotNull(path);
         var options = new OnnxIntentModelOptions(
             ModelPath: path,
             IntentLabels: ["A", "B", "C"],

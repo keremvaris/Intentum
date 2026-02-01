@@ -28,10 +28,17 @@ w_initializer = helper.make_tensor(w_name, TensorProto.FLOAT, w_shape, w_data)
 matmul = helper.make_node("MatMul", [input_name, w_name], [output_name])
 graph = helper.make_graph([matmul], "minimal_intent", [input_tensor], [output_tensor], [w_initializer])
 model = helper.make_model(graph, opset_imports=[helper.make_opsetid("", 14)])
+# CI (OnnxRuntime 1.23) supports max IR version 11; onnx lib may default to 12/13
+model.ir_version = 9
 onnx.checker.check_model(model)
 
 out_dir = os.path.join(os.path.dirname(__file__), "..", "tests", "Intentum.Tests", "fixtures")
 os.makedirs(out_dir, exist_ok=True)
 out_path = os.path.join(out_dir, "minimal_intent.onnx")
+# Force IR version again before save (some onnx versions overwrite on save)
+model.ir_version = 9
 onnx.save(model, out_path)
+# Verify saved model has correct IR for CI
+loaded = onnx.load(out_path)
+assert loaded.ir_version <= 11, f"Saved model has ir_version {loaded.ir_version}; CI OnnxRuntime supports max 11"
 print(out_path)

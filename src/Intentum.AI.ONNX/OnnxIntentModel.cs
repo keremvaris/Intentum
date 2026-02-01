@@ -60,7 +60,8 @@ public sealed class OnnxIntentModel : IIntentModel, IDisposable
         var inputs = new Dictionary<string, OrtValue> { { _inputName, inputOrt } };
         var outputNames = new[] { _outputName };
 
-        using var outputs = _session.Run(null, inputs, outputNames);
+        using var runOptions = new RunOptions();
+        using var outputs = _session.Run(runOptions, inputs, outputNames);
         if (outputs.Count == 0)
             return new Intent("Unknown", [], new IntentConfidence(0, "None"), "ONNX output missing.");
 
