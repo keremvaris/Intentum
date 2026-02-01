@@ -5,8 +5,28 @@ Bu belge, coverage’ı “exclude ile örtbas” etmeden **gerçek satır kapsa
 ## Mevcut Durum (exclusion yok)
 
 - **Toplam satır kapsamı:** ~%70
+- **Coverage on New Code (SonarCloud):** ~%73
 - **Hedef:** %80
 - **Threshold:** `Intentum.Tests.csproj` içinde `Threshold=70` (plan ilerledikçe 80’e çekilecek)
+
+## Coverage on New Code — Öncelik Sırası (SonarCloud)
+
+SonarCloud raporundaki **yeni kodda 0% veya düşük kapsam** veren dosyalar; aşağıdaki sırayla ele alınabilir. Her satır “hangi faz” ile kapatılacağını gösterir.
+
+| Öncelik | Dosya | Uncovered (satır/koşul) | Hedef faz |
+|--------|-------|-------------------------|-----------|
+| 1 | `Intentum.AI.OpenAI/OpenAIObservationMiddleware.cs` | 33 / 0 | Faz 5 |
+| 2 | `Intentum.AI.ONNX/OnnxIntentModel.cs` | 31 / 12 | Faz 2 |
+| 3 | `Intentum.Persistence/EntityFramework/FrameworkPersistenceExtensions.cs` | 20 / 0 | Faz 1 |
+| 4 | `Intentum.AI.Mistral/MistralIntentModel.cs` | 19 / 0 | Faz 5 |
+| 5 | `Intentum.AI.AzureOpenAI/AzureOpenAIService.cs` | 10 / 0 | Faz 5 |
+| 6 | `Intentum.AI.AzureOpenAI/AzureOpenAIObservationMiddleware.cs` | 10 / 0 | Faz 5 |
+| 7 | `Intentum.Core/Clustering/HierarchicalClustering.cs` | 12 / 11 (≈31%) | Mevcut Clustering testleri genişlet |
+| 8 | `Intentum.AI.Gemini/GeminiIntentModel.cs` | 5 / 2 (≈37%) | Faz 5 |
+| 9 | `Intentum.AI.OpenAI/OpenAIFunctionCallProvider.cs` | 11 / 16 (≈64%) | Faz 5 |
+| … | Core/Application/Logging middlewares & extensions (0%) | Çeşitli | Faz 4 / ek unit testler |
+
+**İlk adım önerisi:** En çok açık satır veren **OpenAIObservationMiddleware** ve **OnnxIntentModel** ile başla; ardından Persistence (FrameworkPersistenceExtensions) ve Azure/Mistral servisleri. Böylece “Coverage on New Code” oranı hızla yukarı çıkar.
 
 ## Modül Bazlı Kapsam ve Öncelik
 
@@ -170,3 +190,12 @@ Aşağıdaki yüzdeler exclusion olmadan ölçülen **line coverage**. Düşük 
 | 7 | Caching | Redis, embedding cache senaryoları |
 
 Bu plan tamamlandıkça exclusion’sız toplam line coverage %80’e çıkarılacak ve threshold 80’e yükseltilecek.
+
+---
+
+## Kısa aksiyon planı (SonarCloud’a göre)
+
+1. **Bu sprint:** OpenAIObservationMiddleware + OnnxIntentModel (Faz 2 & 5) — en çok uncovered satır.
+2. **Sonra:** FrameworkPersistenceExtensions (Faz 1) + MistralIntentModel, AzureOpenAI servis/middleware (Faz 5).
+3. **Ardından:** HierarchicalClustering, GeminiIntentModel, OpenAIFunctionCallProvider — kalan dallar ve koşullar.
+4. **Periyodik:** SonarCloud “Coverage on New Code” raporunu kontrol et; 0% kalan yeni dosyaları yukarıdaki tabloya ekle ve ilgili faza bağla.

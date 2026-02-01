@@ -29,6 +29,10 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Content Include="fixtures\**\*" CopyToOutputDirectory="PreserveNewest" LinkBase="fixtures" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\..\src\Intentum.Core\Intentum.Core.csproj" />
     <ProjectReference Include="..\..\src\Intentum.Runtime\Intentum.Runtime.csproj" />
     <ProjectReference Include="..\..\src\Intentum.AI\Intentum.AI.csproj" />

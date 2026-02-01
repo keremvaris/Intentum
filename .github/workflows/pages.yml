@@ -35,7 +35,10 @@ jobs:
       - name: Test with coverage
         run: |
           mkdir -p TestResults
-          dotnet test tests/Intentum.Tests/Intentum.Tests.csproj --no-build --filter "Category!=Integration&FullyQualifiedName\!~GreenwashingCaseStudyTests" --results-directory TestResults /p:CollectCoverage=true /p:CoverletOutput="${{ github.workspace }}/TestResults/coverage.opencover.xml" /p:CoverletOutputFormat=opencover
+          dotnet test tests/Intentum.Tests/Intentum.Tests.csproj --no-build \
+            --filter 'FullyQualifiedName!~GreenwashingCaseStudyTests&FullyQualifiedName!~IntegrationTests' \
+            --results-directory TestResults \
+            /p:CollectCoverage=true /p:CoverletOutput="${{ github.workspace }}/TestResults/coverage.opencover.xml" /p:CoverletOutputFormat=opencover
       - name: Install ReportGenerator
         run: dotnet tool install -g dotnet-reportgenerator-globaltool
       - name: Generate coverage report

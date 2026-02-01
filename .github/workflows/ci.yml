@@ -60,6 +60,13 @@ jobs:
       - name: Build
         run: dotnet build Intentum.slnx --no-restore
 
+      - name: Generate minimal ONNX fixture
+        run: |
+          pip install onnx --quiet
+          python3 scripts/generate_minimal_onnx.py
+          mkdir -p tests/Intentum.Tests/bin/Debug/net10.0/fixtures
+          cp tests/Intentum.Tests/fixtures/minimal_intent.onnx tests/Intentum.Tests/bin/Debug/net10.0/fixtures/
+
       # Coverage: produced during test run so SonarCloud can associate it with source. Coverlet instruments on build (done by dotnet test) and writes report after tests.
       # Threshold=80; ONNX/Persistence/MultiTenancy/Observability/Analytics excluded until test plan (docs/test-plan.md) raises real coverage.
       - name: Test with coverage
