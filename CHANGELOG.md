@@ -129,6 +129,26 @@ test(tenant-aware-behavior-space-repository): add multitenancy tests
 
 
 
+- **Update tests to assert ONNX fixture presence and improve session run calls** *(onnx)*
+
+- Remove skippable tests and replace with standard facts requiring fixture presence
+- Add explicit RunOptions usage in OnnxIntentModel and test sessions
+- Add assertions to check minimal ONNX fixture path is not null before tests run
+- Simplify test setup by removing skip conditions for missing ONNX fixture
+
+ci(workflow): remove ONNX fixture generation step from CI pipeline
+
+- Delete python script execution and fixture copying in CI build workflow
+- Adjust test filters in release workflow to exclude specific tests more accurately
+
+build(onnx): fix ONNX model IR version for CI compatibility
+
+- Set ONNX model IR version to 9 explicitly to support OnnxRuntime 1.23 max IR 11
+- Reapply IR version before saving the model due to library overwrite behavior
+- Add assertion on saved model IR version to prevent CI compatibility issues
+
+
+
 ## [1.1.2] - 2026-02-01
 
 
