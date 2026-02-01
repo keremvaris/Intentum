@@ -52,6 +52,9 @@ Refactors the SonarCloud CI workflow to pass exclusion paths via dedicated envir
 - **Fix sonar exclude project** *(ci)*
 
 
+- **Fix sonar exclude project** *(ci)*
+
+
 
 
 ### Testing
