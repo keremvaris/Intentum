@@ -75,9 +75,12 @@ jobs:
       - name: Prepare coverage for SonarCloud
         run: |
           mkdir -p TestResults
-          # Coverlet may write to TestResults/coverage.opencover.xml or a guid subdir; normalize for Sonar
+          # Coverlet may write to TestResults/coverage.opencover.xml or a guid subdir; normalize for Sonar (skip cp when already at target)
           found=$(find . -name 'coverage.opencover.xml' -type f -print -quit 2>/dev/null)
-          if [ -n "$found" ] && [ "$found" != "TestResults/coverage.opencover.xml" ]; then cp "$found" TestResults/coverage.opencover.xml; fi
+          case "$found" in
+            ''|TestResults/coverage.opencover.xml|./TestResults/coverage.opencover.xml) ;;
+            *) cp "$found" TestResults/coverage.opencover.xml ;;
+          esac
           test -s TestResults/coverage.opencover.xml || (echo "::error::No or empty coverage.opencover.xml"; find . -name 'coverage*.xml' 2>/dev/null; exit 1)
           echo "Coverage file: $(wc -l < TestResults/coverage.opencover.xml) lines, $(du -h TestResults/coverage.opencover.xml | cut -f1)"
           grep -q 'sequenceCoverage="[1-9]' TestResults/coverage.opencover.xml || (echo "::error::coverage.opencover.xml has no covered lines"; exit 1)

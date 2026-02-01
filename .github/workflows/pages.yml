@@ -33,12 +33,14 @@ jobs:
       - name: Build
         run: dotnet build Intentum.slnx --no-restore
       - name: Test with coverage
-        run: dotnet test tests/Intentum.Tests/Intentum.Tests.csproj --no-build --filter "Category!=Integration&FullyQualifiedName\!~GreenwashingCaseStudyTests" --collect:"XPlat Code Coverage" --results-directory TestResults
+        run: |
+          mkdir -p TestResults
+          dotnet test tests/Intentum.Tests/Intentum.Tests.csproj --no-build --filter "Category!=Integration&FullyQualifiedName\!~GreenwashingCaseStudyTests" --results-directory TestResults /p:CollectCoverage=true /p:CoverletOutput="${{ github.workspace }}/TestResults/coverage.opencover.xml" /p:CoverletOutputFormat=opencover
       - name: Install ReportGenerator
         run: dotnet tool install -g dotnet-reportgenerator-globaltool
       - name: Generate coverage report
         run: |
-          REPORT=$(find TestResults -name 'coverage.cobertura.xml' -print -quit 2>/dev/null)
+          REPORT=$(find TestResults -name 'coverage.opencover.xml' -print -quit 2>/dev/null)
           if [ -z "$REPORT" ]; then echo "No coverage file found"; find TestResults -type f -name '*.xml' 2>/dev/null | head -10; exit 1; fi
           reportgenerator -reports:"$REPORT" -targetdir:docs/coverage "-reporttypes:Html;Badges"
       - name: Install DocFX
