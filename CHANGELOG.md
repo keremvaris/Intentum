@@ -85,6 +85,9 @@ test(tenant-aware-behavior-space-repository): add multitenancy tests
 
 
 
+- **Ensure AppendAsync completes successfully** *(persistence)*
+
+
 ## [1.1.2] - 2026-02-01
 
 
