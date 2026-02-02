@@ -21,8 +21,9 @@ templates
 tools
 scripts
 
-# Misc
+# Misc (repo root README required by src/Directory.Build.props for NuGet pack)
 *.md
+!README.md
 !samples/Intentum.Sample.Blazor/README.md
 .DS_Store
 *.log
