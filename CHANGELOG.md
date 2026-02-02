@@ -13,7 +13,8 @@ Bu dosya **conventional commit** mesajlarından otomatik üretilir. Commit'te **
 
 ---
 
-## [unreleased]
+## [1.1.6] - 2026-02-02
+
 
 
 
@@ -23,6 +24,20 @@ Bu dosya **conventional commit** mesajlarından otomatik üretilir. Commit'te **
 
 - Inserted new entry "Intent Layer five demos" in the Turkish table of contents
 - Linked to the new case study file at ../case-studies/intent-layer-five-demos.md
+
+
+
+
+
+### Miscellaneous
+
+- **Add Docker support and update container port configuration** *(intentum-sample-blazor)*
+
+- Add Dockerfile to build and run Intentum.Sample.Blazor app in container
+- Configure Program.cs to use PORT environment variable and listen on 0.0.0.0
+- Create .dockerignore to exclude unnecessary files from Docker build context
+- Enhance README with deployment instructions for Render platform using Docker
+- Fix minor JS formatting in echarts-interop.js for better consistency
 
 
 
