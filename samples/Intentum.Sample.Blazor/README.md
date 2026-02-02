@@ -22,3 +22,20 @@ dotnet run --project samples/Intentum.Sample.Blazor
 - **Blazor sayfaları:** Overview, Commerce, Explain, FraudLive, Sustainability, Timeline, PolicyLab, Sandbox, Settings, Signals, Graph, Heatmap; SSE inference, dolandırıcılık ve sürdürülebilirlik simülasyonu
 
 Detaylı API listesi için [API Referansı (EN)](../../docs/en/api.md#sample-blazor-http-api-intentumsampleblazor) ve [Kurulum (EN)](../../docs/en/setup.md).
+
+## Render’a deploy (ücretsiz tier)
+
+Uygulama Docker ile paketlenir; Render’da **native .NET** yok, **Docker** kullanılır.
+
+1. [Render](https://render.com) → New → **Web Service**
+2. Repo’yu bağla (GitHub/GitLab), branch seç
+3. **Root Directory:** boş bırak (repo kökü)
+4. **Environment:** **Docker**
+5. **Dockerfile Path:** `samples/Intentum.Sample.Blazor/Dockerfile`
+6. **Instance Type:** Free
+7. Deploy’a tıkla
+
+Render `PORT` env değişkenini verir; uygulama `Program.cs` içinde buna göre `0.0.0.0:PORT` üzerinde dinler. Health check için `/health` kullanılabilir.
+
+- Free tier’da servis 15 dk trafik yoksa kapanır; ilk istekte ~1 dk cold start olur.
+- Veritabanı in-memory olduğu için restart’ta veri sıfırlanır.

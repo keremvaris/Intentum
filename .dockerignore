@@ -1,0 +1,28 @@
+# Git and IDE
+.git
+.github
+.idea
+.vs
+*.user
+
+# Build outputs
+**/bin
+**/obj
+**/out
+TestResults
+BenchmarkDotNet.Artifacts
+
+# Docs/tests (not needed for Blazor sample image)
+docs
+tests
+examples
+benchmarks
+templates
+tools
+scripts
+
+# Misc
+*.md
+!samples/Intentum.Sample.Blazor/README.md
+.DS_Store
+*.log

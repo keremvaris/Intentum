@@ -129,9 +129,7 @@ window.IntentumECharts = {
 };
 window.initIntentumGeoMap = function (elementId) {
   return window.IntentumECharts && window.IntentumECharts.initGeoMap(elementId);
-};
-
-window.setIntentumGeoMapData = async function (elementId, normalLng, normalLat, normalLabel, loginLng, loginLat, loginLabel) {
+};window.setIntentumGeoMapData = async function (elementId, normalLng, normalLat, normalLabel, loginLng, loginLat, loginLabel) {
   if (!window.IntentumECharts) return false;
   var ok = await window.IntentumECharts.initGeoMap(elementId);
   if (!ok) return false;
