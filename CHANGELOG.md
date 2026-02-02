@@ -13,7 +13,7 @@ Bu dosya **conventional commit** mesajlarından otomatik üretilir. Commit'te **
 
 ---
 
-## [unreleased]
+## [1.1.5] - 2026-02-02
 
 
 
@@ -28,6 +28,17 @@ Bu dosya **conventional commit** mesajlarından otomatik üretilir. Commit'te **
 - Update dashboard CSS to manage sidebar visibility and transitions consistently
 - Modify MainLayout to set fixed sidebar ID and toggle button with ARIA-expanded attribute
 - Document runnable samples for fraud and related demos in audience.md and audience tr.md
+
+
+
+- **Add adaptive tutor intent inference feature** *(adaptive-tutor)*
+
+- Introduce AdaptiveTutor.razor component with interactive UI and charts
+- Implement variant-based intent inference via /api/adaptive-tutor/infer endpoint
+- Add AdaptiveTutorService with rule-based intent model and policy decisions
+- Define AdaptiveTutorVariants with event scenarios and expected intents
+- Create charts for confidence score and event summaries using EChartsInterop
+- Manage variant selection, inference execution, and disposal logic in component
 
 
 
