@@ -98,6 +98,8 @@ items:
         href: ../case-studies/cross-llm-consistency.md
       - name: Greenwashing metrikleri
         href: ../case-studies/greenwashing-metrics.md
+      - name: Intent Layer five demos
+        href: ../case-studies/intent-layer-five-demos.md
   - name: API Referansı
     expanded: false
     items:
