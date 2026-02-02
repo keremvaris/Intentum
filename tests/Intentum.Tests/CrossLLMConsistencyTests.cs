@@ -42,6 +42,6 @@ public class CrossLLMConsistencyTests
         Assert.InRange(intent2.Confidence.Score, 0.0, 1.0);
         // Different providers can yield different scores; document variance in real runs (see docs/case-studies/cross-llm-consistency.md).
         var scoreDiff = Math.Abs(intent1.Confidence.Score - intent2.Confidence.Score);
-        Assert.True(scoreDiff >= 0 && scoreDiff <= 1.0);
+        Assert.True(scoreDiff is >= 0 and <= 1.0);
     }
 }

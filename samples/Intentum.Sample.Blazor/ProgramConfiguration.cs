@@ -79,13 +79,15 @@ internal static class ProgramConfiguration
             var strictModel = new StrictConfidenceIntentModel(defaultModel);
             var fraudModel = BuildFraudChainedIntentModel(embedding);
             var zeroDayModel = BuildZeroDayChainedIntentModel(embedding, similarity);
+            var projectPulseModel = BuildProjectPulseChainedIntentModel(embedding, similarity);
             return new PlaygroundModelRegistry(new Dictionary<string, IIntentModel>
             {
                 ["Default"] = defaultModel,
                 ["Mock"] = mockOnly,
                 ["Strict"] = strictModel,
                 ["Fraud"] = fraudModel,
-                ["ZeroDay"] = zeroDayModel
+                ["ZeroDay"] = zeroDayModel,
+                ["ProjectPulse"] = projectPulseModel
             });
         });
 
@@ -112,6 +114,13 @@ internal static class ProgramConfiguration
         builder.Services.AddHostedService<FraudSimulationService>();
         builder.Services.AddSingleton<FraudDemo1State>();
         builder.Services.AddHostedService<FraudDemo1Service>();
+        builder.Services.AddSingleton<ProjectPulseState>();
+        builder.Services.AddSingleton<ProjectPulseBroadcaster>();
+        builder.Services.AddHostedService<ProjectPulseService>();
+        builder.Services.AddSingleton<CustomerJourneyService>();
+        builder.Services.AddSingleton<ModerationService>();
+        builder.Services.AddSingleton<AdaptiveTutorService>();
+        builder.Services.AddSingleton<DigitalTwinService>();
         builder.Services.AddSingleton<SustainabilitySimulationState>();
         builder.Services.AddSingleton<SustainabilityTimelineBroadcaster>();
         builder.Services.AddHostedService<SustainabilityTimelineService>();
@@ -202,6 +211,11 @@ internal static class ProgramConfiguration
         MapDashboardEndpoints(app);
         MapSimulationEndpoints(app);
         MapFraudDemo1Endpoints(app);
+        MapProjectPulseEndpoints(app);
+        MapCustomerJourneyEndpoints(app);
+        MapModerationEndpoints(app);
+        MapAdaptiveTutorEndpoints(app);
+        MapDigitalTwinEndpoints(app);
         MapZeroDayEndpoints(app);
         MapApiTrafficEndpoints(app);
         MapInsiderThreatEndpoints(app);
@@ -447,6 +461,75 @@ internal static class ProgramConfiguration
         }).WithName("GetSustainabilityStream").Produces(200);
     }
 
+    private static void MapProjectPulseEndpoints(WebApplication app)
+    {
+        app.MapPost("/api/project-pulse/start", (ProjectPulseStartRequest? req, ProjectPulseState state) =>
+        {
+            state.Start(req?.Variant ?? ProjectPulseVariants.VariantA);
+            return Results.Ok(new { running = true, variant = state.CurrentVariant });
+        }).WithName("ProjectPulseStart").Produces(200);
+        app.MapPost("/api/project-pulse/stop", (ProjectPulseState state) =>
+        {
+            state.Stop();
+            return Results.Ok(new { running = false });
+        }).WithName("ProjectPulseStop").Produces(200);
+        app.MapGet("/api/project-pulse/status", (ProjectPulseState state) =>
+            Results.Json(new { state.Running, state.CurrentVariant, state.CurrentStep })).WithName("ProjectPulseStatus").Produces(200);
+        app.MapGet("/api/project-pulse/stream", async (HttpContext ctx, ProjectPulseBroadcaster broadcaster, CancellationToken cancellationToken) =>
+        {
+            ctx.Response.ContentType = "text/event-stream";
+            ctx.Response.Headers.CacheControl = "no-cache";
+            ctx.Response.Headers.Connection = "keep-alive";
+            await ctx.Response.StartAsync(cancellationToken);
+            using var cts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, ctx.RequestAborted);
+            await foreach (var bytes in broadcaster.SubscribeAsync(cts.Token))
+            {
+                await ctx.Response.Body.WriteAsync(bytes, cts.Token);
+                await ctx.Response.Body.FlushAsync(cts.Token);
+            }
+        }).WithName("GetProjectPulseStream").Produces(200);
+    }
+
+    private static void MapCustomerJourneyEndpoints(WebApplication app)
+    {
+        app.MapPost("/api/customer-journey/infer", (CustomerJourneyInferRequest? req, CustomerJourneyService service) =>
+        {
+            var variant = req?.Variant ?? CustomerJourneyVariants.VariantA;
+            var result = service.Infer(variant);
+            return Results.Json(result);
+        }).WithName("CustomerJourneyInfer").Produces(200);
+    }
+
+    private static void MapModerationEndpoints(WebApplication app)
+    {
+        app.MapPost("/api/moderation/infer", (ModerationInferRequest? req, ModerationService service) =>
+        {
+            var variant = req?.Variant ?? ModerationVariants.VariantA;
+            var result = service.Infer(variant);
+            return Results.Json(result);
+        }).WithName("ModerationInfer").Produces(200);
+    }
+
+    private static void MapAdaptiveTutorEndpoints(WebApplication app)
+    {
+        app.MapPost("/api/adaptive-tutor/infer", (AdaptiveTutorInferRequest? req, AdaptiveTutorService service) =>
+        {
+            var variant = req?.Variant ?? AdaptiveTutorVariants.VariantA;
+            var result = service.Infer(variant);
+            return Results.Json(result);
+        }).WithName("AdaptiveTutorInfer").Produces(200);
+    }
+
+    private static void MapDigitalTwinEndpoints(WebApplication app)
+    {
+        app.MapPost("/api/digital-twin/infer", (DigitalTwinInferRequest? req, DigitalTwinService service) =>
+        {
+            var variant = req?.Variant ?? DigitalTwinVariants.VariantA;
+            var result = service.Infer(variant);
+            return Results.Json(result);
+        }).WithName("DigitalTwinInfer").Produces(200);
+    }
+
     private static void MapZeroDayEndpoints(WebApplication app)
     {
         app.MapPost("/api/zero-day/infer", async (IPlaygroundModelRegistry registry, IIntentHistoryRepository history) =>
@@ -533,7 +616,7 @@ internal static class ProgramConfiguration
     private static void MapInsiderThreatEndpoints(WebApplication app)
     {
         var insiderPolicy = new IntentPolicyBuilder()
-            .RequireAuth("DataExfiltrationRisk", i => i.Name == "DataExfiltrationPreparation" && i.Confidence.Score > 0.7)
+            .RequireAuth("DataExfiltrationRisk", i => i is { Name: "DataExfiltrationPreparation", Confidence.Score: > 0.7 })
             .Warn("InsiderRisk", i => i.Name == "DataExfiltrationPreparation")
             .Observe("Default", _ => true)
             .Build();
@@ -713,6 +796,55 @@ internal static class ProgramConfiguration
             {
                 if (space.Events.Any(e => e.Action == "KnownCveExploit"))
                     return new RuleMatch("KnownExploit", 0.9, "KnownCveExploit");
+                return null;
+            }
+        };
+        var primary = new RuleBasedIntentModel(rules);
+        return new ChainedIntentModel(primary, fallback);
+    }
+
+    private static IIntentModel BuildProjectPulseChainedIntentModel(IIntentEmbeddingProvider embedding, IIntentSimilarityEngine similarity)
+    {
+        var fallback = new LlmIntentModel(embedding, similarity);
+        var rules = new List<Func<BehaviorSpace, RuleMatch?>>
+        {
+            space =>
+            {
+                var hasTaskBlocked = space.Events.Any(e => e.Action == "TaskBlocked" && e.Metadata?.TryGetValue("BlockerRole", out var r) == true && string.Equals(r.ToString(), "External", StringComparison.OrdinalIgnoreCase));
+                var hasDeploymentFailed = space.Events.Any(e => e.Action == "Deployment_Failed");
+                if (hasTaskBlocked && hasDeploymentFailed)
+                    return new RuleMatch("CriticalDependencyBeingNeglected", 0.88, "TaskBlocked External + Deployment_Failed");
+                return null;
+            },
+            space =>
+            {
+                var estimateIncreases = space.Events.Count(e => e.Action == "Estimate_Increased");
+                var meetings = space.Events.Count(e => e.Action == "Meeting_Attended");
+                if (estimateIncreases >= 2 && meetings >= 1)
+                    return new RuleMatch("FeatureScopeBeginningToCreep", 0.85, $"Estimate_Increased={estimateIncreases}, Meeting_Attended={meetings}");
+                return null;
+            },
+            space =>
+            {
+                var hasLateTask = space.Events.Any(e => e.Action == "TaskCompleted" && e.Metadata?.TryGetValue("DaysLate", out var d) == true && d is int and > 0);
+                var hasLatePr = space.Events.Any(e => e.Action == "PR_Created" && e.Metadata?.TryGetValue("HourOfDay", out var h) == true && h is int and >= 22);
+                var hasNegativeSentiment = space.Events.Any(e => e.Action == "Message_Sent" && e.Metadata?.TryGetValue("SentimentScore", out var s) == true && s is double and < -0.5);
+                var hasEstimateIncrease = space.Events.Any(e => e.Action == "Estimate_Increased");
+                if ((hasLateTask || hasLatePr) && (hasNegativeSentiment || hasEstimateIncrease))
+                    return new RuleMatch("TechnicalDebtCrisisAndTeamBurnoutImminent", 0.87, "Late task/PR + negative sentiment or estimate increase");
+                return null;
+            },
+            space =>
+            {
+                var taskCompleted = space.Events.Any(e => e.Action == "TaskCompleted");
+                var prCreated = space.Events.Any(e => e.Action == "PR_Created");
+                var messageSent = space.Events.Any(e => e.Action == "Message_Sent");
+                if (taskCompleted && prCreated && messageSent)
+                {
+                    var hasLate = space.Events.Any(e => e.Metadata?.TryGetValue("DaysLate", out var d) == true && d is int and > 0);
+                    if (!hasLate)
+                        return new RuleMatch("TeamOnTrack", 0.82, "TaskCompleted + PR + Message, no delay");
+                }
                 return null;
             }
         };

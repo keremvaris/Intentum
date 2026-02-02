@@ -722,7 +722,7 @@
         parts.Add($"Ortalama güven skoru %{avgScore:P0}.");
         if (activePct > 0)
             parts.Add($"ActiveGreenwashing payı %{activePct:N0}; bu oran yüksekse dönem içinde yeşil yıkama sinyali ağırlıklı demektir.");
-        if (genuinePct > 0 && genuinePct >= 25)
+        if (genuinePct is > 0 and >= 25)
             parts.Add($"GenuineSustainability payı %{genuinePct:N0}; şeffaf raporlama eğilimi görülüyor.");
         return string.Join(" ", parts);
     }

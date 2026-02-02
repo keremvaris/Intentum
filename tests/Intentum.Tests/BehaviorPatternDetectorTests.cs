@@ -99,7 +99,7 @@ public sealed class BehaviorPatternDetectorTests
         var matches = detector.MatchTemplates(patterns, templates);
 
         Assert.NotEmpty(matches);
-        Assert.Contains(matches, m => m.TemplateName == "Purchase funnel" && m.Score > 0);
+        Assert.Contains(matches, m => m is { TemplateName: "Purchase funnel", Score: > 0 });
     }
 
     [Fact]

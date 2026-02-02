@@ -79,7 +79,7 @@ public sealed class OnnxIntentModelTests
         Assert.NotNull(result);
         var (intentIndex, confidence) = ((int, double))result;
         Assert.True(intentIndex >= 0);
-        Assert.True(confidence >= 0 && confidence <= 1);
+        Assert.True(confidence is >= 0 and <= 1);
     }
 
     [Fact]
@@ -99,7 +99,7 @@ public sealed class OnnxIntentModelTests
 
         Assert.NotNull(intent.Name);
         Assert.True(intent.Name == "A" || intent.Name == "B" || intent.Name == "C" || intent.Name == "Unknown");
-        Assert.True(intent.Confidence.Score >= 0 && intent.Confidence.Score <= 1);
+        Assert.True(intent.Confidence.Score is >= 0 and <= 1);
     }
 
     [Fact]
@@ -118,7 +118,7 @@ public sealed class OnnxIntentModelTests
         var intent = model.Infer(space, vector);
 
         Assert.NotNull(intent.Name);
-        Assert.True(intent.Confidence.Score >= 0 && intent.Confidence.Score <= 1);
+        Assert.True(intent.Confidence.Score is >= 0 and <= 1);
     }
 
     [Fact]

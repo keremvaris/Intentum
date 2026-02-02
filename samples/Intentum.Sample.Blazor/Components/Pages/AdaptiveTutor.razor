@@ -1,0 +1,225 @@
+@page "/adaptive-tutor"
+@rendermode InteractiveServer
+@inject HttpClient Http
+@inject NavigationManager Navigation
+@inject IJSRuntime JSRuntime
+@implements IAsyncDisposable
+
+<PageTitle>Adaptive Tutor</PageTitle>
+
+<div class="page-card">
+    <h2 class="page-card h2" style="margin: 0 0 0.25rem 0;">Adaptive Tutor: EdTech Niyet Katmanı</h2>
+    <p class="subtitle">Öğrenci olaylarından öğrenme niyeti; Block (sonraki quiz), RequireAuth (ek modül), Warn (eğitmene).</p>
+
+    <div class="project-pulse-controls">
+        <div class="project-pulse-variants">
+            <span class="project-pulse-label">Varyant:</span>
+            @foreach (var v in new[] { "A", "B", "C", "D" })
+            {
+                <button type="button" class="btn-variant @(_selectedVariant == v ? "btn-variant--active" : "")" @onclick="() => SelectVariant(v)">
+                    @v: @AdaptiveTutorVariants.GetLabel(v)
+                </button>
+            }
+        </div>
+        <button type="button" class="btn-demo-insider" @onclick="RunInfer" disabled="@_running">
+            @(_running ? "Çalışıyor…" : "Niyet Çıkar")
+        </button>
+    </div>
+</div>
+
+@if (_result != null)
+{
+    <div class="page-card">
+        <h3 class="page-card h3" style="margin: 0 0 0.75rem 0;">Özet (KPI)</h3>
+        <div class="kpi-grid fraud-kpi-grid">
+            <div class="card kpi-card kpi-card--metric">
+                <span class="kpi-card__label">Niyet</span>
+                <span class="kpi-card__value kpi-card__value--text">@_result.IntentName</span>
+            </div>
+            <div class="card kpi-card kpi-card--risk @ConfidenceClass(_result.ConfidenceScore)">
+                <span class="kpi-card__label">Güven</span>
+                <span class="kpi-card__value">@_result.ConfidenceScore.ToString("P0")</span>
+            </div>
+            <div class="card kpi-card kpi-card--metric">
+                <span class="kpi-card__label">Karar</span>
+                <span class="kpi-card__value kpi-card__value--text">
+                    <span class="decision-badge decision-badge--@(_result.Decision.ToLowerInvariant())">@_result.Decision</span>
+                </span>
+            </div>
+            <div class="card kpi-card kpi-card--metric">
+                <span class="kpi-card__label">Olay sayısı</span>
+                <span class="kpi-card__value">@(_result.EventsSummary.Count)</span>
+            </div>
+        </div>
+    </div>
+    <div class="page-card">
+        <h3 class="page-card h3" style="margin: 0 0 0.75rem 0;">Güven skoru ve yol haritası</h3>
+        <div class="fraud-charts-grid">
+            <div class="fraud-chart-card card">
+                <h3 class="fraud-chart-card__title">Güven skoru</h3>
+                <div id="adaptive-tutor-gauge" class="fraud-gauge"></div>
+            </div>
+            <div class="fraud-chart-card card fraud-chart-card--wide">
+                <h3 class="fraud-chart-card__title">Öğrenci olay özeti</h3>
+                <div id="adaptive-tutor-bar" class="fraud-line-chart"></div>
+            </div>
+        </div>
+    </div>
+    <div class="page-card">
+        <h3 class="page-card h3" style="margin: 0 0 0.75rem 0;">Öğrenci: Ali — Modül: Python Döngüler</h3>
+        <ul class="project-pulse-event-list">
+            @foreach (var s in _result.EventsSummary)
+            {
+                <li class="project-pulse-event-item"><span class="project-pulse-event-summary">@s</span></li>
+            }
+        </ul>
+        <div class="project-pulse-result insider-result">
+            <p><strong>Niyet:</strong> @_result.IntentName</p>
+            <p><strong>Güven:</strong> @_result.ConfidenceScore.ToString("P0") (@_result.ConfidenceLevel)</p>
+            <p><strong>Karar:</strong> <span class="decision-badge decision-badge--@(_result.Decision.ToLowerInvariant())">@_result.Decision</span></p>
+            @if (_result.BlockedQuiz != null)
+            {
+                <p class="adaptive-tutor-blocked"><strong>Bloke:</strong> @_result.BlockedQuiz (sonraki zor quiz engellendi)</p>
+            }
+            @if (_result.SuggestedModule != null)
+            {
+                <p class="adaptive-tutor-module"><strong>Önerilen modül:</strong> @_result.SuggestedModule (yol haritasına eklendi)</p>
+            }
+            @if (_result.Decision is "Warn" or "RequireAuth")
+            {
+                <div class="insider-warn-banner">Eğitmene bildirim gönderildi.</div>
+            }
+        </div>
+        <div class="customer-journey-wow">
+            <h4 class="insider-echarts-title">Yol haritası (mock)</h4>
+            <p class="customer-journey-content-type">
+                @if (_result.BlockedQuiz != null)
+                {
+                    <span>Quiz 4 kırmızı (bloke).</span>
+                }
+                @if (_result.SuggestedModule != null)
+                {
+                    <span> "@_result.SuggestedModule" modülü öne alındı.</span>
+                }
+                @if (_result.BlockedQuiz == null && _result.SuggestedModule == null)
+                {
+                    <span>Öğrenci sonraki modüle geçebilir.</span>
+                }
+            </p>
+        </div>
+    </div>
+}
+
+@code {
+    private string _selectedVariant = AdaptiveTutorVariants.VariantA;
+    private bool _running;
+    private AdaptiveTutorInferResult? _result;
+    private EChartsInterop? _gaugeEcharts;
+    private EChartsInterop? _barEcharts;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (_result == null) return;
+        if (_gaugeEcharts == null)
+        {
+            await Task.Delay(100);
+            await InvokeAsync(async () =>
+            {
+                if (_gaugeEcharts != null) return;
+                _gaugeEcharts = new EChartsInterop(JSRuntime, "adaptive-tutor-gauge");
+                _barEcharts = new EChartsInterop(JSRuntime, "adaptive-tutor-bar");
+                if (await _gaugeEcharts.InitAsync() && await _barEcharts.InitAsync())
+                    await UpdateAdaptiveTutorCharts();
+                StateHasChanged();
+            });
+        }
+        else
+            await UpdateAdaptiveTutorCharts();
+    }
+
+    private async Task UpdateAdaptiveTutorCharts()
+    {
+        if (_result == null) return;
+        if (_gaugeEcharts != null)
+        {
+            var pct = Math.Round(_result.ConfidenceScore * 100, 0);
+            await _gaugeEcharts.SetOptionAsync(new
+            {
+                series = new[]
+                {
+                    new
+                    {
+                        type = "gauge",
+                        startAngle = 180,
+                        endAngle = 0,
+                        min = 0,
+                        max = 100,
+                        progress = new { show = true, width = 18, roundCap = true },
+                        detail = new { valueAnimation = true, formatter = "{value}%", offsetCenter = new[] { "0%", "75%" }, fontSize = 18, fontWeight = "bold" },
+                        data = new[] { new { value = pct } },
+                        axisLine = new { roundCap = true, lineStyle = new { width = 18, color = new object[] { new object[] { 0.3, "#4caf50" }, new object[] { 0.7, "#ff9800" }, new object[] { 1.0, "#d32f2f" } } } },
+                        pointer = new { show = false },
+                        axisTick = new { show = false },
+                        splitLine = new { show = false }
+                    }
+                }
+            });
+        }
+        if (_barEcharts != null)
+        {
+            var eventCount = _result.EventsSummary.Count;
+            var option = new
+            {
+                tooltip = new { trigger = "axis" },
+                grid = new { left = "3%", right = "4%", bottom = "3%", top = "8%", containLabel = true },
+                xAxis = new { type = "category", data = new[] { "Güven %", "Olay sayısı", "Bloke quiz" }, axisLine = new { show = true }, splitLine = new { show = false } },
+                yAxis = new { type = "value", min = 0, axisLine = new { show = false }, splitLine = new { lineStyle = new { type = "dashed", opacity = 0.4 } } },
+                series = new[] { new { type = "bar", data = new object[] { Math.Round(_result.ConfidenceScore * 100, 0), eventCount, string.IsNullOrEmpty(_result.BlockedQuiz) ? 0 : 1 }, itemStyle = new { color = "#00acc1" }, barWidth = "50%" } }
+            };
+            await _barEcharts.SetOptionAsync(option);
+        }
+    }
+
+    private static string ConfidenceClass(double score)
+    {
+        if (score >= 0.8) return "high";
+        if (score >= 0.5) return "medium";
+        return "low";
+    }
+
+    private async Task SelectVariant(string v)
+    {
+        if (_running) return;
+        _selectedVariant = v;
+        if (_gaugeEcharts != null) { await _gaugeEcharts.DisposeAsync(); _gaugeEcharts = null; }
+        if (_barEcharts != null) { await _barEcharts.DisposeAsync(); _barEcharts = null; }
+        _result = null;
+        StateHasChanged();
+    }
+
+    private async Task RunInfer()
+    {
+        _running = true;
+        if (_gaugeEcharts != null) { await _gaugeEcharts.DisposeAsync(); _gaugeEcharts = null; }
+        if (_barEcharts != null) { await _barEcharts.DisposeAsync(); _barEcharts = null; }
+        _result = null;
+        StateHasChanged();
+        try
+        {
+            var baseUri = new Uri(Navigation.BaseUri).GetLeftPart(UriPartial.Authority);
+            var req = new AdaptiveTutorInferRequest(_selectedVariant);
+            var res = await Http.PostAsJsonAsync(baseUri + "/api/adaptive-tutor/infer", req);
+            if (res.IsSuccessStatusCode)
+                _result = await res.Content.ReadFromJsonAsync<AdaptiveTutorInferResult>();
+        }
+        catch { /* ignore */ }
+        _running = false;
+        StateHasChanged();
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        if (_gaugeEcharts != null) await _gaugeEcharts.DisposeAsync();
+        if (_barEcharts != null) await _barEcharts.DisposeAsync();
+    }
+}
