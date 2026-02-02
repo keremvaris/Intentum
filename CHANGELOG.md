@@ -13,6 +13,21 @@ Bu dosya **conventional commit** mesajlarından otomatik üretilir. Commit'te **
 
 ---
 
+## [unreleased]
+
+
+
+### Miscellaneous
+
+- **Update .dockerignore to include necessary README files** *(docker)*
+
+- Add exception for README.md to allow inclusion in NuGet pack process
+- Include sample project README.md explicitly
+- Retain ignoring of .DS_Store and log files for cleaner builds
+- Ensure repo root README is recognized as required by Directory.Build.props
+
+
+
 ## [1.1.6] - 2026-02-02
 
 
