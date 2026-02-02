@@ -13,6 +13,19 @@ Bu dosya **conventional commit** mesajlarından otomatik üretilir. Commit'te **
 
 ---
 
+## [unreleased]
+
+
+
+### Documentation
+
+- **Add Intent Layer five demos to Turkish case studies** *(toc)*
+
+- Inserted new entry "Intent Layer five demos" in the Turkish table of contents
+- Linked to the new case study file at ../case-studies/intent-layer-five-demos.md
+
+
+
 ## [1.1.5] - 2026-02-02
 
 
