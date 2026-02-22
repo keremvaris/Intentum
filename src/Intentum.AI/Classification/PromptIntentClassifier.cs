@@ -68,8 +68,7 @@ public sealed class PromptIntentClassifier : IIntentClassifier
 
         try
         {
-            var parsed = JsonSerializer.Deserialize<LlmClassificationOutput>(content,
-                new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+            var parsed = JsonSerializer.Deserialize<LlmClassificationOutput>(content, LlmJsonOptions);
 
             return new IntentClassificationResult(
                 parsed?.Intent ?? "Unknown",
@@ -81,6 +80,8 @@ public sealed class PromptIntentClassifier : IIntentClassifier
             return new IntentClassificationResult("Unknown", 0, $"Failed to parse LLM response: {content}");
         }
     }
+
+    private static readonly JsonSerializerOptions LlmJsonOptions = new() { PropertyNameCaseInsensitive = true };
 
     private const string DefaultSystemPrompt =
         "You are an intent classification system. Given a sequence of behavior events (actor:action pairs), " +

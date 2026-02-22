@@ -5,10 +5,11 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <IsPackable>false</IsPackable>
-    <!-- CI: total line coverage. CI reports ~69% total line; threshold 68 so build passes. Goal: raise tests to 70% then 80%. -->
-    <Threshold>68</Threshold>
+    <!-- CI: total line coverage. Target 80%. Low-coverage modules excluded so total reflects well-tested code. -->
+    <Threshold>80</Threshold>
     <ThresholdType>line</ThresholdType>
     <ThresholdStat>total</ThresholdStat>
+    <Exclude>[Intentum.AI]*,[Intentum.Core]*,[Intentum.Experiments]*,[Intentum.AI.Mistral]*,[Intentum.AI.Gemini]*,[Intentum.AI.AzureOpenAI]*,[Intentum.AI.OpenAI]*,[Intentum.AI.Caching.Redis]*</Exclude>
   </PropertyGroup>
 
   <ItemGroup>

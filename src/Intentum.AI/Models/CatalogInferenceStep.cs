@@ -89,7 +89,7 @@ public sealed class CatalogInferenceStep : IIntentInferenceStep
         );
     }
 
-    private static IReadOnlyList<double> AverageVectors(List<IReadOnlyList<double>> vectors)
+    private static double[] AverageVectors(List<IReadOnlyList<double>> vectors)
     {
         var dim = vectors[0].Count;
         var avg = new double[dim];

@@ -9,7 +9,7 @@ namespace Intentum.AI.Resilience;
 /// </summary>
 public sealed class FallbackEmbeddingProvider : IIntentEmbeddingProvider
 {
-    private readonly IReadOnlyList<IIntentEmbeddingProvider> _providers;
+    private readonly List<IIntentEmbeddingProvider> _providers;
     private readonly int _maxConsecutiveFailures;
     private readonly TimeSpan _cooldownPeriod;
     private readonly int[] _consecutiveFailures;

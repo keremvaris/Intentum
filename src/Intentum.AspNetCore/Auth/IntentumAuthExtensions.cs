@@ -11,6 +11,8 @@ namespace Intentum.AspNetCore.Auth;
 /// </summary>
 public static class IntentumAuthExtensions
 {
+    private const string RoleAdmin = "Admin";
+
     /// <summary>
     /// Adds Intentum authentication with API key support.
     /// </summary>
@@ -76,9 +78,9 @@ public static class IntentumAuthExtensions
         });
 
         services.AddAuthorizationBuilder()
-            .AddPolicy("Admin", policy => policy.RequireRole("Admin"))
-            .AddPolicy("Analyst", policy => policy.RequireRole("Admin", "Analyst"))
-            .AddPolicy("ReadOnly", policy => policy.RequireRole("Admin", "Analyst", "ReadOnly"));
+            .AddPolicy(RoleAdmin, policy => policy.RequireRole(RoleAdmin))
+            .AddPolicy("Analyst", policy => policy.RequireRole(RoleAdmin, "Analyst"))
+            .AddPolicy("ReadOnly", policy => policy.RequireRole(RoleAdmin, "Analyst", "ReadOnly"));
 
         return builder;
     }

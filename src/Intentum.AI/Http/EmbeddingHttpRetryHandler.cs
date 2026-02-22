@@ -17,6 +17,7 @@ public static class EmbeddingHttpRetryHandler
     /// <param name="maxWaitSeconds">Maximum wait time in seconds per retry.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>A successful HttpResponseMessage.</returns>
+    [System.Diagnostics.CodeAnalysis.SuppressMessage("Maintainability", "S3966:Objects should not be disposed more than once", Justification = "Dispose only in 429-exhausted path; loop start disposes previous attempt's response.")]
     public static async Task<HttpResponseMessage> SendWithRetryAsync(
         Func<CancellationToken, Task<HttpResponseMessage>> sendRequest,
         Action<double?, string?> onRateLimitExhausted,

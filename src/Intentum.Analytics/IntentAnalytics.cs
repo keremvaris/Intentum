@@ -105,7 +105,7 @@ public sealed class IntentAnalytics : IIntentAnalytics
         var iqrUpperFence = q3 + 1.5 * iqr;
 
         var blockRates = buckets.Select(g =>
-            g.Count() > 0 ? g.Count(r => r.Decision == PolicyDecision.Block) / (double)g.Count() : 0.0).ToList();
+            g.Any() ? g.Count(r => r.Decision == PolicyDecision.Block) / (double)g.Count() : 0.0).ToList();
         var (blockMean, blockStdDev) = ComputeMeanStdDev(blockRates);
 
         foreach (var (g, _) in buckets.Select((g, i) => (g, i)))
