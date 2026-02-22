@@ -13,7 +13,27 @@ Bu dosya **conventional commit** mesajlarından otomatik üretilir. Commit'te **
 
 ---
 
-## [unreleased]
+## [1.1.7] - 2026-02-22
+
+
+
+
+### Features
+
+- **Enhance AI, experiments, and rule features** *(core)*
+
+Introduces significant new capabilities across the Intentum framework, focusing on advanced AI, experimentation, and domain-specific rules.
+
+Key enhancements:
+-   **AI & Embeddings:** Implements `IntentCatalog` for nearest-neighbor intent classification and `PromptIntentClassifier` for direct LLM API integration. Enhances resilience with `FallbackEmbeddingProvider` and a shared `EmbeddingHttpRetryHandler` for robust API calls. Updates `EmbeddingScore` to use L2 normalization and cosine similarity. `EmbedAsync` is now supported across all embedding providers for asynchronous operations.
+-   **Experimentation:** Integrates `IntentExperiment` for A/B testing models and policies, including hash-based traffic splitting and statistical significance computation (chi-square test).
+-   **Domain-Specific Rules:** Adds new pre-built rule libraries for `E-commerce`, `Fraud Detection`, and `User Behavior Analytics` to accelerate common use cases.
+-   **Analytics & Observability:** Enhances `IntentAnalytics` with Z-score and IQR anomaly detection methods and introduces new OpenTelemetry metrics for AI embedding and classification operations.
+-   **ASP.NET Core:** Adds `ApiKeyAuthenticationHandler` for API key authentication and improves `EmbeddingProviderHealthCheck` for async checks.
+-   **Blazor Sample:** Overhauls the Blazor sample application's UI, adds a new accordion navigation, a detailed `Overview` page (with transparency and value maps), and dedicated pages for `A/B Test` and various `Examples` (AI Fallback, Chained, Customer, Hello, Rules, Time Decay, Vectors), comprehensively demonstrating the new framework capabilities.
+-   **Documentation:** Includes new "Getting Started" guides in English and Turkish, reflecting the updated features and sample application.
+
+
 
 
 
