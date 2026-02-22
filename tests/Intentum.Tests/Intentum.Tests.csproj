@@ -5,7 +5,7 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <IsPackable>false</IsPackable>
-    <!-- CI: total line coverage. Target 80%. ExcludeByFile removed per plan; threshold 70 until test plan raises coverage, then 80. -->
+    <!-- CI: total line coverage. Target 80%. -->
     <Threshold>70</Threshold>
     <ThresholdType>line</ThresholdType>
     <ThresholdStat>total</ThresholdStat>

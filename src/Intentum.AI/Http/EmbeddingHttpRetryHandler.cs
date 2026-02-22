@@ -28,6 +28,7 @@ public static class EmbeddingHttpRetryHandler
 
         for (var attempt = 1; attempt <= maxAttempts; attempt++)
         {
+            response?.Dispose();
             response = await sendRequest(cancellationToken);
 
             if (response.IsSuccessStatusCode)
@@ -48,7 +49,6 @@ public static class EmbeddingHttpRetryHandler
             if (response.Headers.RetryAfter?.Delta is { } retryAfter)
                 delay = TimeSpan.FromSeconds(Math.Min(retryAfter.TotalSeconds, maxWaitSeconds));
 
-            response.Dispose();
             await Task.Delay(delay, cancellationToken);
         }
 
