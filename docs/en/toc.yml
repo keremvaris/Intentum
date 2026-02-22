@@ -5,6 +5,8 @@ items:
   - name: Getting Started
     expanded: false
     items:
+      - name: Getting Started
+        href: getting-started.md
       - name: Why Intentum
         href: why-intentum.md
       - name: Manifesto

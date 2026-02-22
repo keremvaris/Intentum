@@ -6,14 +6,51 @@ namespace Intentum.AI.Embeddings;
 public static class EmbeddingScore
 {
     /// <summary>
-    /// Normalizes a list of embedding values to a score in [0, 1] using average of absolute values.
+    /// Computes a scalar score from an embedding vector using L2 magnitude,
+    /// normalized to [0, 1]. This provides a rough "activation strength" indicator.
+    /// For meaningful similarity, use cosine similarity between two vectors instead.
     /// </summary>
     public static double Normalize(IReadOnlyList<double> values)
     {
         if (values.Count == 0)
             return 0;
 
-        var avgAbs = values.Average(Math.Abs);
-        return Math.Clamp(avgAbs, 0.0, 1.0);
+        var sumOfSquares = 0.0;
+        foreach (var v in values)
+            sumOfSquares += v * v;
+
+        var magnitude = Math.Sqrt(sumOfSquares / values.Count);
+        return Math.Clamp(magnitude, 0.0, 1.0);
+    }
+
+    /// <summary>
+    /// Computes cosine similarity between two embedding vectors. Returns a value in [0, 1]
+    /// where 1 means identical direction and 0 means orthogonal or opposite.
+    /// </summary>
+    public static double CosineSimilarity(IReadOnlyList<double> a, IReadOnlyList<double> b)
+    {
+        if (a.Count == 0 || b.Count == 0 || a.Count != b.Count)
+            return 0;
+
+        var dotProduct = 0.0;
+        var magA = 0.0;
+        var magB = 0.0;
+
+        for (var i = 0; i < a.Count; i++)
+        {
+            dotProduct += a[i] * b[i];
+            magA += a[i] * a[i];
+            magB += b[i] * b[i];
+        }
+
+        magA = Math.Sqrt(magA);
+        magB = Math.Sqrt(magB);
+
+        const double epsilon = 1e-10;
+        if (magA < epsilon || magB < epsilon)
+            return 0;
+
+        var similarity = dotProduct / (magA * magB);
+        return Math.Clamp((similarity + 1) / 2, 0.0, 1.0);
     }
 }

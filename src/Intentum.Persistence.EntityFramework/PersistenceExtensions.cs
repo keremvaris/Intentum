@@ -32,4 +32,16 @@ public static class PersistenceExtensions
         return services.AddIntentumPersistence(options =>
             options.UseInMemoryDatabase(databaseName));
     }
+
+    /// <summary>
+    /// Ensures the Intentum database schema exists. Uses EnsureCreatedAsync for in-memory
+    /// and MigrateAsync for relational databases when migrations are available.
+    /// Call during application startup.
+    /// </summary>
+    public static async Task InitializeIntentumDatabaseAsync(this IServiceProvider serviceProvider)
+    {
+        using var scope = serviceProvider.CreateScope();
+        var db = scope.ServiceProvider.GetRequiredService<IntentumDbContext>();
+        await db.Database.EnsureCreatedAsync();
+    }
 }

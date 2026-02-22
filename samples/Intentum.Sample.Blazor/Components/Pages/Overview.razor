@@ -3,6 +3,7 @@
 @inject HttpClient Http
 @inject IJSRuntime JSRuntime
 @inject NavigationManager Navigation
+@using System.Text.Json.Serialization
 @implements IAsyncDisposable
 
 <PageTitle>Intent Intelligence Hub</PageTitle>
@@ -17,6 +18,17 @@
         <div class="card-header-row">
             <h3 class="section-subtitle">Intentum pipeline</h3>
             <InfoIcon Text="Intentum'un iş akışı: 1) Davranış olayları (actor, action) girin. 2) Model niyet + güven skoru çıkarır. 3) Politika kuralları değerlendirilir. 4) Karar (Allow/Block/Escalate vb.) verilir. 5) Sonuçlar analiz ve export ile izlenebilir. Alttaki butonlarla ilgili sayfalara gidebilirsiniz." />
+        </div>
+        <div class="pipeline-diagram" aria-label="Intentum pipeline akışı">
+            <span class="pipeline-diagram__box">Davranış olayları</span>
+            <span class="pipeline-diagram__arrow">→</span>
+            <span class="pipeline-diagram__box">Niyet + güven</span>
+            <span class="pipeline-diagram__arrow">→</span>
+            <span class="pipeline-diagram__box">Politika</span>
+            <span class="pipeline-diagram__arrow">→</span>
+            <span class="pipeline-diagram__box">Karar</span>
+            <span class="pipeline-diagram__arrow">→</span>
+            <span class="pipeline-diagram__box">Analiz</span>
         </div>
         <ol class="pipeline-steps">
             <li><strong>Davranış olayları</strong> — Olayları girin</li>
@@ -33,6 +45,60 @@
             <NavLink href="commerce" class="action-btn">Sipariş demo</NavLink>
             <a href="@_exportJsonUrl" target="_blank" rel="noopener" class="action-btn action-btn-export">JSON indir</a>
             <a href="@_exportCsvUrl" target="_blank" rel="noopener" class="action-btn action-btn-export">CSV indir</a>
+        </div>
+    </div>
+
+    <div class="page-card transparency-card">
+        <h3 class="section-subtitle">Gerçek / Simülasyon — Ne Hazır, Neresi Demo?</h3>
+        <p class="muted" style="margin-bottom: 0.75rem;">Intentum'da <strong>gerçek pipeline</strong> ile <strong>simülasyon/mock</strong> kaynaklarını net ayırıyoruz; "balon" yok.</p>
+        <div class="transparency-grid">
+            <div class="transparency-column transparency-column--real">
+                <h4 class="transparency-title">Gerçek (yapıldı / kullanılıyor)</h4>
+                <ul class="transparency-list">
+                    <li><strong>Infer</strong> — Niyet çıkarımı (kural + isteğe bağlı LLM fallback)</li>
+                    <li><strong>Politika</strong> — Allow / Block / Warn / Escalate / RateLimit</li>
+                    <li><strong>Analytics</strong> — Z-score / IQR anomali, grafik, sinyal listesi</li>
+                    <li><strong>Experiment</strong> — A/B test, hash-based varyant, p-value</li>
+                    <li><strong>API</strong> — <code>/api/intent/infer</code>, explain, orders, use-case infer uçları gerçek davranır</li>
+                </ul>
+            </div>
+            <div class="transparency-column transparency-column--demo">
+                <h4 class="transparency-title">Simülasyon / mock (demo amaçlı)</h4>
+                <ul class="transparency-list">
+                    <li><strong>Embedding provider</strong> — Demo modunda mock embedding kullanılabilir; gerçek API key ile canlı embedding açılır</li>
+                    <li><strong>Olay üreticileri</strong> — Intent Stream, use-case sayfalarındaki "Demo Başlat" / "Demo Çalıştır" ile üretilen olaylar simülasyondur</li>
+                    <li><strong>Örnek/placeholder veri</strong> — KPI ve grafiklerde veri yokken "Simülasyonu başlattığınızda dolacak" veya örnek anomaly satırı gösterilebilir</li>
+                    <li><strong>Senaryo sabitleri</strong> — Fraud Demo 1 (Ahmet K.), ATO adımları, Zero-Day zinciri vb. sabit senaryolardır; canlıda gerçek olay akışı işlenir</li>
+                </ul>
+            </div>
+        </div>
+        <p class="muted" style="margin-top: 0.75rem; font-size: 0.9rem;">Bu sample'da gördüğünüz niyet, güven ve karar çıktıları gerçek pipeline'dan gelir; girdi olayları ise çoğu sayfada simülasyonla üretilir veya sizin girdiğiniz örnek veridir.</p>
+    </div>
+
+    <p class="muted" style="margin: 0.75rem 0 0 0;">Framework'ün hangi parçaları hazır, hangileri kütüphanede veya sample'da kullanılıyor aşağıdaki kartta özetleniyor.</p>
+    <div class="page-card value-map-card">
+        <h3 class="section-subtitle">Intentum: Ne Kadar Hazır?</h3>
+        <p class="muted" style="margin-bottom: 1rem;">Üretimde kullanıma hazır bileşenler ile kütüphanede uygulanmış / sample'da gösterilen özellikler — net ve şeffaf bilgi.</p>
+        <div class="value-map-grid">
+            <div class="value-map-column value-map-column--ready">
+                <h4 class="value-map-title">Üretimde kullanıma hazır</h4>
+                <ul class="value-map-list">
+                    <li><strong>Rule-based intent</strong> — Hızlı, deterministik, açıklanabilir</li>
+                    <li><strong>ChainedIntentModel</strong> — Önce kural, yetmezse LLM fallback (maliyet %70–90 düşer)</li>
+                    <li><strong>Policy engine</strong> — Allow / Block / Warn / Escalate / RateLimit</li>
+                    <li><strong>Pipeline mimarisi</strong> — Pluggable adımlar, DI, middleware</li>
+                </ul>
+                <p class="value-map-note">Bu bileşenler prod'da güvenle kullanılır.</p>
+            </div>
+            <div class="value-map-column value-map-column--prototype">
+                <h4 class="value-map-title">Kütüphanede hazır / sample'da gösteriliyor</h4>
+                <ul class="value-map-list">
+                    <li><strong>LLM intent classification</strong> — Katalog ile gerçek intent adı (CatalogInferenceStep) sample'da kullanılıyor; varsayılan infer gerçek intent döndürebilir.</li>
+                    <li><strong>Analytics anomali</strong> — Z-score ve IQR ile anomali tespiti kütüphanede ve Overview/analytics'te kullanılıyor.</li>
+                    <li><strong>A/B test</strong> — Hash-based atama ve chi-square anlamlılık kütüphanede var; sample'da A/B Test sayfası ile gösteriliyor.</li>
+                </ul>
+                <p class="value-map-note">Bu özellikler kütüphanede uygulandı ve sample'da kullanılıyor.</p>
+            </div>
         </div>
     </div>
 
@@ -77,6 +143,33 @@
         {
             <div class="card overview-anomaly page-card">
                 <strong>Anomali:</strong> @_anomalyMessage
+                @if (_anomalyMethod != null)
+                {
+                    <span class="badge overview-anomaly-method">@_anomalyMethod</span>
+                }
+            </div>
+        }
+        @if (_summary?.Anomalies?.Count > 0)
+        {
+            <div class="page-card">
+                <h3 class="section-subtitle" style="margin: 0 0 0.5rem 0;">Son anomaliler</h3>
+                <p class="muted" style="margin: 0 0 0.5rem 0; font-size: 0.9rem;">Tür ve tespit metodu (Z-score / IQR) kütüphanede kullanılıyor.</p>
+                <div class="table-wrap">
+                    <table class="history-table">
+                        <thead><tr><th>Tür</th><th>Metod</th><th>Açıklama</th><th>Zaman</th></tr></thead>
+                        <tbody>
+                            @foreach (var a in _summary.Anomalies)
+                            {
+                                <tr>
+                                    <td>@a.Type</td>
+                                    <td>@(GetAnomalyMethod(a) ?? "—")</td>
+                                    <td>@a.Description</td>
+                                    <td>@a.DetectedAt.ToLocalTime().ToString("g")</td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
             </div>
         }
 
@@ -145,11 +238,13 @@
 </div>
 
 @code {
+#pragma warning disable IDE0052
     private DashboardOverview? _overview;
     private AnalyticsSummaryDto? _summary;
     private bool _loading = true;
     private string? _error;
     private string? _anomalyMessage;
+    private string? _anomalyMethod;
     private EChartsInterop? _intentPie;
     private EChartsInterop? _decisionPie;
     private EChartsInterop? _trendLine;
@@ -187,7 +282,7 @@
             {
                 var a = _summary.Anomalies[0];
                 _anomalyMessage = a.Description;
-                _ = (a.Id, a.DetectedAt, a.WindowStart, a.WindowEnd, a.Severity, a.Metadata);
+                _anomalyMethod = GetAnomalyMethod(a);
             }
             var dist = _summary?.DecisionDistribution;
             _decisionCounts = (dist?.CountByDecision ?? new Dictionary<string, int>())
@@ -238,7 +333,7 @@
 
     private async Task UpdateIntentPie()
     {
-        if (_intentPie == null || _overview?.ActiveIntents == null || _overview.ActiveIntents.Count == 0) return;
+        if (_intentPie == null || _overview == null || _overview.ActiveIntents == null || _overview.ActiveIntents.Count == 0) return;
         var data = _overview.ActiveIntents.Select(i => new { name = i.Name, value = Math.Round(i.Confidence * 100, 1) }).ToList();
         var option = new
         {
@@ -319,5 +414,12 @@
 
     private sealed record ConfidenceTrendPointDto(DateTimeOffset BucketStart, DateTimeOffset BucketEnd, string ConfidenceLevel, int Count, double AverageScore);
     private sealed record DecisionDistributionDto(DateTimeOffset Start, DateTimeOffset End, int TotalCount, Dictionary<string, int> CountByDecision);
-    private sealed record AnomalyDto(string Id, string Description, DateTimeOffset DetectedAt, DateTimeOffset WindowStart, DateTimeOffset WindowEnd, double Severity, Dictionary<string, object>? Metadata);
+    private sealed record AnomalyDto(string? Id, string Type, string Description, DateTimeOffset DetectedAt, DateTimeOffset WindowStart, DateTimeOffset WindowEnd, double Severity, [property: JsonPropertyName("details")] Dictionary<string, object>? Details);
+
+    private static string? GetAnomalyMethod(AnomalyDto a)
+    {
+        if (a.Details == null) return null;
+        return a.Details.TryGetValue("Method", out var v) ? v.ToString() : null;
+    }
+#pragma warning restore IDE0052
 }

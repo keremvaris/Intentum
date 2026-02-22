@@ -15,22 +15,22 @@ public sealed class EmbeddingProviderHealthCheck : IHealthCheck
         _embeddingProvider = embeddingProvider ?? throw new ArgumentNullException(nameof(embeddingProvider));
     }
 
-    public Task<HealthCheckResult> CheckHealthAsync(
+    public async Task<HealthCheckResult> CheckHealthAsync(
         HealthCheckContext context,
         CancellationToken cancellationToken = default)
     {
         try
         {
             var testKey = "health:check";
-            var embedding = _embeddingProvider.Embed(testKey);
-            return Task.FromResult(HealthCheckResult.Healthy(
-                $"Embedding provider is healthy. Test embedding score: {embedding.Score:F2}"));
+            var embedding = await _embeddingProvider.EmbedAsync(testKey, cancellationToken);
+            return HealthCheckResult.Healthy(
+                $"Embedding provider is healthy. Test embedding score: {embedding.Score:F2}");
         }
         catch (Exception ex)
         {
-            return Task.FromResult(HealthCheckResult.Unhealthy(
+            return HealthCheckResult.Unhealthy(
                 "Embedding provider health check failed",
-                ex));
+                ex);
         }
     }
 }

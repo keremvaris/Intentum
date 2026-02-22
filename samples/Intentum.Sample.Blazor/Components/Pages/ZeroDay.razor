@@ -8,13 +8,32 @@
 <PageTitle>Zero-Day Demo</PageTitle>
 
 <div class="page-card">
-    <h2 class="page-card h2" style="margin: 0 0 0.25rem 0;">Demo 4: Sıfır-Gün Saldırı Davranışı</h2>
+    <h2 class="page-card h2" style="margin: 0 0 0.25rem 0;">Sıfır-Gün Saldırı Davranışı</h2>
     <p class="subtitle">İmza henüz yok, ancak kötü niyetli davranış modeli değişmedi.</p>
+    <p class="muted" style="margin: 0.5rem 0 0;">Bu demo ne gösterir: Demo Çalıştır’a basın; PortScan → ExploitAttempt → LateralMove davranış zinciri Intentum’a gider. İmza bilinmiyorsa LLM fallback ile niyet çıkarılır; sonuçta niyet adı, güven ve karar gösterilir.</p>
     <div class="zero-day-controls">
         <button type="button" class="btn-demo-zeroday" @onclick="RunZeroDay" disabled="@_running">
             @(_running ? "Çalışıyor…" : "Demo Çalıştır")
         </button>
     </div>
+</div>
+
+<div class="page-card commerce-5n1k">
+    <h3 class="page-card h3" style="margin: 0 0 0.75rem 0;">Bu demo ne anlama geliyor? (5N1K)</h3>
+    <ul class="commerce-5n1k-list">
+        <li><strong>Ne:</strong> Bilinmeyen (zero-day) saldırı davranışının, imza olmadan niyet çıkarımı ile tespiti.</li>
+        <li><strong>Neden:</strong> Yeni saldırılar imza tabanlı sistemlerde kaçar; davranış modeli (PortScan → ExploitAttempt → LateralMove) bilinen kalıba benzer olduğu için Intentum LLM fallback ile niyet üretir.</li>
+        <li><strong>Nerede:</strong> Güvenlik olay pipeline'ında; davranış olayları Intentum'a gider, kural eşleşmezse LLM fallback devreye girer.</li>
+        <li><strong>Ne zaman:</strong> Şüpheli ağ/sunucu davranışı tespit edildiğinde; imza güncellemesi gecikse bile davranış tabanlı karar verilebilir.</li>
+        <li><strong>Nasıl:</strong> Olay zinciri → Kural (bilinen imza) veya LLM fallback → Niyet + güven → Politika (Block/Escalate).</li>
+        <li><strong>Kim:</strong> SOC ekipleri, güvenlik ürünleri, XDR/EDR entegrasyonu.</li>
+    </ul>
+    <p class="muted" style="margin-top: 0.75rem; font-size: 0.9rem;"><strong>Hedef kitle:</strong> SOC, güvenlik operasyonları. <strong>İş değeri:</strong> Zero-day tespit süresini kısaltma; imza beklenmeden davranış tabanlı engelleme/escalation.</p>
+</div>
+
+<div class="page-card">
+    <h3 class="page-card h3" style="margin: 0 0 0.5rem 0;">Bu akışta Intentum nerede?</h3>
+    <p class="muted" style="margin: 0;">Olay (PortScan, ExploitAttempt, LateralMove…) → <strong>[Intentum: kural veya LLM fallback → niyet + güven]</strong> → Politika → Block / Escalate. Varyant: tek sabit senaryo (Demo Çalıştır); canlıda sürekli olay akışı işlenir.</p>
 </div>
 
 <div class="page-card zero-day-diagram">
@@ -52,14 +71,15 @@
                 <div id="zero-day-bar" class="zero-day-bar-container"></div>
             </div>
         </div>
-        <div class="zero-day-report card">
-            <h4 class="zero-day-report-title">Özet rapor</h4>
+        <div class="zero-day-report card intent-result-box">
+            <h4 class="zero-day-report-title">Sonuç kutusu (Niyet · Güven · Karar)</h4>
             <ul class="zero-day-report-list">
-                <li><strong>Niyet:</strong> @_result.IntentName</li>
-                <li><strong>Güven:</strong> @((_result.ConfidenceScore * 100).ToString("N1"))%</li>
+                <li><strong>Niyet:</strong> <span class="intent-name">@_result.IntentName</span></li>
+                <li><strong>Güven:</strong> <span class="confidence-value">@((_result.ConfidenceScore * 100).ToString("N1"))%</span> (@_result.ConfidenceLevel)</li>
                 <li><strong>Fallback:</strong> @(_result.FromFallback ? "LLM (imza yok)" : "Hayır")</li>
                 <li><strong>Geçmişte benzer tespit:</strong> @_result.SimilarPastCount</li>
             </ul>
+            <p class="muted" style="margin-top: 0.5rem; font-size: 0.9rem;">İş değeri: Bu niyet ve güven skoru ile politika Block veya Escalate verebilir; SOC tetiklenir, zero-day davranışı imza güncellemesi beklemeden işlenir.</p>
         </div>
     </div>
 }

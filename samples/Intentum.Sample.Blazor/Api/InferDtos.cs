@@ -6,7 +6,15 @@ internal record IntentEventDto(string Actor, string Action);
 internal record PlaygroundCompareRequest(IReadOnlyList<IntentEventDto> Events, IReadOnlyList<string>? Providers = null);
 internal record PlaygroundCompareResult(string Provider, string IntentName, string ConfidenceLevel, double ConfidenceScore, string Decision);
 internal record PlaygroundCompareResponse(IReadOnlyList<PlaygroundCompareResult> Results);
+
+internal record ExperimentRequest(IReadOnlyList<IntentEventDto> Events, int ReplicateCount = 50, string? VariantA = null, string? VariantB = null);
+internal record ExperimentResponse(
+    IReadOnlyDictionary<string, IReadOnlyDictionary<string, int>> DecisionDistributions,
+    double PValue,
+    bool IsSignificant,
+    double ChiSquare);
 internal record InferIntentResponse(
+    string IntentName,
     string Decision,
     string Confidence,
     bool RateLimitAllowed,

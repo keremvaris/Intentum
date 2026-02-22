@@ -1,33 +1,53 @@
 @page "/sandbox"
-@rendermode InteractiveServer
+@using System.Text.Json
 @using System.Text.Json.Serialization
+@rendermode InteractiveServer
 @inject HttpClient Http
 @inject NavigationManager Navigation
 
 <PageTitle>Playground</PageTitle>
 
 <div class="page-card">
+    <p class="muted" style="margin: 0 0 0.75rem 0;">Infer & Decide'in kalbi: Aynı davranışı farklı modellerle dene; niyet ve kararı gör. <NavLink href="explain">Explain</NavLink>'de nedenini, <NavLink href="policy-lab">Policy Lab</NavLink>'de kural setini incele.</p>
     <div class="card-header-row">
         <h2 style="margin: 0; font-size: 1.35rem;">Playground</h2>
-        <InfoIcon Text="@("Bu sayfa Intentum'un çekirdek işlevini dener: Davranış olayları (actor, action) girersiniz; tek model ile Infer veya birden fazla model ile Karşılaştır yaparsınız. Sonuç: niyet adı, güven, politika kararı. Açıkla ile neden bu karar verildiğini görebilirsiniz.")" />
+        <InfoIcon Text="Davranış olayları (actor, action) girin; tek model ile Infer veya birden fazla model ile Karşılaştır. Sonuç: niyet adı, güven, politika kararı." />
     </div>
-    <p class="subtitle" style="margin: 0.5rem 0 1rem 0;">Aynı davranış, farklı modeller → Infer veya Modelleri karşılaştır.</p>
+    <p class="subtitle" style="margin: 0.5rem 0 1rem 0;">Olay → Niyet → Politika → Karar. Bu sayfa pipeline girişini test eder.</p>
+</div>
 
-    <div class="card" style="padding: 1.25rem; margin-bottom: 1rem;">
-        <div class="card-header-row">
-            <h3 class="page-card h3" style="margin: 0 0 0.5rem 0;">Olay girişi</h3>
-            <InfoIcon Text="@("JSON formatında davranış olayları: her öğe actor ve action içermeli. Gönder (Infer): Varsayılan model ile tek çıkarım. Modelleri karşılaştır: Default, Mock, Strict modelleri aynı olaylarla çalıştırır; farklı niyet veya karar görebilirsiniz. Replay: Son gönderilen olayları tekrar gönderir.")" />
-        </div>
-        <div class="dashboard-toolbar" style="margin-bottom: 0;">
-            <label>Olaylar (JSON) <textarea @bind="_eventsJson" rows="4" style="width: 100%; max-width: 500px;" placeholder='[{"actor":"user","action":"login"},{"actor":"user","action":"retry"}]'></textarea></label>
-        </div>
-        <div class="playground-buttons" style="margin-top: 0.75rem;">
-            <button type="button" class="btn-app-primary" @onclick="Infer" disabled="@_loading">Gönder (Infer)</button>
-            <button type="button" class="btn-app-secondary" @onclick="Compare" disabled="@_loading">Modelleri karşılaştır</button>
-            <button type="button" class="btn-app-secondary" @onclick="Replay" disabled="@(_lastEvents == null || _loading)">Replay</button>
-            <NavLink href="explain" class="action-btn action-btn-secondary">Açıkla</NavLink>
-        </div>
+<div class="page-card commerce-5n1k">
+    <h3 class="page-card h3" style="margin: 0 0 0.5rem 0;">Bu sayfa ne işe yarar? (5N1K)</h3>
+    <ul class="commerce-5n1k-list" style="margin: 0; padding-left: 1.25rem;">
+        <li><strong>Ne:</strong> Tek veya çoklu model ile infer; niyet adı, güven, karar.</li>
+        <li><strong>Neden:</strong> Model/policy karşılaştırma, debug, hızlı deneme.</li>
+        <li><strong>Nerede:</strong> Pipeline girişi (olaylar → model → karar).</li>
+        <li><strong>Ne zaman:</strong> Yeni olay seti veya kural değişikliği sonrası test.</li>
+        <li><strong>Nasıl:</strong> JSON olay → Gönder (Infer) veya Modelleri karşılaştır; sonuçta intent, güven, karar.</li>
+        <li><strong>Kim:</strong> Geliştirici, analist.</li>
+    </ul>
+</div>
+
+<div class="page-card">
+    <div class="card-header-row">
+        <h3 class="page-card h3" style="margin: 0 0 0.5rem 0;">Olay girişi</h3>
+        <InfoIcon Text="JSON: her öğe actor ve action içermeli. Gönder: varsayılan model ile tek çıkarım. Modelleri karşılaştır: Default, Mock, Strict (ve Catalog) aynı olaylarla çalışır. Replay: son olayları tekrar gönderir." />
     </div>
+    <div class="dashboard-toolbar" style="margin-bottom: 0;">
+        <label>Olaylar (JSON) <textarea @bind="_eventsJson" rows="4" style="width: 100%; max-width: 500px;" placeholder='[{"actor":"user","action":"login"},{"actor":"user","action":"retry"}]'></textarea></label>
+    </div>
+    <p class="muted" style="margin: 0.25rem 0 0.5rem 0; font-size: 0.9rem;">Hazır senaryo:</p>
+    <div class="playground-buttons" style="margin-bottom: 0.5rem;">
+        <button type="button" class="commerce-scenario-btn" @onclick="FillExample">Örnek: Login + retry</button>
+        <button type="button" class="commerce-scenario-btn" @onclick="FillExampleRetry">Örnek: Çoklu retry</button>
+    </div>
+    <div class="playground-buttons" style="margin-top: 0.75rem;">
+        <button type="button" class="btn-app-primary" @onclick="Infer" disabled="@_loading">Gönder (Infer)</button>
+        <button type="button" class="btn-app-secondary" @onclick="Compare" disabled="@_loading">Modelleri karşılaştır</button>
+        <button type="button" class="btn-app-secondary" @onclick="Replay" disabled="@(_lastEvents == null || _loading)">Replay</button>
+        <NavLink href="explain" class="action-btn action-btn-secondary">Açıkla</NavLink>
+    </div>
+</div>
 
     @if (_loading) { <p class="muted">Yükleniyor…</p> }
     @if (_error != null) { <p class="error">@_error</p> }
@@ -36,11 +56,13 @@
         <div class="card page-card">
             <div class="card-header-row">
                 <h3 style="margin: 0;">Sonuç (Infer)</h3>
-                <InfoIcon Text="Tek model çıkarımı sonucu: Karar (Allow/Block/Warn vb.), Güven seviyesi, History Id (kayıt kimliği). Bu sonucu Explain sayfasında aynı olaylarla açıklayabilirsiniz." />
+                <InfoIcon Text="Tek model çıkarımı: Niyet adı, güven, karar, History Id. Aynı olaylarla Explain'de neden bu karar verildiğini görebilirsiniz." />
             </div>
-            <p><strong>Karar:</strong> @_result.Decision</p>
+            <p><strong>Intent:</strong> @_result.IntentName</p>
             <p><strong>Güven:</strong> @_result.Confidence</p>
+            <p><strong>Karar:</strong> <span class="badge">@_result.Decision</span></p>
             <p><strong>History Id:</strong> @_result.HistoryId</p>
+            <p style="margin-top: 0.75rem;"><NavLink href="explain" class="action-btn action-btn-primary">Explain'de açıkla</NavLink></p>
         </div>
     }
     @if (_compareResults != null)
@@ -63,7 +85,6 @@
             </div>
         </div>
     }
-</div>
 
 @code {
     private string _eventsJson = "[{\"actor\":\"user\",\"action\":\"login\"},{\"actor\":\"user\",\"action\":\"retry\"}]";
@@ -84,7 +105,7 @@
         StateHasChanged();
         try
         {
-            var events = System.Text.Json.JsonSerializer.Deserialize<System.Text.Json.JsonElement[]>(json);
+            var events = JsonSerializer.Deserialize<JsonElement[]>(json);
             if (events == null || events.Length == 0) { _error = "En az bir olay girin."; return; }
             var body = new { events, entityId = "Playground" };
             var res = await Http.PostAsJsonAsync(GetApiBase() + "/api/intent/infer", body);
@@ -114,7 +135,7 @@
         StateHasChanged();
         try
         {
-            var events = System.Text.Json.JsonSerializer.Deserialize<EventItem[]>(_eventsJson);
+            var events = JsonSerializer.Deserialize<EventItem[]>(_eventsJson);
             if (events == null || events.Length == 0) { _error = "En az bir olay girin."; return; }
             var body = new { events = events.Select(e => new { e.Actor, e.Action }).ToList() };
             var res = await Http.PostAsJsonAsync(GetApiBase() + "/api/intent/playground/compare", body);
@@ -139,8 +160,20 @@
         if (_lastEvents != null) await DoInfer(_lastEvents);
     }
 
+    private void FillExample()
+    {
+        _eventsJson = "[{\"actor\":\"user\",\"action\":\"login\"},{\"actor\":\"user\",\"action\":\"retry\"}]";
+        StateHasChanged();
+    }
+
+    private void FillExampleRetry()
+    {
+        _eventsJson = "[{\"actor\":\"user\",\"action\":\"login\"},{\"actor\":\"user\",\"action\":\"retry\"},{\"actor\":\"user\",\"action\":\"retry\"},{\"actor\":\"user\",\"action\":\"retry\"}]";
+        StateHasChanged();
+    }
+
     private sealed record EventItem(string Actor, string Action);
-    private sealed record InferResultDto(string Decision, string Confidence, string? HistoryId);
+    private sealed record InferResultDto(string IntentName, string Decision, string Confidence, string? HistoryId);
     private sealed record CompareResultDto(
         [property: JsonPropertyName("provider")] string Provider,
         [property: JsonPropertyName("intentName")] string IntentName,

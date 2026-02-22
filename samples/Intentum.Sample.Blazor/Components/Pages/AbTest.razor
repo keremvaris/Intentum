@@ -1,0 +1,102 @@
+@page "/ab-test"
+@using System.Text.Json
+@using System.Text.Json.Serialization
+@rendermode InteractiveServer
+@inject HttpClient Http
+@inject NavigationManager Navigation
+
+<PageTitle>A/B Test</PageTitle>
+
+<div class="page-card">
+    <div class="card-header-row">
+        <h2 style="margin: 0; font-size: 1.35rem;">A/B Test (Experiments)</h2>
+        <InfoIcon Text="IntentExperiment: hash-based atama (SelectVariantByHash), iki varyant (örn. Default vs Strict), ComputeSignificance ile p-value ve p &lt; 0.05 anlamlılık." />
+    </div>
+    <p class="subtitle" style="margin: 0.5rem 0 0;">Olay seti → İki varyant (model+politika) → Karar dağılımları → p-value, anlamlı mı?</p>
+    <p class="muted" style="margin: 0.5rem 0 0;">Hash-based varyant ataması ve chi-square ile istatistiksel anlamlılık. <strong>İş kullanımı:</strong> Yeni politika veya modeli canlıya almadan önce A/B deneyi ile karar dağılımını karşılaştırın; p &lt; 0.05 anlamlı fark varsa rollout kararı verin.</p>
+</div>
+
+<div class="page-card">
+    <div class="card-header-row">
+        <h3 class="page-card h3" style="margin: 0 0 0.5rem 0;">Deneyi çalıştır</h3>
+        <InfoIcon Text="Olayları girin; aynı olay seti ReplicateCount kez kopyalanır (her biri farklı entityId ile). Hash-based atama ile her birim bir varyanta düşer. İki varyant: Default ve Strict." />
+    </div>
+    <div class="dashboard-toolbar">
+        <label>Olaylar (JSON) <textarea @bind="_eventsJson" rows="3" style="width: 100%; max-width: 450px;" placeholder='[{"actor":"user","action":"login"},{"actor":"user","action":"retry"}]'></textarea></label>
+    </div>
+    <p class="muted" style="margin: 0.25rem 0 0.5rem 0;">Tekrarlanacak birim sayısı (hash ataması için):</p>
+    <div class="dashboard-toolbar">
+        <input type="number" @bind="_replicateCount" min="2" max="500" style="width: 80px;" />
+    </div>
+    <div class="playground-buttons" style="margin-top: 0.75rem;">
+        <button type="button" class="btn-app-primary" @onclick="RunExperiment" disabled="@_loading">Çalıştır</button>
+    </div>
+</div>
+
+@if (_loading) { <p class="muted">Yükleniyor…</p> }
+@if (_error != null) { <p class="error">@_error</p> }
+@if (_result != null)
+{
+    <div class="page-card">
+        <h3 class="section-subtitle" style="margin: 0 0 0.5rem 0;">Sonuç</h3>
+        <p><strong>p-value:</strong> @_result.PValue.ToString("F4")</p>
+        <p><strong>Sonuç anlamlı mı? (p &lt; 0.05):</strong> <span class="badge @(_result.IsSignificant ? "" : "bg-secondary")">@(_result.IsSignificant ? "Evet" : "Hayır")</span></p>
+        <p><strong>Chi-square:</strong> @_result.ChiSquare.ToString("F4")</p>
+        <h4 style="margin: 1rem 0 0.5rem 0;">Karar dağılımları</h4>
+        <div class="table-wrap">
+            <table class="history-table">
+                <thead><tr><th>Varyant</th><th>Karar</th><th>Adet</th></tr></thead>
+                <tbody>
+                    @foreach (var kv in _result.DecisionDistributions)
+                    {
+                        @foreach (var dc in kv.Value)
+                        {
+                            <tr><td>@kv.Key</td><td><span class="badge">@dc.Key</span></td><td>@dc.Value</td></tr>
+                        }
+                    }
+                </tbody>
+            </table>
+        </div>
+        <p class="muted" style="margin-top: 0.75rem;">Detay için <NavLink href="sandbox">Playground</NavLink> veya <NavLink href="explain">Explain</NavLink>.</p>
+    </div>
+}
+
+@code {
+#pragma warning disable IDE0052
+    private string _eventsJson = "[{\"actor\":\"user\",\"action\":\"login\"},{\"actor\":\"user\",\"action\":\"retry\"}]";
+    private int _replicateCount = 50;
+    private bool _loading;
+    private string? _error;
+    private ExperimentResultDto? _result;
+
+    private async Task RunExperiment()
+    {
+        _loading = true;
+        _error = null;
+        _result = null;
+        StateHasChanged();
+        try
+        {
+            var events = JsonSerializer.Deserialize<EventItem[]>(_eventsJson);
+            if (events == null || events.Length == 0) { _error = "En az bir olay girin."; return; }
+            var body = new ExperimentRequestDto(events.Select(e => new IntentEventDto(e.Actor, e.Action)).ToList(), _replicateCount, null, null);
+            var baseUri = new Uri(Navigation.BaseUri).GetLeftPart(UriPartial.Authority);
+            var opts = new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase };
+            var res = await Http.PostAsJsonAsync(baseUri + "/api/intent/experiment", body, opts);
+            if (!res.IsSuccessStatusCode) { _error = await res.Content.ReadAsStringAsync(); return; }
+            _result = await res.Content.ReadFromJsonAsync<ExperimentResultDto>(opts);
+        }
+        catch (Exception ex) { _error = ex.Message; }
+        finally { _loading = false; StateHasChanged(); }
+    }
+
+    private sealed record EventItem(string Actor, string Action);
+    private sealed record ExperimentRequestDto(IReadOnlyList<IntentEventDto> Events, int ReplicateCount, string? VariantA, string? VariantB);
+    private sealed record IntentEventDto(string Actor, string Action);
+    private sealed record ExperimentResultDto(
+        [property: JsonPropertyName("decisionDistributions")] IReadOnlyDictionary<string, IReadOnlyDictionary<string, int>> DecisionDistributions,
+        [property: JsonPropertyName("pValue")] double PValue,
+        [property: JsonPropertyName("isSignificant")] bool IsSignificant,
+        [property: JsonPropertyName("chiSquare")] double ChiSquare);
+#pragma warning restore IDE0052
+}

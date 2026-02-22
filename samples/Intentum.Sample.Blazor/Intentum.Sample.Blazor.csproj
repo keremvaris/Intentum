@@ -25,6 +25,7 @@
     <ProjectReference Include="..\..\src\Intentum.Persistence\Intentum.Persistence.csproj" />
     <ProjectReference Include="..\..\src\Intentum.Persistence.EntityFramework\Intentum.Persistence.EntityFramework.csproj" />
     <ProjectReference Include="..\..\src\Intentum.Analytics\Intentum.Analytics.csproj" />
+    <ProjectReference Include="..\..\src\Intentum.Experiments\Intentum.Experiments.csproj" />
     <ProjectReference Include="..\..\src\Intentum.Explainability\Intentum.Explainability.csproj" />
   </ItemGroup>
 

@@ -8,9 +8,29 @@
 <PageTitle>Digital Twin</PageTitle>
 
 <div class="page-card">
-    <h2 class="page-card h2" style="margin: 0 0 0.25rem 0;">Oracle of Operations: Dijital İkiz Niyet Katmanı</h2>
-    <p class="subtitle">Depo/üretim bileşenleri (robot hata oranı, talep spike, konveyör) → sistemik niyet; Escalate, What-If önerisi.</p>
+    <h2 class="page-card h2" style="margin: 0 0 0.25rem 0;">Oracle of Operations: IoT / Dijital İkiz Niyet Katmanı</h2>
+    <p class="subtitle">Sensor/olay akışı (robot hata oranı, talep spike, konveyör) → zaman-azalımlı skorlama ile sistemik niyet; Escalate, What-If önerisi.</p>
+</div>
 
+<div class="page-card commerce-5n1k">
+    <h3 class="page-card h3" style="margin: 0 0 0.75rem 0;">Bu demo ne anlama geliyor? (5N1K) <InfoIcon Text="IoT / dijital ikiz use case'ini kısa cevaplarla özetler." /></h3>
+    <ul class="commerce-5n1k-list">
+        <li><strong>Ne:</strong> Sensor ve operasyon olaylarından sistemik niyet çıkarımı (arıza riski, kapasite aşımı, bakım ihtiyacı); zaman-azalımlı (time-decay) skorlama.</li>
+        <li><strong>Neden:</strong> Depo/üretim bileşenlerinin "niyetini" anlamak; erken uyarı ve What-If önerisi ile operasyon kararı desteklemek.</li>
+        <li><strong>Nerede:</strong> Endüstriyel IoT platformları, akıllı bina, depo/üretim yönetim sistemleri.</li>
+        <li><strong>Ne zaman:</strong> Sensor/olay akışı sürekli veya periyodik toplanır; pencereler zaman-azalımlı ağırlıkla değerlendirilir.</li>
+        <li><strong>Nasıl:</strong> Sensor olayları → BehaviorSpace (time-decay) → Intentum niyet + güven → Karar (Allow / Escalate) + What-If önerisi.</li>
+        <li><strong>Kim:</strong> Endüstriyel IoT platformları, akıllı bina yönetimi.</li>
+    </ul>
+    <p class="muted" style="margin-top: 0.75rem; font-size: 0.9rem;"><strong>Hedef kitle:</strong> Endüstriyel IoT, akıllı bina. <strong>Gelir modeli:</strong> Platform lisansı + danışmanlık.</p>
+</div>
+
+<div class="page-card">
+    <h3 class="page-card h3" style="margin: 0 0 0.5rem 0;">Bu akışta Intentum nerede? <InfoIcon Text="Sensor/olay verisi toplanır; zaman-azalımlı pencerede Intentum sistemik niyet çıkarır; Escalate ve What-If önerisi döner." /></h3>
+    <p class="muted" style="margin: 0;">Sensor olayları → <strong>[Intentum: time-decay + niyet]</strong> → Sistemik niyet + güven → Allow / Escalate + What-If önerisi.</p>
+</div>
+
+<div class="page-card">
     <div class="project-pulse-controls">
         <div class="project-pulse-variants">
             <span class="project-pulse-label">Varyant:</span>
@@ -29,6 +49,7 @@
 
 @if (_result != null)
 {
+    <p class="muted" style="margin: 0 0 0.5rem 0;">Sensor olayları zaman-azalımlı (time-decay) pencerede değerlendirilir; yakın olaylar daha yüksek ağırlığa sahiptir.</p>
     <div class="page-card">
         <h3 class="page-card h3" style="margin: 0 0 0.75rem 0;">Özet (KPI)</h3>
         <div class="kpi-grid fraud-kpi-grid">
@@ -82,13 +103,10 @@
                 <div class="insider-warn-banner">Operasyon müdürüne rapor sunuldu.</div>
             }
         </div>
-        @if (!string.IsNullOrEmpty(_result.RecommendedScenario))
-        {
-            <div class="customer-journey-wow digital-twin-whatif">
-                <h4 class="insider-echarts-title">What-If önerisi</h4>
-                <p class="customer-journey-content-type">@_result.RecommendedScenario</p>
-            </div>
-        }
+        <div class="customer-journey-wow digital-twin-whatif card" style="margin-top: 1rem; padding: 1rem; border: 1px solid #e0e0e0; border-radius: 8px; background: #f0f7ff;">
+            <h4 class="insider-echarts-title">What-If önerisi</h4>
+            <p class="customer-journey-content-type">@(string.IsNullOrEmpty(_result.RecommendedScenario) ? "— Bu senaryo için What-If önerisi yok." : _result.RecommendedScenario)</p>
+        </div>
     </div>
 }
 

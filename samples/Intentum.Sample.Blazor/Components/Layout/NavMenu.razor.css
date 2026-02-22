@@ -81,6 +81,13 @@
     color: white;
 }
 
+.nav-accordion .accordion-group { border-bottom: 1px solid rgba(255,255,255,0.06); }
+.nav-accordion .accordion-header { width: 100%; display: flex; align-items: center; justify-content: space-between; padding: 0.6rem 1rem; background: transparent; border: none; color: rgba(255,255,255,0.9); font-size: 0.8rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.03em; cursor: pointer; text-align: left; }
+.nav-accordion .accordion-header:hover { background: rgba(255,255,255,0.08); }
+.nav-accordion .accordion-chevron { font-size: 0.6rem; opacity: 0.8; transition: transform 0.2s ease; }
+.nav-accordion .accordion-header.open .accordion-chevron { transform: rotate(-180deg); }
+/* accordion open/close in dashboard.css (global) to avoid scoped selector issues */
+
 .nav-scrollable {
     display: none;
 }

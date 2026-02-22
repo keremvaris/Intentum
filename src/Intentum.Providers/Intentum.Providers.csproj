@@ -21,6 +21,12 @@
     <ProjectReference Include="..\Intentum.AI.Mistral\Intentum.AI.Mistral.csproj" />
     <ProjectReference Include="..\Intentum.AI.AzureOpenAI\Intentum.AI.AzureOpenAI.csproj" />
     <ProjectReference Include="..\Intentum.AI.Claude\Intentum.AI.Claude.csproj" />
+    <ProjectReference Include="..\Intentum.AspNetCore\Intentum.AspNetCore.csproj" />
+    <ProjectReference Include="..\Intentum.Analytics\Intentum.Analytics.csproj" />
+    <ProjectReference Include="..\Intentum.Experiments\Intentum.Experiments.csproj" />
+    <ProjectReference Include="..\Intentum.Explainability\Intentum.Explainability.csproj" />
+    <ProjectReference Include="..\Intentum.Observability\Intentum.Observability.csproj" />
+    <ProjectReference Include="..\Intentum.Persistence.EntityFramework\Intentum.Persistence.EntityFramework.csproj" />
   </ItemGroup>
 
 </Project>

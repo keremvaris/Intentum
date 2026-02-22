@@ -25,6 +25,28 @@ public abstract class ProviderLlmIntentModelBase(
             .Select(k => embeddingProvider.Embed(k))
             .ToList();
 
+        return BuildIntent(embeddings, vector);
+    }
+
+    /// <summary>
+    /// Async version that properly awaits embedding calls.
+    /// </summary>
+    public async Task<Intent> InferAsync(
+        BehaviorSpace behaviorSpace,
+        BehaviorVector? precomputedVector = null,
+        CancellationToken cancellationToken = default)
+    {
+        var vector = precomputedVector ?? behaviorSpace.ToVector();
+
+        var tasks = vector.Dimensions.Keys
+            .Select(k => embeddingProvider.EmbedAsync(k, cancellationToken));
+        var embeddings = (await Task.WhenAll(tasks)).ToList();
+
+        return BuildIntent(embeddings, vector);
+    }
+
+    private Intent BuildIntent(List<IntentEmbedding> embeddings, BehaviorVector _)
+    {
         var score = similarityEngine.CalculateIntentScore(embeddings);
         var confidence = IntentConfidence.FromScore(score);
 

@@ -1,0 +1,149 @@
+@page "/examples/rules"
+@using Intentum.Core
+@using Intentum.Core.Behavior
+@using Intentum.Core.Models
+@using Intentum.Runtime
+@using Intentum.Runtime.Policy
+@rendermode InteractiveServer
+
+<PageTitle>Kural Tabanlı Intent</PageTitle>
+
+<div class="page-card">
+    <div class="card-header-row">
+        <h2>Kural Tabanlı Intent</h2>
+        <InfoIcon Text="Birden fazla kural tanımla, first-match-wins mantığı ile çalışan deterministik intent çıkarımı." />
+    </div>
+    <p class="subtitle">Kurallar sirasina gore degerlenir. Ilk eslesen kural intent'i belirler.</p>
+</div>
+
+<div class="page-card example-concept">
+    <h3>Kurallar (Sirasina Gore)</h3>
+    @for (var i = 0; i < ruleDescriptions.Length; i++)
+    {
+        var idx = i;
+        <div style="display:flex; align-items:center; gap:0.5rem; margin-bottom:0.4rem;">
+            <span style="font-weight:700; min-width:1.5rem;">@(idx + 1).</span>
+            <span class="example-event-tag @(matchedRuleIndex == idx ? "matched" : "")">@ruleDescriptions[idx]</span>
+        </div>
+    }
+    <p style="font-size:0.85rem; color:#888; margin-top:0.75rem;">Yesil: eslesen kural. Digerleri atlanir (first-match-wins).</p>
+</div>
+
+<div class="page-card">
+    <h3>Olaylari Sec</h3>
+    <div style="display:flex; flex-wrap:wrap; gap:0.5rem; margin-bottom:0.75rem;">
+        @foreach (var evt in availableEvents)
+        {
+            var e = evt;
+            <button class="example-scenario-btn @(selectedEvents.Contains(e) ? "active" : "")"
+                    @onclick="() => ToggleEvent(e)">@e</button>
+        }
+    </div>
+    <p style="font-size:0.85rem;">Secili: @(selectedEvents.Count > 0 ? string.Join(", ", selectedEvents) : "(hicbiri)")</p>
+    <button class="btn-app-primary" @onclick="RunExample">Analiz Et</button>
+</div>
+
+@if (result != null)
+{
+    <div class="page-card">
+        <h3>Sonuç</h3>
+        <div class="example-result @(result.Value.Decision == "Block" ? "danger" : result.Value.Decision == "Observe" ? "warning" : "")">
+            <p><strong>Eslesen Kural:</strong> @(matchedRuleIndex >= 0 ? ruleDescriptions[matchedRuleIndex] : "Hicbiri")</p>
+            <p><strong>Intent:</strong> @result.Value.IntentName</p>
+            <p><strong>Confidence:</strong> @result.Value.Level (@result.Value.Score.ToString("F2"))</p>
+            <p><strong>Decision:</strong> <span class="decision-badge decision-badge--@result.Value.Decision.ToLower()">@result.Value.Decision</span></p>
+            @if (result.Value.Reasoning != null)
+            {
+                <p><strong>Reasoning:</strong> @result.Value.Reasoning</p>
+            }
+        </div>
+    </div>
+}
+
+@code {
+    private readonly string[] ruleDescriptions =
+    [
+        "AccountRecovery: login.failed >= 2 + password.reset + login.success",
+        "SuspiciousAccess: login.failed >= 3 + ip.changed",
+        "BruteForce: login.failed >= 5",
+        "NormalLogin: login.success (fallback)"
+    ];
+
+    private readonly string[] availableEvents =
+        ["login.failed", "login.success", "password.reset", "ip.changed", "captcha.passed"];
+
+    private List<string> selectedEvents = ["login.failed", "login.failed", "password.reset", "login.success"];
+    private int matchedRuleIndex = -1;
+    private (string IntentName, string Level, double Score, string Decision, string? Reasoning)? result;
+
+    private void ToggleEvent(string evt)
+    {
+        if (selectedEvents.Contains(evt))
+            selectedEvents.Remove(evt);
+        else
+            selectedEvents.Add(evt);
+    }
+
+    private void RunExample()
+    {
+        matchedRuleIndex = -1;
+
+        var rules = new List<Func<BehaviorSpace, RuleMatch?>>
+        {
+            space =>
+            {
+                var fails = space.Events.Count(e => e.Action == "login.failed");
+                var hasReset = space.Events.Any(e => e.Action == "password.reset");
+                var hasSuccess = space.Events.Any(e => e.Action == "login.success");
+                if (fails >= 2 && hasReset && hasSuccess)
+                    return new RuleMatch("AccountRecovery", 0.85, "login.failed >= 2, password.reset, login.success");
+                return null;
+            },
+            space =>
+            {
+                var fails = space.Events.Count(e => e.Action == "login.failed");
+                var ipChanged = space.Events.Any(e => e.Action == "ip.changed");
+                if (fails >= 3 && ipChanged)
+                    return new RuleMatch("SuspiciousAccess", 0.9, "login.failed >= 3, ip.changed");
+                return null;
+            },
+            space =>
+            {
+                var fails = space.Events.Count(e => e.Action == "login.failed");
+                if (fails >= 5)
+                    return new RuleMatch("BruteForce", 0.95, "login.failed >= 5");
+                return null;
+            },
+            space =>
+            {
+                if (space.Events.Any(e => e.Action == "login.success"))
+                    return new RuleMatch("NormalLogin", 0.7, "login.success detected");
+                return null;
+            }
+        };
+
+        var model = new RuleBasedIntentModel(rules);
+        var policy = new IntentPolicyBuilder()
+            .Block("HighRisk", i => i.Confidence.Score > 0.85)
+            .Escalate("MediumRisk", i => i.Name == "SuspiciousAccess")
+            .Allow("Recovery", i => i.Name == "AccountRecovery")
+            .Allow("Normal", i => i.Name == "NormalLogin")
+            .Observe("Default", _ => true)
+            .Build();
+
+        var space = new BehaviorSpace();
+        foreach (var evt in selectedEvents)
+            space.Observe("user", evt);
+
+        var intent = model.Infer(space);
+        var decision = intent.Decide(policy);
+
+        for (var i = 0; i < rules.Count; i++)
+        {
+            var match = rules[i](space);
+            if (match != null) { matchedRuleIndex = i; break; }
+        }
+
+        result = (intent.Name, intent.Confidence.Level, intent.Confidence.Score, decision.ToString(), intent.Reasoning);
+    }
+}

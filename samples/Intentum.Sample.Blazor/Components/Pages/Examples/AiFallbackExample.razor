@@ -1,0 +1,118 @@
+@page "/examples/ai-fallback"
+@using Intentum.AI.Mock
+@using Intentum.AI.Models
+@using Intentum.AI.Similarity
+@using Intentum.Core
+@using Intentum.Core.Behavior
+@using Intentum.Runtime
+@using Intentum.Runtime.Policy
+@rendermode InteractiveServer
+
+<PageTitle>AI Karar Doğrulama</PageTitle>
+
+<div class="page-card">
+    <div class="card-header-row">
+        <h2>AI Karar Doğrulama</h2>
+        <InfoIcon Text="AI kararlarinin kalitesini Intentum ile dogrula: aceleci mi, dikkatli mi?" />
+    </div>
+    <p class="subtitle">AI'nin nasıl karar verdiğini gözle, aceleci kararları blokla.</p>
+</div>
+
+<div class="page-card example-concept">
+    <h3>Policy Mantigi</h3>
+    <ul style="margin:0; padding-left:1.25rem; line-height:1.7;">
+        <li><strong>Block:</strong> Yuksek confidence + cok sinyal (&gt;= 4) = aceleci/sathi karar</li>
+        <li><strong>Allow:</strong> Yuksek confidence + az sinyal (&lt;= 3) = dikkatli karar</li>
+        <li><strong>Observe:</strong> Orta confidence = belirsiz, izle</li>
+    </ul>
+</div>
+
+<div class="page-card">
+    <h3>Senaryolar</h3>
+    <button class="btn-app-primary" @onclick="RunBoth">İki Senaryoyu Çalıştır</button>
+</div>
+
+@if (rushed != null && careful != null)
+{
+    <div class="example-two-col">
+        <div class="page-card">
+            <h3>Senaryo 1: Aceleci AI</h3>
+            <div style="margin-bottom:0.75rem;">
+                @foreach (var evt in rushedEvents)
+                {
+                    <span class="example-event-tag">@evt</span>
+                }
+            </div>
+            <div class="example-result @(rushed.Value.Decision == "Block" ? "danger" : "")">
+                <p><strong>Confidence:</strong> @rushed.Value.Level (@rushed.Value.Score.ToString("F2"))</p>
+                <p><strong>Sinyal Sayisi:</strong> @rushed.Value.SignalCount</p>
+                <p><strong>Decision:</strong> <span class="decision-badge decision-badge--@rushed.Value.Decision.ToLower()">@rushed.Value.Decision</span></p>
+            </div>
+            <p style="font-size:0.85rem; color:#c62828; margin-top:0.5rem;">
+                AI hizli karar verdi ama kullanici soruyu yeniden sordu ve AI cevabini degistirdi &mdash; guvenilir degil.
+            </p>
+        </div>
+
+        <div class="page-card">
+            <h3>Senaryo 2: Dikkatli AI</h3>
+            <div style="margin-bottom:0.75rem;">
+                @foreach (var evt in carefulEvents)
+                {
+                    <span class="example-event-tag">@evt</span>
+                }
+            </div>
+            <div class="example-result @(careful.Value.Decision == "Allow" ? "" : "warning")">
+                <p><strong>Confidence:</strong> @careful.Value.Level (@careful.Value.Score.ToString("F2"))</p>
+                <p><strong>Sinyal Sayisi:</strong> @careful.Value.SignalCount</p>
+                <p><strong>Decision:</strong> <span class="decision-badge decision-badge--@careful.Value.Decision.ToLower()">@careful.Value.Decision</span></p>
+            </div>
+            <p style="font-size:0.85rem; color:#2e7d32; margin-top:0.5rem;">
+                AI anlama sorusu sordu, kullanici detay verdi, acik reasoning yapti &mdash; guvenilir.
+            </p>
+        </div>
+    </div>
+}
+
+<div class="page-card example-code">
+    <h3 style="color:#cdd6f4;">Policy Tanımlaması</h3>
+    <pre><span class="kw">var</span> policy = <span class="kw">new</span> <span class="typ">IntentPolicyBuilder</span>()
+    .Block(<span class="str">"PrematureClassification"</span>,
+        i =&gt; i.Confidence.Score &gt; <span class="num">0.7</span> &amp;&amp; i.Signals.Count &gt;= <span class="num">4</span>)
+    .Allow(<span class="str">"CarefulUnderstanding"</span>,
+        i =&gt; i.Confidence.Score &gt;= <span class="num">0.7</span> &amp;&amp; i.Signals.Count &lt;= <span class="num">3</span>)
+    .Observe(<span class="str">"Uncertain"</span>,
+        i =&gt; i.Confidence.Score is &gt; <span class="num">0.4</span> and &lt; <span class="num">0.7</span>)
+    .Allow(<span class="str">"LowRisk"</span>, i =&gt; i.Confidence.Score &lt;= <span class="num">0.4</span>)
+    .Build();</pre>
+</div>
+
+@code {
+    private readonly string[] rushedEvents = ["high_confidence", "short_reasoning", "no_followup_question", "rephrased_request", "changed_answer"];
+    private readonly string[] carefulEvents = ["asked_clarifying_question", "provided_details", "reasoning_explicit"];
+
+    private (string Level, double Score, int SignalCount, string Decision)? rushed;
+    private (string Level, double Score, int SignalCount, string Decision)? careful;
+
+    private void RunBoth()
+    {
+        var model = new LlmIntentModel(new MockEmbeddingProvider(), new SimpleAverageSimilarityEngine());
+        var policy = new IntentPolicyBuilder()
+            .Block("PrematureClassification", i => i.Confidence.Score > 0.7 && i.Signals.Count >= 4)
+            .Allow("CarefulUnderstanding", i => i.Confidence.Score >= 0.7 && i.Signals.Count <= 3)
+            .Observe("Uncertain", i => i.Confidence.Score is > 0.4 and < 0.7)
+            .Allow("LowRisk", i => i.Confidence.Score <= 0.4)
+            .Build();
+
+        var space1 = new BehaviorSpace();
+        foreach (var e in rushedEvents) space1.Observe("llm", e);
+        var intent1 = model.Infer(space1);
+        var decision1 = intent1.Decide(policy);
+        rushed = (intent1.Confidence.Level, intent1.Confidence.Score, intent1.Signals.Count, decision1.ToString());
+
+        var space2 = new BehaviorSpace();
+        foreach (var e in carefulEvents) space2.Observe("llm", e);
+        var intent2 = model.Infer(space2);
+        var decision2 = intent2.Decide(policy);
+        careful = (intent2.Confidence.Level, intent2.Confidence.Score, intent2.Signals.Count, decision2.ToString());
+    }
+}

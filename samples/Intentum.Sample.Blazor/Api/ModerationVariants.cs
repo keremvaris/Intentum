@@ -38,6 +38,16 @@ public static class ModerationVariants
         _ => "Unknown"
     };
 
+    /// <summary>1–2 cümlelik varyant açıklaması (UI'da gösterim için).</summary>
+    public static string GetDescription(string variant) => variant switch
+    {
+        VariantA => "Teknik tartışmada provokatif mesajlar; ton skoru düşük. Model trolling niyeti çıkarır; kişiselleştirilmiş uyarı metni üretilir.",
+        VariantB => "Aynı kullanıcıya tekrarlayan kişisel saldırı benzeri yanıtlar. Konudan sapma / kişisel saldırı niyeti; Warn veya Escalate.",
+        VariantC => "Uzun soru içeren post, ardından hayal kırıklığı tonunda yanıt. Yardım arayan ama sinirli niyet; moderatör yönlendirmesi önerilir.",
+        VariantD => "Kod paylaşımı ve dengeli ton; yapıcı tartışma. Allow kararı; sonraki mesaj sayısı 0.",
+        _ => "Bilinmeyen varyant."
+    };
+
     public static BehaviorSpace BuildSpace(string variant, DateTimeOffset baseTime)
     {
         var space = new BehaviorSpace();

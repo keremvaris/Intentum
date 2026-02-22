@@ -10,6 +10,7 @@
 <div class="page-card">
     <h2 class="page-card h2" style="margin: 0 0 0.25rem 0;">Adaptive Tutor: EdTech Niyet Katmanı</h2>
     <p class="subtitle">Öğrenci olaylarından öğrenme niyeti; Block (sonraki quiz), RequireAuth (ek modül), Warn (eğitmene).</p>
+    <p class="muted" style="margin: 0.5rem 0 0;">Bu demo ne gösterir: Varyant (A–D) seçip Niyet Çıkar’a basın; öğrenci olaylarından niyet ve güven çıkarılır, karar (Allow / Warn / Block) ve önerilen modül/quiz bilgisi aşağıda gösterilir.</p>
 
     <div class="project-pulse-controls">
         <div class="project-pulse-variants">
@@ -25,6 +26,24 @@
             @(_running ? "Çalışıyor…" : "Niyet Çıkar")
         </button>
     </div>
+</div>
+
+<div class="page-card commerce-5n1k">
+    <h3 class="page-card h3" style="margin: 0 0 0.75rem 0;">Bu demo ne anlama geliyor? (5N1K)</h3>
+    <ul class="commerce-5n1k-list">
+        <li><strong>Ne:</strong> Öğrenci olaylarından öğrenme niyeti çıkarımı; karar (Allow / Warn / Block / RequireAuth) ve önerilen modül/quiz.</li>
+        <li><strong>Neden:</strong> Uyumlu öğrenme yolu, aşırı zor quiz’i engellemek, eğitmene erken uyarı.</li>
+        <li><strong>Nerede:</strong> EdTech/LMS pipeline'ında; öğrenci etkileşimleri Intentum'a gider, niyet + güven + karar döner.</li>
+        <li><strong>Ne zaman:</strong> Her önemli olayda (modül tamamlama, quiz, sayfa süresi) veya oturum sonu değerlendirme.</li>
+        <li><strong>Nasıl:</strong> Olaylar → Intentum model → Niyet + güven → Politika (Block sonraki quiz, RequireAuth ek modül, Warn eğitmene).</li>
+        <li><strong>Kim:</strong> EdTech ürünleri, LMS sağlayıcıları, eğitim kurumları.</li>
+    </ul>
+    <p class="muted" style="margin-top: 0.5rem; font-size: 0.9rem;"><strong>Hedef kitle:</strong> EdTech, LMS. <strong>İş değeri:</strong> Kişiselleştirilmiş öğrenme yolu, öğrenci başarısı ve uyum.</p>
+</div>
+
+<div class="page-card">
+    <h3 class="page-card h3" style="margin: 0 0 0.5rem 0;">Bu akışta Intentum nerede?</h3>
+    <p class="muted" style="margin: 0;">Olay (modül, quiz, süre…) → <strong>[Intentum: niyet + güven]</strong> → Politika → Allow / Warn / Block / RequireAuth; önerilen modül ve bloke quiz bilgisi. Bu sayfada varyant (A–D) seçip Niyet Çıkar ile tek çıkarım yapılır.</p>
 </div>
 
 @if (_result != null)

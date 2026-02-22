@@ -4,6 +4,7 @@
 @inject NavigationManager Navigation
 @inject IHttpClientFactory HttpFactory
 @inject IJSRuntime JSRuntime
+@using System.Text.Json
 @implements IAsyncDisposable
 
 <PageTitle>Project Pulse</PageTitle>
@@ -11,6 +12,7 @@
 <div class="page-card">
     <h2 class="page-card h2" style="margin: 0 0 0.25rem 0;">The Pulse: Proje Yönetimi Niyet Katmanı</h2>
     <p class="subtitle">Takım olaylarından (TaskCompleted gecikmeli, PR gece, Estimate artışı, mesaj tonu) niyet çıkarımı; politika ile Warn, RequireAuth, Block.</p>
+    <p class="muted" style="margin: 0.5rem 0 0;">Bu demo ne gösterir: Varyant seçip Demo Başlat’a basın; adım adım olaylar Intentum’a gider, niyet ve güven skoru hesaplanır, politika kararı (Allow / Warn / Block) verilir. Canlı KPI ve grafikler sonucu gösterir.</p>
 
     <div class="project-pulse-controls">
         <div class="project-pulse-variants">
@@ -35,6 +37,24 @@
             }
         </div>
     </div>
+</div>
+
+<div class="page-card commerce-5n1k">
+    <h3 class="page-card h3" style="margin: 0 0 0.75rem 0;">Bu demo ne anlama geliyor? (5N1K)</h3>
+    <ul class="commerce-5n1k-list">
+        <li><strong>Ne:</strong> Proje/takım olaylarından (task gecikmesi, PR, tahmin artışı, mesaj tonu) niyet çıkarımı ve politika kararı (Allow / Warn / RequireAuth / Block).</li>
+        <li><strong>Neden:</strong> Proje riskini erken görmek; şüpheli davranışı (gece PR, sürekli estimate artışı) politika ile işaretlemek.</li>
+        <li><strong>Nerede:</strong> Proje yönetim / collaboration pipeline'ında; olaylar Intentum'a gider, niyet + güven + karar döner.</li>
+        <li><strong>Ne zaman:</strong> Her önemli olayda (task tamamlandı, PR açıldı, tahmin güncellendi) veya periyodik toplu değerlendirme.</li>
+        <li><strong>Nasıl:</strong> Olaylar → Intentum model → Niyet + güven → Politika kuralları → Allow / Warn / Block.</li>
+        <li><strong>Kim:</strong> Proje yöneticileri, Agile/DevOps ekipleri, PMO.</li>
+    </ul>
+    <p class="muted" style="margin-top: 0.5rem; font-size: 0.9rem;"><strong>Hedef kitle:</strong> PMO, proje liderleri. <strong>İş değeri:</strong> Erken uyarı, uyum ve şeffaflık.</p>
+</div>
+
+<div class="page-card">
+    <h3 class="page-card h3" style="margin: 0 0 0.5rem 0;">Bu akışta Intentum nerede?</h3>
+    <p class="muted" style="margin: 0;">Olay (TaskCompleted, PR, EstimateChange…) → <strong>[Intentum: niyet + güven]</strong> → Politika → Allow / Warn / RequireAuth / Block. Bu sayfada varyant (A–D) ile adım adım simülasyon çalıştırılır; canlıda sürekli olay akışı işlenir.</p>
 </div>
 
 <div class="page-card">
@@ -270,7 +290,7 @@
                 if (line?.StartsWith("data: ", StringComparison.Ordinal) != true) continue;
                 var json = line.Substring(6).Trim();
                 if (string.IsNullOrEmpty(json)) continue;
-                var ev = System.Text.Json.JsonSerializer.Deserialize<ProjectPulseStreamEvent>(json, _jsonOptions);
+                var ev = JsonSerializer.Deserialize<ProjectPulseStreamEvent>(json, _jsonOptions);
                 if (ev == null) continue;
                 if (!_events.Any(x => x.EventIndex == ev.EventIndex))
                     _events.Add(ev);
@@ -284,7 +304,7 @@
         await InvokeAsync(StateHasChanged);
     }
 
-    private static readonly System.Text.Json.JsonSerializerOptions _jsonOptions = new() { PropertyNameCaseInsensitive = true };
+    private static readonly JsonSerializerOptions _jsonOptions = new() { PropertyNameCaseInsensitive = true };
 
     private static string ConfidenceClass(double score)
     {

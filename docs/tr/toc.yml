@@ -5,6 +5,8 @@ items:
   - name: Başlarken
     expanded: false
     items:
+      - name: Hızlı Başlangıç
+        href: getting-started.md
       - name: Neden Intentum
         href: why-intentum.md
       - name: Manifesto

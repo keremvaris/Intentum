@@ -1,9 +1,9 @@
 @page "/ato"
 @rendermode InteractiveServer
-@using System.Text.Json
 @inject HttpClient Http
 @inject NavigationManager Navigation
 @inject IJSRuntime JSRuntime
+@using System.Text.Json
 @implements IAsyncDisposable
 
 <PageTitle>ATO Demo – Hesap Ele Geçirme</PageTitle>
@@ -11,6 +11,7 @@
 <div class="page-card">
     <h2 class="page-card h2" style="margin: 0 0 0.25rem 0;">Demo 2: Hesap Ele Geçirme Saldırısı (ATO)</h2>
     <p class="subtitle">Parçalar tehlikeli görünmeyebilir; Intentum onları bir araya getirip resmi görebilir.</p>
+    <p class="muted" style="margin: 0.5rem 0 0;">Bu demo ne gösterir: Başlat’a basın; adım adım ATO olayları (login, şifre sıfırlama, e-posta değişikliği vb.) simüle edilir. Her adımda niyet ve güven skoru hesaplanır; sonuç kutusunda niyet adı, güven ve karar görünür.</p>
     <div class="ato-controls">
         <button type="button" class="btn-demo-ato" @onclick="StartAto" disabled="@(_atoRunning || _atoStep >= AtoEventLabels.Length)">
             @(_atoRunning ? "Çalışıyor…" : (_atoStep >= AtoEventLabels.Length ? "Tamamlandı" : "Başlat"))
@@ -20,6 +21,24 @@
             <span class="status-pill status-pill--running">Adım @_atoStep / @AtoEventLabels.Length</span>
         }
     </div>
+</div>
+
+<div class="page-card commerce-5n1k">
+    <h3 class="page-card h3" style="margin: 0 0 0.75rem 0;">Bu demo ne anlama geliyor? (5N1K)</h3>
+    <ul class="commerce-5n1k-list">
+        <li><strong>Ne:</strong> Hesap ele geçirme (ATO) davranış zincirinin niyet çıkarımı; login, şifre sıfırlama, e-posta değişikliği vb. tek başına masum, birlikte şüpheli.</li>
+        <li><strong>Neden:</strong> Parçalar tehlikeli görünmeyebilir; Intentum olayları bir araya getirip ATO niyetini tespit eder.</li>
+        <li><strong>Nerede:</strong> Kimlik ve erişim pipeline'ında; olaylar Intentum'a gider, niyet + güven + karar döner.</li>
+        <li><strong>Ne zaman:</strong> Her şüpheli oturum/hesap olayında (login başarısız, şifre sıfırlama, e-posta değişikliği, yeni cihaz).</li>
+        <li><strong>Nasıl:</strong> Olay zinciri → Intentum model → Niyet + güven → Politika (Block / Escalate / RequireAuth).</li>
+        <li><strong>Kim:</strong> Güvenlik ekipleri, IAM, müşteri deneyimi (sahte hesap önleme).</li>
+    </ul>
+    <p class="muted" style="margin-top: 0.5rem; font-size: 0.9rem;"><strong>Hedef kitle:</strong> SOC, IAM. <strong>İş değeri:</strong> Hesap ele geçirme tespiti, dolandırıcılık önleme.</p>
+</div>
+
+<div class="page-card">
+    <h3 class="page-card h3" style="margin: 0 0 0.5rem 0;">Bu akışta Intentum nerede?</h3>
+    <p class="muted" style="margin: 0;">Olay (Login, PasswordReset, EmailChange…) → <strong>[Intentum: niyet + güven]</strong> → Politika → Allow / Block / Escalate. Bu sayfada adım adım ATO senaryosu simüle edilir; her adımda intent kartı güncellenir.</p>
 </div>
 
 <div class="ato-layout">

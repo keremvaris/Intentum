@@ -8,8 +8,29 @@
 <PageTitle>İçeriden Tehdit Demo</PageTitle>
 
 <div class="page-card">
-    <h2 class="page-card h2" style="margin: 0 0 0.25rem 0;">Demo 3: İçeriden Gelen Tehdit (Insider Threat)</h2>
-    <p class="subtitle">Intentum normali bilir, normallikten sapmayı niyet değişikliğinin erken işareti olarak yorumlar.</p>
+    <h2 class="page-card h2" style="margin: 0 0 0.25rem 0;">UBA / İçeriden Tehdit: Kullanıcı Davranışı Analitiği</h2>
+    <p class="subtitle">Intentum normali bilir (session/profiling baz çizgisi), normallikten sapmayı niyet değişikliğinin erken işareti olarak yorumlar.</p>
+</div>
+
+<div class="page-card commerce-5n1k">
+    <h3 class="page-card h3" style="margin: 0 0 0.75rem 0;">Bu demo ne anlama geliyor? (5N1K) <InfoIcon Text="UBA use case'ini kısa cevaplarla özetler." /></h3>
+    <ul class="commerce-5n1k-list">
+        <li><strong>Ne:</strong> Kullanıcı davranışı baz çizgisi (dosya indirme, dahili erişim, privileged API) ile anomali tespiti; içeriden tehdit niyeti çıkarımı.</li>
+        <li><strong>Neden:</strong> İçeriden sızıntı veya kötüye kullanımı erken tespit etmek; HTTP middleware otomatik davranış toplar, intent ile amaç anlaşılır.</li>
+        <li><strong>Nerede:</strong> Kurumsal ağ, uygulama erişim logları; session-based davranış ve kullanıcı profili ile.</li>
+        <li><strong>Ne zaman:</strong> Sürekli izleme; baz çizgisi (örn. 30 gün) ile son dönem (örn. 48 saat) karşılaştırılır.</li>
+        <li><strong>Nasıl:</strong> Baz çizgisi vs anomali metrikleri → Intentum niyet + güven → Politika (Warn / RequireAuth / Escalate).</li>
+        <li><strong>Kim:</strong> Siber güvenlik firmaları, kurumsal IT departmanları.</li>
+    </ul>
+    <p class="muted" style="margin-top: 0.75rem; font-size: 0.9rem;"><strong>Hedef kitle:</strong> Siber güvenlik, kurumsal IT. <strong>Gelir modeli:</strong> Kurumsal lisans.</p>
+</div>
+
+<div class="page-card">
+    <h3 class="page-card h3" style="margin: 0 0 0.5rem 0;">Bu akışta Intentum nerede? <InfoIcon Text="Davranış logları toplanır; baz çizgisi ile anomali karşılaştırılır; Intentum niyet çıkarır; politika kararı (Warn/Escalate) verilir." /></h3>
+    <p class="muted" style="margin: 0;">Davranış logları (session/profiling) → Baz çizgisi vs anomali → <strong>[Intentum: niyet + güven]</strong> → Warn / RequireAuth / Escalate.</p>
+</div>
+
+<div class="page-card">
     <div class="insider-controls">
         <button type="button" class="btn-demo-insider" @onclick="RunDemo" disabled="@_running">
             @(_running ? "Çalışıyor…" : "Demo Çalıştır")
@@ -43,12 +64,15 @@
             <h4 class="insider-echarts-title">Karşılaştırmalı grafik (ECharts)</h4>
             <div id="insider-bar-chart" class="insider-bar-chart-container"></div>
         </div>
-        <div class="insider-result">
-            <p><strong>Niyet:</strong> @_result.IntentName | <strong>Güven:</strong> @((_result.ConfidenceScore * 100).ToString("N0"))%</p>
+        <div class="card insider-result" style="padding: 1rem; margin-top: 1rem;">
+            <h4 style="margin: 0 0 0.5rem 0;">Özet kart</h4>
+            <p><strong>Niyet:</strong> @_result.IntentName</p>
+            <p><strong>Güven:</strong> @((_result.ConfidenceScore * 100).ToString("N0"))%</p>
             <p><strong>Karar:</strong> <span class="decision-badge decision-badge--@(_result.Decision.ToLowerInvariant())">@_result.Decision</span></p>
+            <p><strong>Önerilen aksiyon:</strong> @(_result.Decision == "Warn" || _result.Decision == "RequireAuth" ? "Uyarı ver; yöneticiye bildir." : _result.Decision == "Escalate" ? "Escalate; güvenlik ekibine yönlendir." : "İzlemeye devam et.")</p>
             @if (_result.Decision == "Warn" || _result.Decision == "RequireAuth")
             {
-                <div class="insider-warn-banner">Uyarı: Anormal davranış tespit edildi; yöneticiye bildirildi.</div>
+                <div class="insider-warn-banner" style="margin-top: 0.5rem;">Uyarı: Anormal davranış tespit edildi; yöneticiye bildirildi.</div>
             }
         </div>
         <div class="insider-report card">

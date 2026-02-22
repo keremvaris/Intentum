@@ -4,6 +4,7 @@
 @inject IHttpClientFactory HttpFactory
 @inject NavigationManager Navigation
 @inject IJSRuntime JSRuntime
+@using System.Text.Json
 @implements IAsyncDisposable
 
 <PageTitle>Intent Stream</PageTitle>
@@ -35,6 +36,24 @@
     </header>
     </div>
 
+    <div class="page-card commerce-5n1k">
+        <h3 class="page-card h3" style="margin: 0 0 0.75rem 0;">Bu demo ne anlama geliyor? (5N1K) <InfoIcon Text="Dolandırıcılık tespiti use case'ini kısa cevaplarla özetler." /></h3>
+        <ul class="commerce-5n1k-list">
+            <li><strong>Ne:</strong> Davranış olaylarından dolandırıcılık niyeti çıkarımı ve anlık karar (Allow / Warn / Block / Escalate).</li>
+            <li><strong>Neden:</strong> Finansal işlemleri güvence altına almak; bilinen pattern'ler için kurallar (hızlı), belirsiz durumlar için AI fallback.</li>
+            <li><strong>Nerede:</strong> Ödeme/transfer/hesap işlemleri pipeline'ında; olaylar Intentum'a gider, niyet + güven skoru + politika kararı döner.</li>
+            <li><strong>Ne zaman:</strong> Her şüpheli olay veya işlem adımında (login, email değişikliği, yüksek tutarlı transfer, express kart talebi vb.).</li>
+            <li><strong>Nasıl:</strong> Olaylar → Kural tabanlı model (bilinen pattern) veya ChainedIntentModel ile LLM fallback → Güven skoru → Politika kuralları → Karar.</li>
+            <li><strong>Kim:</strong> FinTech startup'ları, ödeme sistemleri, e-ticaret platformları.</li>
+        </ul>
+        <p class="muted" style="margin-top: 0.75rem; font-size: 0.9rem;"><strong>Hedef kitle:</strong> FinTech, ödeme sistemleri, e-ticaret. <strong>Gelir modeli:</strong> SaaS (işlem başı veya aylık abonelik).</p>
+    </div>
+
+    <div class="page-card">
+        <h3 class="page-card h3" style="margin: 0 0 0.5rem 0;">Bu akışta Intentum nerede? <InfoIcon Text="Olaylar backend'e gelir; Intentum niyet + güven skoru üretir; politika Allow/Block/Escalate kararı verir; işlem buna göre onaylanır veya durdurulur." /></h3>
+        <p class="muted" style="margin: 0;">Olay (login, transfer, kart talebi…) → <strong>[Intentum: kural/AI → niyet + güven]</strong> → Politika → Allow / Warn / Block / Escalate. Simülasyonu başlatarak bu akışı canlı izleyebilirsiniz.</p>
+    </div>
+
     <div class="page-card fraud-live__intro fraud-intro-card">
         <p class="fraud-intro-card__text">
             Bu ekran Intentum’un <strong>niyet çıkarımı</strong> ve <strong>politika motorunu</strong> canlı gösterir:
@@ -42,11 +61,13 @@
             <strong>Allow</strong>, <strong>Warn</strong>, <strong>Block</strong> veya <strong>Escalate</strong> kararı verilir.
             Simülasyonu başlatarak gerçek zamanlı akışı izleyebilirsiniz.
         </p>
+        <p class="muted demo-source-label" style="margin: 0.5rem 0 0; font-size: 0.85rem;"><strong>Simülasyon:</strong> Bu sayfadaki olay akışı demo amaçlı üretilir; niyet ve karar çıktıları gerçek pipeline'dan gelir.</p>
     </div>
 
     <div class="page-card fraud-demo1-card">
         <h3 class="page-card h3" style="margin: 0 0 0.5rem 0;">Demo 1: Finans Dolandırıcılığı (Ahmet K.)</h3>
         <p class="fraud-demo1-intro">Olaylar zinciri: Login (yeni ülke IP) → ChangeContactEmail → HighValueTransfer → RequestNewCardExpressShipping. ChainedIntentModel (RuleBased + LlmIntentModel TimeDecay) her adımda çalışır.</p>
+        <p class="muted" style="margin: 0.25rem 0 0; font-size: 0.9rem;">Veri yokken grafikler «Simülasyonu başlattığınızda grafik dolacak» veya «Veri geliyor…» mesajı gösterir.</p>
         <div class="fraud-demo1-controls">
             <span class="fraud-live__control-label">Demo 1: Ahmet K. (4 adım, sabit senaryo)</span>
             <button type="button" class="btn-fraud-primary" @onclick="ToggleDemo1" disabled="@_demo1ToggleBusy">
@@ -84,6 +105,11 @@
                 </div>
             }
         }
+    </div>
+
+    <div class="page-card">
+        <h3 class="page-card h3" style="margin: 0 0 0.5rem 0;">Demo 2: Sepet anomalisi (sabit senaryo)</h3>
+        <p class="muted" style="margin: 0;">Kısa sürede çok sayıda sepet ekleme/çıkarma, farklı cihaz veya IP’lerden aynı hesap: anomali niyeti (bot, dolandırıcılık denemesi). Bu senaryo sabit olay seti ile simüle edilebilir; sonuç örnek: <span class="decision-badge decision-badge--block">Block</span> veya <span class="decision-badge decision-badge--escalate">Escalate</span> (şüpheli sepet davranışı).</p>
     </div>
 
     <div class="page-card">
@@ -368,10 +394,10 @@
     {
         try
         {
-            using var doc = System.Text.Json.JsonDocument.Parse(json);
+            using var doc = JsonDocument.Parse(json);
             if (doc.RootElement.TryGetProperty("source", out var sourceEl) && sourceEl.GetString() == "FraudDemo1")
             {
-                var ev = System.Text.Json.JsonSerializer.Deserialize<FraudDemo1Event>(json, _jsonOptions);
+                var ev = JsonSerializer.Deserialize<FraudDemo1Event>(json, _jsonOptions);
                 if (ev != null)
                 {
                     _demo1Events.RemoveAll(e => e.EventIndex == ev.EventIndex);
@@ -398,7 +424,7 @@
                 }
                 return;
             }
-            var genericEv = System.Text.Json.JsonSerializer.Deserialize<InferenceEvent>(json, _jsonOptions);
+            var genericEv = JsonSerializer.Deserialize<InferenceEvent>(json, _jsonOptions);
             if (genericEv == null) return;
             _recent.Insert(0, genericEv);
             if (_recent.Count > 100) _recent.RemoveAt(_recent.Count - 1);
@@ -444,10 +470,10 @@
         }
     }
 
-    private static readonly System.Text.Json.JsonSerializerOptions _jsonOptions = new()
+    private static readonly JsonSerializerOptions _jsonOptions = new()
     {
         PropertyNameCaseInsensitive = true,
-        PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase
+        PropertyNamingPolicy = JsonNamingPolicy.CamelCase
     };
 
     private async Task UpdateGauge(double value)

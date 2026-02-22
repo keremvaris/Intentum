@@ -3,6 +3,7 @@ using System.Text.Json;
 using System.Text.Json.Serialization;
 using FluentValidation;
 using Intentum.AI.Caching;
+using Intentum.AI.Catalog;
 using Intentum.AI.Embeddings;
 using Intentum.AI.Mock;
 using Intentum.AI.Models;
@@ -13,6 +14,7 @@ using Intentum.AspNetCore;
 using Intentum.Core.Behavior;
 using Intentum.Core.Contracts;
 using Intentum.Core.Models;
+using Intentum.Experiments;
 using Intentum.Explainability;
 using Intentum.Persistence.EntityFramework;
 using Intentum.Persistence.Repositories;
@@ -63,11 +65,27 @@ internal static class ProgramConfiguration
             return new CachedEmbeddingProvider(provider, cache);
         });
 
+        builder.Services.AddSingleton<IntentCatalog>(_ =>
+        {
+            var catalog = new IntentCatalog();
+            catalog.Define("Login", "Kullanıcı girişi", "user:login", "user:login.failed", "user:logout");
+            catalog.Define("Purchase", "Satın alma niyeti", "user:cart.add", "user:checkout.start");
+            catalog.Define("Support", "Destek talebi", "user:support.request", "user:help");
+            return catalog;
+        });
+
+        builder.Services.AddSingleton<CatalogIntentModel>(sp =>
+            new CatalogIntentModel(
+                sp.GetRequiredService<IIntentEmbeddingProvider>(),
+                sp.GetRequiredService<IntentCatalog>()));
+
         builder.Services.AddSingleton<IIntentModel>(sp =>
         {
+            var catalogModel = sp.GetRequiredService<CatalogIntentModel>();
             var embedding = sp.GetRequiredService<IIntentEmbeddingProvider>();
             var similarity = sp.GetRequiredService<IIntentSimilarityEngine>();
-            return new LlmIntentModel(embedding, similarity);
+            var llmModel = new LlmIntentModel(embedding, similarity);
+            return new CatalogFirstIntentModel(catalogModel, llmModel);
         });
 
         builder.Services.AddSingleton<IPlaygroundModelRegistry>(sp =>
@@ -75,6 +93,7 @@ internal static class ProgramConfiguration
             var embedding = sp.GetRequiredService<IIntentEmbeddingProvider>();
             var similarity = sp.GetRequiredService<IIntentSimilarityEngine>();
             var defaultModel = sp.GetRequiredService<IIntentModel>();
+            var catalogModel = sp.GetRequiredService<CatalogIntentModel>();
             var mockOnly = new LlmIntentModel(new MockEmbeddingProvider(), similarity);
             var strictModel = new StrictConfidenceIntentModel(defaultModel);
             var fraudModel = BuildFraudChainedIntentModel(embedding);
@@ -83,6 +102,7 @@ internal static class ProgramConfiguration
             return new PlaygroundModelRegistry(new Dictionary<string, IIntentModel>
             {
                 ["Default"] = defaultModel,
+                ["Catalog"] = catalogModel,
                 ["Mock"] = mockOnly,
                 ["Strict"] = strictModel,
                 ["Fraud"] = fraudModel,
@@ -108,6 +128,8 @@ internal static class ProgramConfiguration
         builder.Services.AddScoped<IIntentExplainer, IntentExplainer>();
         builder.Services.AddIntentTreeExplainer();
 
+        builder.Services.AddHostedService<CatalogEmbeddingResolutionService>();
+
         builder.Services.AddSingleton<DashboardConfigStore>();
         builder.Services.AddSingleton<SseInferenceBroadcaster>();
         builder.Services.AddSingleton<FraudSimulationState>();
@@ -130,9 +152,10 @@ internal static class ProgramConfiguration
         builder.Services.AddScoped<HttpClient>(sp =>
         {
             var accessor = sp.GetRequiredService<IHttpContextAccessor>();
+            var config = sp.GetRequiredService<IConfiguration>();
             var req = accessor.HttpContext?.Request;
             var scheme = req != null ? req.Scheme : "http";
-            var host = req != null ? req.Host.Value : "localhost:5018";
+            var host = req != null ? req.Host.Value : (config["Intentum:FallbackBaseHost"] ?? "localhost:5018");
             return new HttpClient { BaseAddress = new Uri($"{scheme}://{host}") };
         });
         builder.Services.AddIntentum();
@@ -254,9 +277,10 @@ internal static class ProgramConfiguration
             var id = await historyRepository.SaveAsync(behaviorSpaceId, intent, decision, metadata, req.EntityId);
 
             return Results.Ok(new InferIntentResponse(
+                IntentName: intent.Name,
                 Decision: decision.ToString(),
                 Confidence: intent.Confidence.Level,
-                RateLimitAllowed: rateLimitResult?.Allowed ?? true,
+                RateLimitAllowed: rateLimitResult is null ? true : rateLimitResult.Allowed,
                 RateLimitCurrent: rateLimitResult?.CurrentCount,
                 RateLimitLimit: rateLimitResult?.Limit,
                 HistoryId: id));
@@ -297,13 +321,52 @@ internal static class ProgramConfiguration
             var results = new List<PlaygroundCompareResult>();
             foreach (var name in providers)
             {
-                if (!registry.TryGetModel(name, out var model) || model is null) continue;
-                var intent = model.Infer(space);
+                if (!registry.TryGetModel(name, out var model)) continue;
+                var intent = model!.Infer(space);
                 var decision = intent.Decide(policy);
                 results.Add(new PlaygroundCompareResult(name, intent.Name, intent.Confidence.Level, intent.Confidence.Score, decision.ToString()));
             }
             return Results.Json(new PlaygroundCompareResponse(results));
         }).WithName("PlaygroundCompare").Produces(200);
+
+        app.MapPost("/api/intent/experiment", (ExperimentRequest req, IPlaygroundModelRegistry registry, IntentPolicy policy) =>
+        {
+            if (req.Events == null || req.Events.Count == 0)
+                return Results.BadRequest("En az bir olay gerekli.");
+            var variantA = req.VariantA ?? "Default";
+            var variantB = req.VariantB ?? "Strict";
+            if (!registry.TryGetModel(variantA, out var modelA))
+                return Results.BadRequest($"Varyant bulunamadı: {variantA}");
+            if (!registry.TryGetModel(variantB, out var modelB))
+                return Results.BadRequest($"Varyant bulunamadı: {variantB}");
+
+            var count = Math.Clamp(req.ReplicateCount, 2, 500);
+            var spaces = new List<BehaviorSpace>();
+            for (var i = 0; i < count; i++)
+            {
+                var space = new BehaviorSpace();
+                space.SetMetadata("entityId", $"experiment-{i}");
+                foreach (var e in req.Events)
+                    space.Observe(new BehaviorEvent(e.Actor, e.Action, DateTimeOffset.UtcNow));
+                spaces.Add(space);
+            }
+
+            var experiment = new IntentExperiment()
+                .AddVariant(variantA, modelA!, policy)
+                .AddVariant(variantB, modelB!, policy)
+                .SplitTraffic(50, 50);
+            var results = experiment.Run(spaces);
+
+            var sig = IntentExperiment.ComputeSignificance(results, variantA, variantB);
+            var distA = results.Where(r => r.VariantName == variantA).GroupBy(r => r.Decision.ToString()).ToDictionary(g => g.Key, g => g.Count());
+            var distB = results.Where(r => r.VariantName == variantB).GroupBy(r => r.Decision.ToString()).ToDictionary(g => g.Key, g => g.Count());
+            var distributions = new Dictionary<string, IReadOnlyDictionary<string, int>>
+            {
+                [variantA] = distA,
+                [variantB] = distB
+            };
+            return Results.Json(new ExperimentResponse(distributions, sig.PValue, sig.IsSignificant, sig.ChiSquare));
+        }).WithName("RunExperiment").Produces(200).Produces(400);
     }
 
     private static void MapAnalyticsEndpoints(WebApplication app)
@@ -316,7 +379,7 @@ internal static class ProgramConfiguration
             if (summary.Anomalies.Count == 0 && summary.TotalInferences > 0)
             {
                 var now = DateTimeOffset.UtcNow;
-                summary = summary with { Anomalies = new List<AnomalyReport> { new AnomalyReport("Demo", "Hareket var; gerçek anomali eşiği aşılmadı (demo).", now, start, end, 0.3, new Dictionary<string, object> { ["TotalInferences"] = summary.TotalInferences }) } };
+                summary = summary with { Anomalies = new List<AnomalyReport> { new AnomalyReport("Demo", "Hareket var; gerçek anomali eşiği aşılmadı (demo).", now, start, end, 0.3, new Dictionary<string, object> { ["TotalInferences"] = summary.TotalInferences, ["Method"] = "Demo" }) } };
             }
             return Results.Json(summary);
         }).WithName("GetAnalyticsSummary").Produces(200);
@@ -382,12 +445,13 @@ internal static class ProgramConfiguration
             var end = to ?? DateTimeOffset.UtcNow;
             var take = Math.Clamp(limit ?? 50, 1, 200);
             var records = await historyRepository.GetByTimeWindowAsync(start, end);
-            var filtered = string.IsNullOrWhiteSpace(intent) ? records : records.Where(r => string.Equals(r.IntentName, (intent).Trim(), StringComparison.OrdinalIgnoreCase));
+            var intentKey = intent?.Trim();
+            var filtered = string.IsNullOrWhiteSpace(intentKey) ? records : records.Where(r => string.Equals(r.IntentName, intentKey, StringComparison.OrdinalIgnoreCase));
             var ordered = filtered.OrderByDescending(r => r.RecordedAt).Take(take).ToList();
             var items = ordered.Select(r =>
             {
                 var meta = r.Metadata;
-                var eventsSummary = meta != null && (meta.TryGetValue("EventsSummary", out var es) || meta.TryGetValue("eventsSummary", out es) || meta.TryGetValue("Source", out es) || meta.TryGetValue("source", out es)) ? es.ToString() ?? "—" : "—";
+                var eventsSummary = meta is not null && (meta.TryGetValue("EventsSummary", out var es) || meta.TryGetValue("eventsSummary", out es) || meta.TryGetValue("Source", out es) || meta.TryGetValue("source", out es)) ? es?.ToString() ?? "—" : "—";
                 return new { r.Id, r.IntentName, r.RecordedAt, eventsSummary, r.ConfidenceLevel, decision = r.Decision.ToString(), r.ConfidenceScore };
             });
             return Results.Json(items);
@@ -534,14 +598,14 @@ internal static class ProgramConfiguration
     {
         app.MapPost("/api/zero-day/infer", async (IPlaygroundModelRegistry registry, IIntentHistoryRepository history) =>
         {
-            if (!registry.TryGetModel("ZeroDay", out var model) || model is null)
+            if (!registry.TryGetModel("ZeroDay", out var model))
                 return Results.NotFound();
             var space = new BehaviorSpace();
             var t = DateTimeOffset.UtcNow;
             space.Observe(new BehaviorEvent("attacker", "PortScan", t));
             space.Observe(new BehaviorEvent("attacker", "ExploitAttempt", t.AddSeconds(1)));
             space.Observe(new BehaviorEvent("attacker", "LateralMoveToServerB", t.AddSeconds(2)));
-            var intent = model.Infer(space);
+            var intent = model!.Infer(space);
             var start = DateTimeOffset.UtcNow.AddDays(-7);
             var end = DateTimeOffset.UtcNow;
             var records = await history.GetByTimeWindowAsync(start, end);
@@ -588,7 +652,7 @@ internal static class ProgramConfiguration
                 decision = decision.ToString(),
                 requestRate = eventCount,
                 blockedIps = new[] { attackIp },
-                rateLimitTriggered = !(rateLimitResult?.Allowed ?? true),
+                rateLimitTriggered = rateLimitResult is not null && !rateLimitResult.Allowed,
                 rateLimitCurrent = rateLimitResult?.CurrentCount,
                 rateLimitLimit = rateLimitResult?.Limit
             });

@@ -19,7 +19,7 @@ dotnet run --project samples/Intentum.Sample.Blazor
 - **CQRS:** Carbon footprint (`/api/carbon/calculate`, `/api/carbon/report/{id}`), Orders (`POST /api/orders`)
 - **Analytics:** `GET /api/intent/analytics/summary`, `GET /api/intent/history`, `/api/intent/analytics/export/json`, `/api/intent/analytics/export/csv`
 - **Health:** `/health`
-- **Blazor sayfaları:** Overview, Commerce, Explain, FraudLive, Sustainability, Timeline, PolicyLab, Sandbox, Settings, Signals, Graph, Heatmap; SSE inference, dolandırıcılık ve sürdürülebilirlik simülasyonu
+- **Blazor sayfaları:** Overview, Commerce, Explain, FraudLive, Sustainability, Timeline, PolicyLab, Sandbox, Settings, Signals, Graph, Heatmap; SSE inference, dolandırıcılık ve sürdürülebilirlik simülasyonu. **Gerçek vs demo:** Overview'da "Gerçek / Simülasyon" kartı; infer, politika ve analytics gerçek pipeline; olay üreticileri ve "Demo Başlat" ile üretilen veriler simülasyondur.
 
 Detaylı API listesi için [API Referansı (EN)](../../docs/en/api.md#sample-blazor-http-api-intentumsampleblazor) ve [Kurulum (EN)](../../docs/en/setup.md).
 

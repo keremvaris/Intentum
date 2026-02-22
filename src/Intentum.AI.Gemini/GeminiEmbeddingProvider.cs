@@ -1,69 +1,42 @@
-using System.Net;
 using System.Net.Http.Json;
 using System.Text.Json.Serialization;
 using Intentum.AI.Embeddings;
+using Intentum.AI.Http;
 using JetBrains.Annotations;
 
 namespace Intentum.AI.Gemini;
 
 /// <summary>
-/// Gemini embedding provider. On 429 after retries throws <see cref="GeminiRateLimitException"/> with optional Retry-After; other non-2xx throw <see cref="HttpRequestException"/>.
-/// Built-in retry for 429 (up to 5 attempts, respects Retry-After). No timeout (use <see cref="HttpClient.Timeout"/>).
+/// Gemini embedding provider. On 429 after retries throws <see cref="GeminiRateLimitException"/>.
+/// Built-in retry for 429 (up to 5 attempts, respects Retry-After).
 /// </summary>
 public sealed class GeminiEmbeddingProvider(GeminiOptions options, HttpClient httpClient) : IIntentEmbeddingProvider
 {
+    /// <inheritdoc />
     public IntentEmbedding Embed(string behaviorKey)
+        => EmbedAsync(behaviorKey, CancellationToken.None).GetAwaiter().GetResult();
+
+    /// <inheritdoc />
+    public async Task<IntentEmbedding> EmbedAsync(string behaviorKey, CancellationToken cancellationToken = default)
     {
         options.Validate();
 
         var request = new GeminiEmbedRequest(
             new GeminiContent([new GeminiPart(behaviorKey)]));
-
         var url = $"models/{options.EmbeddingModel}:embedContent?key={options.ApiKey}";
 
-        const int maxAttempts = 5;
-        const int maxWaitSeconds = 90;
-        HttpResponseMessage? response = null;
-        for (var attempt = 1; attempt <= maxAttempts; attempt++)
-        {
-            response = httpClient
-                .PostAsJsonAsync(url, request)
-                .GetAwaiter()
-                .GetResult();
+        var response = await EmbeddingHttpRetryHandler.SendWithRetryAsync(
+            ct => httpClient.PostAsJsonAsync(url, request, ct),
+            (retryAfterSec, body) => throw new GeminiRateLimitException(retryAfterSec, body),
+            cancellationToken: cancellationToken);
 
-            if (response.IsSuccessStatusCode)
-                break;
-            if (response.StatusCode == HttpStatusCode.TooManyRequests && attempt == maxAttempts)
-            {
-                var retryAfterSec = response.Headers.RetryAfter?.Delta?.TotalSeconds;
-                var body = response.Content.ReadAsStringAsync().GetAwaiter().GetResult();
-                response.Dispose();
-                throw new GeminiRateLimitException(retryAfterSec, body);
-            }
-            if (response.StatusCode != HttpStatusCode.TooManyRequests)
-                response.EnsureSuccessStatusCode();
-
-            var delay = TimeSpan.FromSeconds(5 * attempt);
-            if (response.Headers.RetryAfter?.Delta is { } retryAfter)
-                delay = TimeSpan.FromSeconds(Math.Min(retryAfter.TotalSeconds, maxWaitSeconds));
-            response.Dispose();
-            Thread.Sleep(delay);
-        }
-
-        response!.EnsureSuccessStatusCode();
-
-        var payload = response.Content
-            .ReadFromJsonAsync<GeminiEmbedResponse>()
-            .GetAwaiter()
-            .GetResult();
+        var payload = await response.Content
+            .ReadFromJsonAsync<GeminiEmbedResponse>(cancellationToken);
 
         var values = payload?.Embedding.Values ?? [];
         var score = EmbeddingScore.Normalize(values);
 
-        return new IntentEmbedding(
-            Source: behaviorKey,
-            Score: score
-        );
+        return new IntentEmbedding(Source: behaviorKey, Score: score);
     }
 
     [UsedImplicitly]

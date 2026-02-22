@@ -1,3 +1,4 @@
+@rendermode InteractiveServer
 <div class="top-row ps-3 navbar navbar-dark">
     <div class="container-fluid">
         <a class="navbar-brand" href="">Intent Intelligence Hub</a>
@@ -6,33 +7,108 @@
 
 <input type="checkbox" title="Navigation menu" class="navbar-toggler" />
 
-<div class="nav-scrollable" onclick="document.querySelector('.navbar-toggler').click()">
-    <nav class="nav flex-column">
-        <div class="nav-item px-3"><span class="nav-group-label">Infer & Decide</span></div>
-        <div class="nav-item px-3"><NavLink class="nav-link" href="sandbox">Playground</NavLink></div>
-        <div class="nav-item px-3"><NavLink class="nav-link" href="explain">Explain</NavLink></div>
-        <div class="nav-item px-3"><NavLink class="nav-link" href="policy-lab">Policy Lab</NavLink></div>
-        <div class="nav-item px-3"><span class="nav-group-label">Analyze</span></div>
-        <div class="nav-item px-3"><NavLink class="nav-link" href="" Match="NavLinkMatch.All">Overview</NavLink></div>
-        <div class="nav-item px-3"><NavLink class="nav-link" href="graph">Graph</NavLink></div>
-        <div class="nav-item px-3"><NavLink class="nav-link" href="timeline">Timeline</NavLink></div>
-        <div class="nav-item px-3"><NavLink class="nav-link" href="heatmap">Heatmap</NavLink></div>
-        <div class="nav-item px-3"><NavLink class="nav-link" href="signals">Signals</NavLink></div>
-        <div class="nav-item px-3"><span class="nav-group-label">Use Cases</span></div>
-        <div class="nav-item px-3"><NavLink class="nav-link" href="fraud-live">Intent Stream</NavLink></div>
-        <div class="nav-item px-3"><NavLink class="nav-link" href="project-pulse">Project Pulse</NavLink></div>
-        <div class="nav-item px-3"><NavLink class="nav-link" href="customer-journey">Customer Journey</NavLink></div>
-        <div class="nav-item px-3"><NavLink class="nav-link" href="moderation">Moderation</NavLink></div>
-        <div class="nav-item px-3"><NavLink class="nav-link" href="adaptive-tutor">Adaptive Tutor</NavLink></div>
-        <div class="nav-item px-3"><NavLink class="nav-link" href="digital-twin">Digital Twin</NavLink></div>
-        <div class="nav-item px-3"><NavLink class="nav-link" href="ato">ATO Demo</NavLink></div>
-        <div class="nav-item px-3"><NavLink class="nav-link" href="insider-threat">İçeriden Tehdit Demo</NavLink></div>
-        <div class="nav-item px-3"><NavLink class="nav-link" href="zero-day">Zero-Day Demo</NavLink></div>
-        <div class="nav-item px-3"><NavLink class="nav-link" href="api-traffic">API Trafik Demo</NavLink></div>
-        <div class="nav-item px-3"><NavLink class="nav-link" href="sustainability">Sustainability</NavLink></div>
-        <div class="nav-item px-3"><NavLink class="nav-link" href="commerce">Commerce</NavLink></div>
-        <div class="nav-item px-3"><span class="nav-group-label">Config</span></div>
-        <div class="nav-item px-3"><NavLink class="nav-link" href="settings">Settings</NavLink></div>
+<div class="nav-scrollable" id="nav-scrollable">
+    <nav class="nav flex-column nav-accordion">
+        <div class="accordion-group">
+            <button type="button" class="accordion-header @(_openGettingStarted ? "open" : "")" @onclick='() => Toggle("gettingstarted")' @onclick:stopPropagation="true">
+                Başlarken
+                <span class="accordion-chevron" aria-hidden="true">▼</span>
+            </button>
+            <div class="accordion-content @(_openGettingStarted ? "open" : "")">
+                <div class="nav-item px-3"><NavLink class="nav-link" href="" Match="NavLinkMatch.All">Genel Bakış</NavLink></div>
+                <div class="nav-item px-3"><NavLink class="nav-link" href="sandbox">Playground</NavLink></div>
+                <div class="nav-item px-3"><NavLink class="nav-link" href="examples/hello">Hello</NavLink></div>
+            </div>
+        </div>
+        <div class="accordion-group">
+            <button type="button" class="accordion-header @(_openCore ? "open" : "")" @onclick='() => Toggle("core")' @onclick:stopPropagation="true">
+                Çekirdek
+                <span class="accordion-chevron" aria-hidden="true">▼</span>
+            </button>
+            <div class="accordion-content @(_openCore ? "open" : "")">
+                <div class="nav-item px-3"><NavLink class="nav-link" href="sandbox">Infer & Decide</NavLink></div>
+                <div class="nav-item px-3"><NavLink class="nav-link" href="explain">Explain</NavLink></div>
+                <div class="nav-item px-3"><NavLink class="nav-link" href="policy-lab">Policy Lab</NavLink></div>
+                <div class="nav-item px-3"><NavLink class="nav-link" href="ab-test">Experiments</NavLink></div>
+            </div>
+        </div>
+        <div class="accordion-group">
+            <button type="button" class="accordion-header @(_openAnalytics ? "open" : "")" @onclick='() => Toggle("analytics")' @onclick:stopPropagation="true">
+                Analitik
+                <span class="accordion-chevron" aria-hidden="true">▼</span>
+            </button>
+            <div class="accordion-content @(_openAnalytics ? "open" : "")">
+                <div class="nav-item px-3"><NavLink class="nav-link" href="graph">Graph</NavLink></div>
+                <div class="nav-item px-3"><NavLink class="nav-link" href="timeline">Timeline</NavLink></div>
+                <div class="nav-item px-3"><NavLink class="nav-link" href="heatmap">Heatmap</NavLink></div>
+                <div class="nav-item px-3"><NavLink class="nav-link" href="signals">Signals</NavLink></div>
+            </div>
+        </div>
+        <div class="accordion-group">
+            <button type="button" class="accordion-header @(_openUseCases ? "open" : "")" @onclick='() => Toggle("usecases")' @onclick:stopPropagation="true">
+                Kullanım Senaryoları
+                <span class="accordion-chevron" aria-hidden="true">▼</span>
+            </button>
+            <div class="accordion-content @(_openUseCases ? "open" : "")">
+                <div class="nav-item px-3"><NavLink class="nav-link" href="fraud-live">Intent Stream</NavLink></div>
+                <div class="nav-item px-3"><NavLink class="nav-link" href="project-pulse">Project Pulse</NavLink></div>
+                <div class="nav-item px-3"><NavLink class="nav-link" href="customer-journey">Customer Journey</NavLink></div>
+                <div class="nav-item px-3"><NavLink class="nav-link" href="moderation">Moderation</NavLink></div>
+                <div class="nav-item px-3"><NavLink class="nav-link" href="adaptive-tutor">Adaptive Tutor</NavLink></div>
+                <div class="nav-item px-3"><NavLink class="nav-link" href="digital-twin">Digital Twin</NavLink></div>
+                <div class="nav-item px-3"><NavLink class="nav-link" href="ato">ATO Demo</NavLink></div>
+                <div class="nav-item px-3"><NavLink class="nav-link" href="insider-threat">İçeriden Tehdit</NavLink></div>
+                <div class="nav-item px-3"><NavLink class="nav-link" href="zero-day">Zero-Day</NavLink></div>
+                <div class="nav-item px-3"><NavLink class="nav-link" href="api-traffic">API Trafik</NavLink></div>
+                <div class="nav-item px-3"><NavLink class="nav-link" href="sustainability">Sustainability</NavLink></div>
+                <div class="nav-item px-3"><NavLink class="nav-link" href="commerce">Commerce</NavLink></div>
+            </div>
+        </div>
+        <div class="accordion-group">
+            <button type="button" class="accordion-header @(_openExamples ? "open" : "")" @onclick='() => Toggle("examples")' @onclick:stopPropagation="true">
+                Örnekler
+                <span class="accordion-chevron" aria-hidden="true">▼</span>
+            </button>
+            <div class="accordion-content @(_openExamples ? "open" : "")">
+                <div class="nav-item px-3"><NavLink class="nav-link" href="examples/hello">Hello</NavLink></div>
+                <div class="nav-item px-3"><NavLink class="nav-link" href="examples/rules">Kural Tabanlı</NavLink></div>
+                <div class="nav-item px-3"><NavLink class="nav-link" href="examples/chained">Zincirleme Model</NavLink></div>
+                <div class="nav-item px-3"><NavLink class="nav-link" href="examples/vectors">Vektör</NavLink></div>
+                <div class="nav-item px-3"><NavLink class="nav-link" href="examples/time-decay">Zaman Azalımı</NavLink></div>
+                <div class="nav-item px-3"><NavLink class="nav-link" href="examples/customer">Müşteri Niyeti</NavLink></div>
+                <div class="nav-item px-3"><NavLink class="nav-link" href="examples/ai-fallback">AI Doğrulama</NavLink></div>
+            </div>
+        </div>
+        <div class="accordion-group">
+            <button type="button" class="accordion-header @(_openConfig ? "open" : "")" @onclick='() => Toggle("config")' @onclick:stopPropagation="true">
+                Yapılandırma
+                <span class="accordion-chevron" aria-hidden="true">▼</span>
+            </button>
+            <div class="accordion-content @(_openConfig ? "open" : "")">
+                <div class="nav-item px-3"><NavLink class="nav-link" href="settings">Settings</NavLink></div>
+            </div>
+        </div>
     </nav>
 </div>
 
+@code {
+    private bool _openGettingStarted = true;
+    private bool _openCore = true;
+    private bool _openAnalytics;
+    private bool _openUseCases;
+    private bool _openExamples;
+    private bool _openConfig;
+
+    private void Toggle(string key)
+    {
+        switch (key)
+        {
+            case "gettingstarted": _openGettingStarted = !_openGettingStarted; break;
+            case "core": _openCore = !_openCore; break;
+            case "analytics": _openAnalytics = !_openAnalytics; break;
+            case "usecases": _openUseCases = !_openUseCases; break;
+            case "examples": _openExamples = !_openExamples; break;
+            case "config": _openConfig = !_openConfig; break;
+        }
+    }
+}

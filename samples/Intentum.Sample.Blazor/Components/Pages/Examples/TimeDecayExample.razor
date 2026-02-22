@@ -1,0 +1,115 @@
+@page "/examples/time-decay"
+@using Intentum.AI.Mock
+@using Intentum.AI.Models
+@using Intentum.AI.Similarity
+@using Intentum.Core.Behavior
+@using Intentum.Runtime
+@using Intentum.Runtime.Policy
+@rendermode InteractiveServer
+
+<PageTitle>Zaman Azalimi</PageTitle>
+
+<div class="page-card">
+    <div class="card-header-row">
+        <h2>Zaman Azalimi (Time Decay)</h2>
+        <InfoIcon Text="Son olaylar eski olaylardan daha onemlidir. Half-life degeriyle eski olaylarin agirligini eksponansiyel olarak azalt." />
+    </div>
+    <p class="subtitle">Fraud detection'da son 5 dakikadaki olaylar 1 saat oncekilerden cok daha onemlidir.</p>
+</div>
+
+<div class="page-card example-concept">
+    <h3>Zaman Azalimi Formulu</h3>
+    <p style="font-family:monospace; font-size:1rem;">agirlik = 2 ^ (-gecen_sure / half_life)</p>
+    <p style="font-size:0.85rem; color:#888;">Half-life = @halfLifeMinutes dk: @halfLifeMinutes dk onceki olayin agirligi %50, @(halfLifeMinutes * 2) dk onceki %25.</p>
+</div>
+
+<div class="page-card">
+    <h3>Half-Life Ayari</h3>
+    <div class="example-input-row">
+        <label>Half-Life (dakika):</label>
+        <input type="range" min="5" max="120" step="5" @bind="halfLifeMinutes" style="width:250px;" />
+        <span style="font-weight:600;">@halfLifeMinutes dk</span>
+        <button class="btn-app-primary" @onclick="RunExample">Hesapla</button>
+    </div>
+</div>
+
+<div class="page-card">
+    <h3>Olay Zamancizgisi</h3>
+    <ul class="example-timeline">
+        @foreach (var evt in timelineEvents)
+        {
+            var ageMinutes = (referenceTime - evt.Time).TotalMinutes;
+            var weight = Math.Pow(2, -ageMinutes / halfLifeMinutes);
+            <li>
+                <span class="example-timeline-dot @(ageMinutes > halfLifeMinutes ? "old" : "")"></span>
+                <span class="example-timeline-time">@ageMinutes.ToString("F0") dk once</span>
+                <span style="flex:1;">@evt.Actor:@evt.Action</span>
+                <div style="width:150px;">
+                    <div class="example-weight-bar" style="width: @((weight * 100).ToString("F0"))%;"></div>
+                </div>
+                <span style="min-width:60px; text-align:right; font-weight:600; font-size:0.85rem;">@weight.ToString("F3")</span>
+            </li>
+        }
+    </ul>
+</div>
+
+@if (result != null)
+{
+    <div class="page-card">
+        <h3>Sonuç</h3>
+        <div class="example-result">
+            <p><strong>Intent:</strong> @result.Value.IntentName</p>
+            <p><strong>Confidence:</strong> @result.Value.Level (@result.Value.Score.ToString("F2"))</p>
+            <p><strong>Decision:</strong> <span class="decision-badge decision-badge--@result.Value.Decision.ToLower()">@result.Value.Decision</span></p>
+        </div>
+        <p style="font-size:0.85rem; color:#888; margin-top:0.5rem;">
+            Yeni olaylar (5 dk once) tam agirlikta, eski olaylar (@(halfLifeMinutes * 2) dk once) %25 agirlikta.
+            Half-life'i degistirip farki gorun.
+        </p>
+    </div>
+}
+
+@code {
+    private int halfLifeMinutes = 60;
+    private DateTimeOffset referenceTime = DateTimeOffset.UtcNow;
+    private (string IntentName, string Level, double Score, string Decision)? result;
+
+    private record TimelineEvent(string Actor, string Action, DateTimeOffset Time);
+
+    private List<TimelineEvent> timelineEvents = [];
+
+    protected override void OnInitialized()
+    {
+        referenceTime = DateTimeOffset.UtcNow;
+        timelineEvents =
+        [
+            new("user", "login.failed", referenceTime - TimeSpan.FromMinutes(120)),
+            new("user", "login.failed", referenceTime - TimeSpan.FromMinutes(60)),
+            new("user", "login.retry", referenceTime - TimeSpan.FromMinutes(5)),
+            new("user", "captcha.passed", referenceTime - TimeSpan.FromMinutes(3)),
+            new("user", "login.success", referenceTime - TimeSpan.FromMinutes(1)),
+        ];
+    }
+
+    private void RunExample()
+    {
+        var halfLife = TimeSpan.FromMinutes(halfLifeMinutes);
+        var engine = new TimeDecaySimilarityEngine(halfLife, referenceTime);
+        var model = new LlmIntentModel(new MockEmbeddingProvider(), engine);
+
+        var policy = new IntentPolicyBuilder()
+            .Observe("MediumRisk", i => i.Confidence.Score is > 0.4 and <= 0.7)
+            .Allow("LowRisk", i => i.Confidence.Score <= 0.4)
+            .Warn("HighRisk", i => i.Confidence.Score > 0.7)
+            .Build();
+
+        var space = new BehaviorSpace();
+        foreach (var evt in timelineEvents)
+            space.Observe(new BehaviorEvent(evt.Actor, evt.Action, evt.Time));
+
+        var intent = model.Infer(space);
+        var decision = intent.Decide(policy);
+
+        result = (intent.Name, intent.Confidence.Level, intent.Confidence.Score, decision.ToString());
+    }
+}

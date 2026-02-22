@@ -10,13 +10,33 @@
 <div class="page-card">
     <h2 class="page-card h2" style="margin: 0 0 0.25rem 0;">Context Guardian: İçerik Moderasyonu Niyet Katmanı</h2>
     <p class="subtitle">Forum thread'inde mesaj dizisinden bağlamsal niyet (trolling, konudan sapma, yardım arayan); kişiselleştirilmiş uyarı.</p>
+</div>
 
+<div class="page-card commerce-5n1k">
+    <h3 class="page-card h3" style="margin: 0 0 0.75rem 0;">Bu demo ne anlama geliyor? (5N1K) <InfoIcon Text="İçerik moderasyonu use case'ini kısa cevaplarla özetler." /></h3>
+    <ul class="commerce-5n1k-list">
+        <li><strong>Ne:</strong> Mesaj/thread dizisinden bağlamsal niyet çıkarımı (trolling, konudan sapma, yardım arayan); kişiselleştirilmiş uyarı veya moderatör yönlendirmesi.</li>
+        <li><strong>Neden:</strong> Bilinen kötü içeriği kurallarla hızlı tespit etmek; belirsiz içerik için AI fallback ile niyet sınıflandırması.</li>
+        <li><strong>Nerede:</strong> Forum, sosyal medya, topluluk platformlarında; mesaj veya thread işlendikten sonra Intentum'a gider.</li>
+        <li><strong>Ne zaman:</strong> Yeni mesaj gönderildiğinde veya thread periyodik taranırken; moderatör kuyruğuna öncelik vermek için.</li>
+        <li><strong>Nasıl:</strong> Kurallarla bilinen pattern'ler (küfür listesi, spam) → eşleşmezse AI ile niyet çıkar → Karar (Allow / Warn / Escalate).</li>
+        <li><strong>Kim:</strong> Sosyal medya platformları, forum/topluluk yöneticileri.</li>
+    </ul>
+    <p class="muted" style="margin-top: 0.75rem; font-size: 0.9rem;"><strong>Hedef kitle:</strong> Sosyal medya, forum, topluluk. <strong>Gelir modeli:</strong> API bazlı faturalandırma.</p>
+</div>
+
+<div class="page-card">
+    <h3 class="page-card h3" style="margin: 0 0 0.5rem 0;">Bu akışta Intentum nerede? <InfoIcon Text="Mesajlar gelir; kurallarla bilinen kötü içerik elenir; belirsiz olanlar Intentum ile niyet çıkarımına gider; karar moderatöre veya kullanıcıya uyarı olarak döner." /></h3>
+    <p class="muted" style="margin: 0;">Mesaj/thread → <strong>[Kural: bilinen kötü içerik]</strong> → eşleşmezse <strong>[Intentum: niyet + güven]</strong> → Allow / Warn / Escalate (moderatör önceliği).</p>
+</div>
+
+<div class="page-card">
     <div class="project-pulse-controls">
         <div class="project-pulse-variants">
             <span class="project-pulse-label">Varyant:</span>
             @foreach (var v in new[] { "A", "B", "C", "D" })
             {
-                <button type="button" class="btn-variant @(_selectedVariant == v ? "btn-variant--active" : "")" @onclick="() => SelectVariant(v)">
+                <button type="button" class="btn-variant @(_selectedVariant == v ? "btn-variant--active" : "")" @onclick="() => SelectVariant(v)" title="@ModerationVariants.GetDescription(v)">
                     @v: @ModerationVariants.GetLabel(v)
                 </button>
             }
@@ -25,6 +45,7 @@
             @(_running ? "Çalışıyor…" : "Niyet Çıkar")
         </button>
     </div>
+    <p class="muted" style="margin: 0.5rem 0 0; font-size: 0.9rem;">Varyantların üzerine gelerek kısa açıklamayı görebilirsiniz. Niyet Çıkar sonrası örnek uyarı metni ve «Sonraki N mesaj izlensin» çıktısı aşağıda gösterilir.</p>
 </div>
 
 @if (_result != null)
@@ -79,18 +100,12 @@
             <p><strong>Niyet:</strong> @_result.IntentName</p>
             <p><strong>Güven:</strong> @_result.ConfidenceScore.ToString("P0") (@_result.ConfidenceLevel)</p>
             <p><strong>Karar:</strong> <span class="decision-badge decision-badge--@(_result.Decision.ToLowerInvariant())">@_result.Decision</span></p>
-            @if (_result.ObserveNextCount > 0)
-            {
-                <p><strong>Sonraki @_result.ObserveNextCount mesaj:</strong> moderatöre öncelikli.</p>
-            }
+            <p><strong>Sonraki izleme:</strong> @(_result.ObserveNextCount > 0 ? $"{_result.ObserveNextCount} mesaj moderatöre öncelikli izlensin." : "Ek izleme yok.")</p>
         </div>
-        @if (!string.IsNullOrEmpty(_result.WarningMessageTemplate))
-        {
-            <div class="insider-warn-banner moderation-warning-bubble">
-                <strong>Uyarı metni (kullanıcıya gösterilecek):</strong><br />
-                @_result.WarningMessageTemplate
-            </div>
-        }
+        <div class="insider-warn-banner moderation-warning-bubble" style="margin-top: 0.75rem;">
+            <strong>Örnek uyarı metni (kullanıcıya gösterilecek):</strong><br />
+            @(string.IsNullOrEmpty(_result.WarningMessageTemplate) ? "— Bu varyant için uyarı metni yok." : _result.WarningMessageTemplate)
+        </div>
     </div>
 }
 

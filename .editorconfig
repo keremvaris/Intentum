@@ -21,3 +21,11 @@ dotnet_diagnostic.S1075.severity = none
 
 [**/Intentum.AI.Mistral/MistralOptions.cs]
 dotnet_diagnostic.S1075.severity = none
+
+# Positional record properties used only by JSON (de)serialization
+[**/Intentum.AI/Classification/PromptIntentClassifier.cs]
+dotnet_diagnostic.IDE0052.severity = none
+[**/Intentum.Sample.Blazor/Components/Pages/AbTest.razor]
+dotnet_diagnostic.IDE0052.severity = none
+[**/Intentum.Sample.Blazor/Components/Pages/Overview.razor]
+dotnet_diagnostic.IDE0052.severity = none

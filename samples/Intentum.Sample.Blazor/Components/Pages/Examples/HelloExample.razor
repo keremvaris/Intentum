@@ -1,0 +1,112 @@
+@page "/examples/hello"
+@using Intentum.Core
+@using Intentum.Core.Behavior
+@using Intentum.Core.Models
+@using Intentum.Runtime
+@using Intentum.Runtime.Policy
+@rendermode InteractiveServer
+
+<PageTitle>Hello Intentum</PageTitle>
+
+<div class="page-card">
+    <div class="card-header-row">
+        <h2>Hello Intentum</h2>
+        <InfoIcon Text="En basit Intentum akışı: tek olay, tek kural, tek intent, tek karar. 3 satır kodla çalışıyor." />
+    </div>
+    <p class="subtitle">Intentum'un temel akışını keşfet: Olay gözle, niyet çıkar, karar ver.</p>
+</div>
+
+<div class="page-card example-concept">
+    <h3>Akış</h3>
+    <div class="example-flow">
+        <span class="example-flow-step">BehaviorEvent</span>
+        <span class="example-flow-arrow">&rarr;</span>
+        <span class="example-flow-step">BehaviorSpace</span>
+        <span class="example-flow-arrow">&rarr;</span>
+        <span class="example-flow-step">RuleBasedIntentModel</span>
+        <span class="example-flow-arrow">&rarr;</span>
+        <span class="example-flow-step">Intent + Confidence</span>
+        <span class="example-flow-arrow">&rarr;</span>
+        <span class="example-flow-step">Policy &rarr; Decision</span>
+    </div>
+</div>
+
+<div class="page-card">
+    <h3>Interaktif Alan</h3>
+    <div class="example-input-row">
+        <label>Actor:</label>
+        <input @bind="actor" placeholder="user" />
+        <label>Action:</label>
+        <input @bind="action" placeholder="hello" />
+        <button class="btn-app-primary" @onclick="RunExample">Çalıştır</button>
+    </div>
+    <p style="font-size:0.85rem; color:#888;">Kural: Action "hello" ise Intent = "Greeting" (0.90 confidence)</p>
+</div>
+
+@if (result != null)
+{
+    <div class="page-card">
+        <h3>Sonuç</h3>
+        <div class="example-result @ResultClass">
+            <p><strong>Intent:</strong> @result.Value.IntentName</p>
+            <p><strong>Confidence:</strong> @result.Value.Level (@result.Value.Score.ToString("F2"))</p>
+            <p><strong>Decision:</strong> <span class="decision-badge decision-badge--@result.Value.Decision.ToLower()">@result.Value.Decision</span></p>
+            @if (result.Value.Reasoning != null)
+            {
+                <p><strong>Reasoning:</strong> @result.Value.Reasoning</p>
+            }
+        </div>
+    </div>
+}
+
+<div class="page-card example-code">
+    <h3 style="color:#cdd6f4;">Eşdeğer C# Kodu</h3>
+    <pre><span class="cmt">// 1. Kural tanımla</span>
+<span class="kw">var</span> model = <span class="kw">new</span> <span class="typ">RuleBasedIntentModel</span>(<span class="kw">new</span> <span class="typ">List</span>&lt;<span class="typ">Func</span>&lt;<span class="typ">BehaviorSpace</span>, <span class="typ">RuleMatch</span>?&gt;&gt;
+{
+    space =&gt; space.Events.Any(e =&gt; e.Action == <span class="str">"hello"</span>)
+        ? <span class="kw">new</span> <span class="typ">RuleMatch</span>(<span class="str">"Greeting"</span>, <span class="num">0.9</span>, <span class="str">"user said hello"</span>)
+        : <span class="kw">null</span>
+});
+
+<span class="cmt">// 2. Policy tanımla</span>
+<span class="kw">var</span> policy = <span class="kw">new</span> <span class="typ">IntentPolicyBuilder</span>()
+    .Allow(<span class="str">"Greeting"</span>, i =&gt; i.Name == <span class="str">"Greeting"</span>)
+    .Observe(<span class="str">"Unknown"</span>, _ =&gt; <span class="kw">true</span>)
+    .Build();
+
+<span class="cmt">// 3. Olay gözle, niyet çıkar, karar ver</span>
+<span class="kw">var</span> space = <span class="kw">new</span> <span class="typ">BehaviorSpace</span>().Observe(<span class="str">"user"</span>, <span class="str">"hello"</span>);
+<span class="kw">var</span> intent = model.Infer(space);
+<span class="kw">var</span> decision = intent.Decide(policy);</pre>
+</div>
+
+@code {
+    private string actor = "user";
+    private string action = "hello";
+    private (string IntentName, string Level, double Score, string Decision, string? Reasoning)? result;
+
+    private string ResultClass => result?.Decision == "Allow" ? "" : result?.Decision == "Block" ? "danger" : "warning";
+
+    private void RunExample()
+    {
+        var rules = new List<Func<BehaviorSpace, RuleMatch?>>
+        {
+            space => space.Events.Any(e => e.Action == "hello")
+                ? new RuleMatch("Greeting", 0.9, "user said hello")
+                : null
+        };
+
+        var model = new RuleBasedIntentModel(rules);
+        var policy = new IntentPolicyBuilder()
+            .Allow("Greeting", i => i.Name == "Greeting")
+            .Observe("Unknown", _ => true)
+            .Build();
+
+        var space = new BehaviorSpace().Observe(actor, action);
+        var intent = model.Infer(space);
+        var decision = intent.Decide(policy);
+
+        result = (intent.Name, intent.Confidence.Level, intent.Confidence.Score, decision.ToString(), intent.Reasoning);
+    }
+}

@@ -1,28 +1,27 @@
-﻿@page "/Error"
+@page "/Error"
 @using System.Diagnostics
+@layout MainLayout
 
-<PageTitle>Error</PageTitle>
+<PageTitle>Hata</PageTitle>
 
-<h1 class="text-danger">Error.</h1>
-<h2 class="text-danger">An error occurred while processing your request.</h2>
+<div class="page-card">
+    <h1 class="text-danger">Hata</h1>
+    <h2 class="text-danger" style="font-size: 1.1rem;">İsteğiniz işlenirken bir hata oluştu.</h2>
 
-@if (ShowRequestId)
-{
-    <p>
-        <strong>Request ID:</strong> <code>@RequestId</code>
-    </p>
-}
+    @if (ShowRequestId)
+    {
+        <p class="muted">
+            <strong>Request ID:</strong> <code>@RequestId</code>
+        </p>
+    }
 
-<h3>Development Mode</h3>
-<p>
-    Swapping to <strong>Development</strong> environment will display more detailed information about the error that occurred.
-</p>
-<p>
-    <strong>The Development environment shouldn't be enabled for deployed applications.</strong>
-    It can result in displaying sensitive information from exceptions to end users.
-    For local debugging, enable the <strong>Development</strong> environment by setting the <strong>ASPNETCORE_ENVIRONMENT</strong> environment variable to <strong>Development</strong>
-    and restarting the app.
-</p>
+    <p><NavLink href="" class="action-btn" style="display:inline-block; margin-top:0.5rem;">Ana sayfaya dön</NavLink></p>
+</div>
+
+<div class="page-card muted" style="font-size: 0.9rem;">
+    <h3>Geliştirme modu</h3>
+    <p><strong>Development</strong> ortamında hata ayrıntıları gösterilir. Dağıtılan uygulamalarda açık bırakmayın. Yerel debug için <strong>ASPNETCORE_ENVIRONMENT=Development</strong> ayarlayıp uygulamayı yeniden başlatın.</p>
+</div>
 
 @code{
     [CascadingParameter]

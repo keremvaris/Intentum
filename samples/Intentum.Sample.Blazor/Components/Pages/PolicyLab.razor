@@ -1,19 +1,37 @@
 @page "/policy-lab"
-@rendermode InteractiveServer
+@using System.Text.Json
 @using System.Text.Json.Serialization
+@rendermode InteractiveServer
 @inject HttpClient Http
 @inject NavigationManager Navigation
 
 <PageTitle>Policy Lab</PageTitle>
 
 <div class="page-card">
-    <h2 style="margin: 0 0 0.25rem 0;">Policy Lab</h2>
-    <p class="subtitle" style="margin: 0;">Politika motorunun kuralları ve bu giriş için karar ne olurdu simülatörü. <InfoIcon Text="@(_policyLabInfoText)" /></p>
+    <p class="muted" style="margin: 0 0 0.75rem 0;">Politika kurallarını gör; aynı olay setiyle "Bu giriş için karar ne olurdu?" simülasyonu yap.</p>
+    <div class="card-header-row">
+        <h2 style="margin: 0; font-size: 1.35rem;">Policy Lab</h2>
+        <InfoIcon Text="Kural listesi + karar simülasyonu. Infer sonrası politika uygulanır; Allow, Block, Warn, Escalate vb. Detay için Explain veya Playground." />
+    </div>
+    <p class="subtitle" style="margin: 0.5rem 0 0;">Olay → Niyet → Politika → Karar. Kural tasarımı ve test.</p>
+</div>
+
+<div class="page-card commerce-5n1k">
+    <h3 class="page-card h3" style="margin: 0 0 0.5rem 0;">Bu sayfa ne işe yarar? (5N1K)</h3>
+    <ul class="commerce-5n1k-list" style="margin: 0; padding-left: 1.25rem;">
+        <li><strong>Ne:</strong> Kural listesi + "Bu giriş için karar ne olurdu?" simülasyonu.</li>
+        <li><strong>Neden:</strong> Politika tasarımı, kural değişikliği öncesi/sonrası test.</li>
+        <li><strong>Nerede:</strong> Infer sonrası karar aşaması.</li>
+        <li><strong>Ne zaman:</strong> Kural ekleme/değiştirme veya senaryo denemesi.</li>
+        <li><strong>Nasıl:</strong> Kurallar tablo + olay JSON → Değerlendir; güven ve karar gösterilir.</li>
+        <li><strong>Kim:</strong> Güvenlik, ürün, risk ekipleri.</li>
+    </ul>
+    <p class="muted" style="margin-top: 0.5rem; font-size: 0.9rem;"><strong>İş kullanımı:</strong> Canlıda hangi olay setine Allow/Block/Warn verileceğini önceden test etmek; uyum ve dolandırıcılık önleme kurallarını güvenle güncellemek.</p>
 </div>
 
 <div class="page-card">
-    <h3 class="page-card h3" style="margin: 0 0 0.5rem 0;">Kurallar (IntentPolicyBuilder) <InfoIcon Text="@(_rulesInfoText)" /></h3>
-    <p class="muted">Program.cs içinde tanımlı kurallar; intent + sinyallere göre karar verilir.</p>
+    <h3 class="page-card h3" style="margin: 0 0 0.5rem 0;">Kurallar <InfoIcon Text="@(_rulesInfoText)" /></h3>
+    <p class="muted">Bu kurallar ProgramConfiguration'da IntentPolicyBuilder ile tanımlı; öncelik sırasına göre değerlendirilir.</p>
     <div class="table-wrap">
         <table class="history-table">
             <thead><tr><th>Kural adı</th><th>Karar</th><th>Koşul (özet)</th></tr></thead>
@@ -42,16 +60,15 @@
     @if (_evalResult != null)
     {
         <div class="card">
-            <h4>Sonuç</h4>
+            <h4>Bu giriş için karar</h4>
             <p><strong>Güven seviyesi:</strong> @_evalResult.Confidence</p>
             <p><strong>Karar:</strong> <span class="badge">@_evalResult.Decision</span></p>
         </div>
     }
-    <p class="muted">Detaylı açıklama için <NavLink href="explain">Explain</NavLink> veya <NavLink href="sandbox">Playground</NavLink> kullanın.</p>
+    <p class="muted" style="margin-top: 0.75rem;">Detay için <NavLink href="explain">Explain</NavLink> veya <NavLink href="sandbox">Playground</NavLink>.</p>
 </div>
 
 @code {
-    private static readonly string _policyLabInfoText = "Bu sayfa politika motorunun kurallarını listeler ve örnek olay seti ile karar simülasyonu yapar. Infer sonrası politika kuralları uygulanır; Allow, Block, Warn, Escalate vb. karar döner.";
     private static readonly string _rulesInfoText = "Kurallar öncelik sırasına göre değerlendirilir. Örn. ExcessiveRetry (retry ≥ 3) Block, LowConfidence Escalate, HighConfidence Allow. Koşullar sinyal içeriği ve güven seviyesine göre eşleşir.";
     private string _eventsJson = "[{\"actor\":\"user\",\"action\":\"login\"},{\"actor\":\"user\",\"action\":\"retry\"}]";
     private bool _loading;
@@ -66,7 +83,7 @@
         StateHasChanged();
         try
         {
-            var events = System.Text.Json.JsonSerializer.Deserialize<object[]>(_eventsJson);
+            var events = JsonSerializer.Deserialize<object[]>(_eventsJson);
             if (events == null || events.Length == 0) { _evalError = "En az bir olay girin."; return; }
             var body = new { events, entityId = "PolicyLab" };
             var baseUri = new Uri(Navigation.BaseUri).GetLeftPart(UriPartial.Authority);

@@ -23,17 +23,23 @@ public sealed class CachedEmbeddingProvider : IIntentEmbeddingProvider
 
     public IntentEmbedding Embed(string behaviorKey)
     {
-        // Try to get from cache first
         var cached = _cache.Get(behaviorKey);
         if (cached != null)
             return cached;
 
-        // If not in cache, get from inner provider
         var embedding = _innerProvider.Embed(behaviorKey);
-
-        // Store in cache
         _cache.Set(behaviorKey, embedding);
+        return embedding;
+    }
 
+    public async Task<IntentEmbedding> EmbedAsync(string behaviorKey, CancellationToken cancellationToken = default)
+    {
+        var cached = _cache.Get(behaviorKey);
+        if (cached != null)
+            return cached;
+
+        var embedding = await _innerProvider.EmbedAsync(behaviorKey, cancellationToken);
+        _cache.Set(behaviorKey, embedding);
         return embedding;
     }
 }

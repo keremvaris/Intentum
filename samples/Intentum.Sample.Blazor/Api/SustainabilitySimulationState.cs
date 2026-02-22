@@ -1,3 +1,5 @@
+using System.Text.Json.Serialization;
+
 namespace Intentum.Sample.Blazor.Api;
 
 /// <summary>
@@ -55,5 +57,5 @@ public sealed class SustainabilitySimulationState
 
 /// <summary>Request body for POST /api/sustainability-simulation/start.</summary>
 public sealed record SustainabilityStartRequest(
-    [property: System.Text.Json.Serialization.JsonPropertyName("companyId")] string? CompanyId,
-    [property: System.Text.Json.Serialization.JsonPropertyName("granularity")] string? Granularity);
+    [property: JsonPropertyName("companyId")] string? CompanyId,
+    [property: JsonPropertyName("granularity")] string? Granularity);

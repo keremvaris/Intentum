@@ -1,11 +1,12 @@
 @page "/sustainability"
 @rendermode InteractiveServer
-@using System.Text.Json.Serialization
-@using Intentum.Sample.Blazor.Data
 @inject HttpClient Http
 @inject IHttpClientFactory HttpFactory
 @inject NavigationManager Navigation
 @inject IJSRuntime JSRuntime
+@using System.Text.Json
+@using System.Text.Json.Serialization
+@using Intentum.Sample.Blazor.Data
 @implements IAsyncDisposable
 
 <PageTitle>Sustainability & Greenwashing</PageTitle>
@@ -13,6 +14,12 @@
 <div class="page-card">
     <h2 style="margin: 0 0 0.25rem 0;">Sustainability & Greenwashing</h2>
     <p class="subtitle" style="margin: 0;">Gerçek veriyle eğitilmiş bakış: etiketli kamu kaynakları, intent sınıfları ve model sinyalleri. <InfoIcon Text="@(_sustainabilityInfoText)" /></p>
+    <p class="muted" style="margin: 0.5rem 0 0;">Bu demo ne gösterir: Greenwashing sekmesinde model sinyalleri ve intent sınıfları; Carbon’da karbon ayak izi; Live’da canlı rapor analizi ve niyet/karar çıktısı. Analiz et veya canlı akışla niyet ve kararı görün.</p>
+</div>
+
+<div class="page-card">
+    <h3 class="page-card h3" style="margin: 0 0 0.5rem 0;">Bu akışta Intentum nerede?</h3>
+    <p class="muted" style="margin: 0;">Rapor/metin → <strong>[Intentum: sinyaller + intent sınıfı + güven]</strong> → Politika (CriticalGreenwashing, NeedsVerification, Monitor, LowRisk). Greenwashing sekmesinde model sinyalleri ve intent sınıfları; Live sekmesinde canlı analiz ve niyet/karar çıktısı.</p>
 </div>
 
 <div class="page-card">
@@ -385,10 +392,10 @@
     private CancellationTokenSource? _sseCts;
     private EChartsInterop? _sustainabilityLineEcharts;
     private const int MaxLiveLinePoints = 200;
-    private static readonly System.Text.Json.JsonSerializerOptions _liveJsonOptions = new()
+    private static readonly JsonSerializerOptions _liveJsonOptions = new()
     {
         PropertyNameCaseInsensitive = true,
-        PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase
+        PropertyNamingPolicy = JsonNamingPolicy.CamelCase
     };
 
     protected override async Task OnInitializedAsync()
@@ -455,7 +462,7 @@
         {
             var baseUri = GetApiBase();
             var body = new { report = _reportText, sourceType = _sourceType, language = "TR" };
-            var opts = new System.Text.Json.JsonSerializerOptions { PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase };
+            var opts = new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase };
             var res = await Http.PostAsJsonAsync(baseUri + "/api/greenwashing/analyze", body, opts);
             res.EnsureSuccessStatusCode();
             _greenResult = await res.Content.ReadFromJsonAsync<GreenwashingResultDto>();
@@ -476,7 +483,7 @@
         {
             var baseUri = GetApiBase();
             var body = new { actor = _carbonActor, scope = _carbonScope };
-            var opts = new System.Text.Json.JsonSerializerOptions { PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase };
+            var opts = new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase };
             var res = await Http.PostAsJsonAsync(baseUri + "/api/carbon/calculate", body, opts);
             if (res.IsSuccessStatusCode)
             {
@@ -536,7 +543,7 @@
             else
             {
                 var body = new { companyId = _liveCompanyId, granularity = _liveGranularity };
-                var opts = new System.Text.Json.JsonSerializerOptions { PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase };
+                var opts = new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase };
                 await Http.PostAsJsonAsync(baseUri + "/api/sustainability-simulation/start", body, opts);
                 _ = ConnectSustainabilitySse();
             }
@@ -588,7 +595,7 @@
     {
         try
         {
-            var ev = System.Text.Json.JsonSerializer.Deserialize<SustainabilityTimelineEventDto>(json, _liveJsonOptions);
+            var ev = JsonSerializer.Deserialize<SustainabilityTimelineEventDto>(json, _liveJsonOptions);
             if (ev == null) return;
             _liveEvents.Insert(0, ev);
             if (_liveEvents.Count > 100) _liveEvents.RemoveAt(_liveEvents.Count - 1);

@@ -1,0 +1,131 @@
+@page "/examples/vectors"
+@using Intentum.Core
+@using Intentum.Core.Behavior
+@rendermode InteractiveServer
+
+<PageTitle>Vektör Normalizasyon</PageTitle>
+
+<div class="page-card">
+    <div class="card-header-row">
+        <h2>Vektör Normalizasyon</h2>
+        <InfoIcon Text="BehaviorSpace olaylarını sayısal vektöre dönüştürme yöntemleri. Tekrarlanan olayların skoru baskın olmasını engeller." />
+    </div>
+    <p class="subtitle">Olaylar &rarr; BehaviorVector: 4 normalizasyon modu karsilastirmasi.</p>
+</div>
+
+<div class="page-card">
+    <h3>Olaylar</h3>
+    <div class="example-input-row">
+        <input @bind="newEvent" placeholder="örneğin: login.failed" />
+        <button class="btn-app-primary" @onclick="AddEvent">Ekle</button>
+        <button class="btn-app-secondary" @onclick="ResetEvents">Sıfırla</button>
+    </div>
+    <div style="display:flex; flex-wrap:wrap; gap:0.25rem;">
+        @foreach (var evt in events)
+        {
+            <span class="example-event-tag">@evt</span>
+        }
+    </div>
+</div>
+
+<div class="page-card">
+    <h3>Cap Degeri</h3>
+    <div class="example-input-row">
+        <label>Cap per dimension:</label>
+        <input type="range" min="1" max="10" @bind="capValue" style="width:200px;" />
+        <span style="font-weight:600;">@capValue</span>
+        <button class="btn-app-success" @onclick="ComputeVectors">Hesapla</button>
+    </div>
+</div>
+
+@if (computed)
+{
+    <div class="page-card">
+        <div class="example-tabs">
+            <button class="example-scenario-btn @(activeTab == "raw" ? "active" : "")" @onclick='() => activeTab = "raw"'>Raw</button>
+            <button class="example-scenario-btn @(activeTab == "cap" ? "active" : "")" @onclick='() => activeTab = "cap"'>Cap (@capValue)</button>
+            <button class="example-scenario-btn @(activeTab == "l1" ? "active" : "")" @onclick='() => activeTab = "l1"'>L1</button>
+            <button class="example-scenario-btn @(activeTab == "softcap" ? "active" : "")" @onclick='() => activeTab = "softcap"'>SoftCap</button>
+        </div>
+
+        @{
+            var dims = activeTab switch
+            {
+                "raw" => rawDims,
+                "cap" => capDims,
+                "l1" => l1Dims,
+                "softcap" => softCapDims,
+                _ => rawDims
+            };
+            var maxVal = dims.Count > 0 ? dims.Values.Max() : 1;
+        }
+
+        @foreach (var kv in dims.OrderByDescending(x => x.Value))
+        {
+            var pct = maxVal > 0 ? (kv.Value / maxVal * 100) : 0;
+            <div class="example-vector-row">
+                <span class="example-vector-label">@kv.Key</span>
+                <div style="flex:1;">
+                    <div class="example-vector-bar" style="width: @(pct.ToString("F0"))%;"></div>
+                </div>
+                <span class="example-vector-value">@kv.Value.ToString("F3")</span>
+            </div>
+        }
+
+        @if (activeTab == "l1")
+        {
+            <p style="font-size:0.85rem; color:#888; margin-top:0.5rem;">Toplam: @l1Dims.Values.Sum().ToString("F3") (L1 normalizasyon, toplam = 1)</p>
+        }
+    </div>
+
+    <div class="page-card example-concept">
+        <h3>Ne Zaman Hangi Normalizasyon?</h3>
+        <ul style="margin:0; padding-left:1.25rem; line-height:1.7;">
+            <li><strong>Raw:</strong> Olusan olay sayisi aynen korunur. Basit durumlarda yeterli.</li>
+            <li><strong>Cap:</strong> Her boyutu belirli bir ust sinirla keser. Spam gibi tekrarlanan olaylari sinirlar.</li>
+            <li><strong>L1:</strong> Tum boyutlarin toplami 1 olur. Oransal karsilastirma icin ideal.</li>
+            <li><strong>SoftCap:</strong> Deger/cap orani; 1'i asmaz. Cap'e yakin ama daha yumusak gecis.</li>
+        </ul>
+    </div>
+}
+
+@code {
+    private string newEvent = "";
+    private List<string> events = ["login.failed", "login.failed", "login.failed", "login.failed", "login.failed", "password.reset", "captcha.passed"];
+    private int capValue = 3;
+    private string activeTab = "raw";
+    private bool computed;
+
+    private Dictionary<string, double> rawDims = new();
+    private Dictionary<string, double> capDims = new();
+    private Dictionary<string, double> l1Dims = new();
+    private Dictionary<string, double> softCapDims = new();
+
+    private void AddEvent()
+    {
+        if (!string.IsNullOrWhiteSpace(newEvent))
+        {
+            events.Add(newEvent.Trim());
+            newEvent = "";
+        }
+    }
+
+    private void ResetEvents()
+    {
+        events = ["login.failed", "login.failed", "login.failed", "login.failed", "login.failed", "password.reset", "captcha.passed"];
+        computed = false;
+    }
+
+    private void ComputeVectors()
+    {
+        var space = new BehaviorSpace();
+        foreach (var evt in events)
+            space.Observe("user", evt);
+
+        rawDims = new(space.ToVector().Dimensions);
+        capDims = new(space.ToVector(new ToVectorOptions(VectorNormalization.Cap, CapPerDimension: capValue)).Dimensions);
+        l1Dims = new(space.ToVector(new ToVectorOptions(VectorNormalization.L1)).Dimensions);
+        softCapDims = new(space.ToVector(new ToVectorOptions(VectorNormalization.SoftCap, CapPerDimension: capValue)).Dimensions);
+        computed = true;
+    }
+}

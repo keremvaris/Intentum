@@ -279,6 +279,7 @@ No API key required. Infers suspicious vs. legitimate behavior, then policy deci
 - [API Reference](https://keremvaris.github.io/Intentum/api/)
 - [CodeGen](docs/en/codegen.md) — scaffold CQRS + Intentum, dotnet new template
 - **Sample.Web:** `dotnet run --project samples/Intentum.Sample.Web` — UI, `POST /api/intent/infer`, `POST /api/intent/explain`, greenwashing (`POST /api/greenwashing/analyze`, `GET /api/greenwashing/recent`), Dashboard (analytics, son çıkarımlar, son greenwashing analizleri), analytics export, health. See [docs/setup](docs/en/setup.md) and [samples/Intentum.Sample.Web/README.md](samples/Intentum.Sample.Web/README.md).
+- **Sample.Blazor:** `dotnet run --project samples/Intentum.Sample.Blazor` — Blazor UI; infer, policy, analytics, experiments (catalog intent, Z-score/IQR anomaly, A/B significance) are real; demo event sources are simulated. Overview page has "Gerçek / Simülasyon" (real vs demo). See [samples/Intentum.Sample.Blazor/README.md](samples/Intentum.Sample.Blazor/README.md) and [Getting started](docs/en/getting-started.md).
 - **Fraud intent:** `dotnet run --project examples/fraud-intent` — fraud/abuse intent, policy Block/Observe/Allow
 - **Customer intent:** `dotnet run --project examples/customer-intent` — purchase, support, route by intent
 - **Greenwashing intent:** `dotnet run --project examples/greenwashing-intent` — ESG/report detection

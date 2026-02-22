@@ -1,0 +1,144 @@
+@page "/examples/customer"
+@using Intentum.AI.Mock
+@using Intentum.AI.Models
+@using Intentum.AI.Similarity
+@using Intentum.Core
+@using Intentum.Core.Behavior
+@using Intentum.Runtime
+@using Intentum.Runtime.Policy
+@rendermode InteractiveServer
+
+<PageTitle>Müşteri Niyeti</PageTitle>
+
+<div class="page-card">
+    <div class="card-header-row">
+        <h2>E-Ticaret Müşteri Niyeti Analizi</h2>
+        <InfoIcon Text="E-ticarette müşteri davranışlarından niyet çıkarımı: satın alma niyeti, sepet bırakma riski, bilgi toplama, destek. Bu örnek Commerce ve Customer Journey sayfalarındaki NİS hikâyesinin kod düzeyinde karşılığıdır." />
+    </div>
+    <p class="subtitle">Müşteri davranışlarından niyet çıkar (satın alma, bilgi toplama, destek); doğru kanala yönlendir. <strong>NİS:</strong> E-ticaret müşteri niyeti; gelir: SaaS + performans bazlı.</p>
+</div>
+
+<div class="page-card">
+    <h3>Hazir Senaryolar</h3>
+    <div class="example-tabs">
+        <button class="example-scenario-btn @(activeScenario == "purchase" ? "active" : "")" @onclick='() => SetScenario("purchase")'>
+            Satin Alma
+        </button>
+        <button class="example-scenario-btn @(activeScenario == "info" ? "active" : "")" @onclick='() => SetScenario("info")'>
+            Bilgi Toplama
+        </button>
+        <button class="example-scenario-btn @(activeScenario == "support" ? "active" : "")" @onclick='() => SetScenario("support")'>
+            Destek
+        </button>
+    </div>
+</div>
+
+<div class="page-card">
+    <h3>Olaylar</h3>
+    <div class="example-input-row">
+        <input @bind="newEvent" placeholder="örneğin: cart.add" />
+        <button class="btn-app-primary" @onclick="AddEvent">Ekle</button>
+    </div>
+    <div style="display:flex; flex-wrap:wrap; gap:0.25rem; margin-bottom:0.75rem;">
+        @foreach (var evt in currentEvents)
+        {
+            <span class="example-event-tag">@evt</span>
+        }
+    </div>
+    <button class="btn-app-success" @onclick="RunAnalysis">Analiz Et</button>
+</div>
+
+@if (results.Count > 0)
+{
+    <div class="page-card">
+        <h3>Sonuçlar</h3>
+        @foreach (var r in results)
+        {
+            <div class="example-result @(r.Decision == "Allow" ? "" : r.Decision == "Warn" ? "warning" : "danger")" style="margin-bottom:1rem;">
+                <p><strong>Senaryo:</strong> @r.ScenarioName</p>
+                <p><strong>Confidence:</strong> @r.Level (@r.Score.ToString("F2"))</p>
+                <p><strong>Decision:</strong> <span class="decision-badge decision-badge--@r.Decision.ToLower()">@r.Decision</span></p>
+                <p style="font-size:0.85rem; color:#888;">Yönlendirme: @r.Routing</p>
+            </div>
+        }
+    </div>
+}
+
+<div class="page-card example-concept">
+    <h3>Nasıl Kullanılır?</h3>
+    <ul style="margin:0; padding-left:1.25rem; line-height:1.7;">
+        <li><strong>Satın Alma niyeti:</strong> Checkout flow'a yönlendir, indirim kodu sun.</li>
+        <li><strong>Bilgi Toplama:</strong> İlgili içerik öner, karşılaştırma tablosu göster.</li>
+        <li><strong>Destek:</strong> Canlı destek aracına veya SSS'ye yönlendir.</li>
+    </ul>
+</div>
+
+@code {
+    private string activeScenario = "purchase";
+    private string newEvent = "";
+    private List<string> currentEvents = [];
+    private List<ScenarioResult> results = [];
+
+    private record ScenarioResult(string ScenarioName, string Level, double Score, string Decision, string Routing);
+
+    protected override void OnInitialized() => SetScenario("purchase");
+
+    private void SetScenario(string scenario)
+    {
+        activeScenario = scenario;
+        currentEvents = scenario switch
+        {
+            "purchase" => ["browse.category", "cart.add", "checkout.start", "payment.submit"],
+            "info" => ["search.product", "view.product", "compare.product", "view.faq"],
+            "support" => ["contact.click", "ticket.create", "chat.start"],
+            _ => []
+        };
+    }
+
+    private void AddEvent()
+    {
+        if (!string.IsNullOrWhiteSpace(newEvent))
+        {
+            currentEvents.Add(newEvent.Trim());
+            newEvent = "";
+        }
+    }
+
+    private void RunAnalysis()
+    {
+        var model = new LlmIntentModel(new MockEmbeddingProvider(), new SimpleAverageSimilarityEngine());
+        var policy = new IntentPolicyBuilder()
+            .Allow("HighConfidence", i => i.Confidence.Level is "High" or "Certain")
+            .Observe("MediumConfidence", i => i.Confidence.Level == "Medium")
+            .Warn("LowConfidence", i => i.Confidence.Level == "Low")
+            .Build();
+
+        var space = new BehaviorSpace();
+        foreach (var evt in currentEvents)
+            space.Observe("user", evt);
+
+        var intent = model.Infer(space);
+        var decision = intent.Decide(policy);
+
+        var routing = activeScenario switch
+        {
+            "purchase" => "Checkout flow + indirim onerisi",
+            "info" => "Icerik onerisi + karsilastirma",
+            "support" => "Canli destek / SSS yonlendirmesi",
+            _ => "Genel yonlendirme"
+        };
+
+        var scenarioName = activeScenario switch
+        {
+            "purchase" => "Satin Alma",
+            "info" => "Bilgi Toplama",
+            "support" => "Destek",
+            _ => activeScenario
+        };
+
+        results =
+        [
+            new ScenarioResult(scenarioName, intent.Confidence.Level, intent.Confidence.Score, decision.ToString(), routing)
+        ];
+    }
+}

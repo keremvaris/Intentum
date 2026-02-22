@@ -7,7 +7,7 @@ using Intentum.Core.Pipeline;
 namespace Intentum.AI.Models;
 
 /// <summary>
-/// LLM-based inference step: embeddings + similarity → raw result (name, score, signals, reasoning).
+/// LLM-based inference step: embeddings + similarity -> raw result (name, score, signals, reasoning).
 /// Used by IntentResolutionPipeline; also used by LlmIntentModel internally.
 /// </summary>
 public sealed class LlmInferenceStep : IIntentInferenceStep
@@ -33,6 +33,29 @@ public sealed class LlmInferenceStep : IIntentInferenceStep
             .Select(_embeddingProvider.Embed)
             .ToList();
 
+        return BuildResult(behaviorSpace, embeddings, vector);
+    }
+
+    /// <summary>
+    /// Async version of inference that properly awaits embedding calls.
+    /// </summary>
+    public async Task<IntentInferenceResult> InferAsync(
+        BehaviorSpace behaviorSpace,
+        BehaviorVector vector,
+        CancellationToken cancellationToken = default)
+    {
+        var tasks = vector.Dimensions.Keys
+            .Select(k => _embeddingProvider.EmbedAsync(k, cancellationToken));
+        var embeddings = (await Task.WhenAll(tasks)).ToList();
+
+        return BuildResult(behaviorSpace, embeddings, vector);
+    }
+
+    private IntentInferenceResult BuildResult(
+        BehaviorSpace behaviorSpace,
+        List<IntentEmbedding> embeddings,
+        BehaviorVector vector)
+    {
         double score;
         if (_similarityEngine is ITimeAwareSimilarityEngine timeAware)
             score = timeAware.CalculateIntentScoreWithTimeDecay(behaviorSpace, embeddings);

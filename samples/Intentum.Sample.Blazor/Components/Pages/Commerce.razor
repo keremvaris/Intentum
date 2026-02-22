@@ -1,6 +1,7 @@
 @page "/commerce"
-@rendermode InteractiveServer
+@using System.Text.Json
 @using System.Text.Json.Serialization
+@rendermode InteractiveServer
 @inject HttpClient Http
 @inject NavigationManager Navigation
 
@@ -21,6 +22,7 @@
         <li><strong>Nasıl:</strong> Müşteri davranışı (geçmiş siparişler, oturum hızı, cihaz) + sipariş bağlamı (tutar, ürün tipi) Intentum'a gider → niyet skoru ve politika kararı (Allow / Review / Block) döner → checkout buna göre ilerler veya manuel incelemeye alınır.</li>
         <li><strong>Kim:</strong> E-ticaret platformları, marketplace'ler, perakende backend ekipleri; dolandırıcılık önleme veya kullanıcı niyeti analizi için.</li>
     </ul>
+    <p class="muted" style="margin-top: 0.75rem; font-size: 0.9rem;"><strong>Niyet odakları:</strong> Satın alma niyeti, sepet bırakma niyeti, tarama/karşılaştırma. <strong>Gelir modeli:</strong> SaaS + performans bazlı (dönüşüm/önleme metrikleri).</p>
 </div>
 
 <div class="page-card">
@@ -46,11 +48,12 @@
     </div>
     <p class="muted" style="margin: 0.5rem 0 0.75rem 0; font-size: 0.9rem;">Örnek senaryolar (formu doldurur):</p>
     <div class="commerce-scenarios">
-        <button type="button" class="commerce-scenario-btn" @onclick="@(() => FillScenario("daily"))">Günlük alışveriş</button>
-        <button type="button" class="commerce-scenario-btn" @onclick="@(() => FillScenario("bulk"))">Toplu sipariş</button>
-        <button type="button" class="commerce-scenario-btn" @onclick="@(() => FillScenario("new"))">Yeni müşteri</button>
-        <button type="button" class="commerce-scenario-btn" @onclick="@(() => FillScenario("high"))">Yüksek tutar</button>
+        <button type="button" class="commerce-scenario-btn" @onclick="@(() => FillScenario("daily"))" title="Düşük risk: bilinen müşteri, tek ürün.">Günlük alışveriş</button>
+        <button type="button" class="commerce-scenario-btn" @onclick="@(() => FillScenario("bulk"))" title="Çoklu miktar; inceleme veya limit uyarısı tetiklenebilir.">Toplu sipariş</button>
+        <button type="button" class="commerce-scenario-btn" @onclick="@(() => FillScenario("new"))" title="Yeni müşteri kodu; ilk sipariş risk değerlendirmesi.">Yeni müşteri</button>
+        <button type="button" class="commerce-scenario-btn" @onclick="@(() => FillScenario("high"))" title="Yüksek miktar; yüksek tutar incelemesi.">Yüksek tutar</button>
     </div>
+    <p class="muted" style="margin: 0.5rem 0 0; font-size: 0.85rem;">Allow / Review / Block kararı canlıda bu adımda Intentum ile verilir; bu demo'da sipariş oluşturma sonrası not olarak simüle edilir.</p>
     <div style="margin-top: 1rem;">
         <button type="button" class="commerce-submit-btn" @onclick="PlaceOrder" disabled="@_loading">Sipariş ver</button>
     </div>
@@ -72,6 +75,18 @@
             <p><strong>Sipariş no:</strong> <code>@_result.OrderId</code></p>
             <p><strong>Ürün:</strong> @_result.ProductId · <strong>Miktar:</strong> @_result.Quantity adet</p>
         </div>
+        @if (_intentumResult != null)
+        {
+            <div class="commerce-intentum-result">
+                <h4 class="page-card h3" style="margin: 0 0 0.5rem 0;">Intentum değerlendirmesi (niyet / güven / karar)</h4>
+                <div class="intent-result-box">
+                    <p><strong>Niyet:</strong> <span class="intent-name">@_intentumResult.IntentName</span></p>
+                    <p><strong>Güven:</strong> <span class="confidence-value">@_intentumResult.Confidence</span></p>
+                    <p><strong>Karar:</strong> <span class="decision-badge decision-badge--@(_intentumResult.Decision.ToLowerInvariant())">@_intentumResult.Decision</span></p>
+                </div>
+                <p class="muted" style="margin-top: 0.5rem; font-size: 0.9rem;">Checkout akışında bu karar (Allow / Review / Block) ile sipariş onaylanır, incelemeye alınır veya reddedilir.</p>
+            </div>
+        }
         <div class="commerce-note">
             <strong>Gerçek uygulamada:</strong> Bu adımda Intentum, davranış + sipariş bağlamına göre niyet/risk skoru üretir ve politika kararı (Allow / İnceleme / Red) döner; checkout buna göre ilerler veya manuel incelemeye alınır.
         </div>
@@ -87,6 +102,7 @@
     private bool _loading;
     private string? _error;
     private PlaceOrderResultDto? _result;
+    private CommerceIntentumResultDto? _intentumResult;
 
     private void FillScenario(string key)
     {
@@ -131,10 +147,14 @@
         {
             var baseUri = GetApiBase();
             var body = new { productId = _productId, quantity = _quantity, customerId = _customerId };
-            var opts = new System.Text.Json.JsonSerializerOptions { PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase };
+            var opts = new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase };
             var res = await Http.PostAsJsonAsync(baseUri + "/api/orders", body, opts);
             if (res.IsSuccessStatusCode)
+            {
                 _result = await res.Content.ReadFromJsonAsync<PlaceOrderResultDto>();
+                if (_result != null)
+                    await RunIntentumInferAsync();
+            }
             else
                 _error = res.ReasonPhrase ?? "Sipariş oluşturulamadı.";
         }
@@ -142,8 +162,34 @@
         finally { _loading = false; StateHasChanged(); }
     }
 
+    private async Task RunIntentumInferAsync()
+    {
+        if (_result == null) return;
+        try
+        {
+            var events = new object[]
+            {
+                new { actor = _customerId, action = "browse" },
+                new { actor = _customerId, action = "add_to_cart", productId = _productId, quantity = _quantity },
+                new { actor = _customerId, action = "checkout" },
+                new { actor = _customerId, action = "place_order", productId = _productId, quantity = _quantity }
+            };
+            var inferBody = new { events, entityId = "Commerce" };
+            var baseUri = GetApiBase();
+            var inferRes = await Http.PostAsJsonAsync(baseUri + "/api/intent/infer", inferBody);
+            if (inferRes.IsSuccessStatusCode)
+                _intentumResult = await inferRes.Content.ReadFromJsonAsync<CommerceIntentumResultDto>();
+        }
+        catch { /* Intentum çıktısı opsiyonel; sipariş zaten başarılı */ }
+        StateHasChanged();
+    }
+
     private sealed record PlaceOrderResultDto(
         [property: JsonPropertyName("orderId")] string OrderId,
         [property: JsonPropertyName("productId")] string ProductId,
         [property: JsonPropertyName("quantity")] int Quantity);
+    private sealed record CommerceIntentumResultDto(
+        [property: JsonPropertyName("intentName")] string IntentName,
+        [property: JsonPropertyName("confidence")] string Confidence,
+        [property: JsonPropertyName("decision")] string Decision);
 }

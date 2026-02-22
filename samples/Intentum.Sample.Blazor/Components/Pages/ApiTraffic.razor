@@ -10,11 +10,30 @@
 <div class="page-card">
     <h2 class="page-card h2" style="margin: 0 0 0.25rem 0;">Demo 5: API/Web Trafiği Anormalliği</h2>
     <p class="subtitle">Intentum trafiği sadece hacim olarak değil, niyet olarak da sınıflandırır ve buna göre tepki verir.</p>
+    <p class="muted" style="margin: 0.5rem 0 0;">Bu demo ne gösterir: Demo Çalıştır’a basın; normal trafik → ani artış (bot) simüle edilir. Intentum niyet ve karar (RateLimit vb.) üretir; sonuç kutusunda niyet, güven ve karar görünür.</p>
     <div class="api-traffic-controls">
         <button type="button" class="btn-demo-api" @onclick="RunDemo" disabled="@_running">
             @(_running ? "Çalışıyor…" : "Demo Çalıştır")
         </button>
     </div>
+</div>
+
+<div class="page-card commerce-5n1k">
+    <h3 class="page-card h3" style="margin: 0 0 0.75rem 0;">Bu demo ne anlama geliyor? (5N1K)</h3>
+    <ul class="commerce-5n1k-list">
+        <li><strong>Ne:</strong> API/web trafiğini sadece hacim değil niyet olarak sınıflandırma; anomali (bot, saldırı) tespiti ve RateLimit/Block kararı.</li>
+        <li><strong>Neden:</strong> Trafik anormalliği niyet tabanlı yanıt alır; bot veya saldırı niyeti tespit edilince rate limit veya engelleme uygulanır.</li>
+        <li><strong>Nerede:</strong> API gateway veya trafik pipeline'ında; istekler/olaylar Intentum'a gider, niyet + karar döner.</li>
+        <li><strong>Ne zaman:</strong> Ani trafik artışı, şüpheli IP/pattern veya periyodik trafik değerlendirmesinde.</li>
+        <li><strong>Nasıl:</strong> Trafik olayları → Intentum → Niyet + güven → Politika (RateLimit, Block, Allow).</li>
+        <li><strong>Kim:</strong> API sağlayıcıları, güvenlik ekipleri, DevOps.</li>
+    </ul>
+    <p class="muted" style="margin-top: 0.5rem; font-size: 0.9rem;"><strong>Hedef kitle:</strong> API/platform ekipleri. <strong>İş değeri:</strong> Bot/saldırı önleme, API güvenliği ve stabilite.</p>
+</div>
+
+<div class="page-card">
+    <h3 class="page-card h3" style="margin: 0 0 0.5rem 0;">Bu akışta Intentum nerede?</h3>
+    <p class="muted" style="margin: 0;">Trafik (normal → ani artış) → <strong>[Intentum: niyet + güven]</strong> → Politika → RateLimit / Block. Bu sayfada Demo Çalıştır ile normal→bot simülasyonu yapılır; sonuç kutusunda niyet, güven ve karar görünür.</p>
 </div>
 
 @if (_result != null)

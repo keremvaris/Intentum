@@ -1,0 +1,157 @@
+@page "/examples/chained"
+@using Intentum.AI.Mock
+@using Intentum.AI.Models
+@using Intentum.AI.Similarity
+@using Intentum.Core
+@using Intentum.Core.Behavior
+@using Intentum.Core.Models
+@using Intentum.Runtime
+@using Intentum.Runtime.Policy
+@rendermode InteractiveServer
+
+<PageTitle>Zincirleme Model</PageTitle>
+
+<div class="page-card">
+    <div class="card-header-row">
+        <h2>Zincirleme Model (Chained Intent)</h2>
+        <InfoIcon Text="Once ucuz kurallar dene, yetmezse pahali LLM'e git. Bu pattern LLM maliyetlerini ~%80 azaltir." />
+    </div>
+    <p class="subtitle">Rule-based model + LLM fallback: maliyet ve hiz optimizasyonu.</p>
+</div>
+
+<div class="page-card example-concept">
+    <h3>Karar Akışı</h3>
+    <div class="example-flow">
+        <span class="example-flow-step">Kurallar</span>
+        <span class="example-flow-arrow">&rarr;</span>
+        <span class="example-flow-step">Confidence >= 0.7?</span>
+        <span class="example-flow-arrow">&rarr;</span>
+        <span class="example-flow-step" style="background:#c8e6c9;">Evet: Kural Sonucu</span>
+    </div>
+    <div class="example-flow" style="margin-top:0.5rem;">
+        <span style="min-width:7rem;"></span>
+        <span style="min-width:10rem;"></span>
+        <span class="example-flow-arrow">&darr;</span>
+        <span class="example-flow-step" style="background:#fff3e0;">Hayir: LLM Fallback</span>
+    </div>
+</div>
+
+<div class="page-card">
+    <h3>Senaryo Sec</h3>
+    <div class="example-tabs">
+        <button class="example-scenario-btn @(scenario == 1 ? "active" : "")" @onclick="() => SelectScenario(1)">
+            Senaryo 1: Kural Eslesti
+        </button>
+        <button class="example-scenario-btn @(scenario == 2 ? "active" : "")" @onclick="() => SelectScenario(2)">
+            Senaryo 2: LLM Fallback
+        </button>
+    </div>
+    <button class="btn-app-primary" @onclick="RunExample">Çalıştır</button>
+</div>
+
+@if (ruleResult != null && llmResult != null)
+{
+    <div class="example-two-col">
+        <div class="page-card">
+            <h3>Kural Modeli (Hizli, Ucuz)</h3>
+            <div class="example-result @(usedRule ? "" : "warning")">
+                <p><strong>Intent:</strong> @ruleResult.Value.IntentName</p>
+                <p><strong>Confidence:</strong> @ruleResult.Value.Score.ToString("F2")</p>
+                <p><strong>Kullanildi:</strong> @(usedRule ? "EVET" : "Hayir (dusuk confidence)")</p>
+                <p style="font-size:0.85rem; color:#888;">Maliyet: $0 | Hiz: &lt;1ms</p>
+            </div>
+        </div>
+        <div class="page-card">
+            <h3>LLM Fallback (Yavas, Pahali)</h3>
+            <div class="example-result @(!usedRule ? "" : "warning")">
+                <p><strong>Intent:</strong> @llmResult.Value.IntentName</p>
+                <p><strong>Confidence:</strong> @llmResult.Value.Score.ToString("F2")</p>
+                <p><strong>Kullanildi:</strong> @(!usedRule ? "EVET (fallback)" : "Hayir (kural yetti)")</p>
+                <p style="font-size:0.85rem; color:#888;">Maliyet: ~$0.002 | Hiz: ~200ms</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="page-card">
+        <h3>Nihai Sonuç (Chained)</h3>
+        <div class="example-result">
+            <p><strong>Intent:</strong> @chainedResult!.Value.IntentName</p>
+            <p><strong>Confidence:</strong> @chainedResult.Value.Level (@chainedResult.Value.Score.ToString("F2"))</p>
+            <p><strong>Decision:</strong> <span class="decision-badge decision-badge--@chainedResult.Value.Decision.ToLower()">@chainedResult.Value.Decision</span></p>
+            @if (chainedResult.Value.Reasoning != null)
+            {
+                <p><strong>Reasoning:</strong> @chainedResult.Value.Reasoning</p>
+            }
+        </div>
+    </div>
+}
+
+@code {
+    private int scenario = 1;
+    private bool usedRule;
+    private (string IntentName, double Score)? ruleResult;
+    private (string IntentName, double Score)? llmResult;
+    private (string IntentName, string Level, double Score, string Decision, string? Reasoning)? chainedResult;
+
+    private void SelectScenario(int s) => scenario = s;
+
+    private void RunExample()
+    {
+        var rules = new List<Func<BehaviorSpace, RuleMatch?>>
+        {
+            space =>
+            {
+                var fails = space.Events.Count(e => e.Action == "login.failed");
+                var hasReset = space.Events.Any(e => e.Action == "password.reset");
+                var hasSuccess = space.Events.Any(e => e.Action == "login.success");
+                if (fails >= 2 && hasReset && hasSuccess)
+                    return new RuleMatch("AccountRecovery", 0.85, "login.failed>=2, password.reset, login.success");
+                return null;
+            },
+            space =>
+            {
+                var fails = space.Events.Count(e => e.Action == "login.failed");
+                var ipChanged = space.Events.Any(e => e.Action == "ip.changed");
+                if (fails >= 3 && ipChanged)
+                    return new RuleMatch("SuspiciousAccess", 0.9, "login.failed>=3, ip.changed");
+                return null;
+            }
+        };
+
+        var primary = new RuleBasedIntentModel(rules);
+        var fallback = new LlmIntentModel(new MockEmbeddingProvider(), new SimpleAverageSimilarityEngine());
+        var chained = new ChainedIntentModel(primary, fallback, confidenceThreshold: 0.7);
+
+        var policy = new IntentPolicyBuilder()
+            .Block("HighRisk", i => i.Confidence.Score > 0.65)
+            .Observe("MediumRisk", i => i.Confidence.Score is > 0.4 and <= 0.65)
+            .Allow("LowRisk", i => i.Confidence.Score <= 0.4)
+            .Build();
+
+        BehaviorSpace space;
+        if (scenario == 1)
+        {
+            space = new BehaviorSpace()
+                .Observe("user", "login.failed").Observe("user", "login.failed")
+                .Observe("user", "password.reset").Observe("user", "login.success")
+                .Observe("user", "device.verified");
+        }
+        else
+        {
+            space = new BehaviorSpace()
+                .Observe("user", "login.failed")
+                .Observe("user", "captcha.passed")
+                .Observe("user", "login.retry");
+        }
+
+        var ruleIntent = primary.Infer(space);
+        var llmIntent = fallback.Infer(space);
+        var chainedIntent = chained.Infer(space);
+        var decision = chainedIntent.Decide(policy);
+
+        usedRule = ruleIntent.Confidence.Score >= 0.7;
+        ruleResult = (ruleIntent.Name, ruleIntent.Confidence.Score);
+        llmResult = (llmIntent.Name, llmIntent.Confidence.Score);
+        chainedResult = (chainedIntent.Name, chainedIntent.Confidence.Level, chainedIntent.Confidence.Score, decision.ToString(), chainedIntent.Reasoning);
+    }
+}

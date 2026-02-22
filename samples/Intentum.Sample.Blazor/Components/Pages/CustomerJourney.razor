@@ -8,9 +8,29 @@
 <PageTitle>Customer Journey</PageTitle>
 
 <div class="page-card">
-    <h2 class="page-card h2" style="margin: 0 0 0.25rem 0;">Chameleon Campaign: Pazarlama Niyet Katmanı</h2>
-    <p class="subtitle">Müşteri dokunuş noktalarından niyet çıkarımı; içerik kişiselleştirme (teknik vs hobi).</p>
+    <h2 class="page-card h2" style="margin: 0 0 0.25rem 0;">Chameleon Campaign: E-Ticaret Müşteri Niyeti</h2>
+    <p class="subtitle">Müşteri dokunuş noktalarından niyet çıkarımı; satın alma niyeti, sepet bırakma, içerik kişiselleştirme (teknik vs hobi).</p>
+</div>
 
+<div class="page-card commerce-5n1k">
+    <h3 class="page-card h3" style="margin: 0 0 0.75rem 0;">Bu demo ne anlama geliyor? (5N1K) <InfoIcon Text="E-ticaret müşteri niyeti use case'ini kısa cevaplarla özetler." /></h3>
+    <ul class="commerce-5n1k-list">
+        <li><strong>Ne:</strong> Müşteri journey'deki olaylardan niyet çıkarımı; önerilen içerik türü ve journey stage (satın alma niyeti, bilgi toplama, sepet bırakma riski).</li>
+        <li><strong>Neden:</strong> Doğru içeriği doğru anda göstermek; dönüşüm ve kişiselleştirme için niyet tabanlı karar.</li>
+        <li><strong>Nerede:</strong> E-ticaret, pazarlama otomasyonu; dokunuş noktaları (sayfa görüntüleme, tıklama, sepet) Intentum'a gider.</li>
+        <li><strong>Ne zaman:</strong> Her önemli dokunuşta veya session özetinde; kampanya/akış kararı verilmeden önce.</li>
+        <li><strong>Nasıl:</strong> Olay dizisi → Intentum niyet + güven → Journey stage + önerilen içerik → Kişiselleştirilmiş pop-up, e-posta veya yönlendirme.</li>
+        <li><strong>Kim:</strong> E-ticaret platformları, pazarlama otomasyon araçları.</li>
+    </ul>
+    <p class="muted" style="margin-top: 0.75rem; font-size: 0.9rem;"><strong>Hedef kitle:</strong> E-ticaret, pazarlama otomasyon. <strong>Gelir modeli:</strong> SaaS + performans bazlı.</p>
+</div>
+
+<div class="page-card">
+    <h3 class="page-card h3" style="margin: 0 0 0.5rem 0;">Bu akışta Intentum nerede? <InfoIcon Text="Müşteri olayları toplanır; Intentum niyet ve journey stage çıkarır; önerilen içerik türü döner; kampanya veya sayfa buna göre kişiselleştirilir." /></h3>
+    <p class="muted" style="margin: 0;">Dokunuş olayları → <strong>[Intentum: niyet + journey stage]</strong> → Önerilen içerik türü → Pop-up / e-posta / yönlendirme.</p>
+</div>
+
+<div class="page-card">
     <div class="project-pulse-controls">
         <div class="project-pulse-variants">
             <span class="project-pulse-label">Varyant:</span>
@@ -48,7 +68,7 @@
             </div>
             <div class="card kpi-card kpi-card--metric">
                 <span class="kpi-card__label">Journey Stage</span>
-                <span class="kpi-card__value kpi-card__value--text">@_result.JourneyStage</span>
+                <span class="kpi-card__value kpi-card__value--text" title="Müşterinin satın alma yolculuğundaki aşama: bilgi toplama, karşılaştırma, satın alma niyeti vb.">@_result.JourneyStage</span>
             </div>
         </div>
     </div>
@@ -79,11 +99,12 @@
             <p><strong>Niyet:</strong> @_result.IntentName</p>
             <p><strong>Güven:</strong> @_result.ConfidenceScore.ToString("P0") (@_result.ConfidenceLevel)</p>
             <p><strong>Karar:</strong> <span class="decision-badge decision-badge--@(_result.Decision.ToLowerInvariant())">@_result.Decision</span></p>
-            <p><strong>Journey Stage:</strong> @_result.JourneyStage</p>
-            <p><strong>Önerilen içerik:</strong> @_result.SuggestedContentType</p>
+            <p><strong>Journey Stage:</strong> @_result.JourneyStage <span class="muted" style="font-size: 0.85rem;">(Müşterinin yolculuk aşaması: bilgi toplama, karşılaştırma, satın alma niyeti vb.)</span></p>
         </div>
-        <div class="customer-journey-wow">
-            <h4 class="insider-echarts-title">Bu kullanıcıya gösterilen</h4>
+        <div class="customer-journey-wow card" style="margin-top: 1rem; padding: 1rem; border: 1px solid #e0e0e0; border-radius: 8px; background: #f5f5f5;">
+            <h4 class="insider-echarts-title" style="margin: 0 0 0.5rem 0;">Önerilen içerik (bu kullanıcıya gösterilecek)</h4>
+            <p class="customer-journey-content-type" style="margin: 0;"><strong>@_result.SuggestedContentType</strong></p>
+            <h4 class="insider-echarts-title" style="margin: 0.75rem 0 0.25rem 0;">Bu kullanıcıya gösterilen</h4>
             @if (_result.SuggestedContentType is "WhitepaperAndDemo" or "AcademicLicense")
             {
                 <p class="customer-journey-content-type">Teknik tablo + demo / akademik lisans formu (pop-up engellendi).</p>

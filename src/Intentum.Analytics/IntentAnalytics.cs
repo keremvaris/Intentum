@@ -96,57 +96,92 @@ public sealed class IntentAnalytics : IIntentAnalytics
         if (records.Count == 0)
             return anomalies;
 
-        var totalBlockRate = records.Count(r => r.Decision == PolicyDecision.Block) / (double)records.Count;
         var buckets = records.GroupBy(r => TruncateToBucket(r.RecordedAt, bucketSize)).ToList();
-        var avgCountPerBucket = records.Count / (double)Math.Max(1, buckets.Count);
+        var bucketCounts = buckets.Select(g => (double)g.Count()).ToList();
 
-        foreach (var g in buckets)
+        var (mean, stdDev) = ComputeMeanStdDev(bucketCounts);
+        var (q1, q3) = ComputeQuartiles(bucketCounts);
+        var iqr = q3 - q1;
+        var iqrUpperFence = q3 + 1.5 * iqr;
+
+        var blockRates = buckets.Select(g =>
+            g.Count() > 0 ? g.Count(r => r.Decision == PolicyDecision.Block) / (double)g.Count() : 0.0).ToList();
+        var (blockMean, blockStdDev) = ComputeMeanStdDev(blockRates);
+
+        foreach (var (g, _) in buckets.Select((g, i) => (g, i)))
         {
             var bucketStart = g.Key;
             var bucketEnd = bucketStart + bucketSize;
             var bucketRecords = g.ToList();
-            var blockCount = bucketRecords.Count(r => r.Decision == PolicyDecision.Block);
-            var blockRate = bucketRecords.Count > 0 ? blockCount / (double)bucketRecords.Count : 0;
+            var count = (double)bucketRecords.Count;
 
-            if (blockRate > totalBlockRate + 0.2 && totalBlockRate < 0.5)
+            var volumeZScore = stdDev > 0 ? (count - mean) / stdDev : 0;
+            if (volumeZScore > 2.0 || count > iqrUpperFence)
+            {
+                var method = volumeZScore > 2.0 && count > iqrUpperFence ? "Z-score + IQR" :
+                    volumeZScore > 2.0 ? "Z-score" : "IQR";
+                anomalies.Add(new AnomalyReport(
+                    "VolumeSpike",
+                    $"Volume spike: {bucketRecords.Count} inferences (mean: {mean:F0}, Z: {volumeZScore:F2}, IQR fence: {iqrUpperFence:F0}) [{method}]",
+                    bucketStart, bucketStart, bucketEnd,
+                    Math.Clamp(volumeZScore / 4, 0, 1),
+                    new Dictionary<string, object>
+                    {
+                        ["Count"] = bucketRecords.Count, ["Mean"] = mean,
+                        ["StdDev"] = stdDev, ["ZScore"] = volumeZScore,
+                        ["IqrUpperFence"] = iqrUpperFence, ["Method"] = method
+                    }));
+            }
+
+            var blockRate = bucketRecords.Count > 0
+                ? bucketRecords.Count(r => r.Decision == PolicyDecision.Block) / (double)bucketRecords.Count
+                : 0;
+            var blockZScore = blockStdDev > 0 ? (blockRate - blockMean) / blockStdDev : 0;
+            if (blockZScore > 2.0)
             {
                 anomalies.Add(new AnomalyReport(
                     "BlockRateSpike",
-                    $"Block rate spike in bucket: {blockRate:P0} (overall: {totalBlockRate:P0})",
-                    bucketStart,
-                    bucketStart,
-                    bucketEnd,
-                    Math.Min(1, (blockRate - totalBlockRate) * 2),
-                    new Dictionary<string, object> { ["BlockCount"] = blockCount, ["TotalInBucket"] = bucketRecords.Count }));
+                    $"Block rate spike: {blockRate:P0} (mean: {blockMean:P0}, Z: {blockZScore:F2})",
+                    bucketStart, bucketStart, bucketEnd,
+                    Math.Clamp(blockZScore / 4, 0, 1),
+                    new Dictionary<string, object>
+                    {
+                        ["BlockRate"] = blockRate, ["Mean"] = blockMean,
+                        ["StdDev"] = blockStdDev, ["ZScore"] = blockZScore
+                    }));
             }
 
-            if (avgCountPerBucket > 0 && bucketRecords.Count > avgCountPerBucket * 1.8)
-            {
-                anomalies.Add(new AnomalyReport(
-                    "VolumeSpike",
-                    $"Volume spike: {bucketRecords.Count} inferences in bucket (avg: {avgCountPerBucket:F0})",
-                    bucketStart,
-                    bucketStart,
-                    bucketEnd,
-                    Math.Min(1, bucketRecords.Count / (avgCountPerBucket * 4)),
-                    new Dictionary<string, object> { ["Count"] = bucketRecords.Count, ["Average"] = avgCountPerBucket }));
-            }
-
-            var lowConfidenceCount = bucketRecords.Count(r => string.Equals(r.ConfidenceLevel, "Low", StringComparison.OrdinalIgnoreCase));
-            if (bucketRecords.Count >= 2 && lowConfidenceCount >= 1 && lowConfidenceCount / (double)bucketRecords.Count >= 0.5)
+            var lowConfidenceCount = bucketRecords.Count(r =>
+                string.Equals(r.ConfidenceLevel, "Low", StringComparison.OrdinalIgnoreCase));
+            if (bucketRecords.Count >= 2 && lowConfidenceCount / (double)bucketRecords.Count >= 0.5)
             {
                 anomalies.Add(new AnomalyReport(
                     "LowConfidenceCluster",
                     $"Low confidence cluster: {lowConfidenceCount}/{bucketRecords.Count} in bucket",
-                    bucketStart,
-                    bucketStart,
-                    bucketEnd,
-                    0.5,
+                    bucketStart, bucketStart, bucketEnd, 0.5,
                     new Dictionary<string, object> { ["LowCount"] = lowConfidenceCount, ["TotalInBucket"] = bucketRecords.Count }));
             }
         }
 
         return anomalies.OrderByDescending(a => a.Severity).ToList();
+    }
+
+    private static (double Mean, double StdDev) ComputeMeanStdDev(List<double> values)
+    {
+        if (values.Count == 0) return (0, 0);
+        var mean = values.Average();
+        var variance = values.Sum(v => (v - mean) * (v - mean)) / values.Count;
+        return (mean, Math.Sqrt(variance));
+    }
+
+    private static (double Q1, double Q3) ComputeQuartiles(List<double> values)
+    {
+        if (values.Count < 4) return (values.Min(), values.Max());
+        var sorted = values.OrderBy(v => v).ToList();
+        var n = sorted.Count;
+        var q1 = sorted[(int)(n * 0.25)];
+        var q3 = sorted[(int)(n * 0.75)];
+        return (q1, q3);
     }
 
     /// <inheritdoc />
