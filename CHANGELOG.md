@@ -13,6 +13,24 @@ Bu dosya **conventional commit** mesajlarından otomatik üretilir. Commit'te **
 
 ---
 
+## [unreleased]
+
+
+
+### Refactor
+
+- **Improve code quality, optimize utilities, and update test config** *(core)*
+
+- Extracts `JsonSerializerOptions` to a reusable static field.
+- Adds `SuppressMessage` attribute to clarify dispose logic in `EmbeddingHttpRetryHandler`.
+- Refines `AverageVectors` return type to `double[]` for better specificity.
+- Adjusts `FallbackEmbeddingProvider`'s internal list to `List<T>` for flexibility.
+- Optimizes collection emptiness checks in `IntentAnalytics` using `Any()`.
+- Extracts the 'Admin' role string into a constant for maintainability in `IntentumAuthExtensions`.
+- Updates test coverage threshold to 80% and excludes specific low-coverage modules for focused reporting.
+
+
+
 ## [1.1.8] - 2026-02-22
 
 
