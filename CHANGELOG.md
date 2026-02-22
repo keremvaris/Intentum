@@ -17,6 +17,7 @@ Bu dosya **conventional commit** mesajlarından otomatik üretilir. Commit'te **
 
 
 
+
 ### Refactor
 
 - **Improve code quality, optimize utilities, and update test config** *(core)*
@@ -28,6 +29,23 @@ Bu dosya **conventional commit** mesajlarından otomatik üretilir. Commit'te **
 - Optimizes collection emptiness checks in `IntentAnalytics` using `Any()`.
 - Extracts the 'Admin' role string into a constant for maintainability in `IntentumAuthExtensions`.
 - Updates test coverage threshold to 80% and excludes specific low-coverage modules for focused reporting.
+
+
+
+
+
+### Testing
+
+- **Add unit tests for AI models, embeddings, and HTTP resilience** *(ai)*
+
+Introduces comprehensive unit tests for several AI and core components, including:
+- CatalogIntentModel for intent inference from a defined catalog.
+- EmbeddingHttpRetryHandler to ensure robustness against API rate limits.
+- FallbackEmbeddingProvider for resilience against failing providers.
+- IntentCatalog for managing intent definitions and their embeddings.
+- PromptIntentClassifier for LLM-based intent classification.
+
+Also updates the test project to include the Moq library for mocking and adjusts the code coverage threshold to reflect the addition of new code.
 
 
 

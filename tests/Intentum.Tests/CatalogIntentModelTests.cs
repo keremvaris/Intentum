@@ -1,5 +1,4 @@
 using Intentum.AI.Catalog;
-using Intentum.AI.Embeddings;
 using Intentum.AI.Mock;
 using Intentum.AI.Models;
 using Intentum.Core.Behavior;

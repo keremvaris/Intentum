@@ -331,7 +331,7 @@ internal static class ProgramConfiguration
 
         app.MapPost("/api/intent/experiment", (ExperimentRequest req, IPlaygroundModelRegistry registry, IntentPolicy policy) =>
         {
-            if (req.Events == null || req.Events.Count == 0)
+            if (req.Events.Count == 0)
                 return Results.BadRequest("En az bir olay gerekli.");
             var variantA = req.VariantA ?? "Default";
             var variantB = req.VariantB ?? "Strict";
@@ -451,7 +451,7 @@ internal static class ProgramConfiguration
             var items = ordered.Select(r =>
             {
                 var meta = r.Metadata;
-                var eventsSummary = meta is not null && (meta.TryGetValue("EventsSummary", out var es) || meta.TryGetValue("eventsSummary", out es) || meta.TryGetValue("Source", out es) || meta.TryGetValue("source", out es)) ? es?.ToString() ?? "—" : "—";
+                var eventsSummary = meta is not null && (meta.TryGetValue("EventsSummary", out var es) || meta.TryGetValue("eventsSummary", out es) || meta.TryGetValue("Source", out es) || meta.TryGetValue("source", out es)) ? es.ToString() ?? "—" : "—";
                 return new { r.Id, r.IntentName, r.RecordedAt, eventsSummary, r.ConfidenceLevel, decision = r.Decision.ToString(), r.ConfidenceScore };
             });
             return Results.Json(items);
