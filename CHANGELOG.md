@@ -13,6 +13,20 @@ Bu dosya **conventional commit** mesajlarından otomatik üretilir. Commit'te **
 
 ---
 
+## [1.1.8] - 2026-02-22
+
+
+
+### Bug Fixes
+
+- **Improves resource handling and numerical precision** *(core)*
+
+Ensures `HttpResponseMessage` instances are correctly disposed within the HTTP retry handler to prevent potential resource leaks. Updates floating-point comparison for `bestScore` in catalog inference, using an epsilon-based check for accuracy.
+
+Refactors anomaly detection logic in analytics by extracting a method for better readability and uses `Any()` for collection checks. Suppresses an S1172 warning for an intentionally unused parameter in `ProviderLlmIntentModelBase`, reserving it for future functionality. Updates an internal comment regarding test code coverage.
+
+
+
 ## [1.1.7] - 2026-02-22
 
 
