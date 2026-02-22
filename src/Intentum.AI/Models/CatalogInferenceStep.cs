@@ -71,7 +71,7 @@ public sealed class CatalogInferenceStep : IIntentInferenceStep
             }
         }
 
-        if (bestScore == 0 && embeddings.Count > 0)
+        if (Math.Abs(bestScore) < 1e-9 && embeddings.Count > 0)
         {
             bestScore = embeddings.Average(e => e.Score);
             reasoning = "No catalog match found; using average embedding score";

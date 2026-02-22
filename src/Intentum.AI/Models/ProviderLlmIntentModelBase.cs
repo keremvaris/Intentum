@@ -45,6 +45,7 @@ public abstract class ProviderLlmIntentModelBase(
         return BuildIntent(embeddings, vector);
     }
 
+    [System.Diagnostics.CodeAnalysis.SuppressMessage("CodeQuality", "S1172:Unused method parameter should be removed", Justification = "Reserved for future vector-aware scoring")]
     private Intent BuildIntent(List<IntentEmbedding> embeddings, BehaviorVector _)
     {
         var score = similarityEngine.CalculateIntentScore(embeddings);

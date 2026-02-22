@@ -93,7 +93,7 @@ public sealed class IntentAnalytics : IIntentAnalytics
         var records = await _historyRepository.GetByTimeWindowAsync(start, end, cancellationToken);
         var anomalies = new List<AnomalyReport>();
 
-        if (records.Count == 0)
+        if (!records.Any())
             return anomalies;
 
         var buckets = records.GroupBy(r => TruncateToBucket(r.RecordedAt, bucketSize)).ToList();
@@ -118,8 +118,7 @@ public sealed class IntentAnalytics : IIntentAnalytics
             var volumeZScore = stdDev > 0 ? (count - mean) / stdDev : 0;
             if (volumeZScore > 2.0 || count > iqrUpperFence)
             {
-                var method = volumeZScore > 2.0 && count > iqrUpperFence ? "Z-score + IQR" :
-                    volumeZScore > 2.0 ? "Z-score" : "IQR";
+                var method = GetVolumeAnomalyMethod(volumeZScore, count, iqrUpperFence);
                 anomalies.Add(new AnomalyReport(
                     "VolumeSpike",
                     $"Volume spike: {bucketRecords.Count} inferences (mean: {mean:F0}, Z: {volumeZScore:F2}, IQR fence: {iqrUpperFence:F0}) [{method}]",
@@ -182,6 +181,13 @@ public sealed class IntentAnalytics : IIntentAnalytics
         var q1 = sorted[(int)(n * 0.25)];
         var q3 = sorted[(int)(n * 0.75)];
         return (q1, q3);
+    }
+
+    private static string GetVolumeAnomalyMethod(double volumeZScore, double count, double iqrUpperFence)
+    {
+        if (volumeZScore > 2.0 && count > iqrUpperFence) return "Z-score + IQR";
+        if (volumeZScore > 2.0) return "Z-score";
+        return "IQR";
     }
 
     /// <inheritdoc />
