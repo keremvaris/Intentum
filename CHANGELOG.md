@@ -15,6 +15,22 @@ Bu dosya **conventional commit** mesajlarından otomatik üretilir. Commit'te **
 
 ## [unreleased]
 
+### Features
+- **feat(cli):** Add CLI tool with scaffold, validate, test-infer, and export commands *(cli)*
+- **feat(playground):** Create Blazor WebAssembly interactive playground *(playground)*
+- **feat(playground):** Add BehaviorSpace editor component *(playground)*
+- **feat(playground):** Add IntentPolicy editor component *(playground)*
+- **feat(playground):** Add inference demo with mock model *(playground)*
+- **feat(sdk):** Add SDK generation scripts and documentation for C#, Python, TypeScript *(sdk)*
+- **feat(vscode):** Add Package Explorer extension command *(vscode)*
+
+### Documentation
+- **docs(api):** Add OpenAPI 3.0 specification *(api)*
+
+### Bug Fixes
+- **fix(playground):** Wire editors to shared PlaygroundService *(playground)*
+- **fix(playground):** Add confidence level selector and fix rule condition *(playground)*
+- **fix(cli):** Improve error handling, validation, and code quality *(cli)*
 
 
 
