@@ -17,6 +17,14 @@ Minimal runnable examples for real-world use cases. Each example focuses on **on
 | [chained-intent](chained-intent/) | Chained intent: rule-based first, LLM fallback when no rule matches or confidence below threshold; shows Reasoning. |
 | [time-decay-intent](time-decay-intent/) | Time decay: recent events weigh more (TimeDecaySimilarityEngine with LlmIntentModel). |
 | [vector-normalization](vector-normalization/) | Behavior vector normalization: Cap, L1, SoftCap so repeated events don't dominate. |
+| [resilience-demo](resilience-demo/) | **New:** Circuit Breaker, Retry Policy, Bulkhead patterns in action. |
+| [domain-rules-demo](domain-rules-demo/) | **New:** Healthcare, Finance, IoT domain rule evaluation with RuleBasedIntentModel. |
+| [calibration-ensemble-demo](calibration-ensemble-demo/) | **New:** Platt/Temperature calibration + Weighted/MajorityVoting ensemble. |
+| [gaming-anti-cheat](gaming-anti-cheat/) | **New:** Aimbot, speed hack, wallhack detection for online games. |
+| [agent-monitor](agent-monitor/) | **New:** AI agent hallucination, tool abuse, and efficiency monitoring. |
+| [healthcare-triage](healthcare-triage/) | **New:** Sepsis alert, patient deterioration, medication conflict triage. |
+| [content-moderation](content-moderation/) | **New:** Toxic content, harassment, and spam detection for social platforms. |
+| [grpc-client](grpc-client/) | **New:** gRPC client calling Infer and Evaluate endpoints. |
 
 ## Run
 
@@ -31,6 +39,14 @@ dotnet run --project examples/ai-fallback-intent
 dotnet run --project examples/chained-intent
 dotnet run --project examples/time-decay-intent
 dotnet run --project examples/vector-normalization
+dotnet run --project examples/resilience-demo
+dotnet run --project examples/domain-rules-demo
+dotnet run --project examples/calibration-ensemble-demo
+dotnet run --project examples/gaming-anti-cheat
+dotnet run --project examples/agent-monitor
+dotnet run --project examples/healthcare-triage
+dotnet run --project examples/content-moderation
+dotnet run --project examples/grpc-client
 ```
 
 No API keys required for these examples (Mock or Core only).
