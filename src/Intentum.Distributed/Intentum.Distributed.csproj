@@ -1,0 +1,17 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <NoWarn>$(NoWarn);1591</NoWarn>
+    <PackageId>Intentum.Distributed</PackageId>
+    <Description>Intent-driven development distributed systems primitives: distributed locking, rate limiting, event sourcing, outbox.</Description>
+    <PackageTags>distributed;locking;rate-limiting;event-sourcing;outbox;dotnet</PackageTags>
+  </PropertyGroup>
+
+  <ItemGroup>
+  </ItemGroup>
+
+</Project>
