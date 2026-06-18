@@ -9,6 +9,7 @@ namespace Intentum.Runtime;
 public static class RuntimeExtensions
 {
     [Obsolete("Use DecideWithRateLimitAsync for async scenarios. This method will be removed in v2.0.")]
+    [System.Diagnostics.CodeAnalysis.SuppressMessage("Intentionality", "S1133", Justification = "Deprecated until v2.0 for backward compatibility")]
     public static PolicyDecision Decide(
         this Intent intent,
         IntentPolicy policy)
