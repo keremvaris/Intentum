@@ -24,6 +24,9 @@ inspection-results.html
 # Greenwashing case study: optional downloaded HTML (re-fetch with scripts/download-greenwashing-sources.sh)
 docs/case-studies/downloaded/
 
+## Superpowers workspace (opencode agent plans/specs)
+docs/superpowers/
+
 ## IDE / OS
 .idea/
 .vscode/
