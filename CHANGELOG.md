@@ -17,6 +17,15 @@ Bu dosya **conventional commit** mesajlarından otomatik üretilir. Commit'te **
 
 
 
+### Bug Fixes
+
+- **Add regex timeout to prevent ReDoS** *(core)*
+
+
+## [1.2.0] - 2026-06-18
+
+
+
 
 
 
