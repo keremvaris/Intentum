@@ -30,6 +30,13 @@ Core, Runtime, AI ve sağlayıcıların ötesindeki genişletme paketleri ve bu 
 | **Intentum.Core.Streaming** | Gerçek zamanlı intent stream | Behavior event batch’lerini tüketir; `IBehaviorStreamConsumer`, `MemoryBehaviorStreamConsumer` | [Stream Processing](#real-time-intent-stream-processing) |
 | **Intentum.Observability** (genişletme) | OpenTelemetry tracing | infer ve policy.evaluate span’leri; `IntentumActivitySource` | [Observability](observability.md#opentelemetry-tracing) |
 
+| **Intentum.Runtime.Resilience** | Resilience pattern'leri | Circuit Breaker, Retry, Bulkhead, Degradation, Timeout; `ICircuitBreaker`, `IRetryPolicy`, `IBulkhead`, `IDegradationPolicy`, `ITimeoutPolicy` | [Üretim Hazırlığı](production-readiness.md#resilience-patternleri-v12) |
+| **Intentum.Cli** | CLI tool | `intentum` global tool: scaffold model/policy, validate, test-infer, export openapi | CLI README |
+| **Intentum.Playground** | Blazor Playground | Interaktif BehaviorSpace, Policy ve Inference editor'ları | Playground README |
+| **Intentum.Distributed** | Dağıtık sistem arayüzleri | Distributed Locking, Rate Limiter, Event Sourcing, Outbox interface'leri; `IDistributedLock`, `IDistributedRateLimiter`, `IEventStore` | Distributed README |
+| **Intentum.Distributed.Redis** | Redis implementasyonları | Redis tabanlı distributed lock ve rate limiter; `RedisDistributedLock`, `RedisDistributedRateLimiter` | Distributed README |
+| **Intentum.Grpc** | gRPC servisi | Infer ve Evaluate RPC'leri; `IntentumGrpcService` | gRPC README |
+
 **Şablonlar:** `dotnet new intentum-webapi`, `intentum-backgroundservice`, `intentum-function` — bkz. [Kurulum – Şablondan oluştur](setup.md#create-from-template-dotnet-new). **Sample Web** ayrıca Playground (model karşılaştırma): `POST /api/intent/playground/compare`, ve Intent Tree: `POST /api/intent/explain-tree` sunar.
 
 Çekirdek paketler (Intentum.Core, Intentum.Runtime, Intentum.AI, sağlayıcılar, Testing, AspNetCore, Persistence, Analytics) [Mimari](architecture.md) ve [README](../../README.tr.md) içinde listelenir.
@@ -1089,10 +1096,161 @@ var normalized = CosineSimilarityHelper.CosineSimilarityNormalized(vectorA, vect
 
 ---
 
+---
+
+## Confidence Calibration (v1.2)
+
+`Intentum.AI.Calibration` — Ham güven skorlarını kalibre eder.
+
+- `IConfidenceCalibrator` — `double Calibrate(double rawScore)`
+- `PlattCalibrator(a, b)` — Sigmoid: `1 / (1 + exp(a * x + b))`
+- `TemperatureCalibrator(T)` — Softmax sıcaklık: `1 / (1 + exp(-x / T))`
+
+```csharp
+var calibrator = new PlattCalibrator(a: 2.0, b: -1.0);
+var calibrated = calibrator.Calibrate(0.85); // → 0.85+ değerler daha da yükselir
+```
+
+---
+
+## Few-Shot Learning (v1.2)
+
+`Intentum.AI.FewShot` — Örnek tabanlı intent tanıma.
+
+- `IFewShotStore` — Örnek ekleme, benzerlik arama, temizleme
+- `MemoryFewShotStore` — In-memory implementasyon
+- `FewShotIntentModel` — `IIntentModel`: behavior key'lerine göre en benzer örneği bulur
+
+```csharp
+var store = new MemoryFewShotStore();
+store.AddExample(new FewShotExample("Purchase", ["view:product", "cart:add"], 0.85));
+var model = new FewShotIntentModel(store);
+```
+
+---
+
+## Multi-Modal Fusion (v1.2)
+
+`Intentum.AI.MultiModal` — Birden fazla modality'yi birleştirerek intent çıkarımı.
+
+- `InputModality` — Behavior, Image, Audio, Text
+- `MultiModalFusion` — Embedding'leri modality bazında gruplayıp birleştirir
+- `MultiModalIntentModel` — `IIntentModel`: fusion sonucu intent çıkarır
+
+```csharp
+var fusion = new MultiModalFusion();
+var fused = fusion.Fuse(behaviorEmbedding, additionalInputs);
+```
+
+---
+
+## Ensemble Models (v1.2)
+
+`Intentum.AI.Ensemble` — Birden fazla model çıktısını birleştirir.
+
+- `IEnsembleStrategy` — `Intent Combine(IReadOnlyList<ModelResult>)`
+- `WeightedEnsemble` — Ağırlıklı ortalama + çoğunluk ismi
+- `MajorityVotingEnsemble` — Çoğunluk oylaması + beraberlikte en yüksek güven
+- `EnsembleIntentModel` — N adet `IIntentModel` çalıştırır, strateji ile birleştirir
+
+```csharp
+var ensemble = new EnsembleIntentModel(
+    [model1, model2],
+    new WeightedEnsemble());
+```
+
+---
+
+## Token Cost Tracking (v1.2)
+
+`Intentum.AI.TokenCost` — Token sayma ve maliyet takibi.
+
+- `ITokenCounter` — `int Count(string text)`
+- `ITokenCostTracker` — `Track()`, `GetTotal(model)`, `Reset()`
+- `MemoryTokenCostTracker` — Thread-safe in-memory implementasyon
+
+```csharp
+var tracker = new MemoryTokenCostTracker();
+tracker.Track(new TokenCost("gpt-4", 100, 50, 0.01m));
+var total = tracker.GetTotal("gpt-4"); // 100 prompt, 50 completion, $0.01
+```
+
+---
+
+## Distributed Systems (v1.2)
+
+### Distributed Locking
+`Intentum.Distributed.Locking` — Redis tabanlı dağıtık kilit.
+
+```csharp
+var lockObj = new RedisDistributedLock(connection);
+var acquired = await lockObj.AcquireAsync("resource-key", TimeSpan.FromSeconds(30));
+// ... critical section ...
+await lockObj.ReleaseAsync("resource-key");
+```
+
+### Distributed Rate Limiter
+`Intentum.Distributed.RateLimiting` — Redis tabanlı dağıtık rate limiter (sliding window).
+
+```csharp
+var limiter = new RedisDistributedRateLimiter(connection);
+var allowed = await limiter.TryAcquireAsync("user:123", limit: 10, TimeSpan.FromMinutes(1));
+```
+
+### Event Sourcing
+`Intentum.Distributed.EventSourcing` — Domain event, aggregate root, event store, event bus interface'leri.
+
+```csharp
+public interface IAggregateRoot { string Id { get; }; IReadOnlyList<IDomainEvent> Events { get; } }
+public interface IEventStore { Task AppendAsync(string streamId, IEnumerable<IDomainEvent> events); }
+public interface IEventBus { Task PublishAsync<T>(T @event) where T : IDomainEvent; }
+```
+
+### Outbox Pattern
+`Intentum.Distributed.Outbox` — Transactional outbox interface'leri (event güvenilirliği için).
+
+```csharp
+var store = new OutboxStore();
+await store.SaveAsync(new OutboxMessage(Guid.NewGuid(), "OrderCreated", json, DateTime.UtcNow));
+```
+
+### gRPC Service
+`Intentum.Grpc` — Infer ve Evaluate RPC'leri.
+
+```protobuf
+service IntentumService {
+    rpc Infer (InferRequest) returns (InferResponse);
+    rpc Evaluate (EvaluateRequest) returns (EvaluateResponse);
+}
+```
+
+Kayıt: `services.AddGrpc(); app.MapGrpcService<IntentumGrpcService>();`
+
+---
+
+## CLI Tool (v1.2)
+
+`Intentum.Cli` — .NET global tool: `intentum scaffold model --name MyModel`, `intentum validate --path ./src`, `intentum test-infer --data events.json`, `intentum export --format yaml`.
+
+```bash
+dotnet tool install --global Intentum.Cli
+intentum scaffold model --name FraudDetection
+intentum version  # → Intentum CLI v1.2.0
+```
+
+---
+
+## Blazor Playground (v1.2)
+
+`Intentum.Playground` — Interaktif web playground. BehaviorSpace editor (`/space`), IntentPolicy editor (`/policy`), Inference demo (`/infer`). Birlikte çalışarak gerçek zamanlı sonuç gösterir.
+
+---
+
 ## Ayrıca bakınız
 
 - [API Referansı](api.md) — Tam API dokümantasyonu
 - [Kurulum](setup.md) — Başlangıç rehberi
 - [Senaryolar](scenarios.md) — Kullanım örnekleri
+- [Üretim Hazırlığı](production-readiness.md) — Resilience pattern'leri
 
 **Sonraki adım:** Bu sayfayı bitirdiyseniz → [Bu özellikler ne işe yarar](features-simple-guide.md) veya [API Referansı](api.md).

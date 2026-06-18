@@ -30,6 +30,13 @@ Extended packages (beyond Core, Runtime, AI, and providers) and where they are d
 | **Intentum.Core.Streaming** | Real-time intent stream | Consume behavior event batches; `IBehaviorStreamConsumer`, `MemoryBehaviorStreamConsumer` | [Stream Processing](#real-time-intent-stream-processing) |
 | **Intentum.Observability** (extended) | OpenTelemetry tracing | Spans for infer and policy.evaluate; `IntentumActivitySource` | [Observability](observability.md#opentelemetry-tracing) |
 
+| **Intentum.Runtime.Resilience** | Resilience patterns | Circuit Breaker, Retry, Bulkhead, Degradation, Timeout; `ICircuitBreaker`, `IRetryPolicy`, `IBulkhead`, `IDegradationPolicy`, `ITimeoutPolicy` | [Production Readiness](production-readiness.md#resilience-patterns-v12) |
+| **Intentum.Cli** | CLI tool | `intentum` global tool: scaffold model/policy, validate, test-infer, export openapi | CLI README |
+| **Intentum.Playground** | Blazor Playground | Interactive BehaviorSpace, Policy, and Inference editors | Playground README |
+| **Intentum.Distributed** | Distributed system interfaces | Distributed Locking, Rate Limiter, Event Sourcing, Outbox interfaces; `IDistributedLock`, `IDistributedRateLimiter`, `IEventStore` | Distributed README |
+| **Intentum.Distributed.Redis** | Redis implementations | Redis-based distributed lock and rate limiter; `RedisDistributedLock`, `RedisDistributedRateLimiter` | Distributed README |
+| **Intentum.Grpc** | gRPC service | Infer and Evaluate RPCs; `IntentumGrpcService` | gRPC README |
+
 **Templates:** `dotnet new intentum-webapi`, `intentum-backgroundservice`, `intentum-function` — see [Setup – Create from template](setup.md#create-from-template-dotnet-new). **Sample Web** also exposes Playground (compare models): `POST /api/intent/playground/compare`, and Intent Tree: `POST /api/intent/explain-tree`.
 
 Core packages (Intentum.Core, Intentum.Runtime, Intentum.AI, providers, Testing, AspNetCore, Persistence, Analytics) are listed in [Architecture](architecture.md) and [README](../../README.md).
@@ -1057,10 +1064,159 @@ var normalized = CosineSimilarityHelper.CosineSimilarityNormalized(vectorA, vect
 
 ---
 
+---
+
+## Confidence Calibration (v1.2)
+
+`Intentum.AI.Calibration` — Calibrates raw confidence scores.
+
+- `IConfidenceCalibrator` — `double Calibrate(double rawScore)`
+- `PlattCalibrator(a, b)` — Sigmoid: `1 / (1 + exp(a * x + b))`
+- `TemperatureCalibrator(T)` — Softmax temperature: `1 / (1 + exp(-x / T))`
+
+```csharp
+var calibrator = new PlattCalibrator(a: 2.0, b: -1.0);
+var calibrated = calibrator.Calibrate(0.85);
+```
+
+---
+
+## Few-Shot Learning (v1.2)
+
+`Intentum.AI.FewShot` — Example-based intent recognition.
+
+- `IFewShotStore` — Add, find similar, clear examples
+- `MemoryFewShotStore` — In-memory implementation
+- `FewShotIntentModel` — `IIntentModel`: finds best matching example by behavior keys
+
+```csharp
+var store = new MemoryFewShotStore();
+store.AddExample(new FewShotExample("Purchase", ["view:product", "cart:add"], 0.85));
+var model = new FewShotIntentModel(store);
+```
+
+---
+
+## Multi-Modal Fusion (v1.2)
+
+`Intentum.AI.MultiModal` — Fuse multiple input modalities for intent inference.
+
+- `InputModality` — Behavior, Image, Audio, Text
+- `MultiModalFusion` — Groups embeddings by modality and concatenates averaged results
+- `MultiModalIntentModel` — `IIntentModel`: infers intent from fused embeddings
+
+```csharp
+var fusion = new MultiModalFusion();
+var fused = fusion.Fuse(behaviorEmbedding, additionalInputs);
+```
+
+---
+
+## Ensemble Models (v1.2)
+
+`Intentum.AI.Ensemble` — Combine outputs from multiple models.
+
+- `IEnsembleStrategy` — `Intent Combine(IReadOnlyList<ModelResult>)`
+- `WeightedEnsemble` — Weighted average + majority name
+- `MajorityVotingEnsemble` — Majority vote + highest confidence on tie
+- `EnsembleIntentModel` — Runs N `IIntentModel` instances, combines via strategy
+
+```csharp
+var ensemble = new EnsembleIntentModel(
+    [model1, model2],
+    new WeightedEnsemble());
+```
+
+---
+
+## Token Cost Tracking (v1.2)
+
+`Intentum.AI.TokenCost` — Token counting and cost tracking.
+
+- `ITokenCounter` — `int Count(string text)`
+- `ITokenCostTracker` — `Track()`, `GetTotal(model)`, `Reset()`
+- `MemoryTokenCostTracker` — Thread-safe in-memory implementation
+
+```csharp
+var tracker = new MemoryTokenCostTracker();
+tracker.Track(new TokenCost("gpt-4", 100, 50, 0.01m));
+var total = tracker.GetTotal("gpt-4");
+```
+
+---
+
+## Distributed Systems (v1.2)
+
+### Distributed Locking
+`Intentum.Distributed.Locking` — Redis-based distributed lock.
+
+```csharp
+var lockObj = new RedisDistributedLock(connection);
+var acquired = await lockObj.AcquireAsync("resource-key", TimeSpan.FromSeconds(30));
+await lockObj.ReleaseAsync("resource-key");
+```
+
+### Distributed Rate Limiter
+`Intentum.Distributed.RateLimiting` — Redis-based sliding window rate limiter.
+
+```csharp
+var limiter = new RedisDistributedRateLimiter(connection);
+var allowed = await limiter.TryAcquireAsync("user:123", limit: 10, TimeSpan.FromMinutes(1));
+```
+
+### Event Sourcing
+`Intentum.Distributed.EventSourcing` — Domain event, aggregate root, event store, event bus interfaces.
+
+```csharp
+public interface IAggregateRoot { string Id { get; }; IReadOnlyList<IDomainEvent> Events { get; } }
+public interface IEventStore { Task AppendAsync(string streamId, IEnumerable<IDomainEvent> events); }
+public interface IEventBus { Task PublishAsync<T>(T @event) where T : IDomainEvent; }
+```
+
+### Outbox Pattern
+`Intentum.Distributed.Outbox` — Transactional outbox interfaces for reliable event delivery.
+
+```csharp
+await store.SaveAsync(new OutboxMessage(Guid.NewGuid(), "OrderCreated", json, DateTime.UtcNow));
+```
+
+### gRPC Service
+`Intentum.Grpc` — Infer and Evaluate RPCs.
+
+```protobuf
+service IntentumService {
+    rpc Infer (InferRequest) returns (InferResponse);
+    rpc Evaluate (EvaluateRequest) returns (EvaluateResponse);
+}
+```
+
+Registration: `services.AddGrpc(); app.MapGrpcService<IntentumGrpcService>();`
+
+---
+
+## CLI Tool (v1.2)
+
+`Intentum.Cli` — .NET global tool: `intentum scaffold model --name MyModel`, `intentum validate --path ./src`, `intentum test-infer --data events.json`, `intentum export --format yaml`.
+
+```bash
+dotnet tool install --global Intentum.Cli
+intentum scaffold model --name FraudDetection
+intentum version  # → Intentum CLI v1.2.0
+```
+
+---
+
+## Blazor Playground (v1.2)
+
+`Intentum.Playground` — Interactive web playground. BehaviorSpace editor (`/space`), IntentPolicy editor (`/policy`), Inference demo (`/infer`). All editors share state and show real-time results.
+
+---
+
 ## See also
 
 - [API Reference](api.md) — Full API documentation
 - [Setup](setup.md) — Getting started guide
 - [Scenarios](scenarios.md) — Usage examples
+- [Production Readiness](production-readiness.md) — Resilience patterns
 
 **Next step:** When you're done with this page → [What these features do](features-simple-guide.md) or [API Reference](api.md).
