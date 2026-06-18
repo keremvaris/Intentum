@@ -1,5 +1,6 @@
 @page "/policy"
 @using Intentum.Runtime.Policy
+@inject PlaygroundService Service
 
 <PageTitle>IntentPolicy Editor</PageTitle>
 
@@ -8,8 +9,8 @@
 <RuleEditor OnRuleAdded="AddRule" />
 
 <div class="rules-list">
-    <h3>Rules (@_policy.Rules.Count)</h3>
-    @foreach (var rule in _policy.Rules)
+    <h3>Rules (@Service.Policy.Rules.Count)</h3>
+    @foreach (var rule in Service.Policy.Rules)
     {
         <div class="rule-item">
             <span class="rule-name">@rule.Name</span>
@@ -19,10 +20,8 @@
 </div>
 
 @code {
-    private IntentPolicy _policy = new();
-
     private void AddRule(PolicyRule rule)
     {
-        _policy.AddRule(rule);
+        Service.Policy.AddRule(rule);
     }
 }

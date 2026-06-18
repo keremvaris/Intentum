@@ -1,6 +1,7 @@
 @page "/space"
 @using Intentum.Core.Behavior
 @using System.Text.Json
+@inject PlaygroundService Service
 
 <PageTitle>BehaviorSpace Editor</PageTitle>
 
@@ -9,8 +10,8 @@
 <EventEditor OnEventAdded="AddEvent" />
 
 <div class="events-list">
-    <h3>Events (@_space.Events.Count)</h3>
-    @foreach (var evt in _space.Events)
+    <h3>Events (@Service.Space.Events.Count)</h3>
+    @foreach (var evt in Service.Space.Events)
     {
         <div class="event-item">
             <span>@evt.Actor:@evt.Action</span>
@@ -21,14 +22,12 @@
 
 <div class="vector-output">
     <h3>Vector</h3>
-    <pre>@JsonSerializer.Serialize(_space.ToVector().Dimensions)</pre>
+    <pre>@JsonSerializer.Serialize(Service.Space.ToVector().Dimensions)</pre>
 </div>
 
 @code {
-    private BehaviorSpace _space = new();
-
     private void AddEvent(BehaviorEvent evt)
     {
-        _space.Observe(evt);
+        Service.AddEvent(evt);
     }
 }
