@@ -55,6 +55,8 @@
     <ProjectReference Include="..\..\src\Intentum.Simulation\Intentum.Simulation.csproj" />
     <ProjectReference Include="..\..\src\Intentum.Versioning\Intentum.Versioning.csproj" />
     <ProjectReference Include="..\..\src\Intentum.AspNetCore\Intentum.AspNetCore.csproj" />
+    <ProjectReference Include="..\..\src\Intentum.Distributed\Intentum.Distributed.csproj" />
+    <ProjectReference Include="..\..\src\Intentum.Distributed.Redis\Intentum.Distributed.Redis.csproj" />
   </ItemGroup>
 
   <ItemGroup>
