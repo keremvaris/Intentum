@@ -33,11 +33,10 @@ public static class ObservablePolicyEngine
         PolicyRule? matchedRule = null;
         var success = true;
         string? exceptionMessage = null;
+        using var activity = IntentumActivitySource.Source.StartActivity();
 
         try
         {
-            using var activity = IntentumActivitySource.Source.StartActivity();
-
             (decision, matchedRule) = IntentPolicyEngine.EvaluateWithRule(intent, policy);
 
             if (activity != null)
@@ -54,6 +53,7 @@ public static class ObservablePolicyEngine
         }
         catch (Exception ex)
         {
+            activity?.SetStatus(ActivityStatusCode.Error, ex.Message);
             success = false;
             exceptionMessage = ex.Message;
             decision = PolicyDecision.Observe;
