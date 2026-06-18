@@ -1,0 +1,44 @@
+@page "/infer"
+@inject PlaygroundService Service
+@using Intentum.Runtime.Policy
+
+<PageTitle>Inference Demo</PageTitle>
+
+<h1>Inference Demo</h1>
+
+<div class="demo-controls">
+    <p>Events: @Service.Space.Events.Count</p>
+    <p>Rules: @Service.Policy.Rules.Count</p>
+    <button @onclick="RunInference" disabled="@(!Service.Space.Events.Any())">
+        Run Inference
+    </button>
+</div>
+
+@if (_result != null)
+{
+    <div class="result-panel">
+        <h3>Inferred Intent</h3>
+        <p><strong>Name:</strong> @_result.Name</p>
+        <p><strong>Score:</strong> @_result.Confidence.Score.ToString("F3")</p>
+        <p><strong>Level:</strong> @_result.Confidence.Level</p>
+    </div>
+}
+
+@if (_decision != null)
+{
+    <div class="decision-panel">
+        <h3>Policy Decision</h3>
+        <p class="decision @_decision?.ToString().ToLower()">@_decision</p>
+    </div>
+}
+
+@code {
+    private Intent? _result;
+    private PolicyDecision? _decision;
+
+    private void RunInference()
+    {
+        _result = Service.Infer();
+        _decision = Service.Evaluate(_result);
+    }
+}
