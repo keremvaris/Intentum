@@ -33,7 +33,7 @@ public sealed class HealthcareRulesTests
     }
 
     [Fact]
-    public void PatientDeterioration_WithSingleAlert_ReturnsLowerConfidence()
+    public void PatientDeterioration_WithMultipleAlertsNoRapidResponse_ReturnsLowerConfidence()
     {
         var rule = HealthcareRules.PatientDeterioration();
         var space = new BehaviorSpace()
