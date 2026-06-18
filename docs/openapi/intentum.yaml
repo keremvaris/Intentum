@@ -1,0 +1,227 @@
+openapi: 3.0.3
+info:
+  title: Intentum API
+  description: Intent-driven development framework REST API
+  version: 1.1.8
+  contact:
+    name: Intentum Team
+    url: https://github.com/keremvaris/Intentum
+
+servers:
+  - url: https://api.intentum.dev
+    description: Production
+  - url: http://localhost:5000
+    description: Local development
+
+paths:
+  /api/intent/infer:
+    post:
+      operationId: inferIntent
+      summary: Infer intent from behavior events
+      tags:
+        - Intent
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/InferRequest'
+      responses:
+        '200':
+          description: Intent successfully inferred
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InferResponse'
+        '400':
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /api/intent/evaluate:
+    post:
+      operationId: evaluateIntent
+      summary: Evaluate intent against policy
+      tags:
+        - Intent
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EvaluateRequest'
+      responses:
+        '200':
+          description: Policy decision
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EvaluateResponse'
+
+  /api/behavior/space:
+    post:
+      operationId: createSpace
+      summary: Create behavior space from events
+      tags:
+        - Behavior
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateSpaceRequest'
+      responses:
+        '201':
+          description: Space created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SpaceResponse'
+
+components:
+  schemas:
+    BehaviorEvent:
+      type: object
+      required:
+        - actor
+        - action
+      properties:
+        actor:
+          type: string
+          description: Event actor
+        action:
+          type: string
+          description: Event action
+        timestamp:
+          type: string
+          format: date-time
+          description: Event timestamp
+        metadata:
+          type: object
+          additionalProperties: true
+          description: Additional metadata
+
+    InferRequest:
+      type: object
+      required:
+        - events
+      properties:
+        events:
+          type: array
+          items:
+            $ref: '#/components/schemas/BehaviorEvent'
+
+    InferResponse:
+      type: object
+      properties:
+        name:
+          type: string
+          description: Intent name
+        confidence:
+          $ref: '#/components/schemas/Confidence'
+
+    Confidence:
+      type: object
+      properties:
+        score:
+          type: number
+          format: double
+          minimum: 0
+          maximum: 1
+        level:
+          type: string
+          enum:
+            - Certain
+            - High
+            - Medium
+            - Low
+
+    EvaluateRequest:
+      type: object
+      required:
+        - intent
+        - policy
+      properties:
+        intent:
+          $ref: '#/components/schemas/Intent'
+        policy:
+          $ref: '#/components/schemas/Policy'
+
+    EvaluateResponse:
+      type: object
+      properties:
+        decision:
+          type: string
+          enum:
+            - Allow
+            - Observe
+            - Warn
+            - Block
+            - Escalate
+            - RequireAuth
+            - RateLimit
+
+    Intent:
+      type: object
+      properties:
+        name:
+          type: string
+        confidence:
+          $ref: '#/components/schemas/Confidence'
+
+    Policy:
+      type: object
+      properties:
+        rules:
+          type: array
+          items:
+            $ref: '#/components/schemas/PolicyRule'
+
+    PolicyRule:
+      type: object
+      properties:
+        name:
+          type: string
+        decision:
+          type: string
+          enum:
+            - Allow
+            - Observe
+            - Warn
+            - Block
+            - Escalate
+            - RequireAuth
+            - RateLimit
+
+    ErrorResponse:
+      type: object
+      properties:
+        message:
+          type: string
+        code:
+          type: string
+
+    CreateSpaceRequest:
+      type: object
+      required:
+        - events
+      properties:
+        events:
+          type: array
+          items:
+            $ref: '#/components/schemas/BehaviorEvent'
+
+    SpaceResponse:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        eventCount:
+          type: integer
+        vector:
+          type: object
+          additionalProperties:
+            type: number
