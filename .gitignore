@@ -8,6 +8,11 @@
 
 ## SonarCloud scanner (CI cache)
 .sonar/
+.sonarqube/
+
+## Test results
+TestResults/
+**/TestResults/
 
 ## Rider InspectCode output (for AI/Cursor to read)
 inspection-results.xml
