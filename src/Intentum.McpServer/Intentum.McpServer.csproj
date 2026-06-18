@@ -1,0 +1,13 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Intentum.Core\Intentum.Core.csproj" />
+    <ProjectReference Include="..\Intentum.Runtime\Intentum.Runtime.csproj" />
+    <ProjectReference Include="..\Intentum.AI\Intentum.AI.csproj" />
+    <ProjectReference Include="..\Intentum.AI.DeepSeek\Intentum.AI.DeepSeek.csproj" />
+  </ItemGroup>
+</Project>
