@@ -35,10 +35,12 @@
     "package": "vsce package"
   },
   "devDependencies": {
+    "@types/node": "^25.9.3",
     "@types/vscode": "^1.80.0",
-    "typescript": "^5.0.0",
-    "@vscode/vsce": "^2.0.0"
+    "@vscode/vsce": "^2.0.0",
+    "typescript": "^5.0.0"
   },
+  "publisher": "keremvaris",
   "repository": {
     "type": "git",
     "url": "https://github.com/keremvaris/Intentum"

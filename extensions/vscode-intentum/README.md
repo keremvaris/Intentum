@@ -4,20 +4,25 @@ Code snippets for [Intentum](https://github.com/keremvaris/Intentum) intent-driv
 
 ## Installation
 
+### From VS Code Marketplace
+
+Search for **"Intentum"** in the VS Code Extensions view (`Cmd+Shift+X` / `Ctrl+Shift+X`).
+
 ### From VSIX
 
 1. Build the VSIX package:
    ```bash
    cd extensions/vscode-intentum
-   npm install -g @vscode/vsce
-   vsce package
+   npm install
+   npm run compile
+   npx vsce package
    ```
 
 2. Install in VS Code:
    - Open VS Code
    - Press `Cmd+Shift+P` (Mac) or `Ctrl+Shift+P` (Windows/Linux)
    - Type "Extensions: Install from VSIX"
-   - Select the `intentum-snippets-0.0.1.vsix` file
+   - Select the `intentum-vscode-0.1.0.vsix` file
 
 ### From Source
 
