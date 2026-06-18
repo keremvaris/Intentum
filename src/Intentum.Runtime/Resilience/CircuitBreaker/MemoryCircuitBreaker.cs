@@ -8,6 +8,7 @@ public sealed class MemoryCircuitBreaker : ICircuitBreaker
     private readonly object _lock = new();
     private CircuitState _state = CircuitState.Closed;
     private int _failureCount;
+    private int _halfOpenAttempts;
     private DateTime _lastFailureTime;
 
     public MemoryCircuitBreaker(CircuitBreakerOptions options)
@@ -61,6 +62,7 @@ public sealed class MemoryCircuitBreaker : ICircuitBreaker
             {
                 _state = CircuitState.Closed;
                 _failureCount = 0;
+                _halfOpenAttempts = 0;
             }
         }
     }
@@ -72,8 +74,16 @@ public sealed class MemoryCircuitBreaker : ICircuitBreaker
             _failureCount++;
             _lastFailureTime = DateTime.UtcNow;
 
-            if (_failureCount >= _options.FailureThreshold)
+            if (_state == CircuitState.HalfOpen)
+            {
+                _halfOpenAttempts++;
+                if (_halfOpenAttempts >= _options.HalfOpenMaxAttempts)
+                    _state = CircuitState.Open;
+            }
+            else if (_failureCount >= _options.FailureThreshold)
+            {
                 _state = CircuitState.Open;
+            }
         }
     }
 
