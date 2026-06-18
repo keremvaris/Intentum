@@ -68,6 +68,8 @@ Already implemented and documented:
 - **Event Sourcing Interfaces** — Domain event, aggregate root, event store, event bus; `IDomainEvent`, `IAggregateRoot`, `IEventStore`, `IEventBus` (Intentum.Distributed).
 - **Outbox Pattern** — Transactional outbox interfaces; `IOutboxStore`, `IOutboxProcessor` (Intentum.Distributed).
 - **gRPC Service** — Infer and Evaluate RPCs; `IntentumGrpcService` (Intentum.Grpc).
+- **DeepSeek AI Provider** — DeepSeek embedding + intent model; `DeepSeekEmbeddingProvider`, `DeepSeekIntentModel` (Intentum.AI.DeepSeek).
+- **MCP Server** — Model Context Protocol server for AI agents; `POST /mcp/infer`, `POST /mcp/evaluate` (Intentum.McpServer).
 
 See [Advanced Features](advanced-features.md), [Production Readiness](production-readiness.md), [Setup – Create from template](setup.md#create-from-template-dotnet-new), and [API Reference](api.md).
 

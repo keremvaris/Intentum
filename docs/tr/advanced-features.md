@@ -36,6 +36,8 @@ Core, Runtime, AI ve sağlayıcıların ötesindeki genişletme paketleri ve bu 
 | **Intentum.Distributed** | Dağıtık sistem arayüzleri | Distributed Locking, Rate Limiter, Event Sourcing, Outbox interface'leri; `IDistributedLock`, `IDistributedRateLimiter`, `IEventStore` | Distributed README |
 | **Intentum.Distributed.Redis** | Redis implementasyonları | Redis tabanlı distributed lock ve rate limiter; `RedisDistributedLock`, `RedisDistributedRateLimiter` | Distributed README |
 | **Intentum.Grpc** | gRPC servisi | Infer ve Evaluate RPC'leri; `IntentumGrpcService` | gRPC README |
+| **Intentum.AI.DeepSeek** | DeepSeek AI sağlayıcısı | OpenAI-uyumlu DeepSeek embedding + intent modeli; `DeepSeekEmbeddingProvider`, `DeepSeekIntentModel` | [Sağlayıcılar](providers.md) |
+| **Intentum.McpServer** | MCP Sunucu | AI agent'lar için MCP protokol sunucusu; `POST /mcp/infer`, `POST /mcp/evaluate` | MCP README |
 
 **Şablonlar:** `dotnet new intentum-webapi`, `intentum-backgroundservice`, `intentum-function` — bkz. [Kurulum – Şablondan oluştur](setup.md#create-from-template-dotnet-new). **Sample Web** ayrıca Playground (model karşılaştırma): `POST /api/intent/playground/compare`, ve Intent Tree: `POST /api/intent/explain-tree` sunar.
 

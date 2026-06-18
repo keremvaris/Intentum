@@ -36,6 +36,8 @@ Extended packages (beyond Core, Runtime, AI, and providers) and where they are d
 | **Intentum.Distributed** | Distributed system interfaces | Distributed Locking, Rate Limiter, Event Sourcing, Outbox interfaces; `IDistributedLock`, `IDistributedRateLimiter`, `IEventStore` | Distributed README |
 | **Intentum.Distributed.Redis** | Redis implementations | Redis-based distributed lock and rate limiter; `RedisDistributedLock`, `RedisDistributedRateLimiter` | Distributed README |
 | **Intentum.Grpc** | gRPC service | Infer and Evaluate RPCs; `IntentumGrpcService` | gRPC README |
+| **Intentum.AI.DeepSeek** | DeepSeek AI provider | OpenAI-compatible DeepSeek embedding + intent model; `DeepSeekEmbeddingProvider`, `DeepSeekIntentModel` | [Providers](providers.md) |
+| **Intentum.McpServer** | MCP Server | MCP protocol server exposing Intentum tools to AI agents; `POST /mcp/infer`, `POST /mcp/evaluate` | MCP README |
 
 **Templates:** `dotnet new intentum-webapi`, `intentum-backgroundservice`, `intentum-function` — see [Setup – Create from template](setup.md#create-from-template-dotnet-new). **Sample Web** also exposes Playground (compare models): `POST /api/intent/playground/compare`, and Intent Tree: `POST /api/intent/explain-tree`.
 
