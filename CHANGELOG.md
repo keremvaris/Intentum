@@ -19,6 +19,7 @@ Bu dosya **conventional commit** mesajlarından otomatik üretilir. Commit'te **
 
 
 
+
 ### Bug Fixes
 
 - **Add unstaged Distributed.Redis files and test references**
@@ -48,6 +49,13 @@ Bu dosya **conventional commit** mesajlarından otomatik üretilir. Commit'te **
 
 
 - **Add MockIntentModel for testing and MCP fallback** *(ai)*
+
+
+
+
+### Miscellaneous
+
+- **Add TestResults and .sonarqube to gitignore**
 
 
 ## [1.1.10] - 2026-06-18
