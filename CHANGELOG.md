@@ -17,6 +17,14 @@ Bu dosya **conventional commit** mesajlarından otomatik üretilir. Commit'te **
 
 
 
+
+### Bug Fixes
+
+- **Replace Skip with runtime Redis check** *(tests)*
+
+
+
+
 ### Miscellaneous
 
 - **Trigger SonarCloud scan with token**
