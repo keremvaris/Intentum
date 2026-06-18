@@ -13,7 +13,16 @@ Bu dosya **conventional commit** mesajlarından otomatik üretilir. Commit'te **
 
 ---
 
-## [unreleased]
+## [1.2.3] - 2026-06-18
+
+
+
+### Miscellaneous
+
+- **Suppress deprecation warning on obsolete Decide method**
+
+
+## [1.2.2] - 2026-06-18
 
 
 
