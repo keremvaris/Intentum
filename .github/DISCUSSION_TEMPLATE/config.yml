@@ -1,0 +1,13 @@
+categories:
+  - name: 💡 Ideas
+    description: Share ideas for new features or improvements
+    emoji: 💡
+  - name: 🙋 Q&A
+    description: Ask questions and get answers
+    emoji: 🙋
+  - name: 🎉 Show and Tell
+    description: Share what you've built with Intentum
+    emoji: 🎉
+  - name: 📝 RFC
+    description: Request for Comments on proposed changes
+    emoji: 📝
