@@ -1,0 +1,34 @@
+@page "/space"
+@using Intentum.Core.Behavior
+@using System.Text.Json
+
+<PageTitle>BehaviorSpace Editor</PageTitle>
+
+<h1>BehaviorSpace Editor</h1>
+
+<EventEditor OnEventAdded="AddEvent" />
+
+<div class="events-list">
+    <h3>Events (@_space.Events.Count)</h3>
+    @foreach (var evt in _space.Events)
+    {
+        <div class="event-item">
+            <span>@evt.Actor:@evt.Action</span>
+            <span>@evt.OccurredAt.ToString("HH:mm:ss")</span>
+        </div>
+    }
+</div>
+
+<div class="vector-output">
+    <h3>Vector</h3>
+    <pre>@JsonSerializer.Serialize(_space.ToVector().Dimensions)</pre>
+</div>
+
+@code {
+    private BehaviorSpace _space = new();
+
+    private void AddEvent(BehaviorEvent evt)
+    {
+        _space.Observe(evt);
+    }
+}

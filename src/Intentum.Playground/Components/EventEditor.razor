@@ -1,0 +1,24 @@
+<div class="event-editor">
+    <input @bind="Actor" placeholder="Actor" />
+    <input @bind="Action" placeholder="Action" />
+    <button @onclick="AddEvent">Add Event</button>
+</div>
+
+@code {
+    private string Actor { get; set; } = "";
+    private string Action { get; set; } = "";
+
+    [Parameter]
+    public EventCallback<BehaviorEvent> OnEventAdded { get; set; }
+
+    private async Task AddEvent()
+    {
+        if (!string.IsNullOrWhiteSpace(Actor) && !string.IsNullOrWhiteSpace(Action))
+        {
+            var evt = new BehaviorEvent(Actor, Action, DateTimeOffset.UtcNow);
+            await OnEventAdded.InvokeAsync(evt);
+            Actor = "";
+            Action = "";
+        }
+    }
+}
