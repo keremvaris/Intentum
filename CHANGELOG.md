@@ -47,6 +47,9 @@ Bu dosya **conventional commit** mesajlarından otomatik üretilir. Commit'te **
 - **Add MCP server with infer and evaluate tools** *(mcp)*
 
 
+- **Add MockIntentModel for testing and MCP fallback** *(ai)*
+
+
 ## [1.1.10] - 2026-06-18
 
 
