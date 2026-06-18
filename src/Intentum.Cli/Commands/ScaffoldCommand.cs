@@ -11,15 +11,18 @@ public static class ScaffoldCommand
         {
             nameOption
         };
-        command.SetHandler((string nameOption) =>
+        command.SetHandler((string nameValue) =>
         {
-            var template = $@"using Intentum.Core.Behavior;
+            try
+            {
+                var template = $@"using Intentum.Core.Behavior;
 using Intentum.Core.Contracts;
 using Intentum.Core.Intents;
 
-namespace MyProject.Models;
+#nullable enable
+namespace MyNamespace;
 
-public class {nameOption}Model : IIntentModel
+public class {nameValue}Model : IIntentModel
 {{
     public Intent Infer(BehaviorSpace behaviorSpace, BehaviorVector? precomputedVector = null)
     {{
@@ -27,8 +30,13 @@ public class {nameOption}Model : IIntentModel
         throw new NotImplementedException();
     }}
 }}";
-            File.WriteAllText($"{nameOption}Model.cs", template);
-            Console.WriteLine($"Created {nameOption}Model.cs");
+                File.WriteAllText($"{nameValue}Model.cs", template);
+                Console.WriteLine($"Created {nameValue}Model.cs");
+            }
+            catch (Exception ex)
+            {
+                Console.Error.WriteLine($"Error creating model: {ex.Message}");
+            }
         }, nameOption);
         return command;
     }
@@ -40,14 +48,17 @@ public class {nameOption}Model : IIntentModel
         {
             nameOption
         };
-        command.SetHandler((string nameOption) =>
+        command.SetHandler((string nameValue) =>
         {
-            var template = $@"using Intentum.Runtime.Policy;
+            try
+            {
+                var template = $@"using Intentum.Runtime.Policy;
 using Intentum.Core.Intents;
 
-namespace MyProject.Policies;
+#nullable enable
+namespace MyNamespace;
 
-public static class {nameOption}Policy
+public static class {nameValue}Policy
 {{
     public static IntentPolicy Create()
     {{
@@ -58,8 +69,13 @@ public static class {nameOption}Policy
                 PolicyDecision.Allow));
     }}
 }}";
-            File.WriteAllText($"{nameOption}Policy.cs", template);
-            Console.WriteLine($"Created {nameOption}Policy.cs");
+                File.WriteAllText($"{nameValue}Policy.cs", template);
+                Console.WriteLine($"Created {nameValue}Policy.cs");
+            }
+            catch (Exception ex)
+            {
+                Console.Error.WriteLine($"Error creating policy: {ex.Message}");
+            }
         }, nameOption);
         return command;
     }

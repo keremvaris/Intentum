@@ -9,10 +9,16 @@ scaffoldCommand.AddCommand(ScaffoldCommand.CreatePolicyCommand());
 
 var validateCommand = new Command("validate", "Validate configuration");
 validateCommand.AddOption(ValidateCommand.PathOption);
-validateCommand.SetHandler(ValidateCommand.Handler, ValidateCommand.PathOption);
+validateCommand.SetHandler(async (string path) =>
+{
+    var exitCode = await ValidateCommand.Handler(path);
+    Environment.ExitCode = exitCode;
+}, ValidateCommand.PathOption);
 
 var versionCommand = new Command("version", "Show version");
-versionCommand.SetHandler(() => Console.WriteLine("Intentum CLI v1.1.8"));
+var version = typeof(Program).Assembly.GetName().Version;
+var versionString = version != null ? $"{version.Major}.{version.Minor}.{version.Build}" : "1.1.8";
+versionCommand.SetHandler(() => Console.WriteLine($"Intentum CLI v{versionString}"));
 
 rootCommand.AddCommand(scaffoldCommand);
 rootCommand.AddCommand(validateCommand);
