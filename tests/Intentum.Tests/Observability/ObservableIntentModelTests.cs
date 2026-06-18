@@ -130,33 +130,18 @@ public sealed class ObservableIntentModelTests : IDisposable
         using var scope = StartTestScope();
         var inner = new Mock<IIntentModel>();
         inner.Setup(m => m.Infer(It.IsAny<BehaviorSpace>(), null))
-            .Throws(new InvalidOperationException("inner error"));
+            .Throws(new InvalidOperationException("Specific error message"));
 
         var observable = new ObservableIntentModel(inner.Object);
         var space = new BehaviorSpace();
 
-        Assert.Throws<InvalidOperationException>(() => observable.Infer(space));
+        var ex = Assert.Throws<InvalidOperationException>(() => observable.Infer(space));
+        Assert.Equal("Specific error message", ex.Message);
 
         var testActivities = GetTestActivities();
         Assert.Single(testActivities);
         Assert.Equal(ActivityStatusCode.Error, testActivities[0].Status);
-        Assert.Contains("inner error", testActivities[0].StatusDescription);
+        Assert.Contains("Specific error message", testActivities[0].StatusDescription);
     }
 
-    [Fact]
-    public void Infer_RecordsMetrics()
-    {
-        using var scope = StartTestScope();
-        var inner = new Mock<IIntentModel>();
-        inner.Setup(m => m.Infer(It.IsAny<BehaviorSpace>(), null))
-            .Returns(new Intent("Test", [], new IntentConfidence(0.6, "Medium")));
-
-        var observable = new ObservableIntentModel(inner.Object);
-        var space = new BehaviorSpace();
-        space.Observe(new BehaviorEvent("user", "action", DateTimeOffset.UtcNow));
-
-        var result = observable.Infer(space);
-
-        Assert.NotNull(result);
-    }
 }

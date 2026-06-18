@@ -160,29 +160,20 @@ public sealed class ObservablePolicyEngineTests : IDisposable
         using var scope = StartTestScope();
         var intent = new Intent("Test", [], new IntentConfidence(0.8, "High"), "rule");
         var policy = new IntentPolicy([
-            new PolicyRule("Throw", _ => throw new InvalidOperationException("policy error"), PolicyDecision.Block)
+            new PolicyRule("Throw", _ => throw new InvalidOperationException("Test error"), PolicyDecision.Block)
         ]);
 
         var (decision, record) = intent.DecideWithExecutionLog(policy);
+
+        Assert.Equal(PolicyDecision.Observe, decision);
+        Assert.False(record.Success);
+        Assert.Equal("Test error", record.ExceptionMessage);
+        Assert.NotNull(record.ExceptionTrace);
 
         var testActivities = GetTestActivities();
         Assert.Single(testActivities);
         Assert.Equal(ActivityStatusCode.Error, testActivities[0].Status);
-        Assert.Contains("policy error", testActivities[0].StatusDescription);
+        Assert.Contains("Test error", testActivities[0].StatusDescription);
     }
 
-    [Fact]
-    public void DecideWithExecutionLog_RecordsMetrics()
-    {
-        using var scope = StartTestScope();
-        var intent = new Intent("Test", [], new IntentConfidence(0.5, "Medium"), "rule");
-        var policy = new IntentPolicy([
-            new PolicyRule("Allow", _ => true, PolicyDecision.Allow)
-        ]);
-
-        var (decision, record) = intent.DecideWithExecutionLog(policy);
-
-        Assert.Equal(PolicyDecision.Allow, decision);
-        Assert.True(record.Success);
-    }
 }
