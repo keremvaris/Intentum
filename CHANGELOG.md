@@ -17,12 +17,34 @@ Bu dosya **conventional commit** mesajlarından otomatik üretilir. Commit'te **
 
 
 
+
+
 ### Bug Fixes
 
 - **Add unstaged Distributed.Redis files and test references**
 
 
 - **Make SonarCloud steps conditional on token availability** *(ci)*
+
+
+
+
+### Documentation
+
+- **Add DeepSeek provider and MCP server design spec** *(spec)*
+
+
+
+
+### Features
+
+- **Add project, options, and rate limit exception** *(deepseek)*
+
+
+- **Add embedding provider, intent model, and DI registration** *(deepseek)*
+
+
+- **Add MCP server with infer and evaluate tools** *(mcp)*
 
 
 ## [1.1.10] - 2026-06-18
