@@ -35,6 +35,9 @@ Bu dosya **conventional commit** mesajlarından otomatik üretilir. Commit'te **
 - **Add DeepSeek provider and MCP server design spec** *(spec)*
 
 
+- **Add DeepSeek and MCP documentation**
+
+
 
 
 ### Features
