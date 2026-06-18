@@ -41,6 +41,8 @@ items:
         href: ai-providers-howto.md
       - name: Embedding API errors
         href: embedding-api-errors.md
+      - name: Migration Guide
+        href: migration-guide.md
   - name: Features
     expanded: false
     items:
@@ -65,6 +67,8 @@ items:
     items:
       - name: Greenwashing detection
         href: greenwashing-detection-howto.md
+      - name: Contributing Quick Start
+        href: contributing-quickstart.md
   - name: Examples
     expanded: false
     items:

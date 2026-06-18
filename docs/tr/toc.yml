@@ -41,6 +41,8 @@ items:
         href: ai-providers-howto.md
       - name: Embedding API hata yönetimi
         href: embedding-api-errors.md
+      - name: Migration Rehberi
+        href: migration-guide.md
   - name: Özellikler
     expanded: false
     items:
@@ -65,6 +67,8 @@ items:
     items:
       - name: Greenwashing tespiti
         href: greenwashing-detection-howto.md
+      - name: Katkıda Bulunma Hızlı Başlangıç
+        href: contributing-quickstart.md
   - name: Örnekler
     expanded: false
     items:
