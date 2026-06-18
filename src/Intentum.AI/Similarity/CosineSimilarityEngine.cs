@@ -1,5 +1,4 @@
 using Intentum.AI.Embeddings;
-using Intentum.AI.Similarity;
 
 namespace Intentum.AI.Similarity;
 

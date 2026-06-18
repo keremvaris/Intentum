@@ -1,7 +1,7 @@
 using Intentum.Core;
 using Intentum.Core.Behavior;
 using Intentum.Core.Contracts;
-using Intentum.Runtime;
+using Intentum.Runtime.Engine;
 using Intentum.Runtime.Policy;
 using MediatR;
 
@@ -27,7 +27,7 @@ public sealed class CalculateCarbonCommandHandler : IRequestHandler<CalculateCar
             .Observe("system", "report_generated");
 
         var intent = _intentModel.Infer(space);
-        var decision = intent.Decide(_policy);
+        var decision = IntentPolicyEngine.Evaluate(intent, _policy);
 
         return decision switch
         {

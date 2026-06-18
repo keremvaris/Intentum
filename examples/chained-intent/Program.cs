@@ -8,7 +8,7 @@ using Intentum.AI.Similarity;
 using Intentum.Core;
 using Intentum.Core.Behavior;
 using Intentum.Core.Models;
-using Intentum.Runtime;
+using Intentum.Runtime.Engine;
 using Intentum.Runtime.Policy;
 
 // Primary: rule-based (fast, deterministic, explainable)
@@ -61,7 +61,7 @@ var space1 = new BehaviorSpace()
     .Observe("user", "device.verified");
 
 var intent1 = intentModel.Infer(space1);
-var decision1 = intent1.Decide(policy);
+var decision1 = IntentPolicyEngine.Evaluate(intent1, policy);
 
 Console.WriteLine("Scenario 1 — Account recovery (rule matched, no LLM)");
 Console.WriteLine($"  Intent: {intent1.Name}, Confidence: {intent1.Confidence.Level} ({intent1.Confidence.Score:F2})");
@@ -76,7 +76,7 @@ var space2 = new BehaviorSpace()
     .Observe("user", "login.retry");
 
 var intent2 = intentModel.Infer(space2);
-var decision2 = intent2.Decide(policy);
+var decision2 = IntentPolicyEngine.Evaluate(intent2, policy);
 
 Console.WriteLine("Scenario 2 — Ambiguous (no rule matched → LLM fallback)");
 Console.WriteLine($"  Intent: {intent2.Name}, Confidence: {intent2.Confidence.Level} ({intent2.Confidence.Score:F2})");

@@ -1,7 +1,7 @@
 using Intentum.Core.Behavior;
 using Intentum.Core.Contracts;
 using Intentum.Core.Streaming;
-using Intentum.Runtime;
+using Intentum.Runtime.Engine;
 using Intentum.Runtime.Policy;
 
 namespace Intentum.BackgroundService;
@@ -32,7 +32,7 @@ public sealed class IntentStreamWorker : Microsoft.Extensions.Hosting.Background
             foreach (var e in batch.Events)
                 space.Observe(e);
             var intent = _model.Infer(space);
-            _ = intent.Decide(_policy);
+            _ = IntentPolicyEngine.Evaluate(intent, _policy);
             // In production: persist or publish (intent, decision) e.g. via IIntentHistoryRepository or message bus.
         }
     }

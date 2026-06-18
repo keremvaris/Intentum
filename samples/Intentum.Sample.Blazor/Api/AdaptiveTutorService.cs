@@ -1,7 +1,7 @@
 using Intentum.Core.Behavior;
 using Intentum.Core.Contracts;
 using Intentum.Core.Models;
-using Intentum.Runtime;
+using Intentum.Runtime.Engine;
 using Intentum.Runtime.Policy;
 
 namespace Intentum.Sample.Blazor.Api;
@@ -67,7 +67,7 @@ public sealed class AdaptiveTutorService
         var baseTime = DateTimeOffset.UtcNow;
         var space = AdaptiveTutorVariants.BuildSpace(variant, baseTime);
         var intent = _model.Infer(space);
-        var decision = intent.Decide(AdaptiveTutorPolicy);
+        var decision = IntentPolicyEngine.Evaluate(intent, AdaptiveTutorPolicy);
         var events = AdaptiveTutorVariants.GetEvents(variant, baseTime);
         var blockedQuiz = decision.ToString() == "Block" ? "Quiz 4" : null;
         var suggestedModule = (decision.ToString() == "RequireAuth" || decision.ToString() == "Block") && intent.Name.Contains("ConceptualBlock", StringComparison.OrdinalIgnoreCase) ? "Görsel Akış Diyagramları" : null;

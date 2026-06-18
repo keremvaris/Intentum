@@ -18,7 +18,7 @@
   <ItemGroup>
     <ProjectReference Include="..\Intentum.Persistence\Intentum.Persistence.csproj" />
     <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="10.0.2" />
-    <PackageReference Include="MongoDB.Driver" Version="3.6.0" />
+    <PackageReference Include="MongoDB.Driver" Version="3.9.0" />
   </ItemGroup>
 
 </Project>

@@ -7,7 +7,7 @@ using Intentum.AI.Models;
 using Intentum.AI.Similarity;
 using Intentum.Core;
 using Intentum.Core.Behavior;
-using Intentum.Runtime;
+using Intentum.Runtime.Engine;
 using Intentum.Runtime.Policy;
 
 var intentModel = new LlmIntentModel(
@@ -32,7 +32,7 @@ var space1 = new BehaviorSpace()
     .Observe("user", "captcha.passed");
 
 var intent1 = intentModel.Infer(space1);
-var decision1 = intent1.Decide(policy);
+var decision1 = IntentPolicyEngine.Evaluate(intent1, policy);
 
 Console.WriteLine("Scenario 1 — Suspicious access (failed logins + IP change + captcha)");
 Console.WriteLine($"  Confidence: {intent1.Confidence.Level} (score: {intent1.Confidence.Score:F2})");
@@ -49,7 +49,7 @@ var space2 = new BehaviorSpace()
     .Observe("user", "device.verified");
 
 var intent2 = intentModel.Infer(space2);
-var decision2 = intent2.Decide(policy);
+var decision2 = IntentPolicyEngine.Evaluate(intent2, policy);
 
 Console.WriteLine("Scenario 2 — Account recovery (reset + success + device verified)");
 Console.WriteLine($"  Confidence: {intent2.Confidence.Level} (score: {intent2.Confidence.Score:F2})");

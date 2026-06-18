@@ -19,6 +19,7 @@ using Intentum.Explainability;
 using Intentum.Persistence.EntityFramework;
 using Intentum.Persistence.Repositories;
 using Intentum.Runtime;
+using Intentum.Runtime.Engine;
 using Intentum.Runtime.Policy;
 using Intentum.Runtime.RateLimiting;
 using Intentum.Sample.Blazor.Api;
@@ -323,7 +324,7 @@ internal static class ProgramConfiguration
             {
                 if (!registry.TryGetModel(name, out var model)) continue;
                 var intent = model!.Infer(space);
-                var decision = intent.Decide(policy);
+                var decision = IntentPolicyEngine.Evaluate(intent, policy);
                 results.Add(new PlaygroundCompareResult(name, intent.Name, intent.Confidence.Level, intent.Confidence.Score, decision.ToString()));
             }
             return Results.Json(new PlaygroundCompareResponse(results));
@@ -642,7 +643,7 @@ internal static class ProgramConfiguration
             }
             var apiTrafficModel = BuildApiTrafficRuleBasedModel();
             var intent = apiTrafficModel.Infer(space);
-            var decision = intent.Decide(apiTrafficPolicy);
+            var decision = IntentPolicyEngine.Evaluate(intent, apiTrafficPolicy);
             var rateLimitOptions = new RateLimitOptions("api-traffic-demo", 50, TimeSpan.FromMinutes(1));
             intent.DecideWithRateLimit(apiTrafficPolicy, rateLimiter, rateLimitOptions, out var rateLimitResult);
             return Results.Ok(new
@@ -706,7 +707,7 @@ internal static class ProgramConfiguration
             space.Observe(new BehaviorEvent("Merve B.", "AccessToUnusualDatabase", t.AddHours(1)));
             space.Observe(new BehaviorEvent("Merve B.", "AttemptToUsePrivilegedAPIs", t.AddHours(2)));
             var intent = model.Infer(space);
-            var decision = intent.Decide(insiderPolicy);
+            var decision = IntentPolicyEngine.Evaluate(intent, insiderPolicy);
             var baseline = new { FileDownload = 100, InternalAccess = 500, PrivilegedApi = 0 };
             var current = new { FileDownload = 1000, InternalAccess = 5, PrivilegedApi = 3 };
             return Results.Ok(new
@@ -745,7 +746,7 @@ internal static class ProgramConfiguration
                 .Observe("Monitor", i => i.Confidence.Score > 0.3)
                 .Allow("LowRisk", _ => true)
                 .Build();
-            var decision = intent.Decide(policy);
+            var decision = IntentPolicyEngine.Evaluate(intent, policy);
             var actions = SustainabilitySolutionGenerator.Suggest(intent, space, decision);
 
             var now = DateTimeOffset.UtcNow;

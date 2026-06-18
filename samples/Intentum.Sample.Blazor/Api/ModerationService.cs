@@ -1,7 +1,7 @@
 using Intentum.Core.Behavior;
 using Intentum.Core.Contracts;
 using Intentum.Core.Models;
-using Intentum.Runtime;
+using Intentum.Runtime.Engine;
 using Intentum.Runtime.Policy;
 
 namespace Intentum.Sample.Blazor.Api;
@@ -72,7 +72,7 @@ public sealed class ModerationService
         var baseTime = DateTimeOffset.UtcNow;
         var space = ModerationVariants.BuildSpace(variant, baseTime);
         var intent = _model.Infer(space);
-        var decision = intent.Decide(ModerationPolicy);
+        var decision = IntentPolicyEngine.Evaluate(intent, ModerationPolicy);
         var events = ModerationVariants.GetEvents(variant, baseTime);
         var warningMessage = ModerationVariants.GetWarningMessage(variant);
         var observeNextCount = (decision.ToString() == "Warn" || decision.ToString() == "Observe") && !string.IsNullOrEmpty(warningMessage) ? 3 : 0;

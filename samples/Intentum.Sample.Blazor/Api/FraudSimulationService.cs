@@ -2,7 +2,7 @@ using System.Security.Cryptography;
 using Intentum.Core.Behavior;
 using Intentum.Core.Contracts;
 using Intentum.Persistence.Repositories;
-using Intentum.Runtime;
+using Intentum.Runtime.Engine;
 using Intentum.Runtime.Policy;
 
 namespace Intentum.Sample.Blazor.Api;
@@ -63,7 +63,7 @@ public sealed class FraudSimulationService(
                 }
 
                 var intent = model.Infer(space);
-                var decision = intent.Decide(policy);
+                var decision = IntentPolicyEngine.Evaluate(intent, policy);
                 var behaviorSpaceId = Guid.NewGuid().ToString();
                 var metadata = new Dictionary<string, object> { ["EventsSummary"] = string.Join(", ", eventsSummary), ["Source"] = "FraudSimulation" };
                 var id = await history.SaveAsync(behaviorSpaceId, intent, decision, metadata, EntityId);

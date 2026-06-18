@@ -6,7 +6,7 @@ using Intentum.AspNetCore;
 using Intentum.WebApi;
 using Intentum.Core.Behavior;
 using Intentum.Core.Contracts;
-using Intentum.Runtime;
+using Intentum.Runtime.Engine;
 using Intentum.Runtime.Policy;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -41,7 +41,7 @@ app.MapPost("/api/intent/infer", (InferRequest req, IIntentModel model, IntentPo
     foreach (var e in req.Events)
         space.Observe(new BehaviorEvent(e.Actor, e.Action, DateTimeOffset.UtcNow));
     var intent = model.Infer(space);
-    var decision = intent.Decide(policy);
+    var decision = IntentPolicyEngine.Evaluate(intent, policy);
     return Results.Ok(new { intent.Name, intent.Confidence.Level, intent.Confidence.Score, Decision = decision.ToString() });
 });
 

@@ -1,5 +1,6 @@
 using Intentum.Core.Intents;
 using Intentum.Runtime;
+using Intentum.Runtime.Engine;
 using Intentum.Runtime.Policy;
 
 namespace Intentum.Tests;
@@ -23,8 +24,8 @@ public sealed class PolicyCompositionTests
         var lowIntent = new Intent("L", [], new IntentConfidence(0.2, "Low"));
         var highIntent = new Intent("H", [], new IntentConfidence(0.9, "High"));
 
-        Assert.Equal(PolicyDecision.Block, lowIntent.Decide(composed));
-        Assert.Equal(PolicyDecision.Allow, highIntent.Decide(composed));
+        Assert.Equal(PolicyDecision.Block, IntentPolicyEngine.Evaluate(lowIntent, composed));
+        Assert.Equal(PolicyDecision.Allow, IntentPolicyEngine.Evaluate(highIntent, composed));
     }
 
     [Fact]
@@ -41,7 +42,7 @@ public sealed class PolicyCompositionTests
         var composed = derived.WithBase(basePolicy);
 
         var mediumIntent = new Intent("M", [], new IntentConfidence(0.5, "Medium"));
-        Assert.Equal(PolicyDecision.Escalate, mediumIntent.Decide(composed));
+        Assert.Equal(PolicyDecision.Escalate, IntentPolicyEngine.Evaluate(mediumIntent, composed));
     }
 
     [Fact]
@@ -57,7 +58,7 @@ public sealed class PolicyCompositionTests
         var merged = IntentPolicy.Merge(policyA, policyB);
 
         var lowIntent = new Intent("L", [], new IntentConfidence(0.2, "Low"));
-        Assert.Equal(PolicyDecision.Block, lowIntent.Decide(merged));
+        Assert.Equal(PolicyDecision.Block, IntentPolicyEngine.Evaluate(lowIntent, merged));
     }
 
     [Fact]
@@ -65,7 +66,7 @@ public sealed class PolicyCompositionTests
     {
         var merged = IntentPolicy.Merge();
         var intent = new Intent("X", [], new IntentConfidence(0.5, "Medium"));
-        Assert.Equal(PolicyDecision.Observe, intent.Decide(merged));
+        Assert.Equal(PolicyDecision.Observe, IntentPolicyEngine.Evaluate(intent, merged));
     }
 
     [Fact]
@@ -76,7 +77,7 @@ public sealed class PolicyCompositionTests
             .Build();
         var merged = IntentPolicy.Merge(policy);
         var intent = new Intent("M", [], new IntentConfidence(0.5, "Medium"));
-        Assert.Equal(PolicyDecision.Warn, intent.Decide(merged));
+        Assert.Equal(PolicyDecision.Warn, IntentPolicyEngine.Evaluate(intent, merged));
     }
 
     [Fact]

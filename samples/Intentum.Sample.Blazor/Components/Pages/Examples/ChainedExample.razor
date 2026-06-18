@@ -5,7 +5,7 @@
 @using Intentum.Core
 @using Intentum.Core.Behavior
 @using Intentum.Core.Models
-@using Intentum.Runtime
+@using Intentum.Runtime.Engine
 @using Intentum.Runtime.Policy
 @rendermode InteractiveServer
 
@@ -147,7 +147,7 @@
         var ruleIntent = primary.Infer(space);
         var llmIntent = fallback.Infer(space);
         var chainedIntent = chained.Infer(space);
-        var decision = chainedIntent.Decide(policy);
+        var decision = IntentPolicyEngine.Evaluate(chainedIntent, policy);
 
         usedRule = ruleIntent.Confidence.Score >= 0.7;
         ruleResult = (ruleIntent.Name, ruleIntent.Confidence.Score);

@@ -2,7 +2,6 @@ using Intentum.AI.Embeddings;
 using Intentum.AspNetCore.HealthChecks;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Moq;
-using Xunit;
 
 namespace Intentum.Tests.AspNetCore.HealthChecks;
 

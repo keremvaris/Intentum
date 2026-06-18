@@ -1,7 +1,7 @@
 using System.Diagnostics;
 using Intentum.Core.Behavior;
 using Intentum.Core.Contracts;
-using Intentum.Runtime;
+using Intentum.Runtime.Engine;
 using Intentum.Runtime.Policy;
 
 namespace Intentum.Simulation;
@@ -28,7 +28,7 @@ public sealed class IntentScenarioRunner(IBehaviorSpaceSimulator simulator) : IS
             var space = BuildSpace(scenario);
             var sw = Stopwatch.StartNew();
             var intent = model.Infer(space);
-            var decision = intent.Decide(policy);
+            var decision = IntentPolicyEngine.Evaluate(intent, policy);
             sw.Stop();
 
             results.Add(new ScenarioRunResult(

@@ -4,7 +4,7 @@ using Intentum.AI.AzureOpenAI;
 using Intentum.AI.Similarity;
 using Intentum.Core;
 using Intentum.Core.Behavior;
-using Intentum.Runtime;
+using Intentum.Runtime.Engine;
 using Intentum.Runtime.Policy;
 
 namespace Intentum.Tests;
@@ -92,7 +92,7 @@ public class AzureOpenAIIntegrationTests
             var policy = new IntentPolicy()
                 .AddRule(new PolicyRule("AllowHigh", i => i.Confidence.Level is "High" or "Certain", PolicyDecision.Allow))
                 .AddRule(new PolicyRule("Observe", _ => true, PolicyDecision.Observe));
-            var decision = intent.Decide(policy);
+            var decision = IntentPolicyEngine.Evaluate(intent, policy);
             Assert.Contains(decision, new[] { PolicyDecision.Allow, PolicyDecision.Observe });
         }
         catch (HttpRequestException ex) when (ex.StatusCode == HttpStatusCode.TooManyRequests)

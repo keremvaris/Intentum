@@ -3,7 +3,7 @@ using Intentum.AI.Models;
 using Intentum.AI.Similarity;
 using Intentum.Core;
 using Intentum.Core.Behavior;
-using Intentum.Runtime;
+using Intentum.Runtime.Engine;
 using Intentum.Runtime.Policy;
 
 namespace Intentum.Tests;
@@ -48,7 +48,7 @@ public class HighLevelScenarioTests
                 PolicyDecision.Allow));
 
         var intent = model.Infer(space);
-        var decision = intent.Decide(policy);
+        var decision = IntentPolicyEngine.Evaluate(intent, policy);
 
         Assert.Contains(decision, new[] { PolicyDecision.Block, PolicyDecision.Allow, PolicyDecision.Observe });
         Assert.Equal(6, space.Events.Count);
@@ -80,7 +80,7 @@ public class HighLevelScenarioTests
                 PolicyDecision.Observe));
 
         var intent = model.Infer(space);
-        var decision = intent.Decide(policy);
+        var decision = IntentPolicyEngine.Evaluate(intent, policy);
 
         Assert.NotEqual(PolicyDecision.Block, decision);
         Assert.Equal(6, space.Events.Count);
@@ -114,7 +114,7 @@ public class HighLevelScenarioTests
                 PolicyDecision.Observe));
 
         var intent = model.Infer(space);
-        var decision = intent.Decide(policy);
+        var decision = IntentPolicyEngine.Evaluate(intent, policy);
 
         Assert.Contains(decision, new[] { PolicyDecision.Block, PolicyDecision.Allow, PolicyDecision.Observe });
         Assert.Equal(6, space.Events.Count);

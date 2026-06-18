@@ -2,7 +2,7 @@ using Intentum.AI.Mock;
 using Intentum.AI.Models;
 using Intentum.AI.Similarity;
 using Intentum.Core.Behavior;
-using Intentum.Runtime;
+using Intentum.Runtime.Engine;
 using Intentum.Runtime.Policy;
 
 namespace Intentum.Tests;
@@ -202,7 +202,7 @@ public class FluentApiTests
 
         // Act
         var intent = model.Infer(space);
-        var decision = intent.Decide(policy);
+        var decision = IntentPolicyEngine.Evaluate(intent, policy);
 
         // Assert
         Assert.Contains(decision, new[] { PolicyDecision.Allow, PolicyDecision.Observe });

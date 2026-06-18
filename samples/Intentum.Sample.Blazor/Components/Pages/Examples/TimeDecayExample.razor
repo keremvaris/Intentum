@@ -3,7 +3,7 @@
 @using Intentum.AI.Models
 @using Intentum.AI.Similarity
 @using Intentum.Core.Behavior
-@using Intentum.Runtime
+@using Intentum.Runtime.Engine
 @using Intentum.Runtime.Policy
 @rendermode InteractiveServer
 
@@ -108,7 +108,7 @@
             space.Observe(new BehaviorEvent(evt.Actor, evt.Action, evt.Time));
 
         var intent = model.Infer(space);
-        var decision = intent.Decide(policy);
+        var decision = IntentPolicyEngine.Evaluate(intent, policy);
 
         result = (intent.Name, intent.Confidence.Level, intent.Confidence.Score, decision.ToString());
     }

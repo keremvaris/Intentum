@@ -2,7 +2,7 @@
 @using Intentum.Core
 @using Intentum.Core.Behavior
 @using Intentum.Core.Models
-@using Intentum.Runtime
+@using Intentum.Runtime.Engine
 @using Intentum.Runtime.Policy
 @rendermode InteractiveServer
 
@@ -78,7 +78,7 @@
 <span class="cmt">// 3. Olay gözle, niyet çıkar, karar ver</span>
 <span class="kw">var</span> space = <span class="kw">new</span> <span class="typ">BehaviorSpace</span>().Observe(<span class="str">"user"</span>, <span class="str">"hello"</span>);
 <span class="kw">var</span> intent = model.Infer(space);
-<span class="kw">var</span> decision = intent.Decide(policy);</pre>
+<span class="kw">var</span> decision = IntentPolicyEngine.Evaluate(intent, policy);</pre>
 </div>
 
 @code {
@@ -105,7 +105,7 @@
 
         var space = new BehaviorSpace().Observe(actor, action);
         var intent = model.Infer(space);
-        var decision = intent.Decide(policy);
+        var decision = IntentPolicyEngine.Evaluate(intent, policy);
 
         result = (intent.Name, intent.Confidence.Level, intent.Confidence.Score, decision.ToString(), intent.Reasoning);
     }

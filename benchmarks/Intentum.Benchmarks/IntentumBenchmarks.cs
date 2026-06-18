@@ -6,7 +6,7 @@ using Intentum.AI.Similarity;
 using Intentum.Core;
 using Intentum.Core.Behavior;
 using Intentum.Core.Intents;
-using Intentum.Runtime;
+using Intentum.Runtime.Engine;
 using Intentum.Runtime.Policy;
 
 namespace Intentum.Benchmarks;
@@ -61,7 +61,7 @@ public class IntentumBenchmarks
     public Intent LlmIntentModel_Infer_1KEvents() => _model.Infer(_space1K);
 
     [Benchmark]
-    public PolicyDecision PolicyEngine_Decide() => _intent.Decide(_policy);
+    public PolicyDecision PolicyEngine_Decide() => IntentPolicyEngine.Evaluate(_intent, _policy);
 }
 
 public static class Program

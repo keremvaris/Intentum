@@ -20,7 +20,9 @@ public sealed class RuntimeExtensionsTests
             .Build();
 
         var intent = model.Infer(space);
+#pragma warning disable CS0618 // Testing the deprecated method intentionally
         var decision = intent.Decide(policy);
+#pragma warning restore CS0618
 
         Assert.Equal(PolicyDecision.Allow, decision);
     }

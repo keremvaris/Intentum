@@ -1,5 +1,4 @@
 using Intentum.Core.Intents;
-using Intentum.Runtime;
 using Intentum.Runtime.Engine;
 using Intentum.Runtime.Policy;
 
@@ -52,7 +51,7 @@ public sealed class IntentPolicyEngineTests
         var policy = new IntentPolicy()
             .AddRule(new PolicyRule("HighConfidence", i => i.Confidence.Level == "High", PolicyDecision.Allow));
 
-        var decision = intent.Decide(policy);
+        var decision = IntentPolicyEngine.Evaluate(intent, policy);
 
         Assert.Equal(PolicyDecision.Allow, decision);
     }

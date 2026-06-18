@@ -1,7 +1,7 @@
 using Intentum.AI.Mock;
 using Intentum.AI.Similarity;
 using Intentum.Core.Behavior;
-using Intentum.Runtime;
+using Intentum.Runtime.Engine;
 using Intentum.Runtime.Policy;
 using Intentum.Testing;
 
@@ -119,7 +119,7 @@ public class TestingUtilitiesTests
         // Act
         var intent = model.Infer(space);
         Assert.NotNull(intent);
-        var decision = intent.Decide(policy);
+        var decision = IntentPolicyEngine.Evaluate(intent, policy);
         // Assert (default policy may return Allow, Observe, or Warn depending on inferred intent)
         PolicyDecisionAssertions.IsOneOf(decision, PolicyDecision.Allow, PolicyDecision.Observe, PolicyDecision.Warn);
     }

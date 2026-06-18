@@ -1,6 +1,6 @@
 using Intentum.Core.Behavior;
 using Intentum.Core.Contracts;
-using Intentum.Runtime;
+using Intentum.Runtime.Engine;
 using Intentum.Runtime.Policy;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Azure.Functions.Worker.Http;
@@ -47,7 +47,7 @@ public class InferFunction
         foreach (var e in body.Events)
             space.Observe(new BehaviorEvent(e.Actor, e.Action, DateTimeOffset.UtcNow));
         var intent = _model.Infer(space);
-        var decision = intent.Decide(_policy);
+        var decision = IntentPolicyEngine.Evaluate(intent, _policy);
 
         var response = req.CreateResponse(System.Net.HttpStatusCode.OK);
         await response.WriteAsJsonAsync(new

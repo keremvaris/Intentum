@@ -1,6 +1,6 @@
 using Intentum.Core.Behavior;
 using Intentum.Persistence.Repositories;
-using Intentum.Runtime;
+using Intentum.Runtime.Engine;
 using Intentum.Runtime.Policy;
 
 namespace Intentum.Sample.Blazor.Api;
@@ -65,7 +65,7 @@ public sealed class ProjectPulseService(
                     state.SetStep(i + 1);
 
                     var intent = model.Infer(space);
-                    var decision = intent.Decide(ProjectPulsePolicy);
+                    var decision = IntentPolicyEngine.Evaluate(intent, ProjectPulsePolicy);
                     var history = scope.ServiceProvider.GetRequiredService<IIntentHistoryRepository>();
                     var behaviorSpaceId = Guid.NewGuid().ToString();
                     var metadata = new Dictionary<string, object>

@@ -1,6 +1,6 @@
 using Intentum.Core.Behavior;
 using Intentum.Core.Contracts;
-using Intentum.Runtime;
+using Intentum.Runtime.Engine;
 using Intentum.Runtime.Policy;
 
 namespace Intentum.Experiments;
@@ -57,7 +57,7 @@ public sealed class IntentExperiment
             var variantIndex = SelectVariantByHash(identity, split);
             var variant = _variants[variantIndex];
             var intent = variant.Model.Infer(space);
-            var decision = intent.Decide(variant.Policy);
+            var decision = IntentPolicyEngine.Evaluate(intent, variant.Policy);
             results.Add(new ExperimentResult(variant.Name, identity, intent, decision));
         }
 

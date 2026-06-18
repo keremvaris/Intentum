@@ -1,7 +1,7 @@
 using Intentum.Core.Behavior;
 using Intentum.Core.Contracts;
 using Intentum.Core.Models;
-using Intentum.Runtime;
+using Intentum.Runtime.Engine;
 using Intentum.Runtime.Policy;
 
 namespace Intentum.Sample.Blazor.Api;
@@ -65,7 +65,7 @@ public sealed class DigitalTwinService
         var baseTime = DateTimeOffset.UtcNow;
         var space = DigitalTwinVariants.BuildSpace(variant, baseTime);
         var intent = _model.Infer(space);
-        var decision = intent.Decide(DigitalTwinPolicy);
+        var decision = IntentPolicyEngine.Evaluate(intent, DigitalTwinPolicy);
         var events = DigitalTwinVariants.GetEvents(variant, baseTime);
         var recommendedScenario = (decision.ToString() == "Escalate" || decision.ToString() == "Warn") ? DigitalTwinVariants.GetRecommendedScenario(variant) : null;
         return new DigitalTwinInferResult(

@@ -10,7 +10,7 @@ using Intentum.AI.Mistral;
 using Intentum.AI.Similarity;
 using Intentum.Core;
 using Intentum.Core.Behavior;
-using Intentum.Runtime;
+using Intentum.Runtime.Engine;
 using Intentum.Runtime.Policy;
 
 // ---------------------------------------------------------------------------
@@ -200,7 +200,7 @@ static void RunFullPipelineAndPrint(IIntentEmbeddingProvider provider, string la
     var policy = new IntentPolicy()
         .AddRule(new PolicyRule("AllowHigh", i => i.Confidence.Level is "High" or "Certain", PolicyDecision.Allow))
         .AddRule(new PolicyRule("Observe", _ => true, PolicyDecision.Observe));
-    var decision = intent.Decide(policy);
+    var decision = IntentPolicyEngine.Evaluate(intent, policy);
     Console.WriteLine($"  [OK] {label} tam pipeline: Intent='{intent.Name}', Confidence={intent.Confidence.Level} ({intent.Confidence.Score:F4}), Decision={decision}.");
 }
 

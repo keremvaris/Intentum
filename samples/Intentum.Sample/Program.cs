@@ -9,6 +9,7 @@ using Intentum.Core;
 using Intentum.Core.Batch;
 using Intentum.Core.Behavior;
 using Intentum.Runtime;
+using Intentum.Runtime.Engine;
 using Intentum.Runtime.Localization;
 using Intentum.Runtime.Policy;
 using Intentum.Runtime.RateLimiting;
@@ -265,7 +266,7 @@ void RunScenario(string name, string level, string? sector, Action<BehaviorSpace
     build(space);
 
     var intent = intentModel.Infer(space);
-    var decision = intent.Decide(policy);
+    var decision = IntentPolicyEngine.Evaluate(intent, policy);
     var decisionTr = decision.ToLocalizedString(localizer);
     var vector = space.ToVector();
 
@@ -328,7 +329,7 @@ void DemonstrateNewFeatures()
     // 4. New Policy Decision Types
     Console.WriteLine("─── New Policy Decision Types ───");
     var testIntent = intentModel.Infer(fluentSpace);
-    var testDecision = testIntent.Decide(policy);
+    var testDecision = IntentPolicyEngine.Evaluate(testIntent, policy);
     Console.WriteLine($"  Decision: {testDecision}");
     Console.WriteLine($"  Localized (TR): {testDecision.ToLocalizedString(localizer)}");
     Console.WriteLine($"  Supports: Allow, Observe, Warn, Block, Escalate, RequireAuth, RateLimit");

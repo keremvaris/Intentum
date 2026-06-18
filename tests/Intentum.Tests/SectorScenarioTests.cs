@@ -3,7 +3,7 @@ using Intentum.AI.Models;
 using Intentum.AI.Similarity;
 using Intentum.Core;
 using Intentum.Core.Behavior;
-using Intentum.Runtime;
+using Intentum.Runtime.Engine;
 using Intentum.Runtime.Policy;
 
 namespace Intentum.Tests;
@@ -40,7 +40,7 @@ public class SectorScenarioTests
                 PolicyDecision.Allow));
 
         var intent = model.Infer(space);
-        var decision = intent.Decide(policy);
+        var decision = IntentPolicyEngine.Evaluate(intent, policy);
 
         Assert.Contains(decision, new[] { PolicyDecision.Allow, PolicyDecision.Observe });
     }
@@ -71,7 +71,7 @@ public class SectorScenarioTests
                 PolicyDecision.Allow));
 
         var intent = model.Infer(space);
-        var decision = intent.Decide(policy);
+        var decision = IntentPolicyEngine.Evaluate(intent, policy);
 
         Assert.Contains(decision, new[] { PolicyDecision.Block, PolicyDecision.Allow, PolicyDecision.Observe, PolicyDecision.Warn });
     }
@@ -97,7 +97,7 @@ public class SectorScenarioTests
                 PolicyDecision.Observe));
 
         var intent = model.Infer(space);
-        var decision = intent.Decide(policy);
+        var decision = IntentPolicyEngine.Evaluate(intent, policy);
 
         Assert.Contains(decision, new[] { PolicyDecision.Allow, PolicyDecision.Observe });
     }
@@ -121,7 +121,7 @@ public class SectorScenarioTests
                 PolicyDecision.Observe));
 
         var intent = model.Infer(space);
-        var decision = intent.Decide(policy);
+        var decision = IntentPolicyEngine.Evaluate(intent, policy);
 
         Assert.Contains(decision, new[] { PolicyDecision.Allow, PolicyDecision.Observe });
         Assert.Equal(2, space.Events.Count);
@@ -150,7 +150,7 @@ public class SectorScenarioTests
                 PolicyDecision.Observe));
 
         var intent = model.Infer(space);
-        var decision = intent.Decide(policy);
+        var decision = IntentPolicyEngine.Evaluate(intent, policy);
 
         Assert.Contains(decision, new[] { PolicyDecision.Allow, PolicyDecision.Observe });
         Assert.Equal(3, space.Events.Count);
@@ -174,7 +174,7 @@ public class SectorScenarioTests
                 PolicyDecision.Allow));
 
         var intent = model.Infer(space);
-        var decision = intent.Decide(policy);
+        var decision = IntentPolicyEngine.Evaluate(intent, policy);
 
         Assert.Contains(decision, new[] { PolicyDecision.Allow, PolicyDecision.Observe });
     }
@@ -199,7 +199,7 @@ public class SectorScenarioTests
             .AddRule(new PolicyRule("DefaultObserve", _ => true, PolicyDecision.Observe));
 
         var intent = model.Infer(space);
-        var decision = intent.Decide(policy);
+        var decision = IntentPolicyEngine.Evaluate(intent, policy);
 
         Assert.Contains(decision, new[] { PolicyDecision.Warn, PolicyDecision.Allow, PolicyDecision.Observe });
     }
@@ -228,7 +228,7 @@ public class SectorScenarioTests
                 PolicyDecision.Observe));
 
         var intent = model.Infer(space);
-        var decision = intent.Decide(policy);
+        var decision = IntentPolicyEngine.Evaluate(intent, policy);
 
         Assert.NotEqual(PolicyDecision.Block, decision);
         Assert.Equal(4, space.Events.Count);

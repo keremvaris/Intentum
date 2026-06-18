@@ -23,5 +23,7 @@ versionCommand.SetHandler(() => Console.WriteLine($"Intentum CLI v{versionString
 rootCommand.AddCommand(scaffoldCommand);
 rootCommand.AddCommand(validateCommand);
 rootCommand.AddCommand(versionCommand);
+rootCommand.AddCommand(TestInferCommand.Create());
+rootCommand.AddCommand(ExportCommand.Create());
 
 return await rootCommand.InvokeAsync(args);

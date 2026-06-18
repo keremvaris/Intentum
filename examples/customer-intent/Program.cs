@@ -7,7 +7,7 @@ using Intentum.AI.Models;
 using Intentum.AI.Similarity;
 using Intentum.Core;
 using Intentum.Core.Behavior;
-using Intentum.Runtime;
+using Intentum.Runtime.Engine;
 using Intentum.Runtime.Policy;
 
 var intentModel = new LlmIntentModel(
@@ -31,7 +31,7 @@ var space1 = new BehaviorSpace()
     .Observe("user", "payment.submit");
 
 var intent1 = intentModel.Infer(space1);
-var decision1 = intent1.Decide(policy);
+var decision1 = IntentPolicyEngine.Evaluate(intent1, policy);
 
 Console.WriteLine("Scenario 1 — Purchase (browse → cart → checkout → pay)");
 Console.WriteLine($"  Confidence: {intent1.Confidence.Level} (score: {intent1.Confidence.Score:F2})");
@@ -46,7 +46,7 @@ var space2 = new BehaviorSpace()
     .Observe("user", "view.faq");
 
 var intent2 = intentModel.Infer(space2);
-var decision2 = intent2.Decide(policy);
+var decision2 = IntentPolicyEngine.Evaluate(intent2, policy);
 
 Console.WriteLine("Scenario 2 — Info gathering (search, view, compare, faq)");
 Console.WriteLine($"  Confidence: {intent2.Confidence.Level} (score: {intent2.Confidence.Score:F2})");
@@ -60,7 +60,7 @@ var space3 = new BehaviorSpace()
     .Observe("user", "chat.start");
 
 var intent3 = intentModel.Infer(space3);
-var decision3 = intent3.Decide(policy);
+var decision3 = IntentPolicyEngine.Evaluate(intent3, policy);
 
 Console.WriteLine("Scenario 3 — Support (contact, ticket, chat)");
 Console.WriteLine($"  Confidence: {intent3.Confidence.Level} (score: {intent3.Confidence.Score:F2})");

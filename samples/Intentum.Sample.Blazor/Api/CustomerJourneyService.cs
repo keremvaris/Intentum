@@ -1,7 +1,7 @@
 using Intentum.Core.Behavior;
 using Intentum.Core.Contracts;
 using Intentum.Core.Models;
-using Intentum.Runtime;
+using Intentum.Runtime.Engine;
 using Intentum.Runtime.Policy;
 
 namespace Intentum.Sample.Blazor.Api;
@@ -68,7 +68,7 @@ public sealed class CustomerJourneyService
         var baseTime = DateTimeOffset.UtcNow;
         var space = CustomerJourneyVariants.BuildSpace(variant, baseTime);
         var intent = _model.Infer(space);
-        var decision = intent.Decide(CustomerJourneyPolicy);
+        var decision = IntentPolicyEngine.Evaluate(intent, CustomerJourneyPolicy);
         var events = CustomerJourneyVariants.GetEvents(variant, baseTime);
         var journeyStage = variant switch
         {

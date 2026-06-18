@@ -3,6 +3,7 @@ using Intentum.AI.Models;
 using Intentum.AI.Similarity;
 using Intentum.Core.Behavior;
 using Intentum.Runtime;
+using Intentum.Runtime.Engine;
 using Intentum.Runtime.Localization;
 using Intentum.Runtime.Policy;
 
@@ -144,7 +145,7 @@ public class PolicyDecisionTypesTests
 
         // Act
         var intent = model.Infer(space);
-        var decision = intent.Decide(policy);
+        var decision = IntentPolicyEngine.Evaluate(intent, policy);
 
         // Assert
         Assert.Contains(decision, Enum.GetValues<PolicyDecision>());

@@ -5,7 +5,7 @@
 using Intentum.Core;
 using Intentum.Core.Behavior;
 using Intentum.Core.Models;
-using Intentum.Runtime;
+using Intentum.Runtime.Engine;
 using Intentum.Runtime.Policy;
 
 Console.WriteLine("=== Hello Intentum ===\n");
@@ -28,7 +28,7 @@ var policy = new IntentPolicyBuilder()
 var space = new BehaviorSpace().Observe("user", "hello");
 
 var intent = model.Infer(space);
-var decision = intent.Decide(policy);
+var decision = IntentPolicyEngine.Evaluate(intent, policy);
 
 Console.WriteLine($"Intent: {intent.Name}");
 Console.WriteLine($"Confidence: {intent.Confidence.Level} ({intent.Confidence.Score:F2})");

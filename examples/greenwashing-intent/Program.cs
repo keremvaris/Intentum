@@ -8,7 +8,7 @@ using Intentum.Core;
 using Intentum.Core.Behavior;
 using Intentum.Core.Contracts;
 using Intentum.Core.Intents;
-using Intentum.Runtime;
+using Intentum.Runtime.Engine;
 using Intentum.Runtime.Policy;
 
 // Sample sustainability report (vague claims, metrics without proof)
@@ -44,7 +44,7 @@ var policy = new IntentPolicyBuilder()
 .Allow("LowRisk", _ => true)
 .Build();
 
-var decision = intent.Decide(policy);
+var decision = IntentPolicyEngine.Evaluate(intent, policy);
 Console.WriteLine($"Policy decision: {decision}\n");
 
 // 4. Solution suggestions (application layer)

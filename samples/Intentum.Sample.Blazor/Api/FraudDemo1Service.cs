@@ -1,7 +1,7 @@
 using Intentum.Core.Behavior;
 using Intentum.Core.Contracts;
 using Intentum.Persistence.Repositories;
-using Intentum.Runtime;
+using Intentum.Runtime.Engine;
 using Intentum.Runtime.Policy;
 
 namespace Intentum.Sample.Blazor.Api;
@@ -87,7 +87,7 @@ public sealed class FraudDemo1Service(
                 await BroadcastStep(scope.ServiceProvider, model, space, 4, eventsSummary);
 
                 var intent = model.Infer(space);
-                var decision = intent.Decide(Demo1Policy);
+        var decision = IntentPolicyEngine.Evaluate(intent, Demo1Policy);
                 var history = scope.ServiceProvider.GetRequiredService<IIntentHistoryRepository>();
                 var behaviorSpaceId = Guid.NewGuid().ToString();
                 var metadata = new Dictionary<string, object>
@@ -131,7 +131,7 @@ public sealed class FraudDemo1Service(
     private async Task BroadcastStep(IServiceProvider scoped, IIntentModel model, BehaviorSpace space, int eventIndex, List<string> eventsSummary)
     {
         var intent = model.Infer(space);
-        var decision = intent.Decide(Demo1Policy);
+        var decision = IntentPolicyEngine.Evaluate(intent, Demo1Policy);
         var history = scoped.GetRequiredService<IIntentHistoryRepository>();
         var behaviorSpaceId = Guid.NewGuid().ToString();
         var metadata = new Dictionary<string, object>

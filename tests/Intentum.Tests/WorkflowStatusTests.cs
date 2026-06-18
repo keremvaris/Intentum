@@ -3,7 +3,7 @@ using Intentum.AI.Models;
 using Intentum.AI.Similarity;
 using Intentum.Core;
 using Intentum.Core.Behavior;
-using Intentum.Runtime;
+using Intentum.Runtime.Engine;
 using Intentum.Runtime.Policy;
 
 namespace Intentum.Tests;
@@ -44,7 +44,7 @@ public class WorkflowStatusTests
             .AddRule(new PolicyRule("DefaultObserve", _ => true, PolicyDecision.Observe));
 
         var intent = model.Infer(space);
-        var decision = intent.Decide(policy);
+        var decision = IntentPolicyEngine.Evaluate(intent, policy);
 
         Assert.Contains(decision, new[] { PolicyDecision.Allow, PolicyDecision.Observe });
         Assert.Equal(2, space.Events.Count);
@@ -71,7 +71,7 @@ public class WorkflowStatusTests
             .AddRule(new PolicyRule("DefaultObserve", _ => true, PolicyDecision.Observe));
 
         var intent = model.Infer(space);
-        var decision = intent.Decide(policy);
+        var decision = IntentPolicyEngine.Evaluate(intent, policy);
 
         Assert.Equal(PolicyDecision.Allow, decision);
         Assert.Equal(4, space.Events.Count);
@@ -103,7 +103,7 @@ public class WorkflowStatusTests
             .AddRule(new PolicyRule("DefaultObserve", _ => true, PolicyDecision.Observe));
 
         var intent = model.Infer(space);
-        var decision = intent.Decide(policy);
+        var decision = IntentPolicyEngine.Evaluate(intent, policy);
 
         Assert.Equal(PolicyDecision.Allow, decision);
         Assert.Equal(5, space.Events.Count);
@@ -130,7 +130,7 @@ public class WorkflowStatusTests
             .AddRule(new PolicyRule("DefaultObserve", _ => true, PolicyDecision.Observe));
 
         var intent = model.Infer(space);
-        var decision = intent.Decide(policy);
+        var decision = IntentPolicyEngine.Evaluate(intent, policy);
 
         Assert.Equal(PolicyDecision.Block, decision);
         Assert.Equal(4, space.Events.Count);
@@ -155,7 +155,7 @@ public class WorkflowStatusTests
             .AddRule(new PolicyRule("DefaultObserve", _ => true, PolicyDecision.Observe));
 
         var intent = model.Infer(space);
-        var decision = intent.Decide(policy);
+        var decision = IntentPolicyEngine.Evaluate(intent, policy);
 
         Assert.Contains(decision, new[] { PolicyDecision.Allow, PolicyDecision.Observe });
     }
@@ -180,7 +180,7 @@ public class WorkflowStatusTests
             .AddRule(new PolicyRule("DefaultObserve", _ => true, PolicyDecision.Observe));
 
         var intent = model.Infer(space);
-        var decision = intent.Decide(policy);
+        var decision = IntentPolicyEngine.Evaluate(intent, policy);
 
         Assert.Equal(PolicyDecision.Allow, decision);
     }
