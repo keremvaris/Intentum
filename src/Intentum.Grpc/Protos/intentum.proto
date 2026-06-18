@@ -1,0 +1,38 @@
+syntax = "proto3";
+
+package intentum;
+
+service IntentumService {
+    rpc Infer (InferRequest) returns (InferResponse);
+    rpc Evaluate (EvaluateRequest) returns (EvaluateResponse);
+}
+
+message BehaviorEvent {
+    string actor = 1;
+    string action = 2;
+    string occurred_at = 3;
+}
+
+message InferRequest {
+    repeated BehaviorEvent events = 1;
+}
+
+message Confidence {
+    double score = 1;
+    string level = 2;
+}
+
+message InferResponse {
+    string name = 1;
+    Confidence confidence = 2;
+}
+
+message EvaluateRequest {
+    string intent_name = 1;
+    double confidence_score = 2;
+    string confidence_level = 3;
+}
+
+message EvaluateResponse {
+    string decision = 1;
+}
