@@ -8,10 +8,13 @@ namespace Intentum.Runtime;
 
 public static class RuntimeExtensions
 {
+    [Obsolete("Use DecideWithRateLimitAsync for async scenarios. This method will be removed in v2.0.")]
     public static PolicyDecision Decide(
         this Intent intent,
         IntentPolicy policy)
     {
+        ArgumentNullException.ThrowIfNull(intent);
+        ArgumentNullException.ThrowIfNull(policy);
         return IntentPolicyEngine.Evaluate(intent, policy);
     }
 
@@ -23,6 +26,9 @@ public static class RuntimeExtensions
         PolicyContext context,
         ContextAwareIntentPolicy policy)
     {
+        ArgumentNullException.ThrowIfNull(intent);
+        ArgumentNullException.ThrowIfNull(context);
+        ArgumentNullException.ThrowIfNull(policy);
         return ContextAwarePolicyEngine.Evaluate(intent, context, policy);
     }
 
@@ -33,6 +39,8 @@ public static class RuntimeExtensions
         this Intent intent,
         PolicyVariantSet variantSet)
     {
+        ArgumentNullException.ThrowIfNull(intent);
+        ArgumentNullException.ThrowIfNull(variantSet);
         return variantSet.Decide(intent);
     }
 
@@ -48,6 +56,11 @@ public static class RuntimeExtensions
         out RateLimitResult? rateLimitResult,
         CancellationToken cancellationToken = default)
     {
+        ArgumentNullException.ThrowIfNull(intent);
+        ArgumentNullException.ThrowIfNull(policy);
+        ArgumentNullException.ThrowIfNull(rateLimiter);
+        ArgumentNullException.ThrowIfNull(options);
+
         var decision = IntentPolicyEngine.Evaluate(intent, policy);
         rateLimitResult = null;
         if (decision != PolicyDecision.RateLimit)
@@ -67,6 +80,11 @@ public static class RuntimeExtensions
         RateLimitOptions options,
         CancellationToken cancellationToken = default)
     {
+        ArgumentNullException.ThrowIfNull(intent);
+        ArgumentNullException.ThrowIfNull(policy);
+        ArgumentNullException.ThrowIfNull(rateLimiter);
+        ArgumentNullException.ThrowIfNull(options);
+
         var decision = IntentPolicyEngine.Evaluate(intent, policy);
         if (decision != PolicyDecision.RateLimit)
             return (decision, null);
@@ -78,6 +96,8 @@ public static class RuntimeExtensions
         this PolicyDecision decision,
         IIntentumLocalizer localizer)
     {
+        ArgumentNullException.ThrowIfNull(localizer);
+
         var key = decision switch
         {
             PolicyDecision.Allow => LocalizationKeys.DecisionAllow,
