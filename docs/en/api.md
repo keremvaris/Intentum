@@ -20,7 +20,7 @@ So: *behavior → intent → policy decision*. No hard-coded scenario steps; the
 
 | Type | What it does |
 |------|----------------|
-| **BehaviorSpace** | Container for observed events. You call `.Observe(actor, action)` (e.g. `"user"`, `"login"`). Use `.ToVector()` or `.ToVector(ToVectorOptions?)` to get a behavior vector for inference; the result is cached until you call `Observe` again. Use **ToVectorOptions** for normalization (Cap, L1, SoftCap). |
+| **BehaviorSpace** | Container for observed events. You call `.Observe(actor, action)` (e.g. `"user"`, `"login"`). Use `.ToVector()` or `.ToVector(ToVectorOptions?)` to get a behavior vector for inference; the result is cached per options configuration until `Observe` is called again. Use **ToVectorOptions** for normalization (Cap, L1, SoftCap). |
 | **ToVectorOptions** | Options for building a behavior vector: `Normalization` (None, Cap, L1, SoftCap) and optional `CapPerDimension`. Use with `BehaviorSpace.ToVector(options)` or `ToVector(start, end, options)`. |
 | **Intent** | Result of inference: confidence level, score, signals (contributing behaviors with weights), and optional **Reasoning** (human-readable explanation, e.g. which rule matched or fallback used). |
 | **IntentConfidence** | Part of Intent: `Level` (string) and `Score` (0–1). |
@@ -29,6 +29,9 @@ So: *behavior → intent → policy decision*. No hard-coded scenario steps; the
 | **RuleBasedIntentModel** | Intent model that uses rules only (no LLM). First matching rule wins; returns **RuleMatch** (name, score, reasoning). Fast, deterministic, explainable. |
 | **ChainedIntentModel** | Tries a primary model first; if confidence below threshold, falls back to a secondary model (e.g. LlmIntentModel). Use with RuleBasedIntentModel + LlmIntentModel for rule-first + LLM fallback. |
 | **RuleMatch** | Result of a rule: `Name`, `Score`, optional `Reasoning`. Returned by rules passed to **RuleBasedIntentModel**. |
+| **IntentModelExtensions.InferWithValidation** | Extension: validates `BehaviorSpace` is not empty before calling `Infer`; throws `ArgumentException` if no events. |
+| **BehaviorSpaceExtensions.EnsureNotEmpty** | Extension: throws `ArgumentException` if `BehaviorSpace.Events.Count == 0`. |
+| **IntentPolicy.Validate** | Validates the policy has at least one rule and no duplicate rule names; throws `InvalidOperationException` on failure. |
 
 **Namespace:** `Intent`, `IntentConfidence`, and `IntentSignal` are in **`Intentum.Core.Intents`**. Use `using Intentum.Core.Intents;` to reference them.
 
@@ -51,6 +54,7 @@ So: *behavior → intent → policy decision*. No hard-coded scenario steps; the
 | **RateLimitOptions** | Key, Limit, Window — use with DecideWithRateLimit / DecideWithRateLimitAsync. |
 | **IRateLimiter** / **MemoryRateLimiter** | Rate limiting for PolicyDecision.RateLimit. **MemoryRateLimiter** = in-memory fixed window; use a distributed implementation for multi-node. |
 | **RateLimitResult** | Allowed, CurrentCount, Limit, RetryAfter. |
+| **RateLimitingExtensions.AddIntentumRateLimiting** | DI extension: registers `MemoryRateLimiter` as `IRateLimiter` singleton. |
 | **RuntimeExtensions.ToLocalizedString** | Extension: `decision.ToLocalizedString(localizer)` — human-readable text (e.g. for UI). |
 | **IIntentumLocalizer** / **DefaultLocalizer** | Localization for decision labels (e.g. "Allow", "Block"). **DefaultLocalizer** uses a culture (e.g. `"tr"`). |
 
@@ -88,6 +92,7 @@ var policy = new IntentPolicyBuilder()
 | **IntentModelStreamingExtensions** | **InferMany(model, spaces)** — lazy `IEnumerable<Intent>` over many spaces; **InferManyAsync(model, spaces, ct)** — async stream `IAsyncEnumerable<Intent>`. |
 | **IEmbeddingCache** / **MemoryEmbeddingCache** | Cache interface and memory implementation for embedding results. Use **CachedEmbeddingProvider** to wrap any provider with caching. |
 | **IBatchIntentModel** / **BatchIntentModel** | Batch processing for multiple behavior spaces. Supports async processing with cancellation. |
+| **CosineSimilarityHelper** | Static utility for cosine similarity: `CosineSimilarity(a, b)` in [-1, 1] and `CosineSimilarityNormalized(a, b)` in [0, 1]. |
 
 **Where to start:** Use **MockEmbeddingProvider** and **SimpleAverageSimilarityEngine** for a quick local run; swap in a real provider (see [Providers](providers.md)) for production.
 
@@ -113,6 +118,7 @@ var policy = new IntentPolicyBuilder()
 | **MistralEmbeddingProvider** | Uses Mistral embedding API; **MistralOptions**. |
 | **AzureOpenAIEmbeddingProvider** | Uses Azure OpenAI embedding deployment; **AzureOpenAIOptions**. |
 | **ClaudeMessageIntentModel** | Claude-based intent model (message scoring); **ClaudeOptions**. |
+| **OnnxIntentModel** | ONNX-based local intent model; **OnnxIntentModelOptions** for model path and configuration. |
 
 Register providers via the **AddIntentum\*** extension methods and options (env vars). See [Providers](providers.md) for setup and env vars.
 
@@ -252,6 +258,19 @@ The following packages add optional capabilities. For detailed usage (what it is
 | **IVersionedPolicy** | Version (string) + Policy (IntentPolicy). |
 | **VersionedPolicy** | Record: `new VersionedPolicy(version, policy)`. |
 | **PolicyVersionTracker** | `Add(versionedPolicy)`, `Current`, `Versions`, `Rollback()`, `Rollforward()`, `SetCurrent(index)`, `CompareVersions(a, b)`. |
+
+### Streaming.Kafka (`Intentum.Streaming.Kafka`)
+
+| Type | What it does |
+|------|----------------|
+| **KafkaBehaviorStreamConsumer** | Kafka-backed behavior stream consumer for real-time event processing from Kafka topics. |
+| **KafkaBehaviorStreamConsumerOptions** | Kafka connection and topic configuration. |
+
+### FusionCache (`Intentum.AI.Caching.FusionCache`)
+
+| Type | What it does |
+|------|----------------|
+| **FusionCacheEmbeddingCache** | `IEmbeddingCache` implementation using FusionCache for distributed caching with advanced eviction policies. |
 
 ---
 

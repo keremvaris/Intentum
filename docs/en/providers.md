@@ -183,6 +183,31 @@ Then inject the intent model (e.g. ClaudeMessageIntentModel) as needed. See pack
 
 ---
 
+## ONNX (Local)
+
+**What it does:** Runs intent inference locally using ONNX Runtime. No API key needed — the model runs on your machine. Useful for offline or low-latency scenarios.
+
+**Env vars:** None required (model path is configured via `OnnxIntentModelOptions`).
+
+**Minimal code:**
+
+```csharp
+using Intentum.AI.ONNX;
+
+var options = new OnnxIntentModelOptions
+{
+    ModelPath = "path/to/model.onnx"
+};
+var model = new OnnxIntentModel(options);
+var intent = model.Infer(space);
+```
+
+**Use when:** You need local inference without external API calls, or for edge/embedded scenarios.
+
+See [Hybrid mode and fallback](hybrid-mode-and-fallback.md) for combining ONNX with rule-based or LLM models.
+
+---
+
 ## Security and configuration
 
 - **Never commit API keys.** Use environment variables or a secret manager.

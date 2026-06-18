@@ -29,6 +29,9 @@ Yani: *davranış → intent → policy kararı*. Sabit senaryo adımları yok; 
 | **RuleBasedIntentModel** | Sadece kurallarla intent çıkarır (LLM yok). İlk eşleşen kural kazanır; **RuleMatch** (name, score, reasoning) döndürür. Hızlı, deterministik, açıklanabilir. |
 | **ChainedIntentModel** | Önce birincil modeli dener; güven eşiğin altındaysa ikincil modele (örn. LlmIntentModel) düşer. RuleBasedIntentModel + LlmIntentModel ile kural-öncelikli + LLM fallback. |
 | **RuleMatch** | Kural sonucu: `Name`, `Score`, opsiyonel `Reasoning`. **RuleBasedIntentModel** kuralları tarafından döndürülür. |
+| **IntentModelExtensions.InferWithValidation** | Extension: `Infer` çağırmadan önce `BehaviorSpace`'in boş olmadığını doğrular; olay yoksa `ArgumentException` fırlatır. |
+| **BehaviorSpaceExtensions.EnsureNotEmpty** | Extension: `BehaviorSpace.Events.Count == 0` ise `ArgumentException` fırlatır. |
+| **IntentPolicy.Validate** | Policy'nin en az bir kural içerdiğini ve duplicate kural adı olmadığını doğrar; başarısız olursa `InvalidOperationException` fırlatır. |
 
 **Namespace:** `Intent`, `IntentConfidence` ve `IntentSignal` **`Intentum.Core.Intents`** ad alanındadır. Kullanmak için `using Intentum.Core.Intents;` ekleyin.
 
@@ -51,6 +54,7 @@ Yani: *davranış → intent → policy kararı*. Sabit senaryo adımları yok; 
 | **RateLimitOptions** | Key, Limit, Window — DecideWithRateLimit / DecideWithRateLimitAsync ile kullanın. |
 | **IRateLimiter** / **MemoryRateLimiter** | PolicyDecision.RateLimit için rate limiting. **MemoryRateLimiter** = in-memory fixed window; çok node için dağıtık implementasyon kullanın. |
 | **RateLimitResult** | Allowed, CurrentCount, Limit, RetryAfter. |
+| **RateLimitingExtensions.AddIntentumRateLimiting** | DI uzantısı: `MemoryRateLimiter`'ı `IRateLimiter` singleton olarak kaydeder. |
 | **RuntimeExtensions.ToLocalizedString** | Extension: `decision.ToLocalizedString(localizer)` — insan tarafından okunabilir metin (örn. UI için). |
 | **IIntentumLocalizer** / **DefaultLocalizer** | Karar etiketleri için yerelleştirme (örn. "Allow", "Block"). **DefaultLocalizer** culture alır (örn. `"tr"`). |
 
@@ -87,6 +91,7 @@ var policy = new IntentPolicyBuilder()
 | **IntentModelStreamingExtensions** | **InferMany(model, spaces)** — lazy `IEnumerable<Intent>`; **InferManyAsync(model, spaces, ct)** — async stream. |
 | **IEmbeddingCache** / **MemoryEmbeddingCache** | Embedding sonuçları cache arayüzü ve bellek implementasyonu. **CachedEmbeddingProvider** ile her sağlayıcı cache'lenebilir. |
 | **IBatchIntentModel** / **BatchIntentModel** | Birden fazla behavior space için toplu çıkarım; async ve iptal destekler. |
+| **CosineSimilarityHelper** | Kosinüs benzerliği için statik yardımcı: `CosineSimilarity(a, b)` [-1, 1] ve `CosineSimilarityNormalized(a, b)` [0, 1] aralığında. |
 
 **Nereden başlanır:** Hızlı yerel çalıştırma için **MockEmbeddingProvider** ve **SimpleAverageSimilarityEngine** kullan; production için gerçek sağlayıcıya geç ([Sağlayıcılar](providers.md)).
 
@@ -107,6 +112,7 @@ var policy = new IntentPolicyBuilder()
 | **MistralEmbeddingProvider** | Mistral embedding API kullanır; **MistralOptions**. |
 | **AzureOpenAIEmbeddingProvider** | Azure OpenAI embedding deployment kullanır; **AzureOpenAIOptions**. |
 | **ClaudeMessageIntentModel** | Claude tabanlı intent modeli (mesaj skoru); **ClaudeOptions**. |
+| **OnnxIntentModel** | ONNX tabanlı yerel intent modeli; **OnnxIntentModelOptions** ile model yolu ve yapılandırma. |
 
 Sağlayıcılar **AddIntentum\*** extension metodları ve options (env var) ile kaydedilir. Kurulum ve env var için [Sağlayıcılar](providers.md).
 
@@ -241,6 +247,19 @@ Aşağıdaki paketler opsiyonel yetenek ekler. Detaylı kullanım (nedir, ne zam
 | **IVersionedPolicy** | Version (string) + Policy (IntentPolicy). |
 | **VersionedPolicy** | Record: `new VersionedPolicy(version, policy)`. |
 | **PolicyVersionTracker** | `Add(versionedPolicy)`, `Current`, `Versions`, `Rollback()`, `Rollforward()`, `SetCurrent(index)`, `CompareVersions(a, b)`. |
+
+### Streaming.Kafka (`Intentum.Streaming.Kafka`)
+
+| Tip | Ne işe yarar |
+|-----|----------------|
+| **KafkaBehaviorStreamConsumer** | Gerçek zamanlı event işleme için Kafka topic'lerinden behavior event tüketimi. |
+| **KafkaBehaviorStreamConsumerOptions** | Kafka bağlantı ve topic konfigürasyonu. |
+
+### FusionCache (`Intentum.AI.Caching.FusionCache`)
+
+| Tip | Ne işe yarar |
+|-----|----------------|
+| **FusionCacheEmbeddingCache** | Gelişmiş eviction politikaları ile FusionCache kullanan `IEmbeddingCache` implementasyonu. |
 
 ---
 

@@ -7,7 +7,7 @@ public sealed class BehaviorSpace
 {
     private readonly List<BehaviorEvent> _events = [];
     private readonly Dictionary<string, object> _metadata = new();
-    private BehaviorVector? _cachedVector;
+    private readonly Dictionary<string, BehaviorVector> _cachedVectors = new();
 
     /// <summary>All observed behavior events in order.</summary>
     public IReadOnlyCollection<BehaviorEvent> Events => _events;
@@ -15,10 +15,10 @@ public sealed class BehaviorSpace
     /// <summary>Metadata associated with this behavior space (e.g., sector, domain, session ID).</summary>
     public IReadOnlyDictionary<string, object> Metadata => _metadata;
 
-    /// <summary>Records a single behavior event (actor and action). Invalidates cached vector.</summary>
+    /// <summary>Records a single behavior event (actor and action). Invalidates all cached vectors.</summary>
     public void Observe(BehaviorEvent behaviorEvent)
     {
-        _cachedVector = null;
+        _cachedVectors.Clear();
         _events.Add(behaviorEvent);
     }
 
@@ -61,11 +61,13 @@ public sealed class BehaviorSpace
     public BehaviorVector ToVector()
         => ToVector(null);
 
-    /// <summary>Builds a behavior vector with optional normalization/cap. Result is cached until Observe is called only when options is null.</summary>
+    /// <summary>Builds a behavior vector with optional normalization/cap. Result is cached based on options hash.</summary>
     public BehaviorVector ToVector(ToVectorOptions? options)
     {
-        if (UseCache(options) && _cachedVector != null)
-            return _cachedVector;
+        var cacheKey = GetCacheKey(options);
+        
+        if (_cachedVectors.TryGetValue(cacheKey, out var cached))
+            return cached;
 
         var dimensions = new Dictionary<string, double>();
 
@@ -77,10 +79,7 @@ public sealed class BehaviorSpace
 
         dimensions = ApplyOptions(dimensions, options);
         var result = new BehaviorVector(dimensions);
-
-        if (UseCache(options))
-            _cachedVector = result;
-
+        _cachedVectors[cacheKey] = result;
         return result;
     }
 
@@ -102,6 +101,12 @@ public sealed class BehaviorSpace
 
         dimensions = ApplyOptions(dimensions, options);
         return new BehaviorVector(dimensions);
+    }
+
+    private static string GetCacheKey(ToVectorOptions? options)
+    {
+        if (options == null) return "default";
+        return $"{options.Normalization}_{options.CapPerDimension}";
     }
 
     private static bool UseCache(ToVectorOptions? options)

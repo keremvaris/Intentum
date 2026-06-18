@@ -13,6 +13,7 @@ Core, Runtime, AI ve sağlayıcıların ötesindeki genişletme paketleri ve bu 
 | Paket | Nedir | Ne işe yarar | Bölüm |
 |-------|-------|--------------|--------|
 | **Intentum.AI.Caching.Redis** | Redis tabanlı embedding cache | Çok node'lu production için `IEmbeddingCache`; embedding'leri Redis'te saklar | [Embedding Caching](#embedding-caching) (Redis alt bölümü) |
+| **Intentum.AI.Caching.FusionCache** | FusionCache tabanlı embedding cache | Gelişmiş eviction ile dağıtık embedding cache; `IEmbeddingCache` | Paket dokümanına bakın |
 | **Intentum.Clustering** | Intent gruplama | Intent history'yi pattern tespiti için gruplar; `IIntentClusterer`, `AddIntentClustering` | [Intent Clustering](#intent-clustering) |
 | **Intentum.Events** | Webhook / event sistemi | Intent event'lerini (IntentInferred, PolicyDecisionChanged) HTTP POST ile gönderir; `IIntentEventHandler`, `WebhookIntentEventHandler` | [Webhook / Event Sistemi](#webhook--event-sistemi) |
 | **Intentum.Experiments** | A/B test | Model/policy varyantları arasında traffic split; `IntentExperiment`, `ExperimentResult`, `AddVariant` | [A/B Experiments](#ab-experiments) |
@@ -21,6 +22,7 @@ Core, Runtime, AI ve sağlayıcıların ötesindeki genişletme paketleri ve bu 
 | **Intentum.Simulation** | Niyet simülasyonu | Test için sentetik behavior space üretir; `IBehaviorSpaceSimulator`, `BehaviorSpaceSimulator` | [Intent Simulation](#intent-simulation) |
 | **Intentum.Versioning** | Policy versiyonlama | Rollback için policy/model versiyon takibi; `IVersionedPolicy`, `PolicyVersionTracker` | [Policy Versioning](#policy-versioning) |
 | **Intentum.Runtime.PolicyStore** | Deklaratif policy store | JSON/dosyadan policy yükleme, hot-reload; `IPolicyStore`, `FilePolicyStore`, `SafeConditionBuilder` | [Policy Store](#policy-store) |
+| **Intentum.Streaming.Kafka** | Kafka stream consumer | Gerçek zamanlı event işleme için Kafka topic'lerinden behavior event tüketimi; `KafkaBehaviorStreamConsumer` | Paket dokümanına bakın |
 | **Intentum.Explainability** (genişletme) | Intent karar ağacı | Policy yolunu ağaç olarak açıklar; `IIntentTreeExplainer`, `IntentTreeExplainer` | [Intent Tree](#intent-tree) |
 | **Intentum.Analytics** (genişletme) | Intent timeline, pattern detector | Entity timeline, davranış pattern’leri, anomaliler; `GetIntentTimelineAsync`, `IBehaviorPatternDetector` | [Intent Timeline](#intent-timeline), [Behavior Pattern Detector](#behavior-pattern-detector) |
 | **Intentum.Simulation** (genişletme) | Scenario runner | Tanımlı senaryoları model + policy ile çalıştırır; `IScenarioRunner`, `IntentScenarioRunner` | [Scenario Runner](#scenario-runner) |
@@ -1013,6 +1015,77 @@ app.MapHealthChecks("/health");
 **Ne işe yarar:** Behavior event’lerini stream olarak işlemek (örn. mesaj kuyruğu veya event hub’dan); tüm event’leri belleğe almadan batch başına intent çıkarmak.
 
 **Kullanım:** **MemoryBehaviorStreamConsumer** kullanın veya implement edin. Worker veya Azure Function’da `await foreach (var batch in consumer.ReadAllAsync(cancellationToken))` ile her batch için model/policy çalıştırın.
+
+---
+
+## Rate Limiting DI Uzantısı
+
+**Nedir:** `AddIntentumRateLimiting()` DI'da `MemoryRateLimiter`'ı varsayılan `IRateLimiter` olarak kaydeder.
+
+**Kullanım:**
+
+```csharp
+builder.Services.AddIntentumRateLimiting();
+
+// Sonra IRateLimiter inject edip DecideWithRateLimitAsync ile kullanın
+var rateLimiter = serviceProvider.GetRequiredService<IRateLimiter>();
+```
+
+---
+
+## IntentModelExtensions.InferWithValidation
+
+**Nedir:** `IIntentModel` üzerinde bir extension; `Infer` çağırmadan önce `BehaviorSpace`'in boş olmadığını doğrular. Space'te olay yoksa `ArgumentException` fırlatır.
+
+**Kullanım:**
+
+```csharp
+using Intentum.Core.Extensions;
+
+var intent = model.InferWithValidation(space);
+// space.Events.Count == 0 ise ArgumentException fırlatır
+```
+
+---
+
+## IntentPolicy.Validate()
+
+**Nedir:** Policy'nin en az bir kural içerdiğini ve duplicate kural adı olmadığını doğrular. Başarısız olursa `InvalidOperationException` fırlatır.
+
+**Kullanım:**
+
+```csharp
+var policy = new IntentPolicyBuilder()
+    .Block("BlockRetry", i => i.Signals.Count >= 3)
+    .Allow("AllowHigh", i => i.Confidence.Level == "High")
+    .Build();
+
+policy.Validate(); // boşsa veya duplicate ad varsa fırlatır
+```
+
+---
+
+## BehaviorSpace Vektör Önbelleği (Çoklu Anahtar)
+
+**Nedir:** `BehaviorSpace.ToVector(options)` artık vektörleri options konfigürasyonuna göre önbelleğe alır (normalizasyon + cap). Benzersiz her `ToVectorOptions` ayrı bir önbelleklenmiş vektör üretir; `Observe()` tüm önbellekleri temizler.
+
+**Neden önemli:** Önceki sürümde sadece varsayılan (options olmadan) vektör önbelleğe alınıyordu. Artık farklı options ile `ToVector()` çağırabilir ve her sonuç ayrı ayrı önbelleğe alınır, aynı options tekrar kullanıldığında yeniden hesaplama gerekliliği ortadan kalkar.
+
+---
+
+## CosineSimilarityHelper
+
+**Nedir:** `Intentum.AI.Similarity` içinde kosinüs benzerliği hesaplamaları için birleştirilmiş yardımcı araç.
+
+- `CosineSimilarity(double[] a, double[] b)` — `[-1, 1]` aralığında sonuç (1 = özdeş, 0 = dik, -1 = zıt)
+- `CosineSimilarityNormalized(double[] a, double[] b)` — `[0, 1]` aralığında sonuç
+
+```csharp
+using Intentum.AI.Similarity;
+
+var score = CosineSimilarityHelper.CosineSimilarity(vectorA, vectorB);
+var normalized = CosineSimilarityHelper.CosineSimilarityNormalized(vectorA, vectorB);
+```
 
 ---
 

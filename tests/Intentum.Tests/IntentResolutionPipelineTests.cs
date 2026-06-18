@@ -1,6 +1,7 @@
 using Intentum.Core;
 using Intentum.Core.Behavior;
 using Intentum.Core.Intents;
+using Intentum.Core.Models;
 using Intentum.Core.Pipeline;
 
 namespace Intentum.Tests;
@@ -13,10 +14,10 @@ public sealed class IntentResolutionPipelineTests
     [Fact]
     public void Pipeline_WithRuleBasedStep_ProducesSameResultAsRuleBasedIntentModel()
     {
-        var rules = new List<Func<BehaviorSpace, Core.Models.RuleMatch?>>
+        var rules = new List<Func<BehaviorSpace, RuleMatch?>>
         {
             space => space.Events.Count(e => e.Action == "login.failed") >= 2
-                ? new Core.Models.RuleMatch("Suspicious", 0.75, "login.failed>=2")
+                ? new RuleMatch("Suspicious", 0.75, "login.failed>=2")
                 : null
         };
         var step = new RuleBasedInferenceStep(rules);
@@ -37,9 +38,9 @@ public sealed class IntentResolutionPipelineTests
     [Fact]
     public void Pipeline_WithCustomConfidenceCalculator_UsesCustomLevels()
     {
-        var rules = new List<Func<BehaviorSpace, Core.Models.RuleMatch?>>
+        var rules = new List<Func<BehaviorSpace, RuleMatch?>>
         {
-            _ => new Core.Models.RuleMatch("X", 0.5)
+            _ => new RuleMatch("X", 0.5)
         };
         var step = new RuleBasedInferenceStep(rules);
         var customConfidence = new CustomConfidenceCalculator();
@@ -55,9 +56,9 @@ public sealed class IntentResolutionPipelineTests
     [Fact]
     public void Pipeline_WithPrecomputedVector_DoesNotCallSignalToVector()
     {
-        var rules = new List<Func<BehaviorSpace, Core.Models.RuleMatch?>>
+        var rules = new List<Func<BehaviorSpace, RuleMatch?>>
         {
-            _ => new Core.Models.RuleMatch("Y", 0.9)
+            _ => new RuleMatch("Y", 0.9)
         };
         var step = new RuleBasedInferenceStep(rules);
         var pipeline = new IntentResolutionPipeline(step);

@@ -13,6 +13,7 @@ Extended packages (beyond Core, Runtime, AI, and providers) and where they are d
 | Package | What it is | What it does | Section |
 |---------|------------|--------------|---------|
 | **Intentum.AI.Caching.Redis** | Redis-based embedding cache | `IEmbeddingCache` for multi-node production; store embeddings in Redis | [Redis (Distributed) Cache](#redis-distributed-cache) |
+| **Intentum.AI.Caching.FusionCache** | FusionCache-based embedding cache | `IEmbeddingCache` using FusionCache for distributed caching with advanced eviction | See package docs |
 | **Intentum.Clustering** | Intent clustering | Groups intent history for pattern detection; `IIntentClusterer`, `AddIntentClustering` | [Intent Clustering](#intent-clustering) |
 | **Intentum.Events** | Webhook / event system | Dispatches intent events (IntentInferred, PolicyDecisionChanged) via HTTP POST; `IIntentEventHandler`, `WebhookIntentEventHandler` | [Webhook / Event System](#webhook--event-system) |
 | **Intentum.Experiments** | A/B testing | Traffic split across model/policy variants; `IntentExperiment`, `ExperimentResult`, `AddVariant` | [A/B Experiments](#ab-experiments) |
@@ -21,6 +22,7 @@ Extended packages (beyond Core, Runtime, AI, and providers) and where they are d
 | **Intentum.Simulation** | Intent simulation | Synthetic behavior spaces for testing; `IBehaviorSpaceSimulator`, `BehaviorSpaceSimulator` | [Intent Simulation](#intent-simulation) |
 | **Intentum.Versioning** | Policy versioning | Policy/model version tracking for rollback; `IVersionedPolicy`, `PolicyVersionTracker` | [Policy Versioning](#policy-versioning) |
 | **Intentum.Runtime.PolicyStore** | Declarative policy store | Load policies from JSON/file with hot-reload; `IPolicyStore`, `FilePolicyStore`, `SafeConditionBuilder` | [Policy Store](#policy-store) |
+| **Intentum.Streaming.Kafka** | Kafka stream consumer | Real-time behavior event consumption from Kafka topics; `KafkaBehaviorStreamConsumer` | See package docs |
 | **Intentum.Explainability** (extended) | Intent decision tree | Explain policy path as a tree; `IIntentTreeExplainer`, `IntentTreeExplainer` | [Intent Tree](#intent-tree) |
 | **Intentum.Analytics** (extended) | Intent timeline, pattern detector | Entity timeline, behavior patterns, anomalies; `GetIntentTimelineAsync`, `IBehaviorPatternDetector` | [Intent Timeline](#intent-timeline), [Behavior Pattern Detector](#behavior-pattern-detector) |
 | **Intentum.Simulation** (extended) | Scenario runner | Run defined scenarios through model + policy; `IScenarioRunner`, `IntentScenarioRunner` | [Scenario Runner](#scenario-runner) |
@@ -981,6 +983,77 @@ You can also `SetCurrent(index)` to jump to a specific version by index. Version
 **What it's for:** Process behavior events as a stream (e.g. from a message queue or event hub) and infer intent per batch without loading all events into memory.
 
 **How to use:** Implement or use **MemoryBehaviorStreamConsumer**. In a worker or Azure Function, `await foreach (var batch in consumer.ReadAllAsync(cancellationToken))` and run your model/policy on each batch.
+
+---
+
+## Rate Limiting DI Extension
+
+**What it is:** `AddIntentumRateLimiting()` registers `MemoryRateLimiter` as the default `IRateLimiter` in DI.
+
+**How to use it:**
+
+```csharp
+builder.Services.AddIntentumRateLimiting();
+
+// Then inject IRateLimiter and use with DecideWithRateLimitAsync
+var rateLimiter = serviceProvider.GetRequiredService<IRateLimiter>();
+```
+
+---
+
+## IntentModelExtensions.InferWithValidation
+
+**What it is:** An extension method on `IIntentModel` that validates the `BehaviorSpace` is not empty before calling `Infer`. Throws `ArgumentException` if the space has no events.
+
+**How to use it:**
+
+```csharp
+using Intentum.Core.Extensions;
+
+var intent = model.InferWithValidation(space);
+// Throws ArgumentException if space.Events.Count == 0
+```
+
+---
+
+## IntentPolicy.Validate()
+
+**What it is:** Validates that a policy has at least one rule and no duplicate rule names. Throws `InvalidOperationException` on failure.
+
+**How to use it:**
+
+```csharp
+var policy = new IntentPolicyBuilder()
+    .Block("BlockRetry", i => i.Signals.Count >= 3)
+    .Allow("AllowHigh", i => i.Confidence.Level == "High")
+    .Build();
+
+policy.Validate(); // throws if empty or has duplicate names
+```
+
+---
+
+## BehaviorSpace Vector Caching (Multi-Key)
+
+**What it is:** `BehaviorSpace.ToVector(options)` now caches vectors per options configuration (normalization + cap). Each unique `ToVectorOptions` produces a separate cached vector; `Observe()` clears all caches.
+
+**Why it matters:** Previously only the default (no-options) vector was cached. Now you can call `ToVector()` with different options and each result is cached independently, avoiding recomputation when the same options are reused.
+
+---
+
+## CosineSimilarityHelper
+
+**What it is:** A consolidated utility in `Intentum.AI.Similarity` for cosine similarity calculations.
+
+- `CosineSimilarity(double[] a, double[] b)` — returns value in `[-1, 1]` (1 = identical, 0 = orthogonal, -1 = opposite)
+- `CosineSimilarityNormalized(double[] a, double[] b)` — returns value in `[0, 1]`
+
+```csharp
+using Intentum.AI.Similarity;
+
+var score = CosineSimilarityHelper.CosineSimilarity(vectorA, vectorB);
+var normalized = CosineSimilarityHelper.CosineSimilarityNormalized(vectorA, vectorB);
+```
 
 ---
 

@@ -28,6 +28,7 @@ dotnet add package Intentum.AI.Gemini
 dotnet add package Intentum.AI.Mistral
 dotnet add package Intentum.AI.AzureOpenAI
 dotnet add package Intentum.AI.Claude
+dotnet add package Intentum.AI.ONNX
 ```
 
 Alternatively, add **Intentum.Providers** to get Core, Runtime, AI, and all providers in one: `dotnet add package Intentum.Providers`. If you add no provider, use **MockEmbeddingProvider** (in Intentum.AI) for local runs — no API key needed.
@@ -146,6 +147,35 @@ See [Advanced Features](advanced-features.md) for Policy Store, Context-Aware Po
 
 ---
 
+## VS Code Snippets Extension
+
+Intentum provides a **VS Code snippets extension** for faster C# development. Snippets include `intent-space`, `intent-policy`, `intent-model`, `intent-test`, `intent-catalog`, and more.
+
+**Install from source:**
+
+1. Open `extensions/vscode-intentum` folder in VS Code
+2. Press `F5` to launch the Extension Development Host
+
+**Install from VSIX:**
+
+```bash
+cd extensions/vscode-intentum
+npm install -g @vscode/vsce
+vsce package
+```
+
+Then in VS Code: `Cmd+Shift+P` → "Extensions: Install from VSIX" → select `intentum-snippets-0.0.1.vsix`.
+
+| Prefix | Description |
+|--------|-------------|
+| `intent-space` | Create a new BehaviorSpace with observed events |
+| `intent-policy` | Create a new IntentPolicy with rules |
+| `intent-model` | Implement IIntentModel interface |
+| `intent-test` | Create an Intentum test method |
+| `intent-catalog` | Create an IntentCatalog with definitions |
+
+---
+
 ## Environment variables (overview)
 
 Set these only when using real HTTP adapters:
@@ -176,7 +206,7 @@ The solution contains many packages and two sample applications.
 
 **AI providers** (optional; pick one or more for real embeddings):
 
-- `Intentum.AI.OpenAI`, `Intentum.AI.Gemini`, `Intentum.AI.Mistral`, `Intentum.AI.AzureOpenAI`, `Intentum.AI.Claude`
+- `Intentum.AI.OpenAI`, `Intentum.AI.Gemini`, `Intentum.AI.Mistral`, `Intentum.AI.AzureOpenAI`, `Intentum.AI.Claude`, `Intentum.AI.ONNX`
 
 **Extensions** (optional; add as needed):
 
@@ -189,6 +219,8 @@ The solution contains many packages and two sample applications.
 - `Intentum.Persistence.Redis` — Redis-backed behavior spaces and intent history; `AddIntentumPersistenceRedis(redis, keyPrefix?)`
 - `Intentum.Persistence.MongoDB` — MongoDB-backed behavior spaces and intent history; `AddIntentumPersistenceMongoDB(database, collectionNames?)`
 - `Intentum.Analytics` — IIntentAnalytics: trends, decision distribution, anomaly detection, JSON/CSV export
+- `Intentum.Streaming.Kafka` — Kafka-backed behavior stream consumer for real-time event processing
+- `Intentum.AI.Caching.FusionCache` — FusionCache-based distributed embedding cache
 - `Intentum.CodeGen` — Scaffold CQRS + Intentum, YAML/JSON spec validation
 
 **Samples:**

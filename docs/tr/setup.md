@@ -28,6 +28,7 @@ dotnet add package Intentum.AI.Gemini
 dotnet add package Intentum.AI.Mistral
 dotnet add package Intentum.AI.AzureOpenAI
 dotnet add package Intentum.AI.Claude
+dotnet add package Intentum.AI.ONNX
 ```
 
 İstersen **Intentum.Providers** ekleyerek Core, Runtime, AI ve tüm sağlayıcı paketlerini tek seferde alabilirsin: `dotnet add package Intentum.Providers`.
@@ -148,6 +149,35 @@ Policy Store, Context-Aware Policy, Multi-Stage Model ve diğer uzantılar için
 
 ---
 
+## VS Code Snippets Uzantısı
+
+Intentum, hızlı C# geliştirme için bir **VS Code snippets uzantısı** sunar. `intent-space`, `intent-policy`, `intent-model`, `intent-test`, `intent-catalog` ve daha fazla snippet içerir.
+
+**Kaynaktan kurulum:**
+
+1. `extensions/vscode-intentum` klasörünü VS Code'da aç
+2. Extension Development Host'u başlatmak için `F5`'e bas
+
+**VSIX ile kurulum:**
+
+```bash
+cd extensions/vscode-intentum
+npm install -g @vscode/vsce
+vsce package
+```
+
+Sonra VS Code'da: `Cmd+Shift+P` → "Extensions: Install from VSIX" → `intentum-snippets-0.0.1.vsix` dosyasını seç.
+
+| Prefix | Açıklama |
+|--------|----------|
+| `intent-space` | Gözlenen olaylarla yeni bir BehaviorSpace oluştur |
+| `intent-policy` | Kurallarla yeni bir IntentPolicy oluştur |
+| `intent-model` | IIntentModel arayüzünü uygula |
+| `intent-test` | Intentum test metodu oluştur |
+| `intent-catalog` | Tanımlamalarla bir IntentCatalog oluştur |
+
+---
+
 ## Ortam değişkenleri (özet)
 
 Sadece gerçek HTTP adapter kullanırken ayarla:
@@ -178,7 +208,7 @@ Detay ve örnekler: [Sağlayıcılar](providers.md).
 
 **AI sağlayıcıları** (opsiyonel; gerçek embedding için bir veya daha fazlası):
 
-- `Intentum.AI.OpenAI`, `Intentum.AI.Gemini`, `Intentum.AI.Mistral`, `Intentum.AI.AzureOpenAI`, `Intentum.AI.Claude`
+- `Intentum.AI.OpenAI`, `Intentum.AI.Gemini`, `Intentum.AI.Mistral`, `Intentum.AI.AzureOpenAI`, `Intentum.AI.Claude`, `Intentum.AI.ONNX`
 
 **Uzantılar** (ihtiyaca göre eklenir):
 
@@ -191,6 +221,8 @@ Detay ve örnekler: [Sağlayıcılar](providers.md).
 - `Intentum.Persistence.Redis` — Redis tabanlı behavior space ve intent history; `AddIntentumPersistenceRedis(redis, keyPrefix?)`
 - `Intentum.Persistence.MongoDB` — MongoDB tabanlı behavior space ve intent history; `AddIntentumPersistenceMongoDB(database, collectionNames?)`
 - `Intentum.Analytics` — IIntentAnalytics: trendler, karar dağılımı, anomali tespiti, JSON/CSV export
+- `Intentum.Streaming.Kafka` — Gerçek zamanlı event işleme için Kafka tabanlı behavior stream consumer
+- `Intentum.AI.Caching.FusionCache` — Dağıtık embedding cache için FusionCache tabanlı implementasyon
 - `Intentum.CodeGen` — CQRS + Intentum scaffold, YAML/JSON spec doğrulama
 
 **Örnekler:**

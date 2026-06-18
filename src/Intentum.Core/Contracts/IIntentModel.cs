@@ -1,4 +1,5 @@
 using Intentum.Core.Behavior;
+using Intentum.Core.Extensions;
 using Intentum.Core.Intents;
 
 namespace Intentum.Core.Contracts;
@@ -12,4 +13,14 @@ public interface IIntentModel
     /// <param name="behaviorSpace">The observed behavior space.</param>
     /// <param name="precomputedVector">Optional pre-computed behavior vector (e.g. from persistence); when null, computed from behaviorSpace.</param>
     Intent Infer(BehaviorSpace behaviorSpace, BehaviorVector? precomputedVector = null);
+}
+
+public static class IntentModelExtensions
+{
+    public static Intent InferWithValidation(this IIntentModel model, BehaviorSpace behaviorSpace, BehaviorVector? precomputedVector = null)
+    {
+        ArgumentNullException.ThrowIfNull(model);
+        behaviorSpace.EnsureNotEmpty();
+        return model.Infer(behaviorSpace, precomputedVector);
+    }
 }

@@ -42,4 +42,14 @@ public sealed class IntentPolicy
             return new IntentPolicy();
         return new IntentPolicy(policies.SelectMany(p => p.Rules));
     }
+
+    public void Validate()
+    {
+        if (Rules.Count == 0)
+            throw new InvalidOperationException("IntentPolicy must contain at least one rule.");
+
+        var duplicateNames = Rules.GroupBy(r => r.Name).Where(g => g.Count() > 1);
+        if (duplicateNames.Any())
+            throw new InvalidOperationException($"Duplicate rule names found: {string.Join(", ", duplicateNames.Select(g => g.Key))}");
+    }
 }

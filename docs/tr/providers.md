@@ -183,6 +183,31 @@ Sonra intent modelini (örn. ClaudeMessageIntentModel) ihtiyaca göre inject et.
 
 ---
 
+## ONNX (Yerel)
+
+**Ne yapar:** ONNX Runtime kullanarak yerel olarak intent çıkarımı çalıştırır. API anahtarı gerekmez — model makinenizde çalışır. Çevrimdışı veya düşük gecikme senaryoları için kullanışlıdır.
+
+**Env var:** Gerekmez (model yolu `OnnxIntentModelOptions` ile yapılandırılır).
+
+**Minimal kod:**
+
+```csharp
+using Intentum.AI.ONNX;
+
+var options = new OnnxIntentModelOptions
+{
+    ModelPath = "path/to/model.onnx"
+};
+var model = new OnnxIntentModel(options);
+var intent = model.Infer(space);
+```
+
+**Ne zaman kullanılır:** Harici API çağrısı olmadan yerel çıkarım gerektiğinde veya edge/embedded senaryoları için.
+
+Kural tabanlı veya LLM modelleriyle birleştirme için [Hibrit mod ve kural tabanlı yedekleme](hybrid-mode-and-fallback.md) bölümüne bakın.
+
+---
+
 ## Güvenlik ve yapılandırma
 
 - **API anahtarlarını asla commit etme.** Ortam değişkenleri veya secret manager kullan.
