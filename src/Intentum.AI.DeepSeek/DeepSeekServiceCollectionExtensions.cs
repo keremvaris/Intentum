@@ -15,7 +15,8 @@ public static class DeepSeekServiceCollectionExtensions
     {
         options.Validate();
         services.AddSingleton(options);
-        var httpClient = new HttpClient { BaseAddress = new Uri(options.BaseUrl.TrimEnd('/') + "/") };
+        var baseUri = new Uri(options.BaseUrl.TrimEnd('/') + "/", UriKind.Absolute);
+        var httpClient = new HttpClient { BaseAddress = baseUri };
         httpClient.DefaultRequestHeaders.Authorization =
             new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", options.ApiKey);
         services.AddSingleton(httpClient);

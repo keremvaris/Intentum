@@ -35,4 +35,4 @@ app.MapPost("/mcp/evaluate", (EvaluatePolicyTool tool, EvaluatePolicyTool.Evalua
 
 app.MapGet("/health", () => Results.Ok(new { status = "healthy", version = "1.1.10" }));
 
-app.Run();
+await app.RunAsync();

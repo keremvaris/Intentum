@@ -10,17 +10,6 @@ namespace Intentum.Runtime.Resilience;
 public static class ResilienceExtensions
 {
     public static IServiceCollection AddIntentumResilience(
-        this IServiceCollection services)
-    {
-        services.AddIntentumCircuitBreaker();
-        services.AddIntentumRetryPolicy();
-        services.AddIntentumBulkhead();
-        services.AddIntentumDegradationPolicy();
-        services.AddIntentumTimeoutPolicy();
-        return services;
-    }
-
-    public static IServiceCollection AddIntentumResilience(
         this IServiceCollection services,
         CircuitBreakerOptions? circuitBreaker = null,
         RetryOptions? retry = null,

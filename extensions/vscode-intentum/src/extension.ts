@@ -1,6 +1,6 @@
 import * as vscode from 'vscode';
-import * as fs from 'fs';
-import * as path from 'path';
+import * as fs from 'node:fs';
+import * as path from 'node:path';
 
 export function activate(context: vscode.ExtensionContext) {
     console.log('Intentum VS Code extension activated');
@@ -17,18 +17,11 @@ export function activate(context: vscode.ExtensionContext) {
 
         const nupkgPath = uris[0].fsPath;
 
-        // Create temp directory for extraction
         const tempDir = path.join(context.globalStorageUri.fsPath, 'temp-explorer');
         if (!fs.existsSync(tempDir)) {
             fs.mkdirSync(tempDir, { recursive: true });
         }
 
-        // Read the nupkg file (it's a zip file)
-        const content = fs.readFileSync(nupkgPath);
-        const files: string[] = [];
-
-        // Simple zip parsing - look for the file list
-        // For full extraction, the user needs to have unzip available
         const result = await vscode.window.showInformationMessage(
             `Selected package: ${path.basename(nupkgPath)}`,
             'View Contents',
@@ -81,4 +74,6 @@ export function activate(context: vscode.ExtensionContext) {
     context.subscriptions.push(disposable);
 }
 
-export function deactivate() {}
+export function deactivate(): void {
+    // Cleanup if needed
+}

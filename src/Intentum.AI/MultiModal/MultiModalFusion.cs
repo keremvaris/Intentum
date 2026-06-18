@@ -1,8 +1,8 @@
 namespace Intentum.AI.MultiModal;
 
-public sealed class MultiModalFusion
+public static class MultiModalFusion
 {
-    public float[] Fuse(float[] behaviorEmbedding, IReadOnlyList<MultiModalInput> additionalInputs)
+    public static float[] Fuse(float[] behaviorEmbedding, IReadOnlyList<MultiModalInput> additionalInputs)
     {
         ArgumentNullException.ThrowIfNull(behaviorEmbedding);
 

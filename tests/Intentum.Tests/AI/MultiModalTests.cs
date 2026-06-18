@@ -6,13 +6,15 @@ namespace Intentum.Tests.AI;
 
 public sealed class MultiModalTests
 {
+    private static readonly float[] BehaviorVector = [0.1f, 0.2f, 0.3f];
+    private static readonly float[] ImageVector = [0.3f, 0.4f];
+    private static readonly float[] TextVector1 = [3.0f, 4.0f];
+    private static readonly float[] TextVector2 = [5.0f, 6.0f];
+
     [Fact]
     public void Fusion_WithBehaviorOnly_ReturnsBehaviorEmbedding()
     {
-        var fusion = new MultiModalFusion();
-        var behavior = new float[] { 0.1f, 0.2f, 0.3f };
-
-        var result = fusion.Fuse(behavior, []);
+        var result = MultiModalFusion.Fuse(BehaviorVector, []);
 
         Assert.Equal(3, result.Length);
         Assert.Equal(0.1f, result[0]);
@@ -23,14 +25,13 @@ public sealed class MultiModalTests
     [Fact]
     public void Fusion_WithImageModality_ConcatenatesEmbeddings()
     {
-        var fusion = new MultiModalFusion();
         var behavior = new float[] { 0.1f, 0.2f };
         var additional = new[]
         {
-            new MultiModalInput(InputModality.Image, "img.jpg", new float[] { 0.3f, 0.4f })
+            new MultiModalInput(InputModality.Image, "img.jpg", ImageVector)
         };
 
-        var result = fusion.Fuse(behavior, additional);
+        var result = MultiModalFusion.Fuse(behavior, additional);
 
         Assert.Equal(4, result.Length);
         Assert.Equal(0.1f, result[0]);
@@ -42,15 +43,14 @@ public sealed class MultiModalTests
     [Fact]
     public void Fusion_WithMultipleModalities_AveragesByModality()
     {
-        var fusion = new MultiModalFusion();
         var behavior = new float[] { 1.0f, 2.0f };
         var additional = new[]
         {
-            new MultiModalInput(InputModality.Text, "text1", new float[] { 3.0f, 4.0f }),
-            new MultiModalInput(InputModality.Text, "text2", new float[] { 5.0f, 6.0f })
+            new MultiModalInput(InputModality.Text, "text1", TextVector1),
+            new MultiModalInput(InputModality.Text, "text2", TextVector2)
         };
 
-        var result = fusion.Fuse(behavior, additional);
+        var result = MultiModalFusion.Fuse(behavior, additional);
 
         Assert.Equal(4, result.Length);
         Assert.Equal(1.0f, result[0]);
@@ -62,8 +62,7 @@ public sealed class MultiModalTests
     [Fact]
     public void Fusion_WithNoBehaviorEmbedding_Throws()
     {
-        var fusion = new MultiModalFusion();
-        Assert.Throws<ArgumentNullException>(() => fusion.Fuse(null!, []));
+        Assert.Throws<ArgumentNullException>(() => MultiModalFusion.Fuse(null!, []));
     }
 
     [Fact]

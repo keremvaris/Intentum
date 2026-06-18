@@ -4,13 +4,13 @@ using Intentum.Runtime.Policy;
 
 namespace Intentum.McpServer.McpTools;
 
-public sealed class EvaluatePolicyTool
+public static class EvaluatePolicyTool
 {
     public record RuleInput(string Name, string Decision);
     public record EvaluateRequest(string IntentName, double Score, string Level, IReadOnlyList<RuleInput> Rules);
     public record EvaluateResponse(string Decision);
 
-    public EvaluateResponse Execute(EvaluateRequest request)
+    public static EvaluateResponse Execute(EvaluateRequest request)
     {
         var intent = new Intent(request.IntentName, [],
             new IntentConfidence(request.Score, request.Level));
