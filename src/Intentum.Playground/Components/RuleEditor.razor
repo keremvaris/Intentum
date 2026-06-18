@@ -2,6 +2,12 @@
 
 <div class="rule-editor">
     <input @bind="RuleName" placeholder="Rule name" />
+    <select @bind="SelectedConfidenceLevel">
+        <option value="Low">Low</option>
+        <option value="Medium">Medium</option>
+        <option value="High">High</option>
+        <option value="Certain">Certain</option>
+    </select>
     <select @bind="SelectedDecision">
         @foreach (var decision in Enum.GetValues<PolicyDecision>())
         {
@@ -13,6 +19,7 @@
 
 @code {
     private string RuleName { get; set; } = "";
+    private string SelectedConfidenceLevel { get; set; } = "High";
     private PolicyDecision SelectedDecision { get; set; } = PolicyDecision.Allow;
 
     [Parameter]
@@ -22,9 +29,10 @@
     {
         if (!string.IsNullOrWhiteSpace(RuleName))
         {
-            var rule = new PolicyRule(RuleName, _ => true, SelectedDecision);
+            var rule = new PolicyRule(RuleName, i => i.Confidence.Level == SelectedConfidenceLevel, SelectedDecision);
             await OnRuleAdded.InvokeAsync(rule);
             RuleName = "";
+            SelectedConfidenceLevel = "High";
             SelectedDecision = PolicyDecision.Allow;
         }
     }
