@@ -1,4 +1,5 @@
 using Intentum.AI.Embeddings;
+using Intentum.AI.Similarity;
 
 namespace Intentum.AI.Similarity;
 
@@ -56,29 +57,6 @@ public sealed class CosineSimilarityEngine : IIntentSimilarityEngine
         if (vector1.Count != vector2.Count)
             throw new ArgumentException("Vectors must have the same length");
 
-        double dotProduct = 0;
-        double magnitude1 = 0;
-        double magnitude2 = 0;
-
-        for (int i = 0; i < vector1.Count; i++)
-        {
-            dotProduct += vector1[i] * vector2[i];
-            magnitude1 += vector1[i] * vector1[i];
-            magnitude2 += vector2[i] * vector2[i];
-        }
-
-        magnitude1 = Math.Sqrt(magnitude1);
-        magnitude2 = Math.Sqrt(magnitude2);
-
-        const double epsilon = 1e-10;
-        if (magnitude1 < epsilon || magnitude2 < epsilon)
-            return 0;
-
-        // Cosine similarity: dot product / (magnitude1 * magnitude2)
-        // Normalize to 0-1 range for consistency with other engines
-        var cosineSimilarity = dotProduct / (magnitude1 * magnitude2);
-
-        // Map from [-1, 1] to [0, 1] for consistency
-        return (cosineSimilarity + 1) / 2;
+        return CosineSimilarityHelper.CosineSimilarityNormalized(vector1.ToArray(), vector2.ToArray());
     }
 }

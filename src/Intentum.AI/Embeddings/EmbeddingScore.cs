@@ -1,3 +1,5 @@
+using Intentum.AI.Similarity;
+
 namespace Intentum.AI.Embeddings;
 
 /// <summary>
@@ -32,25 +34,6 @@ public static class EmbeddingScore
         if (a.Count == 0 || b.Count == 0 || a.Count != b.Count)
             return 0;
 
-        var dotProduct = 0.0;
-        var magA = 0.0;
-        var magB = 0.0;
-
-        for (var i = 0; i < a.Count; i++)
-        {
-            dotProduct += a[i] * b[i];
-            magA += a[i] * a[i];
-            magB += b[i] * b[i];
-        }
-
-        magA = Math.Sqrt(magA);
-        magB = Math.Sqrt(magB);
-
-        const double epsilon = 1e-10;
-        if (magA < epsilon || magB < epsilon)
-            return 0;
-
-        var similarity = dotProduct / (magA * magB);
-        return Math.Clamp((similarity + 1) / 2, 0.0, 1.0);
+        return CosineSimilarityHelper.CosineSimilarityNormalized(a.ToArray(), b.ToArray());
     }
 }
