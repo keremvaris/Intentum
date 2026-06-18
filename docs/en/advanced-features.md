@@ -1214,6 +1214,55 @@ intentum version  # → Intentum CLI v1.2.0
 
 ---
 
+## MCP Server (v1.2)
+
+`Intentum.McpServer` — Model Context Protocol server that exposes Intentum tools to AI agents (Claude, Cursor, Copilot, DeepSeek).
+
+### Run
+
+```bash
+# With DeepSeek (recommended)
+DEEPSEEK_API_KEY=your-key dotnet run --project src/Intentum.McpServer/
+
+# With Mock (no API key needed)
+dotnet run --project src/Intentum.McpServer/
+```
+
+### Available Tools
+
+| Tool | Endpoint | Description |
+|------|----------|-------------|
+| `infer_intent` | `POST /mcp/infer` | Infer intent from behavior events |
+| `evaluate_policy` | `POST /mcp/evaluate` | Evaluate intent against policy rules |
+
+### Example: infer_intent
+
+```bash
+curl -X POST http://localhost:5000/mcp/infer \
+  -H "Content-Type: application/json" \
+  -d '[{"actor": "user", "action": "login"}, {"actor": "user", "action": "purchase"}]'
+```
+
+### MCP Client Configuration
+
+In any MCP-compatible client (Claude Desktop, Cursor, VS Code):
+
+```json
+{
+  "mcpServers": {
+    "intentum": {
+      "command": "dotnet",
+      "args": ["run", "--project", "/path/to/Intentum/src/Intentum.McpServer"],
+      "env": {
+        "DEEPSEEK_API_KEY": "your-key"
+      }
+    }
+  }
+}
+```
+
+---
+
 ## See also
 
 - [API Reference](api.md) — Full API documentation

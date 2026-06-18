@@ -163,6 +163,49 @@ services.AddIntentumAzureOpenAI(options);
 
 ---
 
+## DeepSeek
+
+**Ne yapar:** Davranış anahtarlarını vektörlere çevirmek için DeepSeek embedding API'sini çağırır. OpenAI ile uyumlu API formatı kullanır (`https://api.deepseek.com/v1`).
+
+### Kurulum
+
+```bash
+dotnet add package Intentum.AI.DeepSeek
+```
+
+### Ayarlar (opsiyonel)
+
+| Ortam değişkeni | Varsayılan | Açıklama |
+|----------------|-----------|----------|
+| `DEEPSEEK_API_KEY` | — | **Zorunlu.** DeepSeek API anahtarı |
+| `DEEPSEEK_BASE_URL` | `https://api.deepseek.com/v1` | API base URL |
+| `DEEPSEEK_EMBEDDING_MODEL` | `deepseek-embedding` | Embedding model adı |
+
+### Kullanım
+
+```csharp
+using Intentum.AI;
+using Intentum.AI.DeepSeek;
+
+services.AddIntentumDeepSeek(DeepSeekOptions.FromEnvironment());
+
+// veya manuel:
+var options = new DeepSeekOptions
+{
+    ApiKey = "your-api-key",
+    EmbeddingModel = "deepseek-embedding"
+};
+services.AddIntentumDeepSeek(options);
+```
+
+### Notlar
+
+- OpenAI ile aynı API formatını kullandığı için `Intentum.AI.OpenAI`'ye çok benzer
+- Rate limit (429) durumunda `DeepSeekRateLimitException` fırlatılır, `EmbeddingHttpRetryHandler` ile otomatik tekrar dener
+- Embedding çıktısı `EmbeddingScore.Normalize()` ile normalize edilir
+
+---
+
 ## Claude
 
 **Ne yapar:** Anthropic Claude **mesaj tabanlı intent skoru** (ClaudeMessageIntentModel) için kullanılabilir; sadece embedding değil. Varsayılan olarak Claude paketi embedding için stub kullanabilir; tam intent çıkarımı için mesaj skorunu kullan.

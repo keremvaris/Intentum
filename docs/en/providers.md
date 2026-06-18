@@ -163,6 +163,49 @@ services.AddIntentumAzureOpenAI(options);
 
 ---
 
+## DeepSeek
+
+**What it does:** Calls the DeepSeek embedding API to convert behavior keys to vectors. Uses the OpenAI-compatible API format (`https://api.deepseek.com/v1`).
+
+### Installation
+
+```bash
+dotnet add package Intentum.AI.DeepSeek
+```
+
+### Settings (optional)
+
+| Environment variable | Default | Description |
+|---------------------|---------|-------------|
+| `DEEPSEEK_API_KEY` | — | **Required.** DeepSeek API key |
+| `DEEPSEEK_BASE_URL` | `https://api.deepseek.com/v1` | API base URL |
+| `DEEPSEEK_EMBEDDING_MODEL` | `deepseek-embedding` | Embedding model name |
+
+### Usage
+
+```csharp
+using Intentum.AI;
+using Intentum.AI.DeepSeek;
+
+services.AddIntentumDeepSeek(DeepSeekOptions.FromEnvironment());
+
+// or manually:
+var options = new DeepSeekOptions
+{
+    ApiKey = "your-api-key",
+    EmbeddingModel = "deepseek-embedding"
+};
+services.AddIntentumDeepSeek(options);
+```
+
+### Notes
+
+- Uses the same OpenAI-compatible API format as `Intentum.AI.OpenAI`
+- Rate limits (429) throw `DeepSeekRateLimitException`; automatically retries via `EmbeddingHttpRetryHandler`
+- Embedding output is normalized via `EmbeddingScore.Normalize()`
+
+---
+
 ## Claude
 
 **What it does:** Anthropic’s Claude can be used for **message-based intent scoring** (ClaudeMessageIntentModel), not only embeddings. By default the Claude package may use a stub for embeddings; use message scoring for full intent inference.
