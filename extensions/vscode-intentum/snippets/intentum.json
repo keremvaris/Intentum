@@ -1,0 +1,90 @@
+{
+  "BehaviorSpace": {
+    "prefix": "intent-space",
+    "body": [
+      "var space = new BehaviorSpace()",
+      "    .Observe(\"${1:actor}\", \"${2:action}\")",
+      "    .Observe(\"${3:actor}\", \"${4:action}\");"
+    ],
+    "description": "Create a new BehaviorSpace with observed events"
+  },
+  "IntentPolicy": {
+    "prefix": "intent-policy",
+    "body": [
+      "var policy = new IntentPolicy()",
+      "    .AddRule(new PolicyRule(",
+      "        \"${1:RuleName}\",",
+      "        i => i.Confidence.Level is \"${2:High}\" or \"${3:Certain}\",",
+      "        PolicyDecision.${4:Allow}));"
+    ],
+    "description": "Create a new IntentPolicy with rules"
+  },
+  "IntentModel": {
+    "prefix": "intent-model",
+    "body": [
+      "public class ${1:CustomIntentModel} : IIntentModel",
+      "{",
+      "    public Intent Infer(BehaviorSpace behaviorSpace, BehaviorVector? precomputedVector = null)",
+      "    {",
+      "        ${2:// TODO: Implement intent inference}",
+      "        throw new NotImplementedException();",
+      "    }",
+      "}"
+    ],
+    "description": "Implement IIntentModel interface"
+  },
+  "IntentTest": {
+    "prefix": "intent-test",
+    "body": [
+      "[Fact]",
+      "public void ${1:MethodName}_${2:Scenario}_${3:ExpectedResult}()",
+      "{",
+      "    // Arrange",
+      "    var space = new BehaviorSpace();",
+      "    space.Observe(new BehaviorEvent(\"${4:actor}\", \"${5:action}\"));",
+      "",
+      "    // Act",
+      "    ${6:// TODO: Call method under test}",
+      "",
+      "    // Assert",
+      "    ${7:// TODO: Add assertions}",
+      "}"
+    ],
+    "description": "Create an Intentum test method"
+  },
+  "IntentConfidence": {
+    "prefix": "intent-confidence",
+    "body": [
+      "var confidence = IntentConfidence.FromScore(${1:0.8});"
+    ],
+    "description": "Create IntentConfidence from score"
+  },
+  "RuleBasedIntentModel": {
+    "prefix": "intent-rule-based",
+    "body": [
+      "var model = new RuleBasedIntentModel()",
+      "    .AddRule(\"${1:RuleName}\",",
+      "        space => ${2:space.Events.Any(e => e.Action == \"login\")},",
+      "        new Intent(\"${3:IntentName}\", [], IntentConfidence.FromScore(${4:0.8})));"
+    ],
+    "description": "Create a RuleBasedIntentModel"
+  },
+  "IntentCatalog": {
+    "prefix": "intent-catalog",
+    "body": [
+      "var catalog = new IntentCatalog()",
+      "    .Add(new IntentDefinition(",
+      "        \"${1:IntentName}\",",
+      "        \"${2:Description}\",",
+      "        new[] { \"${3:behavior1}\", \"${4:behavior2}\" }));"
+    ],
+    "description": "Create an IntentCatalog with definitions"
+  },
+  "BehaviorEvent": {
+    "prefix": "intent-event",
+    "body": [
+      "new BehaviorEvent(\"${1:actor}\", \"${2:action}\", ${3:DateTimeOffset.UtcNow})"
+    ],
+    "description": "Create a new BehaviorEvent"
+  }
+}
