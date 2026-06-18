@@ -24,7 +24,7 @@ public sealed class PolicyEngineHealthCheck : IHealthCheck
             var testPolicy = new IntentPolicy()
                 .AddRule(new PolicyRule(
                     "TestRule",
-                    i => i.Confidence.Level == "High",
+                    i => i.Confidence.Level == "Certain",
                     PolicyDecision.Allow));
 
             var decision = IntentPolicyEngine.Evaluate(testIntent, testPolicy);

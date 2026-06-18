@@ -24,6 +24,7 @@
     <PackageReference Include="Xunit.SkippableFact" Version="1.5.23" />
     <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="10.0.2" />
     <PackageReference Include="Moq" Version="4.20.70" />
+    <PackageReference Include="Microsoft.Extensions.Diagnostics.HealthChecks.Abstractions" Version="10.0.0" />
   </ItemGroup>
 
   <ItemGroup>
@@ -55,6 +56,11 @@
     <ProjectReference Include="..\..\src\Intentum.MultiTenancy\Intentum.MultiTenancy.csproj" />
     <ProjectReference Include="..\..\src\Intentum.Simulation\Intentum.Simulation.csproj" />
     <ProjectReference Include="..\..\src\Intentum.Versioning\Intentum.Versioning.csproj" />
+    <ProjectReference Include="..\..\src\Intentum.AspNetCore\Intentum.AspNetCore.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
   </ItemGroup>
 
 </Project>
