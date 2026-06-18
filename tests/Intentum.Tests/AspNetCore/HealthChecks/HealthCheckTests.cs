@@ -1,8 +1,5 @@
 using Intentum.AI.Embeddings;
 using Intentum.AspNetCore.HealthChecks;
-using Intentum.Core.Behavior;
-using Intentum.Core.Contracts;
-using Intentum.Core.Intents;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Moq;
 using Xunit;
