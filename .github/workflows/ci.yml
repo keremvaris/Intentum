@@ -40,6 +40,7 @@ jobs:
           dotnet tool install dotnet-sonarscanner --tool-path .sonar/scanner
 
       - name: SonarCloud begin
+        if: env.SONAR_TOKEN != ''
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         run: |
@@ -87,6 +88,7 @@ jobs:
           grep -q 'sequenceCoverage="[1-9]' TestResults/coverage.opencover.xml || (echo "::error::coverage.opencover.xml has no covered lines"; exit 1)
 
       - name: SonarCloud end
+        if: env.SONAR_TOKEN != ''
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         run: .sonar/scanner/dotnet-sonarscanner end /d:sonar.token="$SONAR_TOKEN"
