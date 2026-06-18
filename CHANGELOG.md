@@ -38,6 +38,9 @@ Bu dosya **conventional commit** mesajlarından otomatik üretilir. Commit'te **
 - **Add DeepSeek and MCP documentation**
 
 
+- **Add DeepSeek usage guide and MCP documentation**
+
+
 
 
 ### Features
