@@ -1,20 +1,44 @@
 {
-  "name": "intentum-snippets",
-  "displayName": "Intentum Snippets",
-  "description": "Code snippets for Intentum intent-driven development",
-  "version": "0.0.1",
+  "name": "intentum-vscode",
+  "displayName": "Intentum VS Code Extension",
+  "description": "VS Code extension for Intentum development with snippets and Package Explorer",
+  "version": "0.1.0",
   "engines": {
     "vscode": "^1.80.0"
   },
   "categories": [
-    "Snippets"
+    "Snippets",
+    "Other"
   ],
-  "snippets": [
-    {
-      "language": "csharp",
-      "path": "./snippets/intentum.json"
-    }
+  "activationEvents": [
+    "onCommand:intentum.explorePackage"
   ],
+  "main": "./out/extension.js",
+  "contributes": {
+    "commands": [
+      {
+        "command": "intentum.explorePackage",
+        "title": "Intentum: Explore NuGet Package"
+      }
+    ],
+    "snippets": [
+      {
+        "language": "csharp",
+        "path": "./snippets/intentum.json"
+      }
+    ]
+  },
+  "scripts": {
+    "vscode:prepublish": "npm run compile",
+    "compile": "tsc -p ./",
+    "watch": "tsc -watch -p ./",
+    "package": "vsce package"
+  },
+  "devDependencies": {
+    "@types/vscode": "^1.80.0",
+    "typescript": "^5.0.0",
+    "@vscode/vsce": "^2.0.0"
+  },
   "repository": {
     "type": "git",
     "url": "https://github.com/keremvaris/Intentum"
