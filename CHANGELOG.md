@@ -17,6 +17,15 @@ Bu dosya **conventional commit** mesajlarından otomatik üretilir. Commit'te **
 
 
 
+### Miscellaneous
+
+- **Trigger SonarCloud scan with token**
+
+
+## [1.2.1] - 2026-06-18
+
+
+
 ### Bug Fixes
 
 - **Add regex timeout to prevent ReDoS** *(core)*
