@@ -13,24 +13,265 @@ Bu dosya **conventional commit** mesajlarından otomatik üretilir. Commit'te **
 
 ---
 
-## [unreleased]
+## [1.1.10] - 2026-06-18
 
-### Features
-- **feat(cli):** Add CLI tool with scaffold, validate, test-infer, and export commands *(cli)*
-- **feat(playground):** Create Blazor WebAssembly interactive playground *(playground)*
-- **feat(playground):** Add BehaviorSpace editor component *(playground)*
-- **feat(playground):** Add IntentPolicy editor component *(playground)*
-- **feat(playground):** Add inference demo with mock model *(playground)*
-- **feat(sdk):** Add SDK generation scripts and documentation for C#, Python, TypeScript *(sdk)*
-- **feat(vscode):** Add Package Explorer extension command *(vscode)*
 
-### Documentation
-- **docs(api):** Add OpenAPI 3.0 specification *(api)*
+
+
+
+
 
 ### Bug Fixes
-- **fix(playground):** Wire editors to shared PlaygroundService *(playground)*
-- **fix(playground):** Add confidence level selector and fix rule condition *(playground)*
-- **fix(cli):** Improve error handling, validation, and code quality *(cli)*
+
+- **Add null validation and remove misleading DecideAsync method** *(runtime)*
+
+
+- **Consolidate cosine similarity implementations with clear documentation** *(ai)*
+
+
+- **Correct XML documentation and add orthogonal test case** *(ai)*
+
+
+- **Add null guard to BehaviorSpaceSanitization.Sanitize** *(core)*
+
+
+- **Add confidence level selector and fix rule condition** *(playground)*
+
+
+- **Wire editors to shared PlaygroundService** *(playground)*
+
+
+- **Improve error handling, validation, and code quality** *(cli)*
+
+
+- **Rename test to match actual behavior** *(test)*
+
+
+- **Use HalfOpenMaxAttempts in circuit breaker** *(resilience)*
+
+
+- **Replace deprecated RuntimeExtensions.Decide with IntentPolicyEngine.Evaluate**
+
+- Migrate all RuntimeExtensions.Decide(Intent, IntentPolicy) calls to
+  IntentPolicyEngine.Evaluate(intent, policy) across 48 source files
+- Remove unnecessary PackageReference items (NU1510) in Intentum.Tests
+- Update OpenTelemetry 1.11.2 → 1.16.0 (fixes NU1902 vulnerability)
+- Update MongoDB.Driver 3.6.0 → 3.9.0 (fixes NU1902/NU1903 vulns)
+- Remove unused imports (Xunit, Intentum.AI.Similarity)
+
+
+
+- **Add IsPackable false to Playground project**
+
+
+
+
+### Documentation
+
+- **Add ADR directory structure and template** *(adr)*
+
+
+- **Add ADR-001 why intent spaces** *(adr)*
+
+
+- **Add ADR-002 why embeddings** *(adr)*
+
+
+- **Add ADR-003 why static thresholds** *(adr)*
+
+
+- **Add ADR-004 and ADR-005** *(adr)*
+
+
+- **Update GitHub Pages docs with new features and fixes**
+
+- Add VS Code Snippets extension docs (setup.md EN/TR)
+- Add ONNX provider documentation (providers.md, api.md)
+- Add Streaming.Kafka and FusionCache package references
+- Add InferWithValidation, Policy.Validate(), CosineSimilarityHelper
+- Add RateLimitingExtensions.AddIntentumRateLimiting DI extension
+- Update BehaviorSpace vector caching (multi-key cache)
+- Fix Playground UI section in features-simple-guide.md
+- Mirror all changes to Turkish docs
+
+
+
+- **Add v1.0 to v1.1 migration guide** *(migration)*
+
+
+- **Add quick start guide with tutorials** *(contributing)*
+
+
+- **Configure discussions and update issue templates** *(github)*
+
+
+- **Add OpenAPI 3.0 specification** *(api)*
+
+
+- **Update CHANGELOG for v1.2.0 changes**
+
+
+- **Add domain modules design spec** *(spec)*
+
+
+- **Add production hardening design spec** *(spec)*
+
+
+- **Add advanced AI design spec** *(spec)*
+
+
+- **Add distributed systems design spec** *(spec)*
+
+
+- **Update documentation for v1.2 features (roadmap, production-readiness, advanced-features)**
+
+
+- **Add TR migration guide and contributing quickstart, update toc.yml**
+
+
+- **Add examples enhancement design spec** *(spec)*
+
+
+- **Update README with new v1.2 examples** *(examples)*
+
+
+
+
+### Features
+
+- **Add DI extension for rate limiting registration** *(runtime)*
+
+
+- **Add VS Code snippets extension** *(dx)*
+
+
+- **Create Blazor WebAssembly project scaffold** *(playground)*
+
+
+- **Add BehaviorSpace editor component** *(playground)*
+
+
+- **Add IntentPolicy editor component** *(playground)*
+
+
+- **Add inference demo with mock model** *(playground)*
+
+
+- **Create CLI tool with scaffold and validate commands** *(cli)*
+
+
+- **Add SDK generation scripts and documentation** *(sdk)*
+
+
+- **Add Package Explorer extension command** *(vscode)*
+
+
+- **Add Healthcare rules module** *(domain)*
+
+
+- **Add Education rules module** *(domain)*
+
+
+- **Add IoT rules module** *(domain)*
+
+
+- **Add Finance rules module** *(domain)*
+
+
+- **Add Supply Chain rules module** *(domain)*
+
+
+- **Add Circuit Breaker pattern** *(resilience)*
+
+
+- **Add Retry policy pattern** *(resilience)*
+
+
+- **Add Bulkhead pattern** *(resilience)*
+
+
+- **Add Degradation policy pattern** *(resilience)*
+
+
+- **Add Timeout policy pattern** *(resilience)*
+
+
+- **Add aggregate DI registration for all patterns** *(resilience)*
+
+
+- **Add confidence calibration (Platt + Temperature)** *(ai)*
+
+
+- **Add few-shot learning with example store** *(ai)*
+
+
+- **Add multi-modal fusion support** *(ai)*
+
+
+- **Add ensemble models with weighted and majority voting** *(ai)*
+
+
+- **Add token cost tracking** *(ai)*
+
+
+- **Add interfaces project (locking, rate limiting, event sourcing, outbox)** *(distributed)*
+
+
+- **Add gRPC service with Infer and Evaluate endpoints** *(distributed)*
+
+
+- **Prepare extension for marketplace publish** *(vscode)*
+
+
+- **Add resilience pattern demo** *(examples)*
+
+
+- **Add domain rules demo** *(examples)*
+
+
+- **Add calibration and ensemble demo** *(examples)*
+
+
+- **Add gRPC client demo** *(examples)*
+
+
+- **Add content moderation demo** *(examples)*
+
+
+- **Add healthcare triage demo** *(examples)*
+
+
+- **Add AI agent monitor demo** *(examples)*
+
+
+
+
+### Miscellaneous
+
+- **Remove unused using statements from health check tests** *(tests)*
+
+
+- **Add regression detection to CI pipeline** *(benchmarks)*
+
+
+
+
+### Testing
+
+- **Add InMemory repository and serialization tests** *(persistence)*
+
+
+- **Add comprehensive observability tests with ActivityListener verification** *(observability)*
+
+
+- **Fix no-op metrics tests and add error record verification** *(observability)*
+
+
+- **Add health check tests for EmbeddingProvider and PolicyEngine** *(aspnetcore)*
+
+
+## [1.1.9] - 2026-02-22
+
 
 
 
@@ -1255,6 +1496,20 @@ Refactors the NuGet package pushing logic to use `find -exec`, improving reliabi
 
 
 
+### Features
+
+- **Automate versioning and tagging** *(release)*
+
+Introduces a `release.sh` script to automatically determine and apply the next semantic version based on conventional commits since the last tag, or allow manual version specification.
+
+Enhances GitHub release workflows (`github-release.yml`) with `workflow_dispatch` to enable manual triggering and direct tag input. Updates `README.md` to document the new release script and manual workflow capabilities.
+
+
+
+## [0.0.1] - 2026-01-28
+
+
+
 
 
 
@@ -1294,14 +1549,6 @@ Integrates git-cliff for automatic generation of CHANGELOG.md and release notes 
 Adopts MinVer for deriving package versions directly from Git tags, removing the need for manual version updates.
 Refactors GitHub Actions workflows for NuGet and GitHub Releases to leverage these new tools, enhancing automation and consistency.
 Updates documentation, sample code, and tests to include new e-commerce scenarios and remove old Sukuk & Islamic Finance examples, broadening the project's showcased applicability.
-
-
-
-- **Automate versioning and tagging** *(release)*
-
-Introduces a `release.sh` script to automatically determine and apply the next semantic version based on conventional commits since the last tag, or allow manual version specification.
-
-Enhances GitHub release workflows (`github-release.yml`) with `workflow_dispatch` to enable manual triggering and direct tag input. Updates `README.md` to document the new release script and manual workflow capabilities.
 
 
 
