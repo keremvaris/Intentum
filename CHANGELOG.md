@@ -28,6 +28,9 @@ Bu dosya **conventional commit** mesajlarından otomatik üretilir. Commit'te **
 - **Make SonarCloud steps conditional on token availability** *(ci)*
 
 
+- **Make SonarCloud steps continue on error** *(ci)*
+
+
 
 
 ### Documentation
