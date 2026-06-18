@@ -48,7 +48,7 @@ public sealed class CosineSimilarityEngine : IIntentSimilarityEngine
 
     /// <summary>
     /// Calculates cosine similarity between two vectors.
-    /// Returns a value between -1 and 1, where 1 means identical, 0 means orthogonal, -1 means opposite.
+    /// Returns a value between 0 and 1, where 1 means identical, 0.5 means orthogonal, 0 means opposite.
     /// </summary>
     private static double CalculateCosineSimilarity(
         IReadOnlyList<double> vector1,

@@ -76,4 +76,15 @@ public class CosineSimilarityHelperTests
 
         Assert.Equal(0, result, 5);
     }
+
+    [Fact]
+    public void CosineSimilarityNormalized_OrthogonalVectors_ReturnsHalf()
+    {
+        var a = new double[] { 1, 0 };
+        var b = new double[] { 0, 1 };
+        
+        var result = CosineSimilarityHelper.CosineSimilarityNormalized(a, b);
+        
+        Assert.Equal(0.5, result, 5);
+    }
 }
