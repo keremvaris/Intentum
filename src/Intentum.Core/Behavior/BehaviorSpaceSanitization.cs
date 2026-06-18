@@ -29,8 +29,8 @@ public sealed record SanitizationOptions(
 /// </summary>
 public static class BehaviorSpaceSanitization
 {
-    private static readonly Regex EmailRegex = new(@"[\w.+-]+@[\w-]+\.[\w.]+", RegexOptions.Compiled);
-    private static readonly Regex PhoneRegex = new(@"[\+]?[\d\s\-\(\)]{10,}", RegexOptions.Compiled);
+    private static readonly Regex EmailRegex = new(@"[\w.+-]+@[\w-]+\.[\w.]+", RegexOptions.Compiled, TimeSpan.FromSeconds(1));
+    private static readonly Regex PhoneRegex = new(@"[\+]?[\d\s\-\(\)]{10,}", RegexOptions.Compiled, TimeSpan.FromSeconds(1));
     /// <summary>
     /// Returns a new behavior space with actor/action/metadata sanitized according to options.
     /// Original space is not modified.
