@@ -1,0 +1,31 @@
+@using Intentum.Runtime.Policy
+
+<div class="rule-editor">
+    <input @bind="RuleName" placeholder="Rule name" />
+    <select @bind="SelectedDecision">
+        @foreach (var decision in Enum.GetValues<PolicyDecision>())
+        {
+            <option value="@decision">@decision</option>
+        }
+    </select>
+    <button @onclick="AddRule" disabled="@string.IsNullOrWhiteSpace(RuleName)">Add Rule</button>
+</div>
+
+@code {
+    private string RuleName { get; set; } = "";
+    private PolicyDecision SelectedDecision { get; set; } = PolicyDecision.Allow;
+
+    [Parameter]
+    public EventCallback<PolicyRule> OnRuleAdded { get; set; }
+
+    private async Task AddRule()
+    {
+        if (!string.IsNullOrWhiteSpace(RuleName))
+        {
+            var rule = new PolicyRule(RuleName, _ => true, SelectedDecision);
+            await OnRuleAdded.InvokeAsync(rule);
+            RuleName = "";
+            SelectedDecision = PolicyDecision.Allow;
+        }
+    }
+}

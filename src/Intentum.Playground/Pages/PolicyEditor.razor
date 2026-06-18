@@ -1,0 +1,28 @@
+@page "/policy"
+@using Intentum.Runtime.Policy
+
+<PageTitle>IntentPolicy Editor</PageTitle>
+
+<h1>IntentPolicy Editor</h1>
+
+<RuleEditor OnRuleAdded="AddRule" />
+
+<div class="rules-list">
+    <h3>Rules (@_policy.Rules.Count)</h3>
+    @foreach (var rule in _policy.Rules)
+    {
+        <div class="rule-item">
+            <span class="rule-name">@rule.Name</span>
+            <span class="rule-decision">@rule.Decision</span>
+        </div>
+    }
+</div>
+
+@code {
+    private IntentPolicy _policy = new();
+
+    private void AddRule(PolicyRule rule)
+    {
+        _policy.AddRule(rule);
+    }
+}
