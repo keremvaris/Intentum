@@ -22,6 +22,9 @@ Bu dosya **conventional commit** mesajlarından otomatik üretilir. Commit'te **
 - **Add regex timeout to prevent ReDoS** *(core)*
 
 
+- **Resolve SonarCloud warnings (static methods, regex timeout, null guards)**
+
+
 ## [1.2.0] - 2026-06-18
 
 
