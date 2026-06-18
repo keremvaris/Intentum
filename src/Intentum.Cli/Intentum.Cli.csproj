@@ -1,0 +1,19 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net10.0</TargetFramework>
+    <PackAsTool>true</PackAsTool>
+    <ToolCommandName>intentum</ToolCommandName>
+    <PackageId>Intentum.Cli</PackageId>
+    <Version>1.1.8</Version>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="System.CommandLine" Version="2.0.0-beta4.22272.1" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Intentum.Core\Intentum.Core.csproj" />
+    <ProjectReference Include="..\Intentum.Runtime\Intentum.Runtime.csproj" />
+  </ItemGroup>
+</Project>
