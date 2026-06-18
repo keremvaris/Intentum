@@ -22,6 +22,9 @@ Bu dosya **conventional commit** mesajlarından otomatik üretilir. Commit'te **
 - **Add unstaged Distributed.Redis files and test references**
 
 
+- **Make SonarCloud steps conditional on token availability** *(ci)*
+
+
 ## [1.1.10] - 2026-06-18
 
 
