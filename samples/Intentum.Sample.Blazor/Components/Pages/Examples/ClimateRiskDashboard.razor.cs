@@ -49,10 +49,7 @@ public sealed partial class ClimateRiskDashboard : IAsyncDisposable
             await JSRuntime.InvokeAsync<bool>("initClimateGeoMap", "climate-geo-map");
 
             // Register .NET interop for map callbacks
-            var dotNetRef = DotNetObjectReference.Create(this);
-            await JSRuntime.InvokeVoidAsync("eval", $@"
-                window.DotNetClimateMap = {dotNetRef};
-            ");
+            await JSRuntime.InvokeVoidAsync("registerDotNetClimateMap", DotNetObjectReference.Create(this));
 
             await UpdateWorldMap();
         }
@@ -357,6 +354,6 @@ public sealed partial class ClimateRiskDashboard : IAsyncDisposable
         if (_lineEcharts != null) await _lineEcharts.DisposeAsync();
         if (_gaugeEcharts != null) await _gaugeEcharts.DisposeAsync();
         try { await JSRuntime.InvokeAsync<object?>("IntentumECharts.dispose", "climate-geo-map"); } catch { }
-        try { await JSRuntime.InvokeVoidAsync("eval", "window.DotNetClimateMap = null;"); } catch { }
+        try { await JSRuntime.InvokeVoidAsync("unregisterDotNetClimateMap"); } catch { }
     }
 }

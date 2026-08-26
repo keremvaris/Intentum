@@ -423,6 +423,14 @@ window.ClimateMap = {
 };
 
 // Blazor callable functions
+window.registerDotNetClimateMap = function(dotNetRef) {
+  window.DotNetClimateMap = dotNetRef;
+};
+
+window.unregisterDotNetClimateMap = function() {
+  window.DotNetClimateMap = null;
+};
+
 window.initClimateGeoMap = async function(elementId) {
   return await ClimateMap.init(elementId);
 };
