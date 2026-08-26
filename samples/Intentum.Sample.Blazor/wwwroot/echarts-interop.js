@@ -9,6 +9,7 @@ window.IntentumECharts = {
     if (!this._worldRegistered) {
       var base = (typeof window !== 'undefined' && window.location && window.location.origin) ? window.location.origin : '';
       var urls = [
+        base + '/data/world.json',
         base + '/world.json',
         'https://echarts.apache.org/examples/data/asset/geo/world.json',
         'https://fastly.jsdelivr.net/npm/echarts@5/map/json/world.json',
@@ -222,6 +223,7 @@ window.initClimateGeoMap = async function(elementId) {
   if (window.IntentumECharts.instances[elementId]) return true;
   var worldJson = null;
   var urls = [
+    '/data/world.json',
     'https://echarts.apache.org/examples/data/asset/geo/world.json',
     'https://fastly.jsdelivr.net/npm/echarts@5/map/json/world.json',
     'https://cdn.jsdelivr.net/npm/echarts@5.4.3/map/json/world.json'
