@@ -297,8 +297,69 @@ window.ClimateMap = {
   },
 
   updateRiskData: function(riskData) {
-    this.riskData = riskData || [];
+    var self = this;
+    this.riskData = (riskData || []).map(function(d) {
+      return {
+        name: self._normName(d.name),
+        value: d.value,
+        iso3: d.iso3
+      };
+    });
     if (this.level === 'world' && this._initialized) this._renderWorld();
+  },
+
+  // Normalize WRI country names to world.json geo feature names
+  _normName: function(name) {
+    var map = {
+      'United States of America': 'United States',
+      'Dominican Republic': 'Dominican Rep.',
+      'Democratic Republic of the Congo': 'Dem. Rep. Congo',
+      'Congo (Democratic Republic of the)': 'Dem. Rep. Congo',
+      'Congo, Dem. Rep.': 'Dem. Rep. Congo',
+      'Republic of the Congo': 'Congo',
+      'Central African Republic': 'Central African Rep.',
+      'Equatorial Guinea': 'Eq. Guinea',
+      'Cote d\'Ivoire': 'Côte d\'Ivoire',
+      'Ivory Coast': 'Côte d\'Ivoire',
+      'South Korea': 'Korea',
+      'Republic of Korea': 'Korea',
+      'North Korea': 'Dem. Rep. Korea',
+      "Democratic People's Republic of Korea": 'Dem. Rep. Korea',
+      'Czech Republic': 'Czech Rep.',
+      'Bosnia and Herzegovina': 'Bosnia and Herz.',
+      'Falkland Islands': 'Falkland Is.',
+      'United States Virgin Islands': 'U.S. Virgin Is.',
+      'Virgin Islands (U.S.)': 'U.S. Virgin Is.',
+      'Western Sahara': 'W. Sahara',
+      'North Macedonia': 'Macedonia',
+      'Macedonia (the former Yugoslav Republic of)': 'Macedonia',
+      'South Sudan': 'Somalia',
+      'Swaziland': 'Swaziland',
+      'Eswatini': 'Swaziland',
+      'Serbia': 'Serbia',
+      'Kosovo': 'Kosovo',
+      'Republic of Serbia': 'Serbia',
+      'United Republic of Tanzania': 'Tanzania',
+      'Tanzania, United Republic of': 'Tanzania',
+      'Cape Verde': 'Cabo Verde',
+      'Cabo Verde': 'Cabo Verde',
+      'The Bahamas': 'Bahamas',
+      'Gambia': 'Gambia',
+      'The Gambia': 'Gambia',
+      'Myanmar': 'Myanmar',
+      'Burma': 'Myanmar',
+      'Viet Nam': 'Vietnam',
+      'Vietnam': 'Vietnam',
+      'Lao PDR': 'Laos',
+      "Lao People's Democratic Republic": 'Laos',
+      'Laos': 'Laos',
+      'Dem. Rep. Korea': 'Dem. Rep. Korea',
+      'United States': 'United States',
+      'United Kingdom': 'United Kingdom',
+      'Turkey': 'Turkey',
+      'Türkiye': 'Turkey'
+    };
+    return map[name] || name;
   },
 
   // ── COUNTRY DRILL-DOWN ──────────────────────────────────────
@@ -558,22 +619,36 @@ window.ClimateMap = {
   _nameToIso3: function(name) {
     var n = name.toLowerCase();
     var map = {
-      'turkey': 'TUR', 'united states of america': 'USA', 'united states': 'USA',
+      'turkey': 'TUR', 'united states': 'USA', 'united states of america': 'USA',
       'united kingdom': 'GBR', 'germany': 'DEU', 'france': 'FRA', 'italy': 'ITA',
       'china': 'CHN', 'india': 'IND', 'japan': 'JPN', 'brazil': 'BRA',
       'russia': 'RUS', 'canada': 'CAN', 'australia': 'AUS', 'south africa': 'ZAF',
       'saudi arabia': 'SAU', 'spain': 'ESP', 'mexico': 'MEX', 'indonesia': 'IDN',
-      'south korea': 'KOR', 'north korea': 'PRK', 'czech republic': 'CZE',
-      'dominican republic': 'DOM', 'south sudan': 'SSD', 'laos': 'LAO',
-      'bosnia and Herz.': 'BIH', 'bosnia and herzegovina': 'BIH',
-      'republic of the congo': 'COG', 'republic of congo': 'COG',
-      'dem. rep. congo': 'COD', 'democratic republic of the congo': 'COD',
-      'central african rep.': 'CAF', 'central african republic': 'CAF',
-      "cote d'ivoire": 'CIV', "ivory coast": 'CIV',
-      'eq. guinea': 'GNQ', 'equatorial guinea': 'GNQ',
-      'antigua and barb.': 'ATG', 'antigua and baruda': 'ATG',
+      'korea': 'KOR', 'south korea': 'KOR', 'republic of korea': 'KOR',
+      'dem. rep. korea': 'PRK', 'north korea': 'PRK', 'czech rep.': 'CZE',
+      'czech republic': 'CZE', 'dominican rep.': 'DOM', 'dominican republic': 'DOM',
+      'south sudan': 'SSD', 'laos': 'LAO', 'bosnia and herz.': 'BIH',
+      'bosnia and herzegovina': 'BIH', 'congo': 'COG', 'republic of the congo': 'COG',
+      'republic of congo': 'COG', 'dem. rep. congo': 'COD',
+      'democratic republic of the congo': 'COD', 'central african rep.': 'CAF',
+      'central african republic': 'CAF', "côte d'ivoire": 'CIV', "cote d'ivoire": 'CIV',
+      "ivory coast": 'CIV', 'eq. guinea': 'GNQ', 'equatorial guinea': 'GNQ',
+      'antigua and barb.': 'ATG', 'antigua and barbuda': 'ATG',
       'saint kitts and nevis': 'KNA', 'st. kitts and nevis': 'KNA',
-      'san marino': 'SMR'
+      'san marino': 'SMR', 'north macedonia': 'MKD', 'macedonia': 'MKD',
+      'serbia': 'SRB', 'kosovo': 'XKX', 'cabo verde': 'CPV', 'cape verde': 'CPV',
+      'the bahamas': 'BHS', 'bahamas': 'BHS', 'swaziland': 'SWZ', 'eswatini': 'SWZ',
+      'romania': 'ROU', 'poland': 'POL', 'portugal': 'PRT', 'netherlands': 'NLD',
+      'belgium': 'BEL', 'switzerland': 'CHE', 'austria': 'AUT', 'sweden': 'SWE',
+      'norway': 'NOR', 'finland': 'FIN', 'denmark': 'DNK', 'greece': 'GRC',
+      'ireland': 'IRL', 'ukraine': 'UKR', 'egypt': 'EGY', 'israel': 'ISR',
+      'iraq': 'IRQ', 'iran': 'IRN', 'afghanistan': 'AFG', 'pakistan': 'PAK',
+      'bangladesh': 'BGD', 'thailand': 'THA', 'vietnam': 'VNM', 'philippines': 'PHL',
+      'malaysia': 'MYS', 'singapore': 'SGP', 'argentina': 'ARG', 'chile': 'CHL',
+      'colombia': 'COL', 'peru': 'PER', 'venezuela': 'VEN', 'ecuador': 'ECU',
+      'morocco': 'MAR', 'tunisia': 'TUN', 'algeria': 'DZA', 'libya': 'LBY',
+      'nigeria': 'NGA', 'ethiopia': 'ETH', 'kenya': 'KEN', 'ghana': 'GHA',
+      'tanzania': 'TZA', 'moldova': 'MDA', 'viet nam': 'VNM', 'türkiye': 'TUR'
     };
     return map[n] || '';
   }
