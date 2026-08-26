@@ -178,6 +178,7 @@ window.ClimateMap = {
   level: 'world',        // 'world' | 'country'
   countryIso3: null,
   countryName: null,
+  countryProvinces: null, // province risk data [{name, value}]
   riskData: [],          // world risk data [{name, value, iso3}]
   location: null,        // {lat, lng, label, color, radiusKm}
   _initialized: false,
@@ -207,8 +208,133 @@ window.ClimateMap = {
     this.level = 'world';
     this._initialized = true;
     this._bindClicks();
-    this._renderWorld();
+    this._render();
     return true;
+  },
+
+  // One unified option builder — always produces a complete, consistent chart.
+  // mapName: the registered map to show ('world' or 'gadm_XXX_1')
+  // data: choropleth data [{name, value}]
+  // tooltipSuffix: extra tooltip line (e.g. country name on province view)
+  _buildOption: function(mapName, data, tooltipSuffix) {
+    var self = this;
+    var loc = this.location;
+    var series = [{
+      name: 'risk',
+      type: 'map',
+      geoIndex: 0,
+      data: data || [],
+      label: { show: this.level === 'country', fontSize: 9, color: '#94a3b8' },
+      itemStyle: { areaColor: '#1e293b', borderColor: '#475569', borderWidth: 0.8 },
+      emphasis: {
+        label: { show: true, color: '#fff', fontSize: 11 },
+        itemStyle: { areaColor: '#3b82f6' }
+      }
+    }];
+
+    // Location marker + radius as overlaid series (share the geo coordinate system)
+    if (loc) {
+      var color = loc.color || '#ef4444';
+      var label = loc.label || 'Konum';
+      var radiusDeg = (loc.radiusKm || 10) / 111.0;
+      var circlePoints = [];
+      for (var i = 0; i <= 64; i++) {
+        var angle = (i / 64) * 2 * Math.PI;
+        var dLat = radiusDeg * Math.cos(angle);
+        var dLng = radiusDeg * Math.sin(angle) / Math.cos(loc.lat * Math.PI / 180);
+        circlePoints.push([loc.lng + dLng, loc.lat + dLat]);
+      }
+      var lineData = [];
+      for (var j = 0; j < circlePoints.length - 1; j++) {
+        lineData.push({ coords: [circlePoints[j], circlePoints[j + 1]] });
+      }
+      series.push({
+        name: 'location',
+        type: 'effectScatter',
+        coordinateSystem: 'geo',
+        geoIndex: 0,
+        data: [{ value: [loc.lng, loc.lat], itemStyle: { color: color } }],
+        symbolSize: 13,
+        rippleEffect: { brushType: 'stroke', scale: 4, period: 3 },
+        label: {
+          show: true,
+          formatter: label,
+          position: 'right',
+          color: '#f1f5f9',
+          fontSize: 11,
+          fontWeight: 'bold',
+          backgroundColor: 'rgba(15,23,42,0.85)',
+          padding: [4, 8],
+          borderRadius: 4,
+          borderColor: color,
+          borderWidth: 1
+        },
+        zlevel: 5
+      });
+      series.push({
+        name: 'location-radius',
+        type: 'lines',
+        coordinateSystem: 'geo',
+        geoIndex: 0,
+        polyline: false,
+        lineStyle: { color: color, width: 1.5, opacity: 0.5, type: 'dashed' },
+        effect: { show: false },
+        data: lineData,
+        zlevel: 4,
+        silent: true
+      });
+    }
+
+    return {
+      backgroundColor: 'transparent',
+      tooltip: {
+        trigger: 'item',
+        confine: true,
+        formatter: function(params) {
+          if (params.seriesType !== 'map') return params.name;
+          var v = params.value;
+          if (v == null) return '<b>' + params.name + '</b><br/>Veri yok';
+          var score = +v;
+          var level = score > 4 ? 'Çok Yüksek' : score > 3 ? 'Yüksek' : score > 2 ? 'Orta' : 'Düşük';
+          var extra = tooltipSuffix ? '<br/><i>' + tooltipSuffix + '</i>' : '';
+          return '<b>' + params.name + '</b><br/>Risk: ' + score + '/5 (' + level + ')' + extra;
+        }
+      },
+      visualMap: {
+        min: 0, max: 5,
+        left: 'left', bottom: 10,
+        text: ['Yüksek', 'Düşük'],
+        textStyle: { color: '#94a3b8', fontSize: 10 },
+        inRange: { color: ['#22c55e', '#84cc16', '#f59e0b', '#ef4444', '#991b1b'] },
+        calculable: true
+      },
+      geo: {
+        map: mapName,
+        roam: true,
+        layoutCenter: ['50%', '50%'],
+        layoutSize: '92%',
+        itemStyle: { areaColor: '#1e293b', borderColor: '#475569', borderWidth: 0.8 },
+        emphasis: {
+          itemStyle: { areaColor: '#1e3a5f', borderColor: '#60a5fa', borderWidth: 1.5 },
+          label: { show: true, color: '#fff' }
+        }
+      },
+      series: series
+    };
+  },
+
+  _render: function() {
+    if (!this.instance) return;
+    var opt;
+    if (this.level === 'country') {
+      opt = this._buildOption('gadm_' + this.countryIso3 + '_1', this.countryProvinces || [], this.countryName);
+    } else {
+      opt = this._buildOption('world', (this.riskData || []).map(function(d) {
+        return { name: d.name, value: d.value };
+      }), null);
+    }
+    this.instance.setOption(opt, true);
+    this._bindClicks();
   },
 
   _bindClicks: function() {
@@ -219,81 +345,16 @@ window.ClimateMap = {
       if (params.componentType !== 'series' || params.seriesType !== 'map') return;
 
       if (self.level === 'world') {
-        // Click on country → drill down
         var iso3 = self._nameToIso3(params.name);
         if (iso3) {
           self._drillToCountry(iso3, params.name);
         }
       } else if (self.level === 'country') {
-        // Click on province → notify Blazor
         if (window.DotNetClimateMap) {
           window.DotNetClimateMap.invokeMethodAsync('OnProvinceClicked', params.name);
         }
       }
     });
-  },
-
-  // ── WORLD VIEW ──────────────────────────────────────────────
-  _renderWorld: function() {
-    if (!this.instance) return;
-    this.level = 'world';
-
-    var data = (this.riskData || []).map(function(d) {
-      return { name: d.name, value: d.value, iso3: d.iso3 };
-    });
-
-    this.instance.setOption({
-      backgroundColor: 'transparent',
-      tooltip: {
-        trigger: 'item',
-        confine: true,
-        formatter: function(params) {
-          if (params.seriesType !== 'map') return params.name;
-          var d = data.find(function(x) { return x.name === params.name; });
-          var score = d ? d.value : null;
-          if (score == null) return '<b>' + params.name + '</b><br/>Veri yok';
-          var level = score > 4 ? 'Cok Yuksek' : score > 3 ? 'Yuksek' : score > 2 ? 'Orta' : 'Dusuk';
-          return '<b>' + params.name + '</b><br/>Su Stresi: ' + score + '/5 (' + level + ')';
-        }
-      },
-      visualMap: {
-        min: 0, max: 5,
-        left: 'left', bottom: 10,
-        text: ['Yuksek', 'Dusuk'],
-        textStyle: { color: '#94a3b8', fontSize: 10 },
-        inRange: { color: ['#22c55e', '#84cc16', '#f59e0b', '#ef4444', '#991b1b'] },
-        calculable: true
-      },
-      geo: {
-        map: 'world',
-        roam: true,
-        zoom: 1.1,
-        center: [25, 30],
-        itemStyle: { areaColor: '#1e293b', borderColor: '#334155', borderWidth: 0.5 },
-        emphasis: {
-          itemStyle: { areaColor: '#334155', borderColor: '#60a5fa', borderWidth: 1.2 },
-          label: { show: true, color: '#fff', fontSize: 11 }
-        }
-      },
-      series: [{
-        name: 'Risk Haritasi',
-        type: 'map',
-        map: 'world',
-        roam: false,
-        zoom: 1.1,
-        center: [25, 30],
-        label: { show: false },
-        itemStyle: { areaColor: '#1e293b', borderColor: '#334155', borderWidth: 0.5 },
-        emphasis: {
-          label: { show: false },
-          itemStyle: { areaColor: '#334155' }
-        },
-        data: data
-      }]
-    }, true);
-
-    this._bindClicks();
-    this._showLocationMarker();
   },
 
   updateRiskData: function(riskData) {
@@ -305,7 +366,7 @@ window.ClimateMap = {
         iso3: d.iso3
       };
     });
-    if (this.level === 'world' && this._initialized) this._renderWorld();
+    if (this.level === 'world' && this._initialized) this._render();
   },
 
   // Normalize WRI country names to world.json geo feature names
@@ -377,40 +438,20 @@ window.ClimateMap = {
     } catch(e) {}
 
     if (!geoJson || !geoJson.features || geoJson.features.length === 0) {
-      // Fallback: zoom to country on world map
+      // No GADM data — go back to world view
       this.level = 'world';
       this.countryIso3 = null;
       this.countryName = null;
-      if (this.location) {
-        this.instance.setOption({
-          geo: { center: [this.location.lng, this.location.lat], zoom: 5 },
-          series: [{ center: [this.location.lng, this.location.lat], zoom: 5 }]
-        });
-        this._showLocationMarker();
+      this.countryProvinces = null;
+      this._render();
+      if (window.DotNetClimateMap) {
+        window.DotNetClimateMap.invokeMethodAsync('OnMapBackToWorld');
       }
       return;
     }
 
     var mapName = 'gadm_' + iso3 + '_1';
     try { echarts.registerMap(mapName, geoJson); } catch(e) {}
-
-    // Calculate bounds
-    var minLng = Infinity, maxLng = -Infinity, minLat = Infinity, maxLat = -Infinity;
-    geoJson.features.forEach(function(f) {
-      function scan(arr) {
-        if (typeof arr[0] === 'number') {
-          if (arr[0] < minLng) minLng = arr[0];
-          if (arr[0] > maxLng) maxLng = arr[0];
-          if (arr[1] < minLat) minLat = arr[1];
-          if (arr[1] > maxLat) maxLat = arr[1];
-        } else { arr.forEach(scan); }
-      }
-      scan(f.geometry.coordinates);
-    });
-    var centerLng = (minLng + maxLng) / 2;
-    var centerLat = (minLat + maxLat) / 2;
-    var span = Math.max(maxLng - minLng, maxLat - minLat);
-    var zoom = span > 30 ? 1.2 : span > 15 ? 2 : span > 8 ? 3 : span > 4 ? 4.5 : 6;
 
     // Country risk baseline
     var countryRisk = 2.5;
@@ -421,7 +462,7 @@ window.ClimateMap = {
       }
     }
 
-    // Province risk with variation
+    // Province risk with deterministic variation for visual distinction
     var provinces = geoJson.features.map(function(f, idx) {
       var name = f.properties.NAME_1 || ('Province ' + idx);
       var hash = 0;
@@ -429,59 +470,13 @@ window.ClimateMap = {
         hash = ((hash << 5) - hash) + name.charCodeAt(c);
         hash = hash & hash;
       }
-      var variation = ((Math.abs(hash % 1000) / 1000) - 0.5) * 2.0;
-      var risk = Math.max(0.3, Math.min(5.0, countryRisk + variation));
+      var variation = ((Math.abs(hash % 1000) / 1000) - 0.5) * 2.4;
+      var risk = Math.max(0.5, Math.min(5.0, countryRisk + variation));
       return { name: name, value: parseFloat(risk.toFixed(1)) };
     });
+    this.countryProvinces = provinces;
 
-    this.instance.setOption({
-      backgroundColor: 'transparent',
-      tooltip: {
-        trigger: 'item',
-        confine: true,
-        formatter: function(params) {
-          if (params.seriesType !== 'map') return params.name;
-          return '<b>' + params.name + '</b><br/>Risk: ' + (params.value || 'N/A') + '/5<br/><i>' + countryName + '</i>';
-        }
-      },
-      visualMap: {
-        min: 0, max: 5,
-        left: 'left', bottom: 10,
-        text: ['Yuksek', 'Dusuk'],
-        textStyle: { color: '#94a3b8', fontSize: 10 },
-        inRange: { color: ['#22c55e', '#84cc16', '#f59e0b', '#ef4444', '#991b1b'] },
-        calculable: true
-      },
-      geo: {
-        map: mapName,
-        roam: true,
-        center: [centerLng, centerLat],
-        zoom: zoom,
-        itemStyle: { areaColor: '#1e293b', borderColor: '#475569', borderWidth: 0.8 },
-        emphasis: {
-          itemStyle: { areaColor: '#1e3a5f', borderColor: '#60a5fa', borderWidth: 1.5 },
-          label: { show: true, color: '#fff' }
-        }
-      },
-      series: [{
-        name: countryName,
-        type: 'map',
-        map: mapName,
-        roam: false,
-        center: [centerLng, centerLat],
-        zoom: zoom,
-        label: { show: true, fontSize: 9, color: '#94a3b8' },
-        itemStyle: { areaColor: '#1e293b', borderColor: '#475569', borderWidth: 0.8 },
-        emphasis: {
-          label: { show: true, color: '#fff', fontSize: 11 },
-          itemStyle: { areaColor: '#3b82f6' }
-        },
-        data: provinces
-      }]
-    }, true);
-
-    this._bindClicks();
-    this._showLocationMarker();
+    this._render();
 
     if (window.DotNetClimateMap) {
       window.DotNetClimateMap.invokeMethodAsync('OnCountryDrillDown', iso3, countryName);
@@ -493,7 +488,8 @@ window.ClimateMap = {
     if (this.level === 'country') {
       this.countryIso3 = null;
       this.countryName = null;
-      this._renderWorld();
+      this.countryProvinces = null;
+      this._render();
       if (window.DotNetClimateMap) {
         window.DotNetClimateMap.invokeMethodAsync('OnMapBackToWorld');
       }
@@ -501,83 +497,10 @@ window.ClimateMap = {
   },
 
   // ── LOCATION MARKER ─────────────────────────────────────────
-  _showLocationMarker: function() {
-    if (!this.instance || !this.location) return;
-    var loc = this.location;
-    var color = loc.color || '#ef4444';
-    var label = loc.label || 'Konum';
-    var radiusDeg = (loc.radiusKm || 10) / 111.0;
-
-    // Circle points
-    var circlePoints = [];
-    for (var i = 0; i <= 64; i++) {
-      var angle = (i / 64) * 2 * Math.PI;
-      var dLat = radiusDeg * Math.cos(angle);
-      var dLng = radiusDeg * Math.sin(angle) / Math.cos(loc.lat * Math.PI / 180);
-      circlePoints.push([loc.lng + dLng, loc.lat + dLat]);
-    }
-
-    // Circle lines
-    var lineData = [];
-    for (var j = 0; j < circlePoints.length - 1; j++) {
-      lineData.push({ coords: [circlePoints[j], circlePoints[j+1]] });
-    }
-
-    // Get existing non-factory series
-    var opt = this.instance.getOption();
-    var currentSeries = opt.series || [];
-    var baseSeries = [];
-    for (var k = 0; k < currentSeries.length; k++) {
-      if (currentSeries[k].name !== 'location' && currentSeries[k].name !== 'location-radius') {
-        baseSeries.push(currentSeries[k]);
-      }
-    }
-
-    // Add location marker
-    baseSeries.push({
-      name: 'location',
-      type: 'effectScatter',
-      coordinateSystem: 'geo',
-      geoIndex: 0,
-      data: [{ name: label, value: [loc.lng, loc.lat, 1], itemStyle: { color: color } }],
-      symbolSize: 14,
-      rippleEffect: { brushType: 'stroke', scale: 4, period: 3 },
-      label: {
-        show: true,
-        formatter: label,
-        position: 'right',
-        color: '#f1f5f9',
-        fontSize: 11,
-        fontWeight: 'bold',
-        backgroundColor: 'rgba(15,23,42,0.85)',
-        padding: [4, 8],
-        borderRadius: 4,
-        borderColor: color,
-        borderWidth: 1
-      },
-      zlevel: 5
-    });
-
-    // Add radius circle
-    baseSeries.push({
-      name: 'location-radius',
-      type: 'lines',
-      coordinateSystem: 'geo',
-      geoIndex: 0,
-      polyline: false,
-      lineStyle: { color: color, width: 1.5, opacity: 0.5, type: 'dashed' },
-      effect: { show: false },
-      data: lineData,
-      zlevel: 4,
-      silent: true
-    });
-
-    this.instance.setOption({ series: baseSeries });
-  },
-
+  // Marker is built into _buildOption; just re-render to show/update it.
   setLocation: function(lat, lng, radiusKm, label, color) {
     this.location = { lat: lat, lng: lng, radiusKm: radiusKm, label: label, color: color };
-    if (this.instance) this._showLocationMarker();
+    if (this.instance && this._initialized) this._render();
   },
 
   // ── NAVIGATION ──────────────────────────────────────────────
@@ -585,7 +508,7 @@ window.ClimateMap = {
     if (!this.instance) return;
     var opt = this.instance.getOption();
     var geo = opt.geo && opt.geo[0];
-    var curZoom = (geo && geo.zoom) || 1.1;
+    var curZoom = (geo && geo.zoom) || 1;
     this.instance.setOption({ geo: { zoom: curZoom * 1.4 } });
   },
 
@@ -593,26 +516,24 @@ window.ClimateMap = {
     if (!this.instance) return;
     var opt = this.instance.getOption();
     var geo = opt.geo && opt.geo[0];
-    var curZoom = (geo && geo.zoom) || 1.1;
-    this.instance.setOption({ geo: { zoom: Math.max(0.5, curZoom / 1.4) } });
+    var curZoom = (geo && geo.zoom) || 1;
+    this.instance.setOption({ geo: { zoom: Math.max(0.4, curZoom / 1.4) } });
   },
 
   resetZoom: function() {
     if (!this.instance) return;
-    if (this.level === 'world') {
-      this.instance.setOption({ geo: { center: [25, 30], zoom: 1.1 }, series: [{ center: [25, 30], zoom: 1.1 }] });
-    } else if (this.countryIso3) {
-      this._drillToCountry(this.countryIso3, this.countryName || this.countryIso3);
-    }
+    this._render();
   },
 
   focusLocation: function() {
     if (!this.instance || !this.location) return;
     var loc = this.location;
-    this.instance.setOption({
-      geo: { center: [loc.lng, loc.lat], zoom: 6 }
+    this.instance.dispatchAction({
+      type: 'geoRoam',
+      geoIndex: 0,
+      zoom: 5,
+      center: [loc.lng, loc.lat]
     });
-    this._showLocationMarker();
   },
 
   // ── ISO3 MAPPING ────────────────────────────────────────────
