@@ -1,5 +1,7 @@
 namespace Intentum.Sample.Blazor.Components.Services.ClimateData;
 
+using System.Globalization;
+
 public sealed class WriAqueductService
 {
     private readonly IWebHostEnvironment _env;
@@ -110,9 +112,9 @@ public sealed class WriCountryBaseline
             name_0 = Get(parts, 1),
             indicator_name = Get(parts, 2),
             weight = Get(parts, 3),
-            score = double.TryParse(Get(parts, 4), out var s) ? s : 0,
-            score_ranked = double.TryParse(Get(parts, 5), out var sr) ? sr : 0,
-            cat = int.TryParse(Get(parts, 6), out var c) ? c : 0,
+            score = double.TryParse(Get(parts, 4), NumberStyles.Float, CultureInfo.InvariantCulture, out var s) ? s : 0,
+            score_ranked = double.TryParse(Get(parts, 5), NumberStyles.Float, CultureInfo.InvariantCulture, out var sr) ? sr : 0,
+            cat = int.TryParse(Get(parts, 6), NumberStyles.Integer, CultureInfo.InvariantCulture, out var c) ? c : 0,
             label = GetOrNull(parts, 7),
             un_region = GetOrNull(parts, 8),
             wb_region = GetOrNull(parts, 9)
@@ -158,13 +160,13 @@ public sealed class WriCountryFuture
         {
             gid_0 = Get(parts, 0),
             name_0 = Get(parts, 1),
-            year = int.TryParse(Get(parts, 2), out var y) ? y : 0,
+            year = int.TryParse(Get(parts, 2), NumberStyles.Integer, CultureInfo.InvariantCulture, out var y) ? y : 0,
             scenario = Get(parts, 3),
             indicator_name = Get(parts, 4),
             weight = Get(parts, 5),
-            score = double.TryParse(Get(parts, 6), out var s) ? s : 0,
-            score_ranked = double.TryParse(Get(parts, 7), out var sr) ? sr : 0,
-            cat = int.TryParse(Get(parts, 8), out var c) ? c : 0,
+            score = double.TryParse(Get(parts, 6), NumberStyles.Float, CultureInfo.InvariantCulture, out var s) ? s : 0,
+            score_ranked = double.TryParse(Get(parts, 7), NumberStyles.Float, CultureInfo.InvariantCulture, out var sr) ? sr : 0,
+            cat = int.TryParse(Get(parts, 8), NumberStyles.Integer, CultureInfo.InvariantCulture, out var c) ? c : 0,
             label = GetOrNull(parts, 9)
         };
     }

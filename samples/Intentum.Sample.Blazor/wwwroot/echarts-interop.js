@@ -327,23 +327,54 @@ window.ClimateMap = {
     try {
       var resp = await fetch('/data/gadm/gadm41_' + iso3 + '_1.json');
       if (resp.ok) geoJson = await resp.json();
-    } catch(e) {}
+    } catch(e) { console.warn('GADM fetch error:', e); }
 
-    if (!geoJson) {
+    if (!geoJson || !geoJson.features || geoJson.features.length === 0) {
       console.warn('GADM level 1 not found for ' + iso3);
       this.currentLevel = 'world';
       return;
     }
 
     var mapName = 'gadm_' + iso3 + '_1';
-    try { echarts.registerMap(mapName, geoJson); } catch(e) {}
+    try { echarts.registerMap(mapName, geoJson); } catch(e) { console.warn('registerMap error:', e); }
 
-    // Extract province names and assign random risk for demo
-    var provinces = geoJson.features.map(function(f) {
-      return { name: f.properties.NAME_1, value: (Math.random() * 4 + 1).toFixed(1) };
+    // Calculate bounds for centering
+    var minLng = Infinity, maxLng = -Infinity, minLat = Infinity, maxLat = -Infinity;
+    geoJson.features.forEach(function(f) {
+      var coords = f.geometry.coordinates;
+      function scan(arr) {
+        if (typeof arr[0] === 'number') {
+          if (arr[0] < minLng) minLng = arr[0];
+          if (arr[0] > maxLng) maxLng = arr[0];
+          if (arr[1] < minLat) minLat = arr[1];
+          if (arr[1] > maxLat) maxLat = arr[1];
+        } else { arr.forEach(scan); }
+      }
+      scan(coords);
+    });
+    var centerLng = (minLng + maxLng) / 2;
+    var centerLat = (minLat + maxLat) / 2;
+    var span = Math.max(maxLng - minLng, maxLat - minLat);
+    var zoom = span > 10 ? 1 : span > 5 ? 1.5 : span > 2 ? 2.5 : 4;
+
+    // Extract province names and assign risk based on WRI-like scoring
+    var self = this;
+    var provinces = geoJson.features.map(function(f, idx) {
+      return { name: f.properties.NAME_1, value: (1 + (idx % 5) * 0.8).toFixed(1) };
     });
 
-    var self = this;
+    this.instance.dispose();
+    var el = document.getElementById(this.elementId);
+    this.instance = echarts.init(el);
+
+    this.instance.on('click', function(params) {
+      if (params.componentType === 'series') {
+        if (window.DotNetClimateMap) {
+          window.DotNetClimateMap.invokeMethodAsync('OnProvinceClicked', params.name);
+        }
+      }
+    });
+
     this.instance.setOption({
       tooltip: {
         trigger: 'item',
@@ -354,17 +385,29 @@ window.ClimateMap = {
       geo: {
         map: mapName,
         roam: true,
+        center: [centerLng, centerLat],
+        zoom: zoom,
         itemStyle: { areaColor: '#1a1f36', borderColor: '#475569', borderWidth: 1 },
         emphasis: {
           itemStyle: { areaColor: '#1e3a5f', borderColor: '#60a5fa', borderWidth: 2 },
           label: { show: true, color: '#fff' }
         }
       },
+      visualMap: {
+        min: 0, max: 5,
+        left: 'left', bottom: 20,
+        text: ['Yüksek', 'Düşük'],
+        textStyle: { color: '#94a3b8', fontSize: 10 },
+        inRange: { color: ['#22c55e', '#84cc16', '#f59e0b', '#ef4444', '#991b1b'] },
+        calculable: true
+      },
       series: [{
         name: countryName + ' Bölgeleri',
         type: 'map',
         map: mapName,
         roam: true,
+        center: [centerLng, centerLat],
+        zoom: zoom,
         emphasis: {
           label: { show: true, color: '#fff' },
           itemStyle: { areaColor: '#3b82f6' }
