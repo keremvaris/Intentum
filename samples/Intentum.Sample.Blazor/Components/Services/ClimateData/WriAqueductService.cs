@@ -51,7 +51,8 @@ public sealed class WriAqueductService
     {
         var baseline = await GetBaselineAsync(ct);
         var country = baseline.FirstOrDefault(x =>
-            string.Equals(x.gid_0, iso3, StringComparison.OrdinalIgnoreCase));
+            string.Equals(x.gid_0, iso3, StringComparison.OrdinalIgnoreCase) &&
+            x.indicator_name == "bws" && x.weight == "Tot");
 
         if (country == null) return null;
 
@@ -59,13 +60,13 @@ public sealed class WriAqueductService
         {
             Iso3 = country.gid_0,
             Name = country.name_0,
-            WaterStress = country.indicator_name == "bws" && country.weight == "Tot" ? country.score : 0,
-            WaterDepletion = country.indicator_name == "bwd" && country.weight == "Tot" ? country.score : 0,
-            InterannualVariability = country.indicator_name == "iav" && country.weight == "Tot" ? country.score : 0,
-            SeasonalVariability = country.indicator_name == "sev" && country.weight == "Tot" ? country.score : 0,
-            DroughtRisk = country.indicator_name == "drr" && country.weight == "Tot" ? country.score : 0,
-            FloodRisk = country.indicator_name == "cfr" && country.weight == "Tot" ? country.score : 0,
-            GroundwaterStress = country.indicator_name == "gws" && country.weight == "Tot" ? country.score : 0,
+            WaterStress = country.score,
+            WaterDepletion = 0,
+            InterannualVariability = 0,
+            SeasonalVariability = 0,
+            DroughtRisk = 0,
+            FloodRisk = 0,
+            GroundwaterStress = 0,
             WaterStressLabel = country.label ?? ""
         };
     }

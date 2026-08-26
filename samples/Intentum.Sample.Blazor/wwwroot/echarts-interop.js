@@ -204,12 +204,11 @@ window.ClimateMap = {
     this.instance.on('click', function(params) {
       if (self.currentLevel === 'world' && params.componentType === 'series') {
         var countryName = params.name;
-        var countryData = self.worldRiskData.find(function(d) { return d.name === countryName; });
-        if (countryData && countryData.iso3) {
-          self.drillDown(countryData.iso3, countryName);
+        var iso3 = self._getIso3FromName(countryName);
+        if (iso3) {
+          self.drillDown(iso3, countryName);
         }
       } else if (self.currentLevel === 'country' && params.componentType === 'series') {
-        // Province clicked - show info
         if (window.DotNetClimateMap) {
           window.DotNetClimateMap.invokeMethodAsync('OnProvinceClicked', params.name);
         }
@@ -279,6 +278,43 @@ window.ClimateMap = {
   updateRiskData: function(riskData) {
     this.worldRiskData = riskData || [];
     if (this.currentLevel === 'world') this.renderWorldView();
+  },
+
+  // Name → ISO3 mapping for drill-down (20 mismatched countries)
+  _nameToIso3: {
+    'South Korea': 'KOR', 'North Korea': 'PRK', 'Czech Republic': 'CZE',
+    'Dominican Republic': 'DOM', 'South Sudan': 'SSD', 'Laos': 'LAO',
+    'Bosnia and Herz.': 'BIH', 'Bosnia and Herzegovina': 'BIH',
+    'Republic of the Congo': 'COG', 'Republic of Congo': 'COG',
+    'Dem. Rep. Congo': 'COD', 'Democratic Republic of the Congo': 'COD',
+    'Central African Rep.': 'CAF', 'Central African Republic': 'CAF',
+    "Côte d'Ivoire": 'CIV', "Ivory Coast": 'CIV',
+    'Eq. Guinea': 'GNQ', 'Equatorial Guinea': 'GNQ',
+    'Antigua and Barb.': 'ATG', 'Antigua and Barbuda': 'ATG',
+    'Saint Kitts and Nevis': 'KNA', 'St. Kitts and Nevis': 'KNA',
+    'San Marino': 'SMR'
+  },
+
+  _getIso3FromName: function(name) {
+    if (this._nameToIso3[name]) return this._nameToIso3[name];
+    // Try common patterns
+    var n = name.toLowerCase();
+    if (n === 'turkey') return 'TUR';
+    if (n === 'united states of america' || n === 'united states') return 'USA';
+    if (n === 'united kingdom') return 'GBR';
+    if (n === 'germany') return 'DEU';
+    if (n === 'france') return 'FRA';
+    if (n === 'italy') return 'ITA';
+    if (n === 'china') return 'CHN';
+    if (n === 'india') return 'IND';
+    if (n === 'japan') return 'JPN';
+    if (n === 'brazil') return 'BRA';
+    if (n === 'russia') return 'RUS';
+    if (n === 'canada') return 'CAN';
+    if (n === 'australia') return 'AUS';
+    if (n === 'south africa') return 'ZAF';
+    if (n === 'saudi arabia') return 'SAU';
+    return '';
   },
 
   drillDown: async function(iso3, countryName) {
