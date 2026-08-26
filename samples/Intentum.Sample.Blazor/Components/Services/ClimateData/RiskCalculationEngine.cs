@@ -155,29 +155,33 @@ public class RiskCalculationEngine
         // Financial signals from company profile
         if (companyProfile != null)
         {
-            var costOfGoods = companyProfile.Categories
-                .Where(c => c.Type == FinancialCategoryType.Capex)
-                .SelectMany(c => c.LineItems)
-                .Sum(li => li.Value);
-            space.Observe("economic", $"cost_of_goods:{costOfGoods}");
-
-            var opex = companyProfile.Categories
-                .Where(c => c.Type == FinancialCategoryType.Opex)
-                .SelectMany(c => c.LineItems)
-                .Sum(li => li.Value);
-            space.Observe("economic", $"operational_expenses:{opex}");
-
             var revenue = companyProfile.Categories
                 .Where(c => c.Type == FinancialCategoryType.Revenue)
                 .SelectMany(c => c.LineItems)
                 .Sum(li => li.Value);
-            space.Observe("economic", $"revenue_at_risk:{revenue}");
-
+            var opex = companyProfile.Categories
+                .Where(c => c.Type == FinancialCategoryType.Opex)
+                .SelectMany(c => c.LineItems)
+                .Sum(li => li.Value);
             var capex = companyProfile.Categories
                 .Where(c => c.Type == FinancialCategoryType.Capex)
                 .SelectMany(c => c.LineItems)
                 .Sum(li => li.Value);
-            space.Observe("economic", $"capital_expenditure:{capex}");
+
+            // Normalize: higher revenue = more exposure, higher opex/capex = more vulnerability
+            var revenueScore = Math.Clamp(revenue / 200_000_000.0, 0, 1); // 200M+ = max
+            var opexScore = Math.Clamp(opex / 100_000_000.0, 0, 1);
+            var capexScore = Math.Clamp(capex / 80_000_000.0, 0, 1);
+
+            // Add observations proportional to risk (1-5 observations per signal)
+            var revenueObs = (int)Math.Ceiling(revenueScore * 5);
+            var opexObs = (int)Math.Ceiling(opexScore * 5);
+            var capexObs = (int)Math.Ceiling(capexScore * 5);
+
+            for (var i = 0; i < revenueObs; i++) space.Observe("economic", "revenue_at_risk");
+            for (var i = 0; i < opexObs; i++) space.Observe("economic", "operational_expenses");
+            for (var i = 0; i < capexObs; i++) space.Observe("economic", "capital_expenditure");
+            for (var i = 0; i < capexObs; i++) space.Observe("economic", "cost_of_goods");
         }
 
         return space;
