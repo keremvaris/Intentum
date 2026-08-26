@@ -6,6 +6,8 @@
 @inject ClimateMonitorService ClimateMonitor
 @inject GadmGeoJsonService GadmGeoJson
 @inject RiskCalculationEngine RiskEngine
+@inject CompanyProfileService ProfileService
+@inject ScenarioComparisonEngine ComparisonEngine
 
 <PageTitle>Iklim Riski Dashboard — Intentum</PageTitle>
 
@@ -118,6 +120,27 @@
             Dosya Yukle (CSV/JSON)
         </div>
         <input id="climate-file-input" type="file" accept=".csv,.json" style="display:none;" @ref="_fileInputRef" @onchange="OnFileInputChange" />
+
+        <!-- Şirket Profili -->
+        <div class="control-group">
+            <label class="control-label">🏢 Şirket Profili</label>
+            <div class="button-group">
+                @foreach (var p in _profiles)
+                {
+                    <button class="btn btn-profile @(_input.CompanyProfileId == p.Id ? "active" : "")"
+                            @onclick="() => SelectProfile(p.Id)">
+                        @p.Name
+                    </button>
+                }
+            </div>
+            @if (_selectedProfile != null)
+            {
+                <div class="selected-profile-info">
+                    <span>@_selectedProfile.Sector | @_selectedProfile.LocationName</span>
+                    <button class="btn-edit-profile" @onclick="OpenDrawer">✏️ Düzenle</button>
+                </div>
+            }
+        </div>
     </div>
 
     <!-- Center: Map -->
@@ -254,6 +277,74 @@
                     </div>
                 }
             </div>
+
+            <!-- Senaryo Karşılaştırma -->
+            @if (_scenarioResults != null && _scenarioResults.Count > 0)
+            {
+                <div class="climate-chart-card">
+                    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
+                        <span style="font-size:0.7rem;text-transform:uppercase;color:#8b949e;letter-spacing:0.5px;">📊 Senaryo Karşılaştırması</span>
+                        <span style="padding:2px 6px;border-radius:4px;background:rgba(168,130,255,0.15);color:#a882ff;font-size:0.6rem;">4 Senaryo</span>
+                    </div>
+                    <div class="scenario-grid">
+                        @foreach (var result in _scenarioResults)
+                        {
+                            <div class="scenario-item">
+                                <div class="scenario-label">@result.Scenario</div>
+                                <div class="scenario-risk">
+                                    <span class="risk-physical">Fiziksel: @result.Assessment.PhysicalRisk.ToString("P1")</span>
+                                    <span class="risk-transition">Geçiş: @result.Assessment.TransitionRisk.ToString("P1")</span>
+                                </div>
+                                <div class="scenario-decision">
+                                    <span class="intent-badge @GetDecisionClass(result.Assessment.Decision)">
+                                        @GetDecisionIcon(result.Assessment.Decision) @result.Assessment.Decision
+                                    </span>
+                                </div>
+                                @if (result.Impact != null && result.Impact.NetCashFlowImpact != 0)
+                                {
+                                    <div class="scenario-financial @(result.Impact.NetCashFlowImpact < 0 ? "negative" : "positive")">
+                                        @FormatCurrency(result.Impact.NetCashFlowImpact)
+                                    </div>
+                                }
+                            </div>
+                        }
+                    </div>
+                </div>
+            }
+
+            <!-- Finansal Etki Analizi -->
+            @if (_assessment?.FinancialImpact != null && _assessment.FinancialImpact.CategoryImpacts.Any())
+            {
+                <div class="climate-chart-card">
+                    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
+                        <span style="font-size:0.7rem;text-transform:uppercase;color:#8b949e;letter-spacing:0.5px;">💰 Finansal Etki Analizi</span>
+                        <span class="net-cash-flow @(_assessment.FinancialImpact.NetCashFlowImpact < 0 ? "negative" : "positive")">
+                            Net Nakit Akışı: @FormatCurrency(_assessment.FinancialImpact.NetCashFlowImpact)
+                        </span>
+                    </div>
+                    <div class="impact-categories">
+                        @foreach (var cat in _assessment.FinancialImpact.CategoryImpacts)
+                        {
+                            <div class="impact-category">
+                                <div class="impact-category-label">@GetCategoryLabel(cat.Type)</div>
+                                <div class="impact-category-bar">
+                                    <div class="impact-bar physical @(cat.PhysicalImpact < 0 ? "negative" : "positive")"
+                                         style="width: @GetBarWidth(cat.PhysicalImpact, _assessment.FinancialImpact)"></div>
+                                    <div class="impact-bar transition @(cat.TransitionImpact < 0 ? "negative" : "positive")"
+                                         style="width: @GetBarWidth(cat.TransitionImpact, _assessment.FinancialImpact)"></div>
+                                </div>
+                                <div class="impact-category-total @(cat.TotalImpact < 0 ? "negative" : "positive")">
+                                    @FormatCurrency(cat.TotalImpact)
+                                </div>
+                            </div>
+                        }
+                    </div>
+                    <div class="impact-legend">
+                        <span class="legend-item"><span class="legend-dot physical"></span> Fiziksel Risk</span>
+                        <span class="legend-item"><span class="legend-dot transition"></span> Geçiş Riski</span>
+                    </div>
+                </div>
+            }
         }
 
         <div class="climate-chart-card">
@@ -284,3 +375,9 @@
         </div>
     </div>
 </div>
+
+<CompanyProfileDrawer IsOpen="@_drawerOpen"
+                      Profile="@_editingProfile"
+                      IsNew="@_isNewProfile"
+                      IsOpenChanged="@((bool v) => _drawerOpen = v)"
+                      OnSave="@HandleProfileSave" />

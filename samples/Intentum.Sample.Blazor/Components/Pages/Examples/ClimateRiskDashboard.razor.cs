@@ -18,6 +18,18 @@ public sealed partial class ClimateRiskDashboard : IAsyncDisposable
     private string _currentCountryName = "";
     private string _currentIso3 = "";
 
+    private List<CompanyProfile> _profiles = new();
+    private CompanyProfile? _selectedProfile;
+    private List<ScenarioComparisonResult> _scenarioResults = new();
+    private bool _drawerOpen;
+    private CompanyProfile? _editingProfile;
+    private bool _isNewProfile;
+
+    protected override async Task OnInitializedAsync()
+    {
+        _profiles = ProfileService.GetAll().ToList();
+    }
+
     private int _tempSlider = 48;
     private int _precipSlider = -15;
     private int _seaSlider = 35;
@@ -102,6 +114,11 @@ public sealed partial class ClimateRiskDashboard : IAsyncDisposable
             _input.CountryIso3 = DetectCountry(_input.Latitude, _input.Longitude);
 
             _assessment = await RiskEngine.AssessAsync(_input);
+
+            if (_selectedProfile != null)
+            {
+                _scenarioResults = await ComparisonEngine.CompareAllAsync(_selectedProfile, _input);
+            }
 
             // Update factory marker on map
             if (_input.Latitude != 0 || _input.Longitude != 0)
@@ -354,6 +371,74 @@ public sealed partial class ClimateRiskDashboard : IAsyncDisposable
             _ => "Standart risk izleme prosedurlerine devam"
         };
     }
+
+    private void SelectProfile(string profileId)
+    {
+        _input.CompanyProfileId = profileId;
+        _selectedProfile = _profiles.FirstOrDefault(p => p.Id == profileId);
+    }
+
+    private void HandleProfileSave(CompanyProfile profile)
+    {
+        ProfileService.Update(profile);
+        _profiles = ProfileService.GetAll().ToList();
+        _selectedProfile = _profiles.FirstOrDefault(p => p.Id == profile.Id);
+    }
+
+    private void OpenDrawer()
+    {
+        _editingProfile = _selectedProfile;
+        _isNewProfile = false;
+        _drawerOpen = true;
+    }
+
+    private void OpenNewProfileDrawer()
+    {
+        _editingProfile = null;
+        _isNewProfile = true;
+        _drawerOpen = true;
+    }
+
+    private string GetDecisionClass(string decision) => decision switch
+    {
+        "REJECT" => "intent-badge-reject",
+        "REVIEW" => "intent-badge-review",
+        _ => "intent-badge-allow"
+    };
+
+    private string GetDecisionIcon(string decision) => decision switch
+    {
+        "REJECT" => "🔴",
+        "REVIEW" => "🟡",
+        _ => "🟢"
+    };
+
+    private string GetCategoryLabel(FinancialCategoryType type) => type switch
+    {
+        FinancialCategoryType.Revenue => "Gelir",
+        FinancialCategoryType.Opex => "Operasyonel Giderler",
+        FinancialCategoryType.Capex => "Kısa Vadeli Yatırımlar",
+        FinancialCategoryType.CashFlow => "Uzun Vadeli Nakit Akışı",
+        _ => type.ToString()
+    };
+
+    private string GetBarWidth(double value, FinancialImpact impact)
+    {
+        var maxAbs = impact.CategoryImpacts
+            .SelectMany(c => new[] { Math.Abs(c.PhysicalImpact), Math.Abs(c.TransitionImpact) })
+            .DefaultIfEmpty(1)
+            .Max();
+        return $"{Math.Abs(value) / maxAbs * 100:F1}%";
+    }
+
+    private string FormatCurrency(double amount) => amount switch
+    {
+        < -1_000_000 => $"-{Math.Abs(amount / 1_000_000):F1}M ₺",
+        < 0 => $"-{Math.Abs(amount / 1_000):F0}K ₺",
+        > 1_000_000 => $"+{amount / 1_000_000:F1}M ₺",
+        > 0 => $"+{amount / 1_000:F0}K ₺",
+        _ => "0 ₺"
+    };
 
     public async ValueTask DisposeAsync()
     {

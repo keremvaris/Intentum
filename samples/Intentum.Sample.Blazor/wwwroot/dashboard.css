@@ -1421,3 +1421,196 @@ body.dashboard-root { margin: 0; padding: 0; }
 .form-group-half {
     flex: 1;
 }
+
+/* Scenario Comparison Grid */
+.scenario-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 12px;
+    margin-top: 12px;
+}
+
+.scenario-item {
+    padding: 12px;
+    border: 1px solid #30363d;
+    border-radius: 8px;
+    background: #0d1117;
+    text-align: center;
+}
+
+.scenario-label {
+    font-weight: 700;
+    font-size: 13px;
+    color: #c9d1d9;
+    margin-bottom: 6px;
+}
+
+.scenario-risk {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    font-size: 12px;
+    margin-bottom: 6px;
+}
+
+.risk-physical { color: #58a6ff; }
+.risk-transition { color: #d29922; }
+
+.scenario-financial {
+    font-weight: 700;
+    font-size: 14px;
+    margin-top: 4px;
+}
+
+.scenario-financial.negative { color: #f85149; }
+.scenario-financial.positive { color: #3fb950; }
+
+.intent-badge {
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-size: 0.65rem;
+    font-weight: 600;
+}
+
+.intent-badge-allow { background: rgba(63,185,80,0.15); color: #3fb950; }
+.intent-badge-review { background: rgba(210,153,34,0.15); color: #d29922; }
+.intent-badge-reject { background: rgba(248,81,73,0.15); color: #f85149; }
+
+/* Financial Impact */
+.net-cash-flow {
+    font-weight: 700;
+    font-size: 14px;
+}
+
+.net-cash-flow.negative { color: #f85149; }
+.net-cash-flow.positive { color: #3fb950; }
+
+.impact-categories {
+    margin-top: 12px;
+}
+
+.impact-category {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 8px;
+}
+
+.impact-category-label {
+    width: 120px;
+    font-size: 13px;
+    color: #c9d1d9;
+    white-space: nowrap;
+}
+
+.impact-category-bar {
+    flex: 1;
+    height: 20px;
+    background: #161b22;
+    border-radius: 4px;
+    overflow: hidden;
+    display: flex;
+}
+
+.impact-bar {
+    height: 100%;
+    transition: width 0.3s;
+}
+
+.impact-bar.physical { background: #58a6ff; }
+.impact-bar.transition { background: #d29922; }
+.impact-bar.negative { opacity: 0.7; }
+
+.impact-category-total {
+    width: 100px;
+    text-align: right;
+    font-weight: 700;
+    font-size: 13px;
+}
+
+.impact-category-total.negative { color: #f85149; }
+.impact-category-total.positive { color: #3fb950; }
+
+.impact-legend {
+    display: flex;
+    gap: 16px;
+    margin-top: 10px;
+    font-size: 12px;
+    color: #8b949e;
+}
+
+.legend-item {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.legend-dot {
+    display: inline-block;
+    width: 10px;
+    height: 10px;
+    border-radius: 2px;
+}
+
+.legend-dot.physical { background: #58a6ff; }
+.legend-dot.transition { background: #d29922; }
+
+/* Profile Selector */
+.control-group {
+    margin-top: 0.75rem;
+}
+
+.control-label {
+    display: block;
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    color: #8b949e;
+    margin-bottom: 0.25rem;
+    letter-spacing: 0.5px;
+}
+
+.button-group {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+}
+
+.btn-profile {
+    padding: 6px 12px;
+    border: 1px solid #30363d;
+    border-radius: 6px;
+    background: #0d1117;
+    color: #c9d1d9;
+    cursor: pointer;
+    font-size: 13px;
+    transition: all 0.2s;
+}
+
+.btn-profile:hover {
+    border-color: #58a6ff;
+}
+
+.btn-profile.active {
+    background: #238636;
+    color: #fff;
+    border-color: #238636;
+}
+
+.selected-profile-info {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 6px;
+    font-size: 12px;
+    color: #8b949e;
+}
+
+.btn-edit-profile {
+    background: none;
+    border: 1px solid #30363d;
+    color: #58a6ff;
+    padding: 4px 8px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 12px;
+}
