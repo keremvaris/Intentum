@@ -77,10 +77,11 @@ public class RiskCalculationEngine
             financialImpact = _financialImpactEngine.Calculate(companyProfile, physicalScore, transitionScore, intent.Signals.Select(s => s.Source).ToList());
         }
 
-        // Skor-policy tutarlılığı: çok yüksek skor intent ALLOW verse bile REVIEW/REJECT'e çek
+        // Tek tutarlı karar: risk skorlarından monoton bir karar türet.
+        // Intentum niyeti kararın gerekçesini (reasoning) sağlar, karar ise
+        // her zaman yüksek risk → daha katı karar olacak şekilde hesaplanır.
         var overall = (physicalScore * 0.6 + transitionScore * 0.4);
-        if (overall > 0.68 && decision == "ALLOW") decision = "REVIEW";
-        if (overall > 0.78 && decision == "REVIEW") decision = "REJECT";
+        decision = DetermineDecision(overall, intent.Name);
 
         var reasons = BuildDecisionReasons(input, physicalScore, transitionScore, wriRisk, projection, coastal, effectiveSea, intent, financialImpact);
         var actions = BuildRecommendedActions(decision, input, physicalScore, transitionScore, coastal, wriRisk, financialImpact);
@@ -191,22 +192,25 @@ public class RiskCalculationEngine
     {
         double score = 0;
 
+        // Sıcaklık anomalisi: kullanıcı slider'ı birincil, API projeksiyonu ikincil.
         var tempScore = Math.Clamp(input.TempAnomaly / 6.0, 0, 1);
         if (projection != null && projection.AvgTempMax > 0)
         {
             var apiTemp = Math.Clamp((projection.AvgTempMax - 30) / 10.0, 0, 1);
-            tempScore = tempScore * 0.6 + apiTemp * 0.4;
+            tempScore = Math.Max(tempScore, apiTemp);
         }
-        score += tempScore * 0.25;
+        score += tempScore * 0.30;
 
+        // Yağış değişimi (kuraklık/sel): mutlak değişim büyüdükçe risk artar.
         var precipScore = Math.Clamp(Math.Abs(input.PrecipChange) / 50.0, 0, 1);
         if (projection != null)
         {
             var apiPrecip = Math.Clamp(Math.Abs(projection.AvgPrecipitation - 2.0) / 5.0, 0, 1);
-            precipScore = precipScore * 0.6 + apiPrecip * 0.4;
+            precipScore = Math.Max(precipScore, apiPrecip);
         }
-        score += precipScore * 0.2;
+        score += precipScore * 0.20;
 
+        // Fırtına: senaryo ve/veya API rüzgar verisine bağlı.
         if (projection != null && projection.WindMax.Length > 0)
         {
             var avgWind = projection.WindMax.Average();
@@ -216,26 +220,29 @@ public class RiskCalculationEngine
         {
             var scenarioWind = input.Scenario switch
             {
-                "SSP5-8.5" => 0.6,
-                "SSP3-7.0" => 0.45,
-                "SSP2-4.5" => 0.3,
-                _ => 0.2
+                "SSP5-8.5" => 0.85,
+                "SSP3-7.0" => 0.65,
+                "SSP2-4.5" => 0.45,
+                _ => 0.25
             };
             score += scenarioWind * 0.15;
         }
 
-        // Coğrafi-duyarlı deniz seviyesi: iç bölgede 0
+        // Coğrafi-duyarlı deniz seviyesi: iç bölgede 0, kıyıda yükselir.
         var seaScore = Math.Clamp(effectiveSea / 2.0, 0, 1);
         score += seaScore * 0.15;
 
+        // Su stresi ve sel: WRI verisine dayanır.
         if (wri != null && wri.WaterStress > 0)
-            score += (wri.WaterStress / 5.0) * 0.15;
+            score += (wri.WaterStress / 5.0) * 0.12;
         else
-            score += Math.Clamp(Math.Abs(input.PrecipChange) / 100.0, 0, 1) * 0.15;
+            score += Math.Clamp(Math.Abs(input.PrecipChange) / 100.0, 0, 1) * 0.12;
 
         if (wri != null && wri.FloodRisk > 0)
-            score += (wri.FloodRisk / 5.0) * 0.1;
+            score += (wri.FloodRisk / 5.0) * 0.08;
 
+        // Deniz seviyesi + kıyı yoksa bu kısım fiziksel riski düşürür; ama sliderlar
+        // maksimumda genel risk yine REJECT eşiğini geçmeli. Toplam ağırlık 1.0'dır.
         return Math.Clamp(score, 0, 1);
     }
 
@@ -265,6 +272,16 @@ public class RiskCalculationEngine
         if (baseline.co2?.current_value > 420) score += 0.05;
         if (baseline.temperature_anomaly?.current_value > 1.2) score += 0.05;
         return Math.Clamp(score, 0, 1);
+    }
+
+    // Monoton karar türetme: yüksek risk her zaman daha katı karar üretir.
+    private static string DetermineDecision(double overall, string intentName)
+    {
+        // Niyet adıyla uyumlu ama tutarlı: genel skor belirleyicidir.
+        if (overall > 0.75) return "REJECT";
+        if (overall > 0.60) return "REVIEW";
+        if (overall > 0.40) return "ALLOW";
+        return "ALLOW";
     }
 
     private EconomicImpact CalculateEconomicImpact(double physical, double transition, RiskInput input)
