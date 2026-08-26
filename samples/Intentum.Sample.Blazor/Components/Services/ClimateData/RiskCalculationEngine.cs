@@ -2,6 +2,8 @@ namespace Intentum.Sample.Blazor.Components.Services.ClimateData;
 
 using Intentum.Core;
 using Intentum.Core.Behavior;
+using Intentum.Core.Intents;
+using Intentum.Runtime.Engine;
 
 public sealed class RiskCalculationEngine
 {
@@ -22,11 +24,6 @@ public sealed class RiskCalculationEngine
     public async Task<RiskAssessment> AssessAsync(
         RiskInput input, CancellationToken ct = default)
     {
-        var space = new BehaviorSpace();
-        space.Observe("ClimateRisk", $"Assess: {input.LocationName} ({input.Latitude},{input.Longitude})");
-        space.Observe("ClimateRisk", $"Scenario={input.Scenario}, Horizon={input.Horizon}, Sector={input.Sector}");
-        space.Observe("ClimateRisk", $"Sliders: Temp={input.TempAnomaly}°C, Precip={input.PrecipChange}%, SeaLevel={input.SeaLevelRise}m, CarbonPrice=${input.CarbonPrice}/t");
-
         var projection = await _openMeteo.GetProjectionAsync(
             input.Latitude, input.Longitude,
             model: GetModelForScenario(input.Scenario),
@@ -37,24 +34,31 @@ public sealed class RiskCalculationEngine
         var wriRisk = await _wri.GetCountryRiskAsync(input.CountryIso3, ct);
         var baseline = await _climateMonitor.GetBaselineTrendsAsync(ct);
 
-        var physicalScore = CalculatePhysicalRisk(projection, wriRisk, input);
+        var coastal = GeoRiskHelper.GetCoastalInfo(input.Latitude, input.Longitude, input.LocationName);
+        var effectiveSea = GeoRiskHelper.SeaLevelEffective(input.SeaLevelRise, coastal.isCoastal, coastal.distanceKm);
+
+        var physicalScore = CalculatePhysicalRisk(projection, wriRisk, input, effectiveSea);
         var transitionScore = CalculateTransitionRisk(input, baseline);
         var economicImpact = CalculateEconomicImpact(physicalScore, transitionScore, input);
 
+        // Gerçek Intentum: BehaviorSpace → IntentModel → Policy
+        var space = BuildBehaviorSpace(input, physicalScore, transitionScore, wriRisk, effectiveSea, coastal);
+        var model = new ClimateRiskIntentModel();
+        var intent = model.Infer(space);
+        var policy = ClimateRiskPolicy.Create();
+        var policyDecision = IntentPolicyEngine.Evaluate(intent, policy);
+        var decision = ClimateRiskPolicy.MapToDecision(policyDecision.ToString());
+
+        // Skor-policy tutarlılığı: çok yüksek skor intent ALLOW verse bile REVIEW/REJECT'e çek
         var overall = (physicalScore * 0.6 + transitionScore * 0.4);
-        var decision = overall switch
-        {
-            > 0.7 => "REJECT",
-            > 0.4 => "REVIEW",
-            _ => "ALLOW"
-        };
+        if (overall > 0.68 && decision == "ALLOW") decision = "REVIEW";
+        if (overall > 0.78 && decision == "REVIEW") decision = "REJECT";
 
-        var reasons = BuildDecisionReasons(input, physicalScore, transitionScore, wriRisk, projection);
-        var actions = BuildRecommendedActions(decision, input, physicalScore, transitionScore);
-        var summary = BuildDecisionSummary(decision, overall, physicalScore, transitionScore, input);
+        var reasons = BuildDecisionReasons(input, physicalScore, transitionScore, wriRisk, projection, coastal, effectiveSea, intent);
+        var actions = BuildRecommendedActions(decision, input, physicalScore, transitionScore, coastal);
+        var summary = BuildDecisionSummary(decision, overall, physicalScore, transitionScore, input, intent, coastal);
 
-        space.Observe("ClimateRisk", $"Result: Physical={physicalScore:F3}, Transition={transitionScore:F3}, Overall={overall:F3} → {decision}");
-        space.Observe("ClimateRisk", $"WaterStress={wriRisk?.WaterStressLabel ?? "N/A"}, EcoImpact={economicImpact.Total:F1}M$");
+        space.Observe("ClimateRisk:result", $"{intent.Name} {policyDecision} → {decision} ({intent.Confidence.Score:F2})");
 
         return new RiskAssessment
         {
@@ -66,29 +70,72 @@ public sealed class RiskCalculationEngine
             DecisionSummary = summary,
             DecisionReasons = reasons,
             RecommendedActions = actions,
+            IntentName = intent.Name,
+            ConfidenceScore = intent.Confidence.Score,
+            ConfidenceLevel = intent.Confidence.Level,
+            IntentReasoning = intent.Reasoning ?? "",
+            Signals = intent.Signals.ToList(),
+            CoastalInfo = coastal.note,
+            IsCoastal = coastal.isCoastal,
+            EffectiveSeaLevel = effectiveSea,
             EconomicImpact = economicImpact,
             WaterStress = wriRisk?.WaterStress ?? 0,
             WaterStressLabel = wriRisk?.WaterStressLabel ?? "Veri Yok",
             Projection = projection,
             Baseline = baseline,
-            RiskFactors = BuildRiskFactors(projection, wriRisk, input)
+            RiskFactors = BuildRiskFactors(projection, wriRisk, input, effectiveSea, coastal)
         };
     }
 
-    private double CalculatePhysicalRisk(ClimateProjection? projection, WriCountryRisk? wri, RiskInput input)
+    private static BehaviorSpace BuildBehaviorSpace(
+        RiskInput input, double physical, double transition, WriCountryRisk? wri, double effectiveSea, (bool isCoastal, double distanceKm, string note) coastal)
+    {
+        var space = new BehaviorSpace();
+        space.SetMetadata("location", input.LocationName);
+        space.SetMetadata("lat", input.Latitude);
+        space.SetMetadata("lng", input.Longitude);
+        space.SetMetadata("scenario", input.Scenario);
+        space.SetMetadata("sector", input.Sector);
+        space.SetMetadata("coastal", coastal.isCoastal);
+        space.SetMetadata("coastalNote", coastal.note);
+
+        void Add(string dim, double score)
+        {
+            var n = (int)Math.Ceiling(Math.Clamp(score, 0, 1) * 5);
+            for (var i = 0; i < n; i++)
+            {
+                var actor = dim.Split(':')[0];
+                space.Observe(actor, dim);
+            }
+        }
+
+        Add("physical:heatwave", Math.Clamp(input.TempAnomaly / 5.0, 0, 1));
+        Add("physical:drought", Math.Clamp(Math.Abs(input.PrecipChange) / 40.0, 0, 1));
+        Add("physical:sea_level", Math.Clamp(effectiveSea / 1.5, 0, 1));
+        Add("physical:storm", physical > 0.6 ? 0.7 : physical > 0.35 ? 0.4 : 0.15);
+        Add("physical:water_stress", wri != null ? Math.Clamp(wri.WaterStress / 5.0, 0, 1) : 0.25);
+        Add("physical:flood", wri != null && wri.WaterStress > 3 ? 0.5 : 0.15);
+        Add("transition:policy", Math.Clamp(input.CarbonPrice / 180.0, 0, 1));
+        Add("transition:technology", input.Sector == "Enerji" ? 0.7 : input.Sector == "Sanayi" ? 0.55 : 0.3);
+        Add("transition:market", input.Scenario == "SSP5-8.5" ? 0.85 : input.Scenario == "SSP3-7.0" ? 0.6 : 0.35);
+        Add("transition:reputation", input.Scenario == "SSP1-2.6" ? 0.15 : 0.4);
+        Add("economic:impact", Math.Clamp((physical * 0.6 + transition * 0.4), 0, 1));
+
+        return space;
+    }
+
+    private double CalculatePhysicalRisk(ClimateProjection? projection, WriCountryRisk? wri, RiskInput input, double effectiveSea)
     {
         double score = 0;
 
-        // Temperature risk: slider value is primary, API data blends in
         var tempScore = Math.Clamp(input.TempAnomaly / 6.0, 0, 1);
         if (projection != null && projection.AvgTempMax > 0)
         {
             var apiTemp = Math.Clamp((projection.AvgTempMax - 30) / 10.0, 0, 1);
-            tempScore = tempScore * 0.6 + apiTemp * 0.4; // 60% slider, 40% API
+            tempScore = tempScore * 0.6 + apiTemp * 0.4;
         }
         score += tempScore * 0.25;
 
-        // Precipitation risk: drought from slider
         var precipScore = Math.Clamp(Math.Abs(input.PrecipChange) / 50.0, 0, 1);
         if (projection != null)
         {
@@ -97,7 +144,6 @@ public sealed class RiskCalculationEngine
         }
         score += precipScore * 0.2;
 
-        // Wind/storm risk: from API or estimate from scenario
         if (projection != null && projection.WindMax.Length > 0)
         {
             var avgWind = projection.WindMax.Average();
@@ -105,7 +151,6 @@ public sealed class RiskCalculationEngine
         }
         else
         {
-            // Estimate from scenario severity
             var scenarioWind = input.Scenario switch
             {
                 "SSP5-8.5" => 0.6,
@@ -116,26 +161,17 @@ public sealed class RiskCalculationEngine
             score += scenarioWind * 0.15;
         }
 
-        // Sea level rise risk
-        var seaScore = Math.Clamp(input.SeaLevelRise / 2.0, 0, 1);
+        // Coğrafi-duyarlı deniz seviyesi: iç bölgede 0
+        var seaScore = Math.Clamp(effectiveSea / 2.0, 0, 1);
         score += seaScore * 0.15;
 
-        // Water stress from WRI
         if (wri != null && wri.WaterStress > 0)
-        {
             score += (wri.WaterStress / 5.0) * 0.15;
-        }
         else
-        {
-            // Estimate from precipitation change
             score += Math.Clamp(Math.Abs(input.PrecipChange) / 100.0, 0, 1) * 0.15;
-        }
 
-        // Flood risk from WRI
         if (wri != null && wri.FloodRisk > 0)
-        {
             score += (wri.FloodRisk / 5.0) * 0.1;
-        }
 
         return Math.Clamp(score, 0, 1);
     }
@@ -143,11 +179,7 @@ public sealed class RiskCalculationEngine
     private double CalculateTransitionRisk(RiskInput input, ClimateBaselineTrends baseline)
     {
         double score = 0;
-
-        // Carbon price directly affects transition risk
         score += Math.Clamp(input.CarbonPrice / 200.0, 0, 1) * 0.35;
-
-        // Scenario base risk
         score += input.Scenario switch
         {
             "SSP1-2.6" => 0.2,
@@ -156,8 +188,6 @@ public sealed class RiskCalculationEngine
             "SSP5-8.5" => 0.65,
             _ => 0.35
         };
-
-        // Sector-specific adjustment
         var sectorAdj = input.Sector switch
         {
             "Enerji" => 0.15,
@@ -169,13 +199,8 @@ public sealed class RiskCalculationEngine
             _ => 0.0
         };
         score += sectorAdj;
-
-        if (baseline.co2?.current_value > 420)
-            score += 0.05;
-
-        if (baseline.temperature_anomaly?.current_value > 1.2)
-            score += 0.05;
-
+        if (baseline.co2?.current_value > 420) score += 0.05;
+        if (baseline.temperature_anomaly?.current_value > 1.2) score += 0.05;
         return Math.Clamp(score, 0, 1);
     }
 
@@ -191,7 +216,6 @@ public sealed class RiskCalculationEngine
             "Sanayi" => 1.05,
             _ => 1.0
         };
-
         var baseMdp = 2.5 * sectorMultiplier;
         return new EconomicImpact
         {
@@ -203,16 +227,20 @@ public sealed class RiskCalculationEngine
         };
     }
 
-    private List<RiskFactor> BuildRiskFactors(ClimateProjection? proj, WriCountryRisk? wri, RiskInput input)
+    private List<RiskFactor> BuildRiskFactors(ClimateProjection? proj, WriCountryRisk? wri, RiskInput input, double effectiveSea, (bool isCoastal, double distanceKm, string note) coastal)
     {
         var factors = new List<RiskFactor>();
-
         if (proj != null)
         {
             factors.Add(new RiskFactor("Sıcaklık Artışı", Math.Clamp(proj.AvgTempMax / 50.0, 0, 1), "open-meteo"));
             factors.Add(new RiskFactor("Yağış Değişimi", Math.Clamp(Math.Abs(proj.AvgPrecipitation - 2) / 8.0, 0, 1), "open-meteo"));
             factors.Add(new RiskFactor("Maks. Rüzgar", Math.Clamp(proj.WindMax.DefaultIfEmpty(0).Average() / 50.0, 0, 1), "open-meteo"));
         }
+        factors.Add(new RiskFactor("Sıcaklık (+2.4°C)", Math.Clamp(input.TempAnomaly / 5.0, 0, 1), "slider"));
+        factors.Add(new RiskFactor("Yağış (-15%)", Math.Clamp(Math.Abs(input.PrecipChange)/50.0,0,1), "slider"));
+        // Deniz faktörü coğrafi notla
+        var seaLabel = coastal.isCoastal ? $"Deniz (+{effectiveSea:F1}m)" : $"Deniz (iç bölge)";
+        factors.Add(new RiskFactor(seaLabel, Math.Clamp(effectiveSea/2.0,0,1), coastal.isCoastal ? "coastal" : "inland"));
 
         if (wri != null)
         {
@@ -220,112 +248,113 @@ public sealed class RiskCalculationEngine
             factors.Add(new RiskFactor("Sel Riski", wri.FloodRisk / 5.0, "wri-aqueduct"));
             factors.Add(new RiskFactor("Kuraklık Riski", wri.DroughtRisk / 5.0, "wri-aqueduct"));
         }
-
         return factors;
     }
 
     private static List<string> BuildDecisionReasons(
         RiskInput input, double physical, double transition,
-        WriCountryRisk? wri, ClimateProjection? proj)
+        WriCountryRisk? wri, ClimateProjection? proj,
+        (bool isCoastal, double distanceKm, string note) coastal, double effectiveSea, Intent intent)
     {
         var reasons = new List<string>();
 
-        // Physical risk drivers
+        // Intent kaynaklı ilk satır — Intentum gerçek gücü
+        reasons.Add($"Intentum niyeti: {intent.Name} (güven {intent.Confidence.Score:F2} {intent.Confidence.Level}) — {intent.Reasoning}");
+
         if (input.TempAnomaly >= 3.0)
-            reasons.Add($"Yüksek sıcaklık artışı: +{input.TempAnomaly:F1}°C (eşik: 3.0°C) → fiziksel riski önemli ölçüde artırır");
+            reasons.Add($"Yüksek sıcaklık artışı: +{input.TempAnomaly:F1}°C → fiziksel riski önemli ölçüde artırır");
         else if (input.TempAnomaly >= 2.0)
-            reasons.Add($"Orta düzey sıcaklık artışı: +{input.TempAnomaly:F1}°C → fiziksel risk üzerinde moderat etki");
+            reasons.Add($"Orta düzey sıcaklık artışı: +{input.TempAnomaly:F1}°C → fiziksel riskte ılımlı etki");
 
         if (input.PrecipChange <= -30)
-            reasons.Add($"Ciddi yağış azalması: %{input.PrecipChange:F0} → kuraklık ve su kıtlığı riski yüksek");
+            reasons.Add($"Ciddi yağış azalması: %{input.PrecipChange:F0} → kuraklık riski yüksek");
         else if (input.PrecipChange <= -15)
-            reasons.Add($"Yağış azalması: %{input.PrecipChange:F0} → su kaynakları üzerinde baskı");
+            reasons.Add($"Yağış azalması: %{input.PrecipChange:F0} → su kaynakları baskı altında");
 
-        if (input.SeaLevelRise >= 1.0)
-            reasons.Add($"Deniz seviyesi yükselişi: +{input.SeaLevelRise:F1}m → kıyı tesisleri için yüksek risk");
-        else if (input.SeaLevelRise >= 0.5)
-            reasons.Add($"Deniz seviyesi yükselişi: +{input.SeaLevelRise:F1}m → kıyı bölgelerinde orta düzey risk");
+        // Coğrafi-duyarlı deniz mantığı
+        if (!coastal.isCoastal)
+        {
+            reasons.Add($"Deniz seviyesi (+{input.SeaLevelRise:F1}m) slider'da görünse de {input.LocationName} {coastal.note.ToLowerInvariant()} — fiziksel skora katkısı 0");
+            reasons.Add($"Fabrika yarıçapı {input.RadiusKm}km, denize mesafe ~{coastal.distanceKm:F0}km → doğrudan kıyı taşkını yok, dolaylı tedarik zinciri riski izlenebilir");
+        }
+        else if (effectiveSea >= 1.0)
+            reasons.Add($"Deniz seviyesi yükselişi: +{effectiveSea:F1}m (efektif) → kıyı tesisleri için yüksek risk ({coastal.note})");
+        else if (effectiveSea >= 0.4)
+            reasons.Add($"Deniz seviyesi yükselişi: +{effectiveSea:F1}m (efektif) → kıyı bölgelerinde orta düzey risk");
 
-        // Water stress
         if (wri != null && wri.WaterStress >= 4.0)
             reasons.Add($"Kritik su stresi: {wri.WaterStressLabel} ({wri.WaterStress:F1}/5) → operasyonel süreklilik tehdit altında");
         else if (wri != null && wri.WaterStress >= 2.5)
-            reasons.Add($"Yüksek su stresi: {wri.WaterStressLabel} ({wri.WaterStress:F1}/5) → su kaynakları kısıtlı");
+            reasons.Add($"Yüksek su stresi: {wri.WaterStressLabel} ({wri.WaterStress:F1}/5) → su kısıtı, WRI Aqueduct");
 
-        // Transition risk drivers
         if (input.CarbonPrice >= 150)
-            reasons.Add($"Yüksek karbon fiyatı: €{input.CarbonPrice}/tCO₂ → geçiş maliyetleri önemli ölçüde artar");
+            reasons.Add($"Yüksek karbon fiyatı: €{input.CarbonPrice}/tCO₂ → geçiş maliyetleri belirgin");
         else if (input.CarbonPrice >= 80)
-            reasons.Add($"Orta düzey karbon fiyatı: €{input.CarbonPrice}/tCO₂ → karbon_intensity bağlı maliyet artışı");
+            reasons.Add($"Orta düzey karbon fiyatı: €{input.CarbonPrice}/tCO₂ → karbon yoğun sektörlerde maliyet artışı");
 
-        // Scenario impact
         if (input.Scenario == "SSP5-8.5")
-            reasons.Add("Fosil yakıt senaryosu (SSP5-8.5) seçildi → en yüksek emisyon ve risk yolculuğu");
+            reasons.Add("Fosil yakıt senaryosu (SSP5-8.5) → en yüksek emisyon patikası");
         else if (input.Scenario == "SSP3-7.0")
-            reasons.Add("Bölgesel çekişme senaryosu (SSP3-7.0) → yüksek emisyon eğilimi");
+            reasons.Add("Bölgesel çekişme (SSP3-7.0) → yüksek emisyon eğilimi");
 
-        // Sector specific
         if (input.Sector == "Enerji")
-            reasons.Add("Enerji sektörü: hem fiziksel risk (altyapı) hem geçiş riski (regülasyon) yüksek");
+            reasons.Add("Enerji sektörü: fiziksel (altyapı) ve geçiş (regülasyon) riski eşzamanlı yüksek");
         else if (input.Sector == "Tarim")
-            reasons.Add("Tarım sektörü: iklim değişkenliğine yüksek duyarlılık");
+            reasons.Add("Tarım: iklim değişkenliğine yüksek duyarlılık");
 
-        // Projection data
         if (proj != null && proj.AvgTempMax > 35)
-            reasons.Add($"Open-Meteo projeksiyonu: ortalama max sıcaklık {proj.AvgTempMax:F1}°C → aşırı sıcaklık olayları");
+            reasons.Add($"Open-Meteo projeksiyonu: ort. max {proj.AvgTempMax:F1}°C → aşırı sıcak günler");
 
-        if (reasons.Count == 0)
-            reasons.Add("Belirgin risk faktörü tespit edilmedi → tüm göstergeler kabul edilebilir aralıkta");
+        // En güçlü sinyaller
+        var topSignals = intent.Signals.OrderByDescending(s => s.Weight).Take(2).ToList();
+        if (topSignals.Count > 0)
+            reasons.Add($"En güçlü sinyaller: {string.Join(", ", topSignals.Select(s => $"{s.Description} ({s.Weight:F2})"))}");
 
         return reasons;
     }
 
     private static List<string> BuildRecommendedActions(
-        string decision, RiskInput input, double physical, double transition)
+        string decision, RiskInput input, double physical, double transition, (bool isCoastal, double distanceKm, string note) coastal)
     {
         var actions = new List<string>();
-
         switch (decision)
         {
             case "REJECT":
-                actions.Add("Proje investment komitesine sunulmadan önce iklim risk azaltma planı hazırlanmalı");
-                actions.Add("Fiziksel risk azaltma: altyapı dayanıklılık artırımı, yedekleme sistemleri");
-                actions.Add("Geçiş riski: karbon ayak izi azaltma stratejisi, düşük karbon teknolojilerine geçiş planı");
-                actions.Add("Sigorta kapsamı genişletilmeli ve maliyet analizi güncellenmeli");
-                if (physical > 0.6)
-                    actions.Add("Kapsamlı iklim felaket senaryosu (TCFD) raporu hazırlanmalı");
+                actions.Add("Yatırım komitesi öncesi TCFD/TNFD uyumlu iklim risk azaltım planı hazırlayın");
+                actions.Add("Fiziksel dayanıklılık: yedek su kaynağı, ısı stresi için soğutma, altyapı güçlendirme");
+                actions.Add("Geçiş: karbon ayak izi azaltım yol haritası + düşük karbon teknolojisi fizibilitesi");
+                actions.Add("Sigorta kapsamını genişletin ve prim senaryolarını güncelleyin");
+                if (physical > 0.6) actions.Add("Senaryo analizi (fiziksel felaket + piyasa şoku) raporu");
+                if (!coastal.isCoastal) actions.Add("Deniz riski yok — odak: su verimliliği ve İç Anadolu kuraklık senaryoları");
                 break;
             case "REVIEW":
-                actions.Add("Detaylı iklim risk değerlendirmesi (CDP/TNFD çerçevesinde) yapılmalı");
-                actions.Add("Fiziksel risk göstergeleri 6 aylık periyotlarla izlenmeli");
-                actions.Add("Karbon fiyat senaryolarına karşı hassasiyet analizi güncellenmeli");
-                actions.Add("Yerel su kaynakları durumu detaylı incelenmeli");
+                actions.Add("CDP/TNFD çerçevesinde detaylı durum tespiti (6 ayda bir güncelle)");
+                actions.Add("Fiziksel göstergeleri 6 aylık periyotta izle (WRI + Open-Meteo)");
+                actions.Add("Karbon fiyat duyarlılık matrisi oluştur (€50/100/180)");
+                if (!coastal.isCoastal) actions.Add("Yerel su havzası ve tarımsal kuraklık — DSİ/konya havzası verileriyle çapraz kontrol");
+                else actions.Add("Kıyı taşkını için 0.5m/1.0m senaryolarında fabrika kotu kontrolü");
                 break;
-            default: // ALLOW
-                actions.Add("Mevcut risk izleme prosedürleri yeterli");
-                actions.Add("Yıllık iklim risk raporlama döngüsü devam etmeli");
-                actions.Add("Piyasa koşulları değiştiğinde analiz yenilenmeli");
+            default:
+                actions.Add("Mevcut izleme yeterli — yıllık rapor döngüsünü koruyun");
+                actions.Add("Piyasa/regülasyon değişirse analizi yenileyin");
                 break;
         }
-
         return actions;
     }
 
     private static string BuildDecisionSummary(
-        string decision, double overall, double physical, double transition, RiskInput input)
+        string decision, double overall, double physical, double transition, RiskInput input, Intent intent, (bool isCoastal, double distanceKm, string note) coastal)
     {
         var physLabel = physical > 0.7 ? "yüksek" : physical > 0.4 ? "orta" : "düşük";
         var transLabel = transition > 0.7 ? "yüksek" : transition > 0.4 ? "orta" : "düşük";
+        var coastalNote = coastal.isCoastal ? "" : $" {coastal.note}";
+        var intentInfo = $"Intentum: {intent.Name} ({intent.Confidence.Level} {intent.Confidence.Score:F2}) — {intent.Reasoning}.";
 
         return decision switch
         {
-            "REJECT" => $"Genel risk skoru %{overall * 100:F0} ile_RED_eşiklerini aşıyor (fiziksel: %{physical * 100:F0} {physLabel}, geçiş: %{transition * 100:F0} {transLabel}). " +
-                        $"{input.Sector} sektöründe {input.Scenario} senaryosu ile {input.Horizon} horizonu için " +
-                        $"iklim riskleri kabul edilebilir düzeyin üzerinde.",
-            "REVIEW" => $"Genel risk skoru %{overall * 100:F0} ile_INCELEME_aralığında (fiziksel: %{physical * 100:F0} {physLabel}, geçiş: %{transition * 100:F0} {transLabel}). " +
-                        $"Detaylı değerlendirme ve ek veri toplama gerekiyor.",
-            _ => $"Genel risk skoru %{overall * 100:F0} ile Kabul edilebilir aralıkta (fiziksel: %{physical * 100:F0} {physLabel}, geçiş: %{transition * 100:F0} {transLabel}). " +
-                 $"Mevcut izleme prosedürleri yeterli."
+            "REJECT" => $"Genel %{overall * 100:F0} ile RED (fiziksel %{physical * 100:F0} {physLabel}, geçiş %{transition * 100:F0} {transLabel}). {intentInfo}{coastalNote}",
+            "REVIEW" => $"Genel %{overall * 100:F0} ile İNCELEME (fiziksel %{physical * 100:F0} {physLabel}, geçiş %{transition * 100:F0} {transLabel}). {intentInfo}{coastalNote}",
+            _ => $"Genel %{overall * 100:F0} kabul edilebilir (fiziksel %{physical * 100:F0} {physLabel}, geçiş %{transition * 100:F0} {transLabel}). {intentInfo}{coastalNote}"
         };
     }
 
@@ -365,6 +394,14 @@ public sealed class RiskAssessment
     public string DecisionSummary { get; set; } = "";
     public List<string> DecisionReasons { get; set; } = [];
     public List<string> RecommendedActions { get; set; } = [];
+    public string IntentName { get; set; } = "";
+    public double ConfidenceScore { get; set; }
+    public string ConfidenceLevel { get; set; } = "";
+    public string IntentReasoning { get; set; } = "";
+    public List<IntentSignal> Signals { get; set; } = [];
+    public string CoastalInfo { get; set; } = "";
+    public bool IsCoastal { get; set; }
+    public double EffectiveSeaLevel { get; set; }
     public EconomicImpact EconomicImpact { get; set; } = new();
     public double WaterStress { get; set; }
     public string WaterStressLabel { get; set; } = "";

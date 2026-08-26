@@ -390,7 +390,7 @@ window.ClimateMap = {
     console.log('[ClimateMap] bounds', minLng, maxLng, minLat, maxLat, 'center', centerLng, centerLat, 'zoom', zoom);
 
     var provinces = geoJson.features.map(function(f, idx) {
-      return { name: f.properties.NAME_1, value: (1 + (idx % 5) * 0.8).toFixed(1) };
+      return { name: f.properties.NAME_1, value: parseFloat((1 + (idx % 5) * 0.8).toFixed(1)) };
     });
 
     this.instance.setOption({
