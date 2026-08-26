@@ -336,7 +336,7 @@ public class RiskCalculationEngine
         if (!coastal.isCoastal)
         {
             reasons.Add($"Deniz seviyesi riski yok: {input.LocationName} {coastal.note}");
-            reasons.Add($"Fabrika yarıçapı {input.RadiusKm}km: denize ~{coastal.distanceKm:F0}km, doğrudan kıyı etkisi hariç");
+            reasons.Add($"Konum yarıçapı {input.RadiusKm}km: denize ~{coastal.distanceKm:F0}km, doğrudan kıyı etkisi hariç");
         }
         else if (effectiveSea >= 1.0)
             reasons.Add($"Kritik deniz seviyesi: +{effectiveSea:F1}m efektif → kıyı tesisleri su altında kalma riski");
@@ -414,7 +414,7 @@ public class RiskCalculationEngine
                 if (!coastal.isCoastal && wri != null && wri.WaterStress > 2)
                     actions.Add("Yerel su havzası verilerini kontrol edin: DSİ/konya havzası çapraz kontrol");
                 if (coastal.isCoastal)
-                    actions.Add("Kıyı taşkını: 0.5m/1.0m senaryolarında fabrika kotu kontrolü yapın");
+                    actions.Add("Kıyı taşkını: 0.5m/1.0m senaryolarında tesis kotu kontrolü yapın");
                 actions.Add("Sektörel gelişmeleri izleyin: regülasyon değişiklikleri veya piyasa sinyalleri");
                 break;
             default:

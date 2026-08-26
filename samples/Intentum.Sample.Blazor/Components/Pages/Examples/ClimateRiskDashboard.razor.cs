@@ -131,7 +131,7 @@ public sealed partial class ClimateRiskDashboard : IAsyncDisposable
                 };
                 await JSRuntime.InvokeAsync<bool>("setFactoryMarkerOnMap",
                     _input.Latitude, _input.Longitude, _input.RadiusKm,
-                    _input.LocationName ?? "Fabrika", riskColor);
+                    _input.LocationName ?? _selectedProfile?.Name ?? "Konum", riskColor);
             }
 
             await UpdateAllCharts();
@@ -374,6 +374,13 @@ public sealed partial class ClimateRiskDashboard : IAsyncDisposable
     {
         _input.CompanyProfileId = profileId;
         _selectedProfile = _profiles.FirstOrDefault(p => p.Id == profileId);
+        if (_selectedProfile != null)
+        {
+            _input.LocationName = _selectedProfile.LocationName;
+            _input.Latitude = _selectedProfile.Latitude;
+            _input.Longitude = _selectedProfile.Longitude;
+            _input.Sector = _selectedProfile.Sector;
+        }
     }
 
     private void HandleProfileSave(CompanyProfile profile)

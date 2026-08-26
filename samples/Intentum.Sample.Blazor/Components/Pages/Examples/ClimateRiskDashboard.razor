@@ -222,7 +222,7 @@
                 </div>
                 <div style="font-size:0.6rem;color:#93c5fd;background:#0b1220;border:1px dashed #1e3a5f;border-radius:6px;padding:7px;margin-bottom:8px;">
                     <strong>Coğrafi not:</strong> @_assessment.CoastalInfo<br/>
-                    <span style="color:#64748b;">Fabrika @(_assessment.Input.RadiusKm)km yarıçap — @( _assessment.IsCoastal ? "kıyı taşkını potensiyeli var" : "denize ulaşmıyor, dolaylı riskler izlenir")</span>
+                    <span style="color:#64748b;">@(_selectedProfile?.Name ?? _input.LocationName) @(_assessment.Input.RadiusKm)km yarıçap — @( _assessment.IsCoastal ? "kıyı taşkını potensiyeli var" : "denize ulaşmıyor, dolaylı riskler izlenir")</span>
                 </div>
                 <details open style="margin-bottom:6px;">
                     <summary style="cursor:pointer;font-size:0.65rem;font-weight:600;color:#cbd5e1;list-style:none;display:flex;align-items:center;gap:6px;">▸ Nedenleri (@_assessment.DecisionReasons.Count)</summary>
