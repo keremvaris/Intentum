@@ -55,7 +55,7 @@ public sealed class RiskCalculationEngine
         if (overall > 0.78 && decision == "REVIEW") decision = "REJECT";
 
         var reasons = BuildDecisionReasons(input, physicalScore, transitionScore, wriRisk, projection, coastal, effectiveSea, intent);
-        var actions = BuildRecommendedActions(decision, input, physicalScore, transitionScore, coastal);
+        var actions = BuildRecommendedActions(decision, input, physicalScore, transitionScore, coastal, wriRisk);
         var summary = BuildDecisionSummary(decision, overall, physicalScore, transitionScore, input, intent, coastal);
 
         space.Observe("ClimateRisk:result", $"{intent.Name} {policyDecision} → {decision} ({intent.Confidence.Score:F2})");
@@ -104,8 +104,10 @@ public sealed class RiskCalculationEngine
             var n = (int)Math.Ceiling(Math.Clamp(score, 0, 1) * 5);
             for (var i = 0; i < n; i++)
             {
-                var actor = dim.Split(':')[0];
-                space.Observe(actor, dim);
+                var parts = dim.Split(':');
+                var actor = parts[0];
+                var sub = parts.Length > 1 ? parts[1] : dim;
+                space.Observe(actor, sub);
             }
         }
 
@@ -258,85 +260,100 @@ public sealed class RiskCalculationEngine
     {
         var reasons = new List<string>();
 
-        // Intent kaynaklı ilk satır — Intentum gerçek gücü
-        reasons.Add($"Intentum niyeti: {intent.Name} (güven {intent.Confidence.Score:F2} {intent.Confidence.Level}) — {intent.Reasoning}");
+        // Intentum niyet analizi
+        reasons.Add($"Intentum niyeti: {intent.Name} — {intent.Reasoning}");
 
+        // Sıcaklık
         if (input.TempAnomaly >= 3.0)
-            reasons.Add($"Yüksek sıcaklık artışı: +{input.TempAnomaly:F1}°C → fiziksel riski önemli ölçüde artırır");
+            reasons.Add($"+{input.TempAnomaly:F1}°C sıcaklık artışı: aşırı sıcak günlerde üretim sürekliliği tehdit altında, soğutma maliyeti yükselir");
         else if (input.TempAnomaly >= 2.0)
-            reasons.Add($"Orta düzey sıcaklık artışı: +{input.TempAnomaly:F1}°C → fiziksel riskte ılımlı etki");
+            reasons.Add($"+{input.TempAnomaly:F1}°C sıcaklık artışı: yaz aylarında verim kaybı olasılığı, izleme önerilir");
 
+        // Yağış
         if (input.PrecipChange <= -30)
-            reasons.Add($"Ciddi yağış azalması: %{input.PrecipChange:F0} → kuraklık riski yüksek");
+            reasons.Add($"Yağış %'{input.PrecipChange:F0} azaldı: kuraklık riski yüksek, alternatif su kaynağı planlaması gerekir");
         else if (input.PrecipChange <= -15)
-            reasons.Add($"Yağış azalması: %{input.PrecipChange:F0} → su kaynakları baskı altında");
+            reasons.Add($"Yağış %'{input.PrecipChange:F0} azaldı: su kaynakları baskı altında, su verimliliği artırılmalı");
 
         // Coğrafi-duyarlı deniz mantığı
         if (!coastal.isCoastal)
         {
-            reasons.Add($"Deniz seviyesi (+{input.SeaLevelRise:F1}m) slider'da görünse de {input.LocationName} {coastal.note.ToLowerInvariant()} — fiziksel skora katkısı 0");
-            reasons.Add($"Fabrika yarıçapı {input.RadiusKm}km, denize mesafe ~{coastal.distanceKm:F0}km → doğrudan kıyı taşkını yok, dolaylı tedarik zinciri riski izlenebilir");
+            reasons.Add($"Deniz seviyesi riski yok: {input.LocationName} {coastal.note}");
+            reasons.Add($"Fabrika yarıçapı {input.RadiusKm}km: denize ~{coastal.distanceKm:F0}km, doğrudan kıyı etkisi hariç");
         }
         else if (effectiveSea >= 1.0)
-            reasons.Add($"Deniz seviyesi yükselişi: +{effectiveSea:F1}m (efektif) → kıyı tesisleri için yüksek risk ({coastal.note})");
+            reasons.Add($"Kritik deniz seviyesi: +{effectiveSea:F1}m efektif → kıyı tesisleri su altında kalma riski");
         else if (effectiveSea >= 0.4)
-            reasons.Add($"Deniz seviyesi yükselişi: +{effectiveSea:F1}m (efektif) → kıyı bölgelerinde orta düzey risk");
+            reasons.Add($"Orta deniz seviyesi: +{effectiveSea:F1}m efektif → kıyı bölgelerinde taşkın riski");
 
+        // Su stresi
         if (wri != null && wri.WaterStress >= 4.0)
-            reasons.Add($"Kritik su stresi: {wri.WaterStressLabel} ({wri.WaterStress:F1}/5) → operasyonel süreklilik tehdit altında");
+            reasons.Add($"Kritik su stresi ({wri.WaterStress:F1}/5): {wri.WaterStressLabel} → operasyonel süreklilik ciddi risk altında");
         else if (wri != null && wri.WaterStress >= 2.5)
-            reasons.Add($"Yüksek su stresi: {wri.WaterStressLabel} ({wri.WaterStress:F1}/5) → su kısıtı, WRI Aqueduct");
+            reasons.Add($"Yüksek su stresi ({wri.WaterStress:F1}/5): {wri.WaterStressLabel} → su kısıtı beklentisi");
 
+        // Karbon fiyatı
         if (input.CarbonPrice >= 150)
-            reasons.Add($"Yüksek karbon fiyatı: €{input.CarbonPrice}/tCO₂ → geçiş maliyetleri belirgin");
+            reasons.Add($"Karbon fiyatı €{input.CarbonPrice}/tCO₂: yüksek maliyet baskısı, karbon yoğun süreçlerde acil optimizasyon gerekir");
         else if (input.CarbonPrice >= 80)
-            reasons.Add($"Orta düzey karbon fiyatı: €{input.CarbonPrice}/tCO₂ → karbon yoğun sektörlerde maliyet artışı");
+            reasons.Add($"Karbon fiyatı €{input.CarbonPrice}/tCO₂: orta düzey maliyet, karbon azaltım yol haritası planlanmalı");
 
+        // Senaryo
         if (input.Scenario == "SSP5-8.5")
-            reasons.Add("Fosil yakıt senaryosu (SSP5-8.5) → en yüksek emisyon patikası");
+            reasons.Add("SSP5-8.5: en yüksek emisyon patikası — uzun vadeli fiziksel riskler belirgin");
         else if (input.Scenario == "SSP3-7.0")
-            reasons.Add("Bölgesel çekişme (SSP3-7.0) → yüksek emisyon eğilimi");
+            reasons.Add("SSP3-7.0: bölgesel çekişme — emisyon kontrolü zayıf, yüksek risk eğilimi");
 
+        // Sektör
         if (input.Sector == "Enerji")
-            reasons.Add("Enerji sektörü: fiziksel (altyapı) ve geçiş (regülasyon) riski eşzamanlı yüksek");
+            reasons.Add("Enerji sektörü: hem fiziksel altyapı hem geçiş regülasyonu riski eşzamanlı");
         else if (input.Sector == "Tarim")
-            reasons.Add("Tarım: iklim değişkenliğine yüksek duyarlılık");
+            reasons.Add("Tarım: iklim değişkenliğine doğrudan bağımlılık, verim kaybı riski yüksek");
 
+        // Open-Meteo
         if (proj != null && proj.AvgTempMax > 35)
-            reasons.Add($"Open-Meteo projeksiyonu: ort. max {proj.AvgTempMax:F1}°C → aşırı sıcak günler");
+            reasons.Add($"Open-Meteo projeksiyonu: ort. max {proj.AvgTempMax:F1}°C → aşırı sıcak günlerde duruş riski");
 
         // En güçlü sinyaller
         var topSignals = intent.Signals.OrderByDescending(s => s.Weight).Take(2).ToList();
         if (topSignals.Count > 0)
-            reasons.Add($"En güçlü sinyaller: {string.Join(", ", topSignals.Select(s => $"{s.Description} ({s.Weight:F2})"))}");
+            reasons.Add($"En etkili sinyaller: {string.Join(", ", topSignals.Select(s => $"{s.Description} ({s.Weight:F2})"))}");
 
         return reasons;
     }
 
     private static List<string> BuildRecommendedActions(
-        string decision, RiskInput input, double physical, double transition, (bool isCoastal, double distanceKm, string note) coastal)
+        string decision, RiskInput input, double physical, double transition, (bool isCoastal, double distanceKm, string note) coastal, WriCountryRisk? wri)
     {
         var actions = new List<string>();
         switch (decision)
         {
             case "REJECT":
-                actions.Add("Yatırım komitesi öncesi TCFD/TNFD uyumlu iklim risk azaltım planı hazırlayın");
-                actions.Add("Fiziksel dayanıklılık: yedek su kaynağı, ısı stresi için soğutma, altyapı güçlendirme");
-                actions.Add("Geçiş: karbon ayak izi azaltım yol haritası + düşük karbon teknolojisi fizibilitesi");
-                actions.Add("Sigorta kapsamını genişletin ve prim senaryolarını güncelleyin");
-                if (physical > 0.6) actions.Add("Senaryo analizi (fiziksel felaket + piyasa şoku) raporu");
-                if (!coastal.isCoastal) actions.Add("Deniz riski yok — odak: su verimliliği ve İç Anadolu kuraklık senaryoları");
+                actions.Add("İklim risk azaltım planı hazırlayın: TCFD/TNFD çerçevenizde somut hedefler belirleyin");
+                if (physical > 0.6)
+                {
+                    actions.Add("Fiziksel dayanıklılık: yedek su kaynağı ayırın, soğutma kapasitesini %20 artırın");
+                    actions.Add("Sigorta kapsamını genişletin: sel/sıcaklık teminatı ekleyin");
+                }
+                if (wri != null && wri.WaterStress > 3)
+                    actions.Add("Su verimliliği: geri dönüşüm sistemi kurun, alternatif su kaynağı (yağmur suyu) planlayın");
+                if (!coastal.isCoastal)
+                    actions.Add("Kıyı riski yok: odak noktanız su kıstı ve kuraklık senaryoları olmalı");
+                actions.Add("Karbon ayak izi azaltım yol haritası: düşük karbon teknolojisi fizibilitesi çıkarın");
                 break;
             case "REVIEW":
-                actions.Add("CDP/TNFD çerçevesinde detaylı durum tespiti (6 ayda bir güncelle)");
-                actions.Add("Fiziksel göstergeleri 6 aylık periyotta izle (WRI + Open-Meteo)");
-                actions.Add("Karbon fiyat duyarlılık matrisi oluştur (€50/100/180)");
-                if (!coastal.isCoastal) actions.Add("Yerel su havzası ve tarımsal kuraklık — DSİ/konya havzası verileriyle çapraz kontrol");
-                else actions.Add("Kıyı taşkını için 0.5m/1.0m senaryolarında fabrika kotu kontrolü");
+                actions.Add("6 ayda bir güncel izleme: WRI su stresi + Open-Meteo sıcaklık verilerini takip edin");
+                if (input.CarbonPrice >= 80)
+                    actions.Add("Karbon fiyat duyarlılık matrisi: €50/100/180 senaryolarında maliyet analizi");
+                if (!coastal.isCoastal && wri != null && wri.WaterStress > 2)
+                    actions.Add("Yerel su havzası verilerini kontrol edin: DSİ/konya havzası çapraz kontrol");
+                if (coastal.isCoastal)
+                    actions.Add("Kıyı taşkını: 0.5m/1.0m senaryolarında fabrika kotu kontrolü yapın");
+                actions.Add("Sektörel gelişmeleri izleyin: regülasyon değişiklikleri veya piyasa sinyalleri");
                 break;
             default:
-                actions.Add("Mevcut izleme yeterli — yıllık rapor döngüsünü koruyun");
-                actions.Add("Piyasa/regülasyon değişirse analizi yenileyin");
+                actions.Add("Mevcut izleme yeterli: yıllık rapor döngüsünü koruyun");
+                actions.Add("Piyasa veya regülasyon değişikliği olursa analizi yenileyin");
                 break;
         }
         return actions;
@@ -368,20 +385,21 @@ public sealed class RiskCalculationEngine
     };
 }
 
-public sealed class RiskInput
+public sealed record RiskInput
 {
-    public double Latitude { get; set; }
-    public double Longitude { get; set; }
-    public string LocationName { get; set; } = "";
     public string Scenario { get; set; } = "SSP2-4.5";
-    public string Sector { get; set; } = "Enerji";
+    public string Sector { get; set; } = "Sanayi";
     public int Horizon { get; set; } = 2050;
-    public double RadiusKm { get; set; } = 10;
+    public int RadiusKm { get; set; } = 25;
+    public double Latitude { get; set; } = 39.93;
+    public double Longitude { get; set; } = 32.86;
+    public string LocationName { get; set; } = "";
     public string CountryIso3 { get; set; } = "TUR";
     public double TempAnomaly { get; set; } = 2.4;
     public double PrecipChange { get; set; } = -15;
     public double SeaLevelRise { get; set; } = 0.5;
     public int CarbonPrice { get; set; } = 85;
+    public string? CompanyProfileId { get; set; }
 }
 
 public sealed class RiskAssessment
@@ -403,6 +421,7 @@ public sealed class RiskAssessment
     public bool IsCoastal { get; set; }
     public double EffectiveSeaLevel { get; set; }
     public EconomicImpact EconomicImpact { get; set; } = new();
+    public FinancialImpact? FinancialImpact { get; set; } = new();
     public double WaterStress { get; set; }
     public string WaterStressLabel { get; set; } = "";
     public ClimateProjection? Projection { get; set; }

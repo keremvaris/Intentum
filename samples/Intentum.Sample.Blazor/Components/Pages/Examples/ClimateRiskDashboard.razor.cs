@@ -292,7 +292,7 @@ public sealed partial class ClimateRiskDashboard : IAsyncDisposable
                     _input.Latitude = lat.GetDouble();
                     _input.Longitude = lng.GetDouble();
                     if (data.TryGetProperty("name", out var name)) _input.LocationName = name.GetString() ?? "";
-                    if (data.TryGetProperty("radius_km", out var radius)) _input.RadiusKm = radius.GetDouble();
+                    if (data.TryGetProperty("radius_km", out var radius)) _input.RadiusKm = (int)radius.GetDouble();
                     StateHasChanged();
                 }
             }
