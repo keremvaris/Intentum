@@ -19,11 +19,49 @@ public sealed class ClimateRiskIntentModel : IIntentModel
         ["transition:technology"] = 0.10,
         ["transition:market"] = 0.09,
         ["transition:reputation"] = 0.06,
-        ["economic:cost_of_goods"] = 0.9,
-        ["economic:operational_expenses"] = 0.85,
-        ["economic:revenue_at_risk"] = 0.95,
-        ["economic:capital_expenditure"] = 0.8,
+        ["economic:cost_of_goods"] = 0.15,
+        ["economic:operational_expenses"] = 0.14,
+        ["economic:revenue_at_risk"] = 0.18,
+        ["economic:capital_expenditure"] = 0.13,
         ["economic:impact"] = 0.05
+    };
+
+    public static readonly Dictionary<string, string> SignalLabels = new(StringComparer.OrdinalIgnoreCase)
+    {
+        ["physical:heatwave"] = "Sıcak Dalgası",
+        ["physical:drought"] = "Kuraklık",
+        ["physical:sea_level"] = "Deniz Seviyesi",
+        ["physical:storm"] = "Fırtına",
+        ["physical:flood"] = "Sel",
+        ["physical:water_stress"] = "Su Stresi",
+        ["transition:policy"] = "Politika/Regülasyon",
+        ["transition:technology"] = "Teknoloji Dönüşümü",
+        ["transition:market"] = "Piyasa Riski",
+        ["transition:reputation"] = "İtibar Riski",
+        ["economic:cost_of_goods"] = "Maliyet Riski",
+        ["economic:operational_expenses"] = "Operasyonel Giderler",
+        ["economic:revenue_at_risk"] = "Gelir Kaybı",
+        ["economic:capital_expenditure"] = "Yatırım Riski",
+        ["economic:impact"] = "Ekonomik Etki"
+    };
+
+    public static readonly Dictionary<string, string> SignalCategories = new(StringComparer.OrdinalIgnoreCase)
+    {
+        ["physical:heatwave"] = "Fiziksel",
+        ["physical:drought"] = "Fiziksel",
+        ["physical:sea_level"] = "Fiziksel",
+        ["physical:storm"] = "Fiziksel",
+        ["physical:flood"] = "Fiziksel",
+        ["physical:water_stress"] = "Fiziksel",
+        ["transition:policy"] = "Geçiş",
+        ["transition:technology"] = "Geçiş",
+        ["transition:market"] = "Geçiş",
+        ["transition:reputation"] = "Geçiş",
+        ["economic:cost_of_goods"] = "Finansal",
+        ["economic:operational_expenses"] = "Finansal",
+        ["economic:revenue_at_risk"] = "Finansal",
+        ["economic:capital_expenditure"] = "Finansal",
+        ["economic:impact"] = "Finansal"
     };
 
     public Intent Infer(BehaviorSpace behaviorSpace, BehaviorVector? precomputedVector = null)
@@ -36,7 +74,8 @@ public sealed class ClimateRiskIntentModel : IIntentModel
         {
             var w = SignalWeights.GetValueOrDefault(dim, 0.05) * Math.Min(count, 5);
             totalWeight += w;
-            signals.Add(new IntentSignal("climate-risk", dim, w));
+            var label = SignalLabels.GetValueOrDefault(dim, dim);
+            signals.Add(new IntentSignal(dim, label, w));
         }
 
         var score = Math.Min(1.0, totalWeight / 2.8);
@@ -49,10 +88,10 @@ public sealed class ClimateRiskIntentModel : IIntentModel
 
     private static string GetIntentNameFromScore(double score) => score switch
     {
-        >= 0.80 => "CriticalClimateRisk",
-        >= 0.60 => "ElevatedClimateRisk",
-        >= 0.40 => "ModerateClimateRisk",
-        >= 0.22 => "LowClimateRisk",
-        _ => "MinimalClimateRisk"
+        >= 0.80 => "Kritik İklim Riski",
+        >= 0.60 => "Yüksek İklim Riski",
+        >= 0.40 => "Orta İklim Riski",
+        >= 0.22 => "Düşük İklim Riski",
+        _ => "Minimal İklim Riski"
     };
 }

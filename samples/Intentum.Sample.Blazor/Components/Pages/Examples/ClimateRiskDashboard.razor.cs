@@ -445,6 +445,22 @@ public sealed partial class ClimateRiskDashboard : IAsyncDisposable
         _ => "0 ₺"
     };
 
+    private string GetSignalCategoryColor(string source) => source switch
+    {
+        _ when source.StartsWith("physical") => "#38bdf8",
+        _ when source.StartsWith("transition") => "#fb923c",
+        _ when source.StartsWith("economic") => "#a78bfa",
+        _ => "#94a3b8"
+    };
+
+    private string GetSignalCategoryLabel(string source) => source switch
+    {
+        _ when source.StartsWith("physical") => "Fiziksel Risk",
+        _ when source.StartsWith("transition") => "Geçiş Riski",
+        _ when source.StartsWith("economic") => "Finansal Risk",
+        _ => "Diğer"
+    };
+
     public async ValueTask DisposeAsync()
     {
         if (_pieEcharts != null) await _pieEcharts.DisposeAsync();

@@ -247,16 +247,25 @@
                     </div>
                 </details>
                 <details>
-                    <summary style="cursor:pointer;font-size:0.65rem;font-weight:600;color:#fbbf24;list-style:none;">▸ Intentum sinyalleri (@_assessment.Signals.Count) — @_assessment.IntentReasoning</summary>
-                    <div style="margin-top:6px;">
-                    @foreach (var sig in _assessment.Signals.OrderByDescending(s=>s.Weight).Take(8))
+                    <summary style="cursor:pointer;font-size:0.65rem;font-weight:600;color:#fbbf24;list-style:none;">▸ Intentum Sinyalleri (@_assessment.Signals.Count sinyal) — @_assessment.IntentReasoning</summary>
+                    <div style="margin-top:8px;">
+                    @foreach (var category in _assessment.Signals.GroupBy(s => ClimateRiskIntentModel.SignalCategories.GetValueOrDefault(s.Source, "Diğer")).OrderBy(g => g.Key))
                     {
-                        <div style="display:flex;align-items:center;gap:6px;margin-bottom:3px;font-size:0.55rem;">
-                            <span style="width:140px;color:#94a3b8;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">@sig.Description</span>
-                            <div style="flex:1;height:5px;background:#1e293b;border-radius:3px;overflow:hidden;">
-                                <div style="height:100%;width:@(Math.Min(sig.Weight*50,100))%;background:#f59e0b;border-radius:3px;"></div>
+                        <div style="margin-bottom:8px;">
+                            <div style="font-size:0.6rem;font-weight:700;color:@GetSignalCategoryColor(category.First().Source);margin-bottom:4px;display:flex;align-items:center;gap:6px;">
+                                <span style="width:8px;height:8px;border-radius:50%;background:@GetSignalCategoryColor(category.First().Source);display:inline-block;"></span>
+                                @category.Key (@category.Count())
                             </div>
-                            <span style="width:32px;color:#fbbf24;font-weight:600;">@sig.Weight.ToString("F2")</span>
+                            @foreach (var sig in category.OrderByDescending(s => s.Weight))
+                            {
+                                <div style="display:flex;align-items:center;gap:6px;margin-bottom:3px;font-size:0.55rem;padding-left:14px;">
+                                    <span style="width:120px;color:#cbd5e1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="@sig.Source">@sig.Description</span>
+                                    <div style="flex:1;height:5px;background:#1e293b;border-radius:3px;overflow:hidden;">
+                                        <div style="height:100%;width:@(Math.Min(sig.Weight*100,100))%;background:@GetSignalCategoryColor(sig.Source);border-radius:3px;"></div>
+                                    </div>
+                                    <span style="width:32px;color:#94a3b8;font-weight:600;">@sig.Weight.ToString("F2")</span>
+                                </div>
+                            }
                         </div>
                     }
                     </div>
