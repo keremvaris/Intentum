@@ -1,0 +1,397 @@
+@page "/examples/climate-risk"
+@using Intentum.Core
+@using Intentum.Core.Behavior
+@using Intentum.Core.Intents
+@using Intentum.Runtime.Engine
+@using Intentum.Runtime.Policy
+@rendermode InteractiveServer
+
+<PageTitle>Iklim Riski</PageTitle>
+
+<div class="page-card">
+    <div class="card-header-row">
+        <h2>Iklim Riski Degerlendirmesi</h2>
+        <InfoIcon Text="SSP, RCP ve WRI senaryolarini kullanarak fiziksel, gecis ve ekonomik riskleri degerlendirir. Enerji, tarim, emlak, finans ve turizm sektorleri icin risk analizi sunar." />
+    </div>
+    <p class="subtitle">Iklim senaryolarindan niyet cikarimi: fiziksel risk (sel, kuraklik, firtina), gecis riski (politika, teknoloji, piyasa) ve ekonomik etki analizi.</p>
+</div>
+
+<div class="page-card">
+    <h3>Senaryo Secimi</h3>
+    <div class="example-tabs">
+        <button class="example-scenario-btn @(activeScenario == "ssp1-26" ? "active" : "")" @onclick='() => SetScenario("ssp1-26")'>
+            SSP1-2.6
+        </button>
+        <button class="example-scenario-btn @(activeScenario == "ssp2-45" ? "active" : "")" @onclick='() => SetScenario("ssp2-45")'>
+            SSP2-4.5
+        </button>
+        <button class="example-scenario-btn @(activeScenario == "ssp3-70" ? "active" : "")" @onclick='() => SetScenario("ssp3-70")'>
+            SSP3-7.0
+        </button>
+        <button class="example-scenario-btn @(activeScenario == "ssp5-85" ? "active" : "")" @onclick='() => SetScenario("ssp5-85")'>
+            SSP5-8.5
+        </button>
+    </div>
+    <div class="example-tabs" style="margin-top:0.5rem;">
+        <button class="example-scenario-btn @(activeSector == "Energy" ? "active" : "")" @onclick='() => SetSector("Energy")'>
+            Enerji
+        </button>
+        <button class="example-scenario-btn @(activeSector == "Agriculture" ? "active" : "")" @onclick='() => SetSector("Agriculture")'>
+            Tarim
+        </button>
+        <button class="example-scenario-btn @(activeSector == "RealEstate" ? "active" : "")" @onclick='() => SetSector("RealEstate")'>
+            Emlak
+        </button>
+        <button class="example-scenario-btn @(activeSector == "Finance" ? "active" : "")" @onclick='() => SetSector("Finance")'>
+            Finans
+        </button>
+        <button class="example-scenario-btn @(activeSector == "Tourism" ? "active" : "")" @onclick='() => SetSector("Tourism")'>
+            Turizm
+        </button>
+    </div>
+    <div class="example-tabs" style="margin-top:0.5rem;">
+        <button class="example-scenario-btn @(activeHorizon == "2030" ? "active" : "")" @onclick='() => SetHorizon("2030")'>
+            2030
+        </button>
+        <button class="example-scenario-btn @(activeHorizon == "2050" ? "active" : "")" @onclick='() => SetHorizon("2050")'>
+            2050
+        </button>
+        <button class="example-scenario-btn @(activeHorizon == "2100" ? "active" : "")" @onclick='() => SetHorizon("2100")'>
+            2100
+        </button>
+    </div>
+</div>
+
+<div class="page-card">
+    <h3>Davranis Olaylari</h3>
+    <div style="display:flex; flex-wrap:wrap; gap:0.25rem; margin-bottom:0.75rem;">
+        @foreach (var evt in currentEvents)
+        {
+            <span class="example-event-tag">@evt</span>
+        }
+    </div>
+    <button class="btn-app-success" @onclick="RunAnalysis">Risk Degerlendir</button>
+</div>
+
+@if (results.Count > 0)
+{
+    <div class="page-card">
+        <h3>Fiziksel Risk</h3>
+        <div class="example-result" style="margin-bottom:1rem;">
+            <p><strong>Skor:</strong> <span style="color:@GetRiskColor(physicalScore)">@physicalScore.ToString("F2")</span></p>
+            @foreach (var f in physicalFactors)
+            {
+                <p style="font-size:0.85rem;">@f.Name: @f.WeightedScore.ToString("F3") (P:@f.Probability.ToString("F2") x S:@f.Severity.ToString("F2") x E:@f.Exposure.ToString("F2"))</p>
+            }
+        </div>
+    </div>
+
+    <div class="page-card">
+        <h3>Gecis Riski</h3>
+        <div class="example-result" style="margin-bottom:1rem;">
+            <p><strong>Skor:</strong> <span style="color:@GetRiskColor(transitionScore)">@transitionScore.ToString("F2")</span></p>
+            @foreach (var f in transitionFactors)
+            {
+                <p style="font-size:0.85rem;">@f.Name: @f.WeightedScore.ToString("F3") (I:@f.Probability.ToString("F2") x Sp:@f.Severity.ToString("F2") x U:@f.Exposure.ToString("F2"))</p>
+            }
+        </div>
+    </div>
+
+    <div class="page-card">
+        <h3>Niyet & Politika</h3>
+        @foreach (var r in results)
+        {
+            <div class="example-result @(r.Decision == "Allow" ? "" : r.Decision == "Warn" ? "warning" : "danger")" style="margin-bottom:1rem;">
+                <p><strong>Niyet:</strong> @r.IntentName</p>
+                <p><strong>Güven:</strong> @r.Level (@r.Score.ToString("F2"))</p>
+                <p><strong>Karar:</strong> <span class="decision-badge decision-badge--@r.Decision.ToLower()">@r.Decision</span></p>
+                <p style="font-size:0.85rem; color:#888;">@r.Reasoning</p>
+            </div>
+        }
+    </div>
+
+    <div class="page-card">
+        <h3>Ekonomik Etki</h3>
+        <div class="example-result">
+            <p><strong>MDP Etkisi:</strong> @gdpImpact.ToString("+0.00%;-0.00%")</p>
+            <p><strong>Yatirim (CAPEX):</strong> +@investmentImpact.ToString("P0")</p>
+            <p><strong>Sigorta Maliyeti:</strong> +@insuranceCost.ToString("P0")</p>
+            <p><strong>Borclanma Maliyeti:</strong> +@borrowingCost.ToString("P0")</p>
+        </div>
+    </div>
+
+    <div class="page-card">
+        <h3>Onerilen Aksiyonlar</h3>
+        <ul style="margin:0; padding-left:1.25rem; line-height:1.7;">
+            @foreach (var action in recommendedActions)
+            {
+                <li>@action</li>
+            }
+        </ul>
+    </div>
+}
+
+<div class="page-card example-concept">
+    <h3>Nasil Calisir?</h3>
+    <ul style="margin:0; padding-left:1.25rem; line-height:1.7;">
+        <li><strong>Fiziksel Risk:</strong> Sel, kuraklik, firtina, deniz seviyesi ve sicaklik dalgasi riskleri hesaplanir.</li>
+        <li><strong>Gecis Riski:</strong> Politika, teknoloji, piyasa ve itibar riskleri degerlendirilir.</li>
+        <li><strong>Ekonomik Etki:</strong> MDP, yatirim, sigorta ve borclanma etkileri analiz edilir.</li>
+        <li><strong>Niyet Cikarimi:</strong> BehaviorSpace sinyalleri agirlikli skorla intent'e donusturulur.</li>
+        <li><strong>Politika:</strong> Intent adi ve guven skoruna gore karar verilir (Escalate/Warn/Observe/Allow).</li>
+    </ul>
+</div>
+
+@code {
+    private string activeScenario = "ssp2-45";
+    private string activeSector = "Energy";
+    private string activeHorizon = "2050";
+    private List<string> currentEvents = [];
+    private List<AnalysisResult> results = [];
+    private double physicalScore;
+    private double transitionScore;
+    private double gdpImpact;
+    private double investmentImpact;
+    private double insuranceCost;
+    private double borrowingCost;
+    private IReadOnlyList<RiskFactorResult> physicalFactors = [];
+    private IReadOnlyList<RiskFactorResult> transitionFactors = [];
+    private IReadOnlyList<string> recommendedActions = [];
+
+    private record AnalysisResult(string IntentName, string Level, double Score, string Decision, string Reasoning);
+    private record RiskFactorResult(string Name, double Probability, double Severity, double Exposure, double WeightedScore);
+
+    protected override void OnInitialized() => SetScenario("ssp2-45");
+
+    private void SetScenario(string scenario)
+    {
+        activeScenario = scenario;
+        GenerateEvents();
+    }
+
+    private void SetSector(string sector)
+    {
+        activeSector = sector;
+        GenerateEvents();
+    }
+
+    private void SetHorizon(string horizon)
+    {
+        activeHorizon = horizon;
+        GenerateEvents();
+    }
+
+    private void GenerateEvents()
+    {
+        var multipliers = GetScenarioMultipliers();
+        var sectorData = GetSectorData();
+
+        currentEvents = [];
+
+        for (var i = 0; i < Math.Ceiling(sectorData.FloodProb * multipliers.Physical * 5); i++)
+            currentEvents.Add("physical:flood");
+        for (var i = 0; i < Math.Ceiling(sectorData.DroughtProb * multipliers.Physical * 5); i++)
+            currentEvents.Add("physical:drought");
+        for (var i = 0; i < Math.Ceiling(sectorData.StormProb * multipliers.Physical * 5); i++)
+            currentEvents.Add("physical:storm");
+        for (var i = 0; i < Math.Ceiling(sectorData.SeaLevelProb * multipliers.Physical * 5); i++)
+            currentEvents.Add("physical:sea_level");
+        for (var i = 0; i < Math.Ceiling(sectorData.HeatwaveProb * multipliers.Physical * 5); i++)
+            currentEvents.Add("physical:heatwave");
+
+        var policyImpact = sectorData.TransitionSens * 0.9;
+        var techImpact = sectorData.TransitionSens * 0.8;
+        var marketImpact = sectorData.TransitionSens * 0.7;
+        var repImpact = sectorData.TransitionSens * 0.6;
+
+        for (var i = 0; i < Math.Ceiling(policyImpact * multipliers.Transition * 5); i++)
+            currentEvents.Add("transition:policy");
+        for (var i = 0; i < Math.Ceiling(techImpact * multipliers.Transition * 5); i++)
+            currentEvents.Add("transition:technology");
+        for (var i = 0; i < Math.Ceiling(marketImpact * multipliers.Transition * 5); i++)
+            currentEvents.Add("transition:market");
+        for (var i = 0; i < Math.Ceiling(repImpact * multipliers.Transition * 5); i++)
+            currentEvents.Add("transition:reputation");
+    }
+
+    private void RunAnalysis()
+    {
+        var space = new BehaviorSpace();
+        foreach (var evt in currentEvents)
+        {
+            var parts = evt.Split(':');
+            if (parts.Length == 2)
+                space.Observe(parts[0], parts[1]);
+        }
+
+        var vector = space.ToVector();
+        var totalWeight = 0.0;
+        var signalWeights = new Dictionary<string, double>
+        {
+            ["physical:flood"] = 0.15, ["physical:drought"] = 0.12,
+            ["physical:storm"] = 0.13, ["physical:sea_level"] = 0.10,
+            ["physical:heatwave"] = 0.10, ["transition:policy"] = 0.15,
+            ["transition:technology"] = 0.12, ["transition:market"] = 0.10,
+            ["transition:reputation"] = 0.08
+        };
+
+        foreach (var (dim, count) in vector.Dimensions)
+        {
+            var weight = signalWeights.GetValueOrDefault(dim, 0.05) * Math.Min(count, 5);
+            totalWeight += weight;
+        }
+
+        var score = Math.Min(1.0, totalWeight / 2.5);
+        var confidence = IntentConfidence.FromScore(score);
+        var intentName = score switch
+        {
+            >= 0.8 => "CriticalClimateRisk",
+            >= 0.6 => "ElevatedClimateRisk",
+            >= 0.4 => "ModerateClimateRisk",
+            >= 0.2 => "LowClimateRisk",
+            _ => "MinimalClimateRisk"
+        };
+
+        var reasoning = $"{space.Events.Count} signals; weighted score {totalWeight:F2} -> {intentName}";
+        var intent = new Intent(intentName, [], confidence, reasoning);
+
+        var policy = new IntentPolicyBuilder()
+            .Escalate("CriticalRisk", i => i is { Name: "CriticalClimateRisk", Confidence.Score: >= 0.7 })
+            .Warn("ElevatedRisk", i => i is { Name: "ElevatedClimateRisk", Confidence.Score: >= 0.5 })
+            .Observe("ModerateRisk", i => i is { Name: "ModerateClimateRisk", Confidence.Score: >= 0.3 })
+            .Allow("LowRisk", i => i is { Name: "LowClimateRisk", Confidence.Score: >= 0.1 })
+            .Allow("MinimalRisk", _ => true)
+            .Build();
+
+        var decision = IntentPolicyEngine.Evaluate(intent, policy);
+
+        var sectorData = GetSectorData();
+        var multipliers = GetScenarioMultipliers();
+
+        var pMult = multipliers.Physical;
+        var tMult = multipliers.Transition;
+
+        physicalFactors =
+        [
+            new("Flood", sectorData.FloodProb, sectorData.FloodSev, pMult, sectorData.FloodProb * sectorData.FloodSev * pMult),
+            new("Drought", sectorData.DroughtProb, sectorData.DroughtSev, pMult, sectorData.DroughtProb * sectorData.DroughtSev * pMult),
+            new("Storm", sectorData.StormProb, sectorData.StormSev, pMult, sectorData.StormProb * sectorData.StormSev * pMult),
+            new("SeaLevelRise", sectorData.SeaLevelProb, sectorData.SeaLevelSev, pMult, sectorData.SeaLevelProb * sectorData.SeaLevelSev * pMult),
+            new("Heatwave", sectorData.HeatwaveProb, sectorData.HeatwaveSev, pMult, sectorData.HeatwaveProb * sectorData.HeatwaveSev * pMult)
+        ];
+        physicalScore = physicalFactors.Average(f => f.WeightedScore);
+
+        var policySpeed = GetPolicySpeed();
+        var techSpeed = GetTechSpeed();
+        var marketSpeed = GetMarketSpeed();
+        var repSpeed = GetRepSpeed();
+        var uncertainty = 0.5;
+
+        transitionFactors =
+        [
+            new("Policy", sectorData.TransitionSens * 0.9, policySpeed, uncertainty, sectorData.TransitionSens * 0.9 * policySpeed * uncertainty * tMult),
+            new("Technology", sectorData.TransitionSens * 0.8, techSpeed, uncertainty, sectorData.TransitionSens * 0.8 * techSpeed * uncertainty * tMult),
+            new("Market", sectorData.TransitionSens * 0.7, marketSpeed, uncertainty, sectorData.TransitionSens * 0.7 * marketSpeed * uncertainty * tMult),
+            new("Reputation", sectorData.TransitionSens * 0.6, repSpeed, uncertainty, sectorData.TransitionSens * 0.6 * repSpeed * uncertainty * tMult)
+        ];
+        transitionScore = transitionFactors.Average(f => f.WeightedScore);
+
+        var physEtd = physicalScore * sectorData.PhysicalSens;
+        var transEtd = transitionScore * sectorData.TransitionSens;
+        gdpImpact = -(physEtd * 0.05 + transEtd * 0.03);
+        investmentImpact = transEtd * 0.2 + physEtd * 0.1;
+        insuranceCost = physEtd * 0.4;
+        borrowingCost = transEtd * 0.15 + physEtd * 0.1;
+
+        var actions = new List<string>();
+        if (physicalScore > 0.6)
+        {
+            actions.Add("Fiziksel risk yuksek: iklim uyum onlemleri alin");
+            actions.Add("Dogal afet is plani gelistirin");
+        }
+        if (transitionScore > 0.6)
+        {
+            actions.Add("Gecis riski yuksek: politika ve teknoloji degisikliklerini degerlendirin");
+            actions.Add("Gecis yol haritasi olusturun");
+        }
+        if (physicalScore > 0.4 && physicalScore <= 0.6)
+            actions.Add("Fiziksel risk gostergelerini izleyin");
+        if (transitionScore > 0.4 && transitionScore <= 0.6)
+            actions.Add("Duzenleyici gelismeleri takip edin");
+        if (actions.Count == 0)
+            actions.Add("Standart risk izleme prosedurlerine devam edin");
+        recommendedActions = actions;
+
+        results = [new AnalysisResult(intentName, confidence.Level, confidence.Score, decision.ToString(), reasoning)];
+    }
+
+    private (double Physical, double Transition) GetScenarioMultipliers() => activeScenario switch
+    {
+        "ssp1-26" => (0.5, 0.8),
+        "ssp2-45" => (0.7, 0.6),
+        "ssp3-70" => (0.85, 0.4),
+        "ssp5-85" => (1.0, 0.9),
+        _ => (0.7, 0.6)
+    };
+
+    private double GetHorizonMultiplier() => activeHorizon switch
+    {
+        "2030" => 0.3,
+        "2050" => 0.65,
+        "2100" => 1.0,
+        _ => 0.5
+    };
+
+    private double GetPolicySpeed() => activeScenario switch
+    {
+        "ssp1-26" => 0.9,
+        "ssp2-45" => 0.6,
+        "ssp3-70" => 0.4,
+        "ssp5-85" => 0.2,
+        _ => 0.5
+    };
+
+    private double GetTechSpeed() => activeScenario switch
+    {
+        "ssp1-26" => 0.85,
+        "ssp2-45" => 0.65,
+        "ssp3-70" => 0.45,
+        "ssp5-85" => 0.3,
+        _ => 0.5
+    };
+
+    private double GetMarketSpeed() => activeScenario switch
+    {
+        "ssp1-26" => 0.8,
+        "ssp2-45" => 0.55,
+        "ssp3-70" => 0.35,
+        "ssp5-85" => 0.25,
+        _ => 0.45
+    };
+
+    private double GetRepSpeed() => activeScenario switch
+    {
+        "ssp1-26" => 0.75,
+        "ssp2-45" => 0.5,
+        "ssp3-70" => 0.3,
+        "ssp5-85" => 0.2,
+        _ => 0.4
+    };
+
+    private (double PhysicalSens, double TransitionSens, double FloodProb, double FloodSev, double DroughtProb, double DroughtSev, double StormProb, double StormSev, double SeaLevelProb, double SeaLevelSev, double HeatwaveProb, double HeatwaveSev) GetSectorData() => activeSector switch
+    {
+        "Energy" => (0.7, 0.95, 0.5, 0.6, 0.5, 0.6, 0.55, 0.65, 0.4, 0.6, 0.6, 0.65),
+        "Agriculture" => (0.95, 0.4, 0.6, 0.7, 0.8, 0.9, 0.5, 0.6, 0.3, 0.5, 0.7, 0.8),
+        "RealEstate" => (0.8, 0.5, 0.7, 0.8, 0.3, 0.4, 0.65, 0.75, 0.6, 0.85, 0.5, 0.5),
+        "Finance" => (0.3, 0.85, 0.2, 0.3, 0.15, 0.2, 0.15, 0.2, 0.1, 0.15, 0.2, 0.25),
+        "Tourism" => (0.75, 0.45, 0.55, 0.65, 0.4, 0.5, 0.6, 0.7, 0.55, 0.7, 0.65, 0.7),
+        _ => (0.5, 0.5, 0.4, 0.5, 0.4, 0.5, 0.4, 0.5, 0.3, 0.4, 0.45, 0.5)
+    };
+
+    private string GetRiskColor(double score) => score switch
+    {
+        > 0.6 => "#ef4444",
+        > 0.3 => "#f59e0b",
+        _ => "#22c55e"
+    };
+}

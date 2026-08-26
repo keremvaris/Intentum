@@ -10,6 +10,7 @@
   <Project Path="examples/customer-intent/Intentum.Example.CustomerIntent.csproj"/>
   <Project Path="examples/fraud-intent/Intentum.Example.FraudIntent.csproj"/>
   <Project Path="examples/greenwashing-intent/Intentum.Example.GreenwashingIntent.csproj"/>
+  <Project Path="examples/climate-risk-intent/Intentum.Example.ClimateRisk.csproj"/>
   <Project Path="examples/hello-intentum/Intentum.Example.HelloIntentum.csproj"/>
   <Project Path="examples/resilience-demo/Intentum.Example.ResilienceDemo.csproj"/>
   <Project Path="examples/time-decay-intent/Intentum.Example.TimeDecayIntent.csproj"/>
