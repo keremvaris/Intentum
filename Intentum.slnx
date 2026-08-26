@@ -54,5 +54,6 @@
   <Project Path="templates/intentum-webapi/Intentum.WebApi.csproj"/>
   <Project Path="tests/Intentum.Tests/Intentum.Tests.csproj"/>
   <Project Path="tests/Intentum.Tests.Integration/Intentum.Tests.Integration.csproj"/>
+  <Project Path="tests/Intentum.Sample.Blazor.Tests/Intentum.Sample.Blazor.Tests.csproj"/>
   <Project Path="tools/Intentum.Cli/Intentum.Cli.csproj"/>
 </Solution>

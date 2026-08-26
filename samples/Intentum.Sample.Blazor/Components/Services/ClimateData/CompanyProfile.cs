@@ -71,7 +71,8 @@ public sealed class FinancialImpact
     public double TotalCashFlowImpact =>
         CategoryImpacts.Where(c => c.Type == FinancialCategoryType.CashFlow).Sum(c => c.TotalImpact);
 
-    public double NetCashFlowImpact => TotalRevenueImpact + TotalOpexImpact + TotalCapexImpact + TotalCashFlowImpact;
+    public double NetCashFlowImpact =>
+        TotalRevenueImpact - TotalOpexImpact - TotalCapexImpact + TotalCashFlowImpact;
 }
 
 public sealed class CategoryImpact
