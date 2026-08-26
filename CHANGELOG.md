@@ -13,6 +13,44 @@ Bu dosya **conventional commit** mesajlarından otomatik üretilir. Commit'te **
 
 ---
 
+## [unreleased]
+
+
+
+
+### Documentation
+
+- **Add climate risk intent README** *(examples)*
+
+
+- **Add climate-risk-intent to examples list** *(examples)*
+
+
+
+
+### Features
+
+- **Add climate risk intent project setup** *(examples)*
+
+
+- **Add climate risk models (TimeHorizon, ClimateScenario, SectorProfile, RiskAssessment)** *(examples)*
+
+
+- **Add SSP, RCP, and WRI climate scenarios** *(examples)*
+
+
+- **Add physical, transition, and economic risk calculators** *(examples)*
+
+
+- **Add ClimateRiskIntentModel and ClimateRiskPolicy** *(examples)*
+
+
+- **Add console, JSON, and web UI reporters** *(examples)*
+
+
+- **Add climate risk main orchestrator** *(examples)*
+
+
 ## [1.2.3] - 2026-06-18
 
 
