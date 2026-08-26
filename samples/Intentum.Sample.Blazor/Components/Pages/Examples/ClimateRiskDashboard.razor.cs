@@ -1,19 +1,22 @@
 using System.Text.Json;
+using System.Text.Json.Serialization;
 using Microsoft.AspNetCore.Components;
-using Intentum.Sample.Blazor.Components.Services;
-using Intentum.Sample.Blazor.Components.Services.ClimateData;
 using Microsoft.AspNetCore.Components.Forms;
 using Microsoft.JSInterop;
+using Intentum.Sample.Blazor.Components.Services;
+using Intentum.Sample.Blazor.Components.Services.ClimateData;
 
 namespace Intentum.Sample.Blazor.Components.Pages.Examples;
 
-public sealed partial class ClimateRiskDashboard
+public sealed partial class ClimateRiskDashboard : IAsyncDisposable
 {
     private RiskInput _input = new();
     private RiskAssessment? _assessment;
     private ClimateBaselineTrends? _trends;
     private bool _running;
     private int _mapLevel;
+    private string _currentCountryName = "";
+    private string _currentIso3 = "";
 
     private int _tempSlider = 48;
     private int _precipSlider = -15;
@@ -31,6 +34,8 @@ public sealed partial class ClimateRiskDashboard
 
     private ElementReference _fileInputRef;
 
+    private IJSObjectReference? _climateMapRef;
+
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
         if (firstRender)
@@ -38,9 +43,43 @@ public sealed partial class ClimateRiskDashboard
             _trends = await ClimateMonitor.GetBaselineTrendsAsync();
             StateHasChanged();
 
-            await JSRuntime.InvokeAsync<bool>("initClimateGeoMap", new object?[] { "climate-geo-map" });
+            // Initialize climate map with drill-down support
+            _climateMapRef = await JSRuntime.InvokeAsync<IJSObjectReference>(
+                "import", "/echarts-interop.js");
+            await JSRuntime.InvokeAsync<bool>("initClimateGeoMap", "climate-geo-map");
+
+            // Register .NET interop for map callbacks
+            var dotNetRef = DotNetObjectReference.Create(this);
+            await JSRuntime.InvokeVoidAsync("eval", $@"
+                window.DotNetClimateMap = {dotNetRef};
+            ");
+
             await UpdateWorldMap();
         }
+    }
+
+    [JSInvokable]
+    public async Task OnCountryDrillDown(string iso3, string countryName)
+    {
+        _mapLevel = 1;
+        _currentIso3 = iso3;
+        _currentCountryName = countryName;
+        StateHasChanged();
+    }
+
+    [JSInvokable]
+    public void OnMapBackToWorld()
+    {
+        _mapLevel = 0;
+        _currentIso3 = "";
+        _currentCountryName = "";
+        StateHasChanged();
+    }
+
+    [JSInvokable]
+    public void OnProvinceClicked(string provinceName)
+    {
+        // Province click - could show detailed info in future
     }
 
     private async Task RunAnalysis()
@@ -50,7 +89,6 @@ public sealed partial class ClimateRiskDashboard
 
         try
         {
-            // Sync slider values into RiskInput
             _input.TempAnomaly = _tempAnomaly;
             _input.PrecipChange = _precipChange;
             _input.SeaLevelRise = _seaLevelRise;
@@ -58,6 +96,21 @@ public sealed partial class ClimateRiskDashboard
             _input.CountryIso3 = DetectCountry(_input.Latitude, _input.Longitude);
 
             _assessment = await RiskEngine.AssessAsync(_input);
+
+            // Update factory marker on map
+            if (_input.Latitude != 0 || _input.Longitude != 0)
+            {
+                var riskColor = _assessment.Decision switch
+                {
+                    "REJECT" => "#ef4444",
+                    "REVIEW" => "#f59e0b",
+                    _ => "#22c55e"
+                };
+                await JSRuntime.InvokeAsync<bool>("setFactoryMarkerOnMap",
+                    _input.Latitude, _input.Longitude, _input.RadiusKm,
+                    _input.LocationName ?? "Fabrika", riskColor);
+            }
+
             await UpdateAllCharts();
             await UpdateWorldMap();
         }
@@ -70,22 +123,6 @@ public sealed partial class ClimateRiskDashboard
             _running = false;
             StateHasChanged();
         }
-    }
-
-    private static string DetectCountry(double lat, double lng)
-    {
-        // Approximate country detection from lat/lng
-        if (lat > 36 && lat < 42 && lng > 26 && lng < 45) return "TUR";
-        if (lat > 24 && lat < 50 && lng > -130 && lng < -65) return "USA";
-        if (lat > 49 && lat < 61 && lng > -11 && lng < 2) return "GBR";
-        if (lat > 47 && lat < 56 && lng > 5 && lng < 16) return "DEU";
-        if (lat > 42 && lat < 52 && lng > -5 && lng < 10) return "FRA";
-        if (lat > 36 && lat < 48 && lng > 6 && lng < 19) return "ITA";
-        if (lat > 18 && lat < 54 && lng > 73 && lng < 135) return "CHN";
-        if (lat > 6 && lat < 38 && lng > 68 && lng < 98) return "IND";
-        if (lat > 30 && lat < 46 && lng > 128 && lng < 146) return "JPN";
-        if (lat > -35 && lat < 6 && lng > -75 && lng < -34) return "BRA";
-        return "TUR"; // default
     }
 
     private async Task UpdateAllCharts()
@@ -186,9 +223,43 @@ public sealed partial class ClimateRiskDashboard
     private async Task UpdateWorldMap()
     {
         var allRisks = await WriAqueduct.GetAllCountryRisksAsync();
-        var riskData = allRisks.Select(r => new { name = r.Name, value = r.WaterStress }).ToArray();
-        await JSRuntime.InvokeAsync<bool>("updateClimateWorldMap", new object?[] { "climate-geo-map", riskData });
+        // Build risk data with ISO3 for drill-down
+        var riskData = allRisks.Select(r => new
+        {
+            name = r.Name,
+            value = r.WaterStress,
+            iso3 = GetIso3FromName(r.Name)
+        }).ToArray();
+        await JSRuntime.InvokeAsync<bool>("updateClimateWorldMap", "climate-geo-map", riskData);
     }
+
+    private static string GetIso3FromName(string name) => name switch
+    {
+        "Turkey" or "Türkiye" => "TUR",
+        "United States of America" or "United States" => "USA",
+        "United Kingdom" => "GBR",
+        "Germany" => "DEU",
+        "France" => "FRA",
+        "Italy" => "ITA",
+        "China" => "CHN",
+        "India" => "IND",
+        "Japan" => "JPN",
+        "Brazil" => "BRA",
+        _ => ""
+    };
+
+    private async Task MapBackToWorld()
+    {
+        _mapLevel = 0;
+        _currentIso3 = "";
+        _currentCountryName = "";
+        await JSRuntime.InvokeAsync<bool>("goBackToWorld");
+        StateHasChanged();
+    }
+
+    private async Task ZoomIn() => await JSRuntime.InvokeAsync<bool>("zoomClimateMapIn");
+    private async Task ZoomOut() => await JSRuntime.InvokeAsync<bool>("zoomClimateMapOut");
+    private async Task ResetZoom() => await JSRuntime.InvokeAsync<bool>("resetClimateMapZoom");
 
     private void SetMapLevel(int level) { _mapLevel = level; StateHasChanged(); }
     private void UpdateTempAnomaly() { _tempAnomaly = _tempSlider / 10.0; }
@@ -196,18 +267,14 @@ public sealed partial class ClimateRiskDashboard
     private void UpdateSeaLevel() { _seaLevelRise = _seaSlider / 100.0; }
     private void UpdateCarbonPrice() { _carbonPrice = _carbonSlider; }
 
-    private void ZoomIn() { }
-    private void ZoomOut() { }
-    private void ResetZoom() { }
-
     private async Task TriggerFileUpload()
     {
-        await JSRuntime.InvokeAsync<object?>("eval", new object?[] { "document.querySelector('#climate-file-input').click()" });
+        await JSRuntime.InvokeAsync<object?>("eval", "document.querySelector('#climate-file-input').click()");
     }
 
     private async Task OnFileInputChange(ChangeEventArgs e)
     {
-        var content = await JSRuntime.InvokeAsync<string>("eval", new object?[] { "(() => { const f = document.querySelector('#climate-file-input').files[0]; return f ? f.text() : ''; })()" });
+        var content = await JSRuntime.InvokeAsync<string>("eval", "(() => { const f = document.querySelector('#climate-file-input').files[0]; return f ? f.text() : ''; })()");
         if (string.IsNullOrEmpty(content)) return;
 
         if (content.TrimStart().StartsWith("{"))
@@ -226,6 +293,21 @@ public sealed partial class ClimateRiskDashboard
             }
             catch { }
         }
+    }
+
+    private static string DetectCountry(double lat, double lng)
+    {
+        if (lat > 36 && lat < 42 && lng > 26 && lng < 45) return "TUR";
+        if (lat > 24 && lat < 50 && lng > -130 && lng < -65) return "USA";
+        if (lat > 49 && lat < 61 && lng > -11 && lng < 2) return "GBR";
+        if (lat > 47 && lat < 56 && lng > 5 && lng < 16) return "DEU";
+        if (lat > 42 && lat < 52 && lng > -5 && lng < 10) return "FRA";
+        if (lat > 36 && lat < 48 && lng > 6 && lng < 19) return "ITA";
+        if (lat > 18 && lat < 54 && lng > 73 && lng < 135) return "CHN";
+        if (lat > 6 && lat < 38 && lng > 68 && lng < 98) return "IND";
+        if (lat > 30 && lat < 46 && lng > 128 && lng < 146) return "JPN";
+        if (lat > -35 && lat < 6 && lng > -75 && lng < -34) return "BRA";
+        return "TUR";
     }
 
     private static string GetRiskLabel(double score) => score switch
@@ -274,6 +356,7 @@ public sealed partial class ClimateRiskDashboard
         if (_barEcharts != null) await _barEcharts.DisposeAsync();
         if (_lineEcharts != null) await _lineEcharts.DisposeAsync();
         if (_gaugeEcharts != null) await _gaugeEcharts.DisposeAsync();
-        try { await JSRuntime.InvokeAsync<object?>("IntentumECharts.dispose", new object?[] { "climate-geo-map" }); } catch { }
+        try { await JSRuntime.InvokeAsync<object?>("IntentumECharts.dispose", "climate-geo-map"); } catch { }
+        try { await JSRuntime.InvokeVoidAsync("eval", "window.DotNetClimateMap = null;"); } catch { }
     }
 }

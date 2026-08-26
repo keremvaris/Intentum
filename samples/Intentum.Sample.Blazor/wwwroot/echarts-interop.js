@@ -170,82 +170,283 @@ window.initIntentumGeoMap = function (elementId) {
   return true;
 };
 
-// Climate Risk Map - register custom GeoJSON and render choropleth
-window.setClimateRiskMap = async function(elementId, geoJson, riskData, mapName) {
-  var el = document.getElementById(elementId);
-  if (!el || typeof echarts === 'undefined') return false;
-  try { echarts.registerMap(mapName, geoJson); } catch(e) { }
-  var chart = echarts.getInstanceByDom(el) || echarts.init(el);
-  var option = {
-    tooltip: { trigger: 'item', formatter: function(params) { return params.name + '<br/>Risk: ' + (params.value || 'N/A'); } },
-    visualMap: { min: 0, max: 5, left: 'left', bottom: 20, text: ['Yüksek', 'Düşük'], inRange: { color: ['#22c55e', '#f59e0b', '#ef4444', '#991b1b'] }, calculable: true },
-    series: [{ name: mapName, type: 'map', map: mapName, roam: true, emphasis: { label: { show: true, fontSize: 10 }, itemStyle: { areaColor: '#3b82f6' } }, label: { show: false, fontSize: 8 }, data: riskData || [] }]
-  };
-  chart.setOption(option);
-  return true;
-};
+// ============================================================
+// CLIMATE RISK MAP — Drill-Down System
+// ============================================================
+window.ClimateMap = {
+  instance: null,
+  elementId: null,
+  currentLevel: 'world',  // 'world' | 'country'
+  currentCountry: null,
+  worldRiskData: [],
+  factoryMarker: null,
 
-window.setFactoryMarker = function(elementId, lat, lng, radiusKm, label, riskColor) {
-  var el = document.getElementById(elementId);
-  if (!el || typeof echarts === 'undefined') return false;
-  var chart = echarts.getInstanceByDom(el);
-  if (!chart) return false;
-  var radiusDeg = radiusKm / 111.32;
-  chart.setOption({
-    series: [{
-      type: 'effectScatter', coordinateSystem: 'geo',
-      data: [{ name: label || 'Target', value: [lng, lat, 50], itemStyle: { color: riskColor || '#ef4444' } }],
-      symbolSize: 12, rippleEffect: { brushType: 'stroke', scale: 3 }
-    },
-    {
-      type: 'scatter', coordinateSystem: 'geo',
-      data: generateCirclePoints(lat, lng, radiusDeg, 60),
-      symbolSize: 2, itemStyle: { color: riskColor || 'rgba(239,68,68,0.5)' }, silent: true
-    }]
-  });
-  return true;
-};
+  init: async function(elementId) {
+    this.elementId = elementId;
+    var el = document.getElementById(elementId);
+    if (!el || typeof echarts === 'undefined') return false;
 
-function generateCirclePoints(centerLat, centerLng, radiusDeg, points) {
-  var result = [];
-  for (var i = 0; i <= points; i++) {
-    var angle = (i / points) * 2 * Math.PI;
-    var lat = centerLat + radiusDeg * Math.cos(angle);
-    var lng = centerLng + (radiusDeg * Math.cos(centerLat * Math.PI / 180)) * Math.sin(angle);
-    result.push([lng, lat]);
+    // Load world.json
+    var worldJson = null;
+    var urls = ['/data/world.json'];
+    for (var i = 0; i < urls.length; i++) {
+      try { var r = await fetch(urls[i]); if (r.ok) { worldJson = await r.json(); break; } } catch(e) {}
+    }
+    if (!worldJson) { console.warn('world.json failed'); return false; }
+    echarts.registerMap('world', worldJson);
+
+    // Dispose existing
+    if (this.instance) { this.instance.dispose(); }
+    this.instance = echarts.init(el);
+    this.currentLevel = 'world';
+
+    var self = this;
+    this.instance.on('click', function(params) {
+      if (self.currentLevel === 'world' && params.componentType === 'series') {
+        var countryName = params.name;
+        var countryData = self.worldRiskData.find(function(d) { return d.name === countryName; });
+        if (countryData && countryData.iso3) {
+          self.drillDown(countryData.iso3, countryName);
+        }
+      } else if (self.currentLevel === 'country' && params.componentType === 'series') {
+        // Province clicked - show info
+        if (window.DotNetClimateMap) {
+          window.DotNetClimateMap.invokeMethodAsync('OnProvinceClicked', params.name);
+        }
+      }
+    });
+
+    this.renderWorldView();
+    return true;
+  },
+
+  renderWorldView: function() {
+    if (!this.instance) return;
+    this.currentLevel = 'world';
+    var riskData = this.worldRiskData || [];
+
+    this.instance.setOption({
+      tooltip: {
+        trigger: 'item',
+        formatter: function(params) {
+          var d = riskData.find(function(r) { return r.name === params.name; });
+          var score = d ? d.value : 'N/A';
+          var level = score > 4 ? 'Çok Yüksek' : score > 3 ? 'Yüksek' : score > 2 ? 'Orta' : score > 1 ? 'Düşük' : 'Veri Yok';
+          return '<b>' + params.name + '</b><br/>Risk: ' + score + '/5<br/>Seviye: ' + level + '<br/><i>Tıklamak için tıklayın</i>';
+        }
+      },
+      geo: {
+        map: 'world',
+        roam: true,
+        zoom: 1.3,
+        center: [30, 40],
+        itemStyle: { areaColor: '#1a1f36', borderColor: '#334155', borderWidth: 0.5 },
+        emphasis: {
+          itemStyle: { areaColor: '#334155', borderColor: '#60a5fa', borderWidth: 1.5 },
+          label: { show: true, color: '#fff', fontSize: 11 }
+        },
+        regions: []
+      },
+      visualMap: {
+        min: 0, max: 5,
+        left: 'left', bottom: 20,
+        text: ['Yüksek', 'Düşük'],
+        textStyle: { color: '#94a3b8', fontSize: 10 },
+        inRange: { color: ['#22c55e', '#84cc16', '#f59e0b', '#ef4444', '#991b1b'] },
+        calculable: true,
+        realtime: true
+      },
+      series: [{
+        name: 'Risk Haritası',
+        type: 'map',
+        map: 'world',
+        roam: true,
+        zoom: 1.3,
+        center: [30, 40],
+        emphasis: {
+          label: { show: true, color: '#fff', fontSize: 11 },
+          itemStyle: { areaColor: '#3b82f6' }
+        },
+        label: { show: false },
+        itemStyle: { areaColor: '#1a1f36', borderColor: '#334155', borderWidth: 0.5 },
+        data: riskData
+      }]
+    }, true);
+
+    if (this.factoryMarker) this.showFactory();
+  },
+
+  updateRiskData: function(riskData) {
+    this.worldRiskData = riskData || [];
+    if (this.currentLevel === 'world') this.renderWorldView();
+  },
+
+  drillDown: async function(iso3, countryName) {
+    if (!this.instance) return;
+    this.currentLevel = 'country';
+    this.currentCountry = iso3;
+
+    // Fetch GADM level 1 data
+    var geoJson = null;
+    try {
+      var resp = await fetch('/data/gadm/gadm41_' + iso3 + '_1.json');
+      if (resp.ok) geoJson = await resp.json();
+    } catch(e) {}
+
+    if (!geoJson) {
+      console.warn('GADM level 1 not found for ' + iso3);
+      this.currentLevel = 'world';
+      return;
+    }
+
+    var mapName = 'gadm_' + iso3 + '_1';
+    try { echarts.registerMap(mapName, geoJson); } catch(e) {}
+
+    // Extract province names and assign random risk for demo
+    var provinces = geoJson.features.map(function(f) {
+      return { name: f.properties.NAME_1, value: (Math.random() * 4 + 1).toFixed(1) };
+    });
+
+    var self = this;
+    this.instance.setOption({
+      tooltip: {
+        trigger: 'item',
+        formatter: function(params) {
+          return '<b>' + params.name + '</b><br/>Risk: ' + (params.value || 'N/A') + '/5';
+        }
+      },
+      geo: {
+        map: mapName,
+        roam: true,
+        itemStyle: { areaColor: '#1a1f36', borderColor: '#475569', borderWidth: 1 },
+        emphasis: {
+          itemStyle: { areaColor: '#1e3a5f', borderColor: '#60a5fa', borderWidth: 2 },
+          label: { show: true, color: '#fff' }
+        }
+      },
+      series: [{
+        name: countryName + ' Bölgeleri',
+        type: 'map',
+        map: mapName,
+        roam: true,
+        emphasis: {
+          label: { show: true, color: '#fff' },
+          itemStyle: { areaColor: '#3b82f6' }
+        },
+        label: { show: true, fontSize: 9, color: '#94a3b8' },
+        itemStyle: { areaColor: '#1a1f36', borderColor: '#475569', borderWidth: 1 },
+        data: provinces
+      }]
+    }, true);
+
+    if (this.factoryMarker) this.showFactory();
+
+    // Notify Blazor of drill-down
+    if (window.DotNetClimateMap) {
+      window.DotNetClimateMap.invokeMethodAsync('OnCountryDrillDown', iso3, countryName);
+    }
+  },
+
+  goBack: function() {
+    if (this.currentLevel === 'country') {
+      this.renderWorldView();
+      if (window.DotNetClimateMap) {
+        window.DotNetClimateMap.invokeMethodAsync('OnMapBackToWorld');
+      }
+    }
+  },
+
+  showFactory: function() {
+    if (!this.instance || !this.factoryMarker) return;
+    var f = this.factoryMarker;
+    var radiusDeg = (f.radiusKm || 10) / 111.32;
+    var circlePoints = [];
+    for (var i = 0; i <= 60; i++) {
+      var angle = (i / 60) * 2 * Math.PI;
+      var lat = f.lat + radiusDeg * Math.cos(angle);
+      var lng = f.lng + (radiusDeg * Math.cos(f.lat * Math.PI / 180)) * Math.sin(angle);
+      circlePoints.push([lng, lat]);
+    }
+
+    var existingSeries = this.instance.getOption().series || [];
+    var filtered = existingSeries.filter(function(s) { return s.name !== 'factory'; });
+
+    filtered.push({
+      name: 'factory',
+      type: 'effectScatter',
+      coordinateSystem: 'geo',
+      data: [{ name: f.label || 'Fabrika', value: [f.lng, f.lat, 50], itemStyle: { color: f.color || '#ef4444' } }],
+      symbolSize: 14,
+      rippleEffect: { brushType: 'stroke', scale: 4 },
+      label: { show: true, formatter: f.label || 'Fabrika', position: 'right', color: '#f1f5f9', fontSize: 11, fontWeight: 'bold' }
+    });
+    filtered.push({
+      name: 'factory',
+      type: 'scatter',
+      coordinateSystem: 'geo',
+      data: circlePoints,
+      symbolSize: 1,
+      itemStyle: { color: f.color || 'rgba(239,68,68,0.6)' },
+      silent: true
+    });
+
+    this.instance.setOption({ series: filtered }, true);
+  },
+
+  setFactory: function(lat, lng, radiusKm, label, color) {
+    this.factoryMarker = { lat: lat, lng: lng, radiusKm: radiusKm, label: label, color: color };
+    if (this.instance) this.showFactory();
+  },
+
+  zoomIn: function() {
+    if (!this.instance) return;
+    var opt = this.instance.getOption();
+    var geo = opt.geo && opt.geo[0];
+    var series = opt.series && opt.series[0];
+    var curZoom = (geo && geo.zoom) || (series && series.zoom) || 1.3;
+    this.instance.setOption({ geo: { zoom: curZoom * 1.3 }, series: [{ zoom: curZoom * 1.3 }] });
+  },
+
+  zoomOut: function() {
+    if (!this.instance) return;
+    var opt = this.instance.getOption();
+    var geo = opt.geo && opt.geo[0];
+    var series = opt.series && opt.series[0];
+    var curZoom = (geo && geo.zoom) || (series && series.zoom) || 1.3;
+    this.instance.setOption({ geo: { zoom: curZoom / 1.3 }, series: [{ zoom: curZoom / 1.3 }] });
+  },
+
+  resetZoom: function() {
+    if (this.currentLevel === 'world') this.renderWorldView();
+    else if (this.currentCountry) this.drillDown(this.currentCountry, this.currentCountry);
   }
-  return result;
-}
+};
 
+// Blazor callable functions
 window.initClimateGeoMap = async function(elementId) {
-  var el = document.getElementById(elementId);
-  if (!el || typeof echarts === 'undefined') return false;
-  if (window.IntentumECharts.instances[elementId]) return true;
-  var worldJson = null;
-  var urls = [
-    '/data/world.json',
-    'https://echarts.apache.org/examples/data/asset/geo/world.json',
-    'https://fastly.jsdelivr.net/npm/echarts@5/map/json/world.json',
-    'https://cdn.jsdelivr.net/npm/echarts@5.4.3/map/json/world.json'
-  ];
-  for (var i = 0; i < urls.length; i++) {
-    try { var resp = await fetch(urls[i]); if (resp.ok) { worldJson = await resp.json(); break; } } catch(e) { continue; }
-  }
-  if (!worldJson) { console.warn('Failed to load world.json'); return false; }
-  echarts.registerMap('world', worldJson);
-  var chart = echarts.init(el);
-  window.IntentumECharts.instances[elementId] = chart;
-  chart.setOption({
-    tooltip: { trigger: 'item' },
-    visualMap: { min: 0, max: 5, left: 'left', bottom: 20, text: ['Yüksek', 'Düşük'], inRange: { color: ['#22c55e', '#f59e0b', '#ef4444', '#991b1b'] }, calculable: true },
-    series: [{ name: 'World Risk', type: 'map', map: 'world', roam: true, emphasis: { label: { show: true } }, data: [] }]
-  });
-  return true;
+  return await ClimateMap.init(elementId);
 };
 
 window.updateClimateWorldMap = function(elementId, riskData) {
-  var chart = window.IntentumECharts.instances[elementId];
-  if (!chart) return false;
-  chart.setOption({ series: [{ data: riskData || [] }] });
+  ClimateMap.updateRiskData(riskData);
   return true;
 };
+
+window.setFactoryMarkerOnMap = function(lat, lng, radiusKm, label, color) {
+  ClimateMap.setFactory(lat, lng, radiusKm, label, color);
+  return true;
+};
+
+window.drillDownCountry = function(iso3, name) {
+  ClimateMap.drillDown(iso3, name);
+  return true;
+};
+
+window.goBackToWorld = function() {
+  ClimateMap.goBack();
+  return true;
+};
+
+window.zoomClimateMapIn = function() { ClimateMap.zoomIn(); return true; };
+window.zoomClimateMapOut = function() { ClimateMap.zoomOut(); return true; };
+window.resetClimateMapZoom = function() { ClimateMap.resetZoom(); return true; };

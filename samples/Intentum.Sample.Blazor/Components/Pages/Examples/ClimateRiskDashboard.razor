@@ -6,7 +6,6 @@
 @inject ClimateMonitorService ClimateMonitor
 @inject GadmGeoJsonService GadmGeoJson
 @inject RiskCalculationEngine RiskEngine
-@implements IAsyncDisposable
 
 <PageTitle>Iklim Riski Dashboard — Intentum</PageTitle>
 
@@ -124,10 +123,25 @@
     <!-- Center: Map -->
     <div class="climate-map-container">
         <div class="map-header">
-            <span>Interaktif Risk Haritasi</span>
+            @if (_mapLevel == 1)
+            {
+                <span style="cursor:pointer;color:#60a5fa;" @onclick="MapBackToWorld">← Dunya</span>
+                <span style="margin:0 6px;color:#475569;">/</span>
+                <span>@_currentCountryName Bölgeleri</span>
+            }
+            else
+            {
+                <span>Interaktif Risk Haritasi</span>
+            }
             <div class="drill-down-btns">
-                <div class="drill-down-btn @(_mapLevel == 0 ? "active" : "")" @onclick="() => SetMapLevel(0)">Ulke</div>
-                <div class="drill-down-btn @(_mapLevel == 1 ? "active" : "")" @onclick="() => SetMapLevel(1)">Bolge</div>
+                @if (_mapLevel == 1)
+                {
+                    <div class="drill-down-btn active">Bolge</div>
+                }
+                else
+                {
+                    <div class="drill-down-btn active">Ulke</div>
+                }
             </div>
         </div>
         <div id="climate-geo-map" style="width:100%;height:100%;min-height:450px;padding-top:35px;"></div>
