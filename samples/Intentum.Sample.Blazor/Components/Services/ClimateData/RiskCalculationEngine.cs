@@ -46,7 +46,7 @@ public class RiskCalculationEngine
             endDate: $"{input.Horizon}-12-31",
             ct);
 
-        var wriRisk = await _wri.GetCountryRiskAsync(input.CountryIso3, ct);
+        var wriRisk = await _wri.GetCountryRiskAsync(input.CountryIso3, input.Scenario, input.Horizon, ct);
         var baseline = await _climateMonitor.GetBaselineTrendsAsync(ct);
 
         var coastal = GeoRiskHelper.GetCoastalInfo(input.Latitude, input.Longitude, input.LocationName);

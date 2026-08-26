@@ -244,11 +244,12 @@ public sealed partial class ClimateRiskDashboard : IAsyncDisposable
     private async Task UpdateWorldMap()
     {
         var allRisks = await WriAqueduct.GetAllCountryRisksAsync();
-        // Build name→risk mapping for JS (match by country name, not ISO3)
+        // Build name→risk mapping for JS (match by country name + iso3)
         var riskData = allRisks.Select(r => new
         {
             name = r.Name,
-            value = Math.Round(r.WaterStress, 1)
+            value = Math.Round(r.WaterStress, 1),
+            iso3 = r.Iso3
         }).ToArray();
         await JSRuntime.InvokeAsync<bool>("updateClimateWorldMap", "climate-geo-map", riskData);
     }

@@ -73,6 +73,63 @@ public sealed class WriAqueductService
         };
     }
 
+    public async Task<WriCountryRisk?> GetCountryRiskAsync(string iso3, string scenario, int horizon, CancellationToken ct = default)
+    {
+        // Map SSP scenarios to WRI scenario codes
+        var wriScenario = scenario switch
+        {
+            "SSP1-2.6" => "opt",
+            "SSP2-4.5" => "bau",
+            "SSP3-7.0" => "pes",
+            "SSP5-8.5" => "pes",
+            _ => "bau"
+        };
+
+        // Map horizon to available years (2030, 2050, 2080)
+        var wriYear = horizon switch
+        {
+            <= 2030 => 2030,
+            <= 2050 => 2050,
+            _ => 2080
+        };
+
+        // Try future projection first
+        var future = await GetFutureAsync(ct);
+        var futureData = future.FirstOrDefault(x =>
+            string.Equals(x.gid_0, iso3, StringComparison.OrdinalIgnoreCase) &&
+            x.indicator_name == "bws" && x.weight == "Tot" &&
+            x.year == wriYear &&
+            string.Equals(x.scenario, wriScenario, StringComparison.OrdinalIgnoreCase));
+
+        if (futureData == null)
+        {
+            // Fallback: try any year/scenario for this country
+            futureData = future.FirstOrDefault(x =>
+                string.Equals(x.gid_0, iso3, StringComparison.OrdinalIgnoreCase) &&
+                x.indicator_name == "bws" && x.weight == "Tot");
+        }
+
+        if (futureData != null)
+        {
+            return new WriCountryRisk
+            {
+                Iso3 = futureData.gid_0,
+                Name = futureData.name_0,
+                WaterStress = futureData.score,
+                WaterDepletion = 0,
+                InterannualVariability = 0,
+                SeasonalVariability = 0,
+                DroughtRisk = 0,
+                FloodRisk = 0,
+                GroundwaterStress = 0,
+                WaterStressLabel = futureData.label ?? ""
+            };
+        }
+
+        // Fallback to baseline
+        return await GetCountryRiskAsync(iso3, ct);
+    }
+
     public async Task<List<WriCountryRisk>> GetAllCountryRisksAsync(CancellationToken ct = default)
     {
         var baseline = await GetBaselineAsync(ct);
