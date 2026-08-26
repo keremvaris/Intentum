@@ -1,0 +1,14 @@
+{
+  "name": "Ankara Organize Sanayi Bölgesi",
+  "latitude": 39.92,
+  "longitude": 32.85,
+  "sector": "Enerji",
+  "radius_km": 10,
+  "description": "Ankara OSB, ülkemizin en büyük organize sanayi bölgelerinden biri. Enerji üretimi ve endüstriyel üretim tesisleri yoğunlaşmış durumda.",
+  "risk_factors": {
+    "flood": {"score": 0.35, "level": "Orta"},
+    "drought": {"score": 0.62, "level": "Yüksek"},
+    "heatwave": {"score": 0.58, "level": "Orta-Yüksek"},
+    "water_stress": {"score": 0.71, "level": "Yüksek"}
+  }
+}

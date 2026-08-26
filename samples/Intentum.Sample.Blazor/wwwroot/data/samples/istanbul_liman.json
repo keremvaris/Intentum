@@ -1,0 +1,14 @@
+{
+  "name": "İstanbul Limanı",
+  "latitude": 41.0082,
+  "longitude": 28.9784,
+  "sector": "Turizm",
+  "radius_km": 25,
+  "description": "İstanbul Karaköy liman bölgesi. Turizm ve deniz ticareti açısından kritik nokta.",
+  "risk_factors": {
+    "flood": {"score": 0.55, "level": "Orta-Yüksek"},
+    "sea_level_rise": {"score": 0.68, "level": "Yüksek"},
+    "storm": {"score": 0.45, "level": "Orta"},
+    "water_stress": {"score": 0.32, "level": "Orta"}
+  }
+}

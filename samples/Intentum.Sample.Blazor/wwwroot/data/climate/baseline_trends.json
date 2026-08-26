@@ -1,0 +1,73 @@
+{
+  "co2": {
+    "unit": "ppm",
+    "source": "NOAA Mauna Loa / Climate Monitor",
+    "current_value": 421.08,
+    "trend": "increasing",
+    "annual_change_ppm": 2.4,
+    "series": [
+      {"year": 1960, "value": 316.91},
+      {"year": 1970, "value": 325.68},
+      {"year": 1980, "value": 338.75},
+      {"year": 1990, "value": 354.39},
+      {"year": 2000, "value": 369.55},
+      {"year": 2005, "value": 379.80},
+      {"year": 2010, "value": 389.90},
+      {"year": 2015, "value": 400.83},
+      {"year": 2020, "value": 414.24},
+      {"year": 2023, "value": 421.08},
+      {"year": 2024, "value": 422.50},
+      {"year": 2025, "value": 423.90}
+    ]
+  },
+  "sea_level": {
+    "unit": "mm/year",
+    "source": "NASA Sea Level Change / Climate Monitor",
+    "current_rate_mm_per_year": 3.6,
+    "total_rise_since_1993_mm": 101.2,
+    "trend": "accelerating",
+    "series": [
+      {"year": 1993, "value": 0},
+      {"year": 2000, "value": 20},
+      {"year": 2005, "value": 35},
+      {"year": 2010, "value": 55},
+      {"year": 2015, "value": 72},
+      {"year": 2020, "value": 91},
+      {"year": 2023, "value": 101},
+      {"year": 2025, "value": 108}
+    ]
+  },
+  "temperature_anomaly": {
+    "unit": "°C vs 1850-1900 baseline",
+    "source": "NASA GISS / Climate Monitor",
+    "current_value": 1.45,
+    "trend": "increasing",
+    "series": [
+      {"year": 1960, "value": 0.02},
+      {"year": 1970, "value": 0.02},
+      {"year": 1980, "value": 0.26},
+      {"year": 1990, "value": 0.45},
+      {"year": 2000, "value": 0.61},
+      {"year": 2005, "value": 0.68},
+      {"year": 2010, "value": 0.72},
+      {"year": 2015, "value": 0.90},
+      {"year": 2016, "value": 1.01},
+      {"year": 2020, "value": 1.02},
+      {"year": 2023, "value": 1.17},
+      {"year": 2024, "value": 1.45},
+      {"year": 2025, "value": 1.48}
+    ]
+  },
+  "ice_mass": {
+    "greenland": {
+      "unit": "Gt/year",
+      "loss_rate": -270,
+      "trend": "accelerating_loss"
+    },
+    "antarctica": {
+      "unit": "Gt/year",
+      "loss_rate": -150,
+      "trend": "accelerating_loss"
+    }
+  }
+}
