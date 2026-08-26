@@ -156,7 +156,7 @@ public class RiskCalculationEngine
         if (companyProfile != null)
         {
             var costOfGoods = companyProfile.Categories
-                .Where(c => c.Type == FinancialCategoryType.Opex)
+                .Where(c => c.Type == FinancialCategoryType.Capex)
                 .SelectMany(c => c.LineItems)
                 .Sum(li => li.Value);
             space.Observe("economic", $"cost_of_goods:{costOfGoods}");
