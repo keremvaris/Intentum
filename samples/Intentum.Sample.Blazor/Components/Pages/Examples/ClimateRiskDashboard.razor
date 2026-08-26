@@ -185,12 +185,45 @@
 
         @if (_assessment != null)
         {
-            <div class="climate-chart-card" style="text-align:center;">
+            <div class="climate-chart-card">
                 <div class="chart-title">Politika Karari (Intentum)</div>
-                <div style="padding:0.5rem;border-radius:6px;background:@GetPolicyColor();color:white;font-weight:700;font-size:1rem;">
+                <div style="padding:0.6rem;border-radius:6px;background:@GetPolicyColor();color:white;font-weight:700;font-size:1rem;text-align:center;margin-bottom:8px;">
                     @GetPolicyDecision()
                 </div>
-                <div style="font-size:0.65rem;color:#8b949e;margin-top:4px;">@GetPolicyDescription()</div>
+                <div style="font-size:0.7rem;color:#e2e8f0;line-height:1.4;margin-bottom:8px;">
+                    @_assessment.DecisionSummary
+                </div>
+
+                <div style="font-size:0.65rem;font-weight:600;color:#94a3b8;margin-bottom:4px;">Nedenleri:</div>
+                @foreach (var reason in _assessment.DecisionReasons)
+                {
+                    <div style="font-size:0.6rem;color:#cbd5e1;padding:2px 0 2px 8px;border-left:2px solid @GetPolicyColor();margin-bottom:3px;">
+                        @reason
+                    </div>
+                }
+
+                <div style="font-size:0.65rem;font-weight:600;color:#94a3b8;margin:8px 0 4px;">Oneriler:</div>
+                @foreach (var action in _assessment.RecommendedActions)
+                {
+                    <div style="font-size:0.6rem;color:#86efac;padding:2px 0 2px 8px;border-left:2px solid #22c55e;margin-bottom:2px;">
+                        @action
+                    </div>
+                }
+            </div>
+
+            <div class="climate-chart-card">
+                <div class="chart-title">Risk Faktorleri</div>
+                @foreach (var factor in _assessment.RiskFactors)
+                {
+                    <div style="display:flex;align-items:center;gap:6px;margin-bottom:4px;font-size:0.6rem;">
+                        <span style="width:80px;color:#94a3b8;">@factor.Name</span>
+                        <div style="flex:1;height:6px;background:#1e293b;border-radius:3px;overflow:hidden;">
+                            <div style="height:100%;width:@(factor.Score * 100)%;background:@factor.Color;border-radius:3px;"></div>
+                        </div>
+                        <span style="width:30px;color:@factor.Color;font-weight:600;">@(Math.Round(factor.Score * 100))%</span>
+                        <span style="width:40px;color:#64748b;font-size:0.55rem;">@factor.Source</span>
+                    </div>
+                }
             </div>
         }
 

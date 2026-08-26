@@ -49,6 +49,10 @@ public sealed class RiskCalculationEngine
             _ => "ALLOW"
         };
 
+        var reasons = BuildDecisionReasons(input, physicalScore, transitionScore, wriRisk, projection);
+        var actions = BuildRecommendedActions(decision, input, physicalScore, transitionScore);
+        var summary = BuildDecisionSummary(decision, overall, physicalScore, transitionScore, input);
+
         space.Observe("ClimateRisk", $"Result: Physical={physicalScore:F3}, Transition={transitionScore:F3}, Overall={overall:F3} → {decision}");
         space.Observe("ClimateRisk", $"WaterStress={wriRisk?.WaterStressLabel ?? "N/A"}, EcoImpact={economicImpact.Total:F1}M$");
 
@@ -59,6 +63,9 @@ public sealed class RiskCalculationEngine
             TransitionRisk = transitionScore,
             OverallRisk = overall,
             Decision = decision,
+            DecisionSummary = summary,
+            DecisionReasons = reasons,
+            RecommendedActions = actions,
             EconomicImpact = economicImpact,
             WaterStress = wriRisk?.WaterStress ?? 0,
             WaterStressLabel = wriRisk?.WaterStressLabel ?? "Veri Yok",
@@ -217,6 +224,111 @@ public sealed class RiskCalculationEngine
         return factors;
     }
 
+    private static List<string> BuildDecisionReasons(
+        RiskInput input, double physical, double transition,
+        WriCountryRisk? wri, ClimateProjection? proj)
+    {
+        var reasons = new List<string>();
+
+        // Physical risk drivers
+        if (input.TempAnomaly >= 3.0)
+            reasons.Add($"Yüksek sıcaklık artışı: +{input.TempAnomaly:F1}°C (eşik: 3.0°C) → fiziksel riski önemli ölçüde artırır");
+        else if (input.TempAnomaly >= 2.0)
+            reasons.Add($"Orta düzey sıcaklık artışı: +{input.TempAnomaly:F1}°C → fiziksel risk üzerinde moderat etki");
+
+        if (input.PrecipChange <= -30)
+            reasons.Add($"Ciddi yağış azalması: %{input.PrecipChange:F0} → kuraklık ve su kıtlığı riski yüksek");
+        else if (input.PrecipChange <= -15)
+            reasons.Add($"Yağış azalması: %{input.PrecipChange:F0} → su kaynakları üzerinde baskı");
+
+        if (input.SeaLevelRise >= 1.0)
+            reasons.Add($"Deniz seviyesi yükselişi: +{input.SeaLevelRise:F1}m → kıyı tesisleri için yüksek risk");
+        else if (input.SeaLevelRise >= 0.5)
+            reasons.Add($"Deniz seviyesi yükselişi: +{input.SeaLevelRise:F1}m → kıyı bölgelerinde orta düzey risk");
+
+        // Water stress
+        if (wri != null && wri.WaterStress >= 4.0)
+            reasons.Add($"Kritik su stresi: {wri.WaterStressLabel} ({wri.WaterStress:F1}/5) → operasyonel süreklilik tehdit altında");
+        else if (wri != null && wri.WaterStress >= 2.5)
+            reasons.Add($"Yüksek su stresi: {wri.WaterStressLabel} ({wri.WaterStress:F1}/5) → su kaynakları kısıtlı");
+
+        // Transition risk drivers
+        if (input.CarbonPrice >= 150)
+            reasons.Add($"Yüksek karbon fiyatı: €{input.CarbonPrice}/tCO₂ → geçiş maliyetleri önemli ölçüde artar");
+        else if (input.CarbonPrice >= 80)
+            reasons.Add($"Orta düzey karbon fiyatı: €{input.CarbonPrice}/tCO₂ → karbon_intensity bağlı maliyet artışı");
+
+        // Scenario impact
+        if (input.Scenario == "SSP5-8.5")
+            reasons.Add("Fosil yakıt senaryosu (SSP5-8.5) seçildi → en yüksek emisyon ve risk yolculuğu");
+        else if (input.Scenario == "SSP3-7.0")
+            reasons.Add("Bölgesel çekişme senaryosu (SSP3-7.0) → yüksek emisyon eğilimi");
+
+        // Sector specific
+        if (input.Sector == "Enerji")
+            reasons.Add("Enerji sektörü: hem fiziksel risk (altyapı) hem geçiş riski (regülasyon) yüksek");
+        else if (input.Sector == "Tarim")
+            reasons.Add("Tarım sektörü: iklim değişkenliğine yüksek duyarlılık");
+
+        // Projection data
+        if (proj != null && proj.AvgTempMax > 35)
+            reasons.Add($"Open-Meteo projeksiyonu: ortalama max sıcaklık {proj.AvgTempMax:F1}°C → aşırı sıcaklık olayları");
+
+        if (reasons.Count == 0)
+            reasons.Add("Belirgin risk faktörü tespit edilmedi → tüm göstergeler kabul edilebilir aralıkta");
+
+        return reasons;
+    }
+
+    private static List<string> BuildRecommendedActions(
+        string decision, RiskInput input, double physical, double transition)
+    {
+        var actions = new List<string>();
+
+        switch (decision)
+        {
+            case "REJECT":
+                actions.Add("Proje investment komitesine sunulmadan önce iklim risk azaltma planı hazırlanmalı");
+                actions.Add("Fiziksel risk azaltma: altyapı dayanıklılık artırımı, yedekleme sistemleri");
+                actions.Add("Geçiş riski: karbon ayak izi azaltma stratejisi, düşük karbon teknolojilerine geçiş planı");
+                actions.Add("Sigorta kapsamı genişletilmeli ve maliyet analizi güncellenmeli");
+                if (physical > 0.6)
+                    actions.Add("Kapsamlı iklim felaket senaryosu (TCFD) raporu hazırlanmalı");
+                break;
+            case "REVIEW":
+                actions.Add("Detaylı iklim risk değerlendirmesi (CDP/TNFD çerçevesinde) yapılmalı");
+                actions.Add("Fiziksel risk göstergeleri 6 aylık periyotlarla izlenmeli");
+                actions.Add("Karbon fiyat senaryolarına karşı hassasiyet analizi güncellenmeli");
+                actions.Add("Yerel su kaynakları durumu detaylı incelenmeli");
+                break;
+            default: // ALLOW
+                actions.Add("Mevcut risk izleme prosedürleri yeterli");
+                actions.Add("Yıllık iklim risk raporlama döngüsü devam etmeli");
+                actions.Add("Piyasa koşulları değiştiğinde analiz yenilenmeli");
+                break;
+        }
+
+        return actions;
+    }
+
+    private static string BuildDecisionSummary(
+        string decision, double overall, double physical, double transition, RiskInput input)
+    {
+        var physLabel = physical > 0.7 ? "yüksek" : physical > 0.4 ? "orta" : "düşük";
+        var transLabel = transition > 0.7 ? "yüksek" : transition > 0.4 ? "orta" : "düşük";
+
+        return decision switch
+        {
+            "REJECT" => $"Genel risk skoru %{overall * 100:F0} ile_RED_eşiklerini aşıyor (fiziksel: %{physical * 100:F0} {physLabel}, geçiş: %{transition * 100:F0} {transLabel}). " +
+                        $"{input.Sector} sektöründe {input.Scenario} senaryosu ile {input.Horizon} horizonu için " +
+                        $"iklim riskleri kabul edilebilir düzeyin üzerinde.",
+            "REVIEW" => $"Genel risk skoru %{overall * 100:F0} ile_INCELEME_aralığında (fiziksel: %{physical * 100:F0} {physLabel}, geçiş: %{transition * 100:F0} {transLabel}). " +
+                        $"Detaylı değerlendirme ve ek veri toplama gerekiyor.",
+            _ => $"Genel risk skoru %{overall * 100:F0} ile Kabul edilebilir aralıkta (fiziksel: %{physical * 100:F0} {physLabel}, geçiş: %{transition * 100:F0} {transLabel}). " +
+                 $"Mevcut izleme prosedürleri yeterli."
+        };
+    }
+
     private static string GetModelForScenario(string scenario) => scenario switch
     {
         "SSP1-2.6" => "EC_Earth3P_HR",
@@ -250,6 +362,9 @@ public sealed class RiskAssessment
     public double TransitionRisk { get; set; }
     public double OverallRisk { get; set; }
     public string Decision { get; set; } = "ALLOW";
+    public string DecisionSummary { get; set; } = "";
+    public List<string> DecisionReasons { get; set; } = [];
+    public List<string> RecommendedActions { get; set; } = [];
     public EconomicImpact EconomicImpact { get; set; } = new();
     public double WaterStress { get; set; }
     public string WaterStressLabel { get; set; } = "";
