@@ -101,3 +101,34 @@ public sealed class ScenarioComparisonResult
     public RiskAssessment Assessment { get; set; } = new();
     public FinancialImpact Impact { get; set; } = new();
 }
+
+public static class CompanyProfileExtensions
+{
+    public static CompanyProfile DeepClone(this CompanyProfile source)
+    {
+        return new CompanyProfile
+        {
+            Id = source.Id,
+            Name = source.Name,
+            Sector = source.Sector,
+            LocationName = source.LocationName,
+            Latitude = source.Latitude,
+            Longitude = source.Longitude,
+            Categories = source.Categories.Select(c => new FinancialCategory
+            {
+                Id = c.Id,
+                Type = c.Type,
+                Name = c.Name,
+                LineItems = c.LineItems.Select(li => new FinancialLineItem
+                {
+                    Id = li.Id,
+                    Name = li.Name,
+                    Value = li.Value,
+                    PhysicalSensitivity = li.PhysicalSensitivity,
+                    TransitionSensitivity = li.TransitionSensitivity,
+                    MappedRiskSignals = new List<string>(li.MappedRiskSignals)
+                }).ToList()
+            }).ToList()
+        };
+    }
+}

@@ -1,0 +1,69 @@
+@using Intentum.Sample.Blazor.Components.Services.ClimateData
+
+@if (IsOpen && Profile != null)
+{
+    <div class="drawer-overlay" @onclick="Close"></div>
+    <div class="drawer-panel">
+        <div class="drawer-header">
+            <h3>@(IsNew ? "Yeni Profil" : Profile.Name)</h3>
+            <button class="drawer-close" @onclick="Close">&times;</button>
+        </div>
+
+        <div class="drawer-body">
+            @if (IsNew)
+            {
+                <div class="form-group">
+                    <label>Profil Adı</label>
+                    <input @bind="editProfile.Name" class="form-control" placeholder="Şirket adı..." />
+                </div>
+            }
+
+            <div class="form-group">
+                <label>Sektör</label>
+                <input @bind="editProfile.Sector" class="form-control" />
+            </div>
+
+            <div class="form-group">
+                <label>Konum</label>
+                <input @bind="editProfile.LocationName" class="form-control" />
+            </div>
+
+            <div class="form-row">
+                <div class="form-group form-group-half">
+                    <label>Enlem</label>
+                    <input type="number" @bind="editProfile.Latitude" class="form-control" step="0.01" />
+                </div>
+                <div class="form-group form-group-half">
+                    <label>Boylam</label>
+                    <input type="number" @bind="editProfile.Longitude" class="form-control" step="0.01" />
+                </div>
+            </div>
+
+            @foreach (var category in editProfile.Categories)
+            {
+                <div class="category-section">
+                    <div class="category-header">
+                        <span class="category-icon">@GetCategoryIcon(category.Type)</span>
+                        <span class="category-label">@GetCategoryLabel(category.Type)</span>
+                    </div>
+
+                    @foreach (var item in category.LineItems)
+                    {
+                        <div class="line-item-row">
+                            <input @bind="item.Name" class="form-control line-item-name" placeholder="Kalem adı..." />
+                            <input type="number" @bind="item.Value" class="form-control line-item-value" step="1000" />
+                            <span class="line-item-unit">₺/yıl</span>
+                        </div>
+                    }
+
+                    <button class="btn-add-item" @onclick="() => AddLineItem(category)">+ Kalem Ekle</button>
+                </div>
+            }
+        </div>
+
+        <div class="drawer-footer">
+            <button class="btn-cancel" @onclick="Close">İptal</button>
+            <button class="btn-save" @onclick="Save">Kaydet</button>
+        </div>
+    </div>
+}
