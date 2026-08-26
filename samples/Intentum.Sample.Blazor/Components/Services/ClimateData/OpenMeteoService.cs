@@ -1,3 +1,4 @@
+using System.Globalization;
 using System.Net.Http.Json;
 using System.Text.Json;
 
@@ -30,13 +31,16 @@ public sealed class OpenMeteoService
 
         try
         {
+            var latStr = latitude.ToString(CultureInfo.InvariantCulture);
+            var lngStr = longitude.ToString(CultureInfo.InvariantCulture);
             var url = $"https://climate-api.open-meteo.com/v1/climate" +
-                      $"?latitude={latitude}" +
-                      $"&longitude={longitude}" +
+                      $"?latitude={latStr}" +
+                      $"&longitude={lngStr}" +
                       $"&start_date={startDate}" +
                       $"&end_date={endDate}" +
                       $"&models={model}" +
                       $"&daily=temperature_2m_max,temperature_2m_min,precipitation_sum,wind_speed_10m_max,relative_humidity_2m_mean";
+            _logger.LogDebug("Open-Meteo request: {Url}", url);
 
             var response = await _http.GetFromJsonAsync<JsonElement>(url, ct);
 

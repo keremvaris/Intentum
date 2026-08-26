@@ -160,7 +160,7 @@ internal static class ProgramConfiguration
             var host = req != null ? req.Host.Value : (config["Intentum:FallbackBaseHost"] ?? "localhost:5018");
             return new HttpClient { BaseAddress = new Uri($"{scheme}://{host}") };
         });
-        builder.Services.AddScoped<OpenMeteoService>();
+        builder.Services.AddHttpClient<OpenMeteoService>();
         builder.Services.AddScoped<WriAqueductService>();
         builder.Services.AddScoped<ClimateMonitorService>();
         builder.Services.AddScoped<GadmGeoJsonService>();
