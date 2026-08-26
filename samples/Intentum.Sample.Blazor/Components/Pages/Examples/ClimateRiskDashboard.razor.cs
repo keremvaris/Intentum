@@ -50,6 +50,13 @@ public sealed partial class ClimateRiskDashboard
 
         try
         {
+            // Sync slider values into RiskInput
+            _input.TempAnomaly = _tempAnomaly;
+            _input.PrecipChange = _precipChange;
+            _input.SeaLevelRise = _seaLevelRise;
+            _input.CarbonPrice = _carbonPrice;
+            _input.CountryIso3 = DetectCountry(_input.Latitude, _input.Longitude);
+
             _assessment = await RiskEngine.AssessAsync(_input);
             await UpdateAllCharts();
             await UpdateWorldMap();
@@ -63,6 +70,22 @@ public sealed partial class ClimateRiskDashboard
             _running = false;
             StateHasChanged();
         }
+    }
+
+    private static string DetectCountry(double lat, double lng)
+    {
+        // Approximate country detection from lat/lng
+        if (lat > 36 && lat < 42 && lng > 26 && lng < 45) return "TUR";
+        if (lat > 24 && lat < 50 && lng > -130 && lng < -65) return "USA";
+        if (lat > 49 && lat < 61 && lng > -11 && lng < 2) return "GBR";
+        if (lat > 47 && lat < 56 && lng > 5 && lng < 16) return "DEU";
+        if (lat > 42 && lat < 52 && lng > -5 && lng < 10) return "FRA";
+        if (lat > 36 && lat < 48 && lng > 6 && lng < 19) return "ITA";
+        if (lat > 18 && lat < 54 && lng > 73 && lng < 135) return "CHN";
+        if (lat > 6 && lat < 38 && lng > 68 && lng < 98) return "IND";
+        if (lat > 30 && lat < 46 && lng > 128 && lng < 146) return "JPN";
+        if (lat > -35 && lat < 6 && lng > -75 && lng < -34) return "BRA";
+        return "TUR"; // default
     }
 
     private async Task UpdateAllCharts()
@@ -215,23 +238,21 @@ public sealed partial class ClimateRiskDashboard
     private string GetPolicyDecision()
     {
         if (_assessment == null) return "—";
-        return _assessment.OverallRisk switch
+        return _assessment.Decision switch
         {
-            > 0.7 => "ESCALATE",
-            > 0.5 => "WARN",
-            > 0.3 => "OBSERVE",
-            _ => "ALLOW"
+            "REJECT" => "REJECT (Red)",
+            "REVIEW" => "REVIEW (Inceleme)",
+            _ => "ALLOW (Izin)"
         };
     }
 
     private string GetPolicyColor()
     {
         if (_assessment == null) return "#666";
-        return _assessment.OverallRisk switch
+        return _assessment.Decision switch
         {
-            > 0.7 => "#7b1fa2",
-            > 0.5 => "#e65100",
-            > 0.3 => "#1565c0",
+            "REJECT" => "#7b1fa2",
+            "REVIEW" => "#e65100",
             _ => "#2e7d32"
         };
     }
@@ -239,11 +260,10 @@ public sealed partial class ClimateRiskDashboard
     private string GetPolicyDescription()
     {
         if (_assessment == null) return "";
-        return _assessment.OverallRisk switch
+        return _assessment.Decision switch
         {
-            > 0.7 => "Acil eylem gerekli, ust yonetim bilgilendirilmeli",
-            > 0.5 => "Iklim uyum onlemleri planlanmali",
-            > 0.3 => "Risk gostergeleri duzenli izlenmeli",
+            "REJECT" => "Acil eylem gerekli, ust yonetim bilgilendirilmeli",
+            "REVIEW" => "Iklim uyum onlemleri planlanmali, detayli degerlendirme gerekli",
             _ => "Standart risk izleme prosedurlerine devam"
         };
     }

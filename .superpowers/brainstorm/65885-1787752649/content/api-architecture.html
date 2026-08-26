@@ -1,0 +1,201 @@
+<h2>Dashboard Tasarımı — Veri Kaynakları & Mimari</h2>
+<p class="subtitle">Gerçek API'lerle çalışan, çok katmanlı iklim riski analiz sistemi</p>
+
+<div class="mockup">
+  <div class="mockup-header">Sistem Mimarisi — Veri Akışı</div>
+  <div class="mockup-body" style="padding:20px; background:#0d1117; color:#c9d1d9; font-family:monospace; font-size:12px;">
+
+    <div style="text-align:center; margin-bottom:16px;">
+      <div style="display:inline-block; background:#1f6feb; padding:6px 16px; border-radius:6px; font-weight:700;">KULLANICI</div>
+    </div>
+
+    <div style="text-align:center; color:#8b949e; margin-bottom:8px;">▼ Lokasyon + Senaryo + Sektör seçimi</div>
+
+    <div style="display:flex; gap:8px; justify-content:center; margin-bottom:16px;">
+      <div style="background:#238636; padding:8px 12px; border-radius:6px; text-align:center; min-width:100px;">
+        <div style="font-weight:700;">Open-Meteo</div>
+        <div style="font-size:10px; color:#8b949e;">Sıcaklık, Yağış</div>
+        <div style="font-size:10px; color:#8b949e;">Rüzgar, Nem</div>
+        <div style="font-size:10px; color:#3fb950;">Ücretsiz ✓</div>
+      </div>
+      <div style="background:#238636; padding:8px 12px; border-radius:6px; text-align:center; min-width:100px;">
+        <div style="font-weight:700;">WRI Aqueduct</div>
+        <div style="font-size:10px; color:#8b949e;">Su Stresi, Sel</div>
+        <div style="font-size:10px; color:#8b949e;">Kuraklık</div>
+        <div style="font-size:10px; color:#3fb950;">Ücretsiz ✓</div>
+      </div>
+      <div style="background:#238636; padding:8px 12px; border-radius:6px; text-align:center; min-width:100px;">
+        <div style="font-weight:700;">Copernicus</div>
+        <div style="font-size:10px; color:#8b949e;">ERA5 Yeniden Analiz</div>
+        <div style="font-size:10px; color:#8b949e;">Deniz Seviyesi</div>
+        <div style="font-size:10px; color:#3fb950;">Ücretsiz ✓</div>
+      </div>
+      <div style="background:#238636; padding:8px 12px; border-radius:6px; text-align:center; min-width:100px;">
+        <div style="font-weight:700;">Climate Monitor</div>
+        <div style="font-size:10px; color:#8b949e;">CO₂, CH₄, N₂O</div>
+        <div style="font-size:10px; color:#8b949e;">Buzul Kütlesi</div>
+        <div style="font-size:10px; color:#3fb950;">Ücretsiz ✓</div>
+      </div>
+      <div style="background:#238636; padding:8px 12px; border-radius:6px; text-align:center; min-width:100px;">
+        <div style="font-weight:700;">GADM GeoJSON</div>
+        <div style="font-size:10px; color:#8b949e;">Ülke/Bölge/İl</div>
+        <div style="font-size:10px; color:#8b949e;">Sınırlar</div>
+        <div style="font-size:10px; color:#3fb950;">Ücretsiz ✓</div>
+      </div>
+    </div>
+
+    <div style="text-align:center; color:#8b949e; margin-bottom:8px;">▼ Veriler Birleştirilir</div>
+
+    <div style="background:#1c2128; border:1px solid #30363d; border-radius:6px; padding:12px; margin-bottom:16px;">
+      <div style="text-align:center; font-weight:700; color:#58a6ff; margin-bottom:8px;">Risk Hesaplama Motoru (Intentum)</div>
+      <div style="display:flex; gap:8px; justify-content:center;">
+        <div style="background:#0d1117; padding:6px 10px; border-radius:4px; border:1px solid #30363d;">Fiziksel Risk Hesaplama</div>
+        <div style="color:#8b949e; display:flex; align-items:center;">→</div>
+        <div style="background:#0d1117; padding:6px 10px; border-radius:4px; border:1px solid #30363d;">Niyet Çıkarımı</div>
+        <div style="color:#8b949e; display:flex; align-items:center;">→</div>
+        <div style="background:#0d1117; padding:6px 10px; border-radius:4px; border:1px solid #30363d;">Politika Kararı</div>
+        <div style="color:#8b949e; display:flex; align-items:center;">→</div>
+        <div style="background:#0d1117; padding:6px 10px; border-radius:4px; border:1px solid #30363d;">Ekonomik Etki</div>
+      </div>
+    </div>
+
+    <div style="text-align:center; color:#8b949e; margin-bottom:8px;">▼ Dashboard'a Gönderilir</div>
+
+    <div style="display:flex; gap:8px; justify-content:center;">
+      <div style="background:#1f6feb33; border:1px solid #1f6feb; padding:8px 12px; border-radius:6px; text-align:center;">
+        <div style="color:#58a6ff; font-weight:700;">Harita</div>
+        <div style="font-size:10px;">ECharts Geo + GeoJSON</div>
+      </div>
+      <div style="background:#1f6feb33; border:1px solid #1f6feb; padding:8px 12px; border-radius:6px; text-align:center;">
+        <div style="color:#58a6ff; font-weight:700;">Grafikler</div>
+        <div style="font-size:10px;">ECharts Line/Bar/Pie</div>
+      </div>
+      <div style="background:#1f6feb33; border:1px solid #1f6feb; padding:8px 12px; border-radius:6px; text-align:center;">
+        <div style="color:#58a6ff; font-weight:700;">KPI Kartları</div>
+        <div style="font-size:10px;">Anlık Özetler</div>
+      </div>
+      <div style="background:#1f6feb33; border:1px solid #1f6feb; padding:8px 12px; border-radius:6px; text-align:center;">
+        <div style="color:#58a6ff; font-weight:700;">Rapor</div>
+        <div style="font-size:10px;">JSON/CSV Dışa Aktarım</div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<h3 style="margin-top:24px;">API Detayları & Entegrasyon Planı</h3>
+
+<div style="display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-top:12px;">
+
+  <div style="background:#1c2128; border:1px solid #30363d; border-radius:8px; padding:14px;">
+    <div style="color:#3fb950; font-weight:700; margin-bottom:6px;">1. Open-Meteo Climate API</div>
+    <div style="font-size:11px; color:#8b949e; margin-bottom:8px;">
+      <strong>Endpoint:</strong> <span style="color:#58a6ff;">https://climate-api.open-meteo.com/v1/climate</span><br>
+      <strong>Veri:</strong> Sıcaklık, yağış, rüzgar, nem (1950-2050)<br>
+      <strong>Modeller:</strong> CMIP6 HighResMIP (EC_Earth3P_HR, MPI_ESM1_2_XR, vb.)<br>
+      <strong>Çözünürlük:</strong> ~10 km<br>
+      <strong>API Key:</strong> Gerekmez ✓
+    </div>
+    <div style="background:#0d1117; padding:8px; border-radius:4px; font-family:monospace; font-size:10px; color:#c9d1d9;">
+      GET /v1/climate?<br>
+      &nbsp;&nbsp;latitude=39.92&longitude=32.85<br>
+      &nbsp;&nbsp;&start_date=2030-01-01<br>
+      &nbsp;&nbsp;&end_date=2050-12-31<br>
+      &nbsp;&nbsp;&models=EC_Earth3P_HR<br>
+      &nbsp;&nbsp;&daily=temperature_2m_max,<br>
+      &nbsp;&nbsp;&nbsp;&nbsp;precipitation_sum
+    </div>
+  </div>
+
+  <div style="background:#1c2128; border:1px solid #30363d; border-radius:8px; padding:14px;">
+    <div style="color:#3fb950; font-weight:700; margin-bottom:6px;">2. WRI Aqueduct Water Risk</div>
+    <div style="font-size:11px; color:#8b949e; margin-bottom:8px;">
+      <strong>Veri:</strong> Su stresi, sel riski, kuraklık, yeraltı suyu<br>
+      <strong>Çözünürlük:</strong> Hidrolojik havza bazında<br>
+      <strong>Senaryolar:</strong> Optimist / Pessimist (2030, 2050, 2080)<br>
+      <strong>Erişim:</strong> CSV download + Google Earth Engine<br>
+      <strong>Lisans:</strong> Creative Commons (attribution) ✓
+    </div>
+    <div style="background:#0d1117; padding:8px; border-radius:4px; font-family:monospace; font-size:10px; color:#c9d1d9;">
+      Veri_seti: Aqueduct 4.0<br>
+      &nbsp;&nbsp;w_awr_def_tot_cat (toplam su riski)<br>
+      &nbsp;&nbsp;w_awr_bws_cat (su stresi)<br>
+      &nbsp;&nbsp;w_awr_bwd_cat (su kıtlığı)<br>
+      &nbsp;&nbsp;w_awr_giw_cat (yeraltı suyu)<br>
+      &nbsp;&nbsp;w_awr_cfr_cat (sel riski)<br>
+      &nbsp;&nbsp;→ Country-level CSV import
+    </div>
+  </div>
+
+  <div style="background:#1c2128; border:1px solid #30363d; border-radius:8px; padding:14px;">
+    <div style="color:#3fb950; font-weight:700; margin-bottom:6px;">3. Copernicus CDS (ERA5)</div>
+    <div style="font-size:11px; color:#8b949e; margin-bottom:8px;">
+      <strong>Endpoint:</strong> <span style="color:#58a6ff;">https://cds.climate.copernicus.eu</span><br>
+      <strong>Veri:</strong> ERA5 yeniden analizi, deniz seviyesi, CO₂<br>
+      <strong>Çözünürlük:</strong> 0.25° (~25 km)<br>
+      <strong>Erişim:</strong> Ücretsiz kayıt gerekli<br>
+      <strong>Kütüphane:</strong> <span style="color:#58a6ff;">cdsapi</span> (Python) veya REST
+    </div>
+    <div style="background:#0d1117; padding:8px; border-radius:4px; font-family:monospace; font-size:10px; color:#c9d1d9;">
+      Dataset: reanalysis-era5-single-levels<br>
+      &nbsp;&nbsp;Variables: sea_level, temperature,<br>
+      &nbsp;&nbsp;&nbsp;&nbsp;precipitation, wind_speed<br>
+      &nbsp;&nbsp;Time: hourly/daily aggregates<br>
+      &nbsp;&nbsp;Area: [90,-180,-90,180] global<br>
+      &nbsp;&nbsp;→ Historical baseline hesaplama
+    </div>
+  </div>
+
+  <div style="background:#1c2128; border:1px solid #30363d; border-radius:8px; padding:14px;">
+    <div style="color:#3fb950; font-weight:700; margin-bottom:6px;">4. Climate Monitor API</div>
+    <div style="font-size:11px; color:#8b949e; margin-bottom:8px;">
+      <strong>Endpoint:</strong> <span style="color:#58a6ff;">https://climatemonitor.info/api</span><br>
+      <strong>Veri:</strong> CO₂, CH₄, N₂O, deniz seviyesi, buzul kütlesi<br>
+      <strong>Format:</strong> JSON<br>
+      <strong>API Key:</strong> Gerekmez ✓<br>
+      <strong>Güncellik:</strong> Aylık seriler, güncel değerler
+    </div>
+    <div style="background:#0d1117; padding:8px; border-radius:4px; font-family:monospace; font-size:10px; color:#c9d1d9;">
+      GET /api/v1/co2<br>
+      &nbsp;&nbsp;→ CO₂ ppm trend (1958-günümüz)<br>
+      GET /api/v1/sea-level<br>
+      &nbsp;&nbsp;→ Deniz seviyesi mm trend<br>
+      GET /api/v1/ice-mass<br>
+      &nbsp;&nbsp;→ Grönland + Antarktika buzul<br>
+      &nbsp;&nbsp;→ Trend çizgi grafikleri için
+    </div>
+  </div>
+
+  <div style="background:#1c2128; border:1px solid #30363d; border-radius:8px; padding:14px; grid-column:span 2;">
+    <div style="color:#3fb950; font-weight:700; margin-bottom:6px;">5. GADM GeoJSON — İdari Sınırlar</div>
+    <div style="font-size:11px; color:#8b949e; margin-bottom:8px;">
+      <strong>Kaynak:</strong> <span style="color:#58a6ff;">https://geodata.ucdavis.edu/gadm/gadm4.1/json/</span><br>
+      <strong>Veri:</strong> Ülke > Bölge > İl > İlçe idari sınırları (Polygon geometri)<br>
+      <strong>Format:</strong> GeoJSON FeatureCollection<br>
+      <strong>Kapsam:</strong> 201 ülke, 4 seviye idari sınır<br>
+      <strong>Kullanım:</strong> ECharts registerMap() ile haritaya register edilir
+    </div>
+    <div style="display:flex; gap:12px;">
+      <div style="flex:1; background:#0d1117; padding:8px; border-radius:4px; font-family:monospace; font-size:10px; color:#c9d1d9;">
+        Örnek: Türkiye illeri<br>
+        GET /gadm41_TUR.json<br>
+        → 81 il polygon geometrisi<br>
+        → Her il için risk renklendirmesi<br>
+        → Tıklama ile detay analizi
+      </div>
+      <div style="flex:1; background:#0d1117; padding:8px; border-radius:4px; font-family:monospace; font-size:10px; color:#c9d1d9;">
+        Fabrika Lokasyonu:<br>
+        Kullanıcı lat/lng girer<br>
+        → En yakın ilçe tespit edilir<br>
+        → 10/25/50 km yarıçapı çizilir<br>
+        → Yarıçap içindeki polygon'lar<br>
+        &nbsp;&nbsp;analiz edilir (risk ortalaması)
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<p style="margin-top:16px; color:#8b949e; font-size:11px;">
+  <strong>Not:</strong> Tüm API'ler ücretsiz veya ücretsiz kayıt ile erişilebilir. WRI Aqueduct CSV download ücretsizdir, bulk API için Aqueduct Alliance üyeliği gerekebilir ama CSV import yeterlidir. Copernicus CDS ücretsiz kayıt ister.
+</p>

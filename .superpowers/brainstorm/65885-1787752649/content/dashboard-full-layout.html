@@ -1,0 +1,324 @@
+<h2>Dashboard Düzeni — Tam Versiyon</h2>
+<p class="subtitle">Kullanıcı etkileşimli, gerçek veri kaynaklı iklim riski analiz dashboard'u</p>
+
+<div class="mockup">
+  <div class="mockup-header">Climate Risk Intelligence Dashboard</div>
+  <div class="mockup-body" style="padding:0; overflow:hidden; background:#0d1117; color:#c9d1d9;">
+
+    <!-- Top Bar: KPI Cards -->
+    <div style="background:#161b22; padding:12px 20px; display:flex; gap:12px; align-items:center; border-bottom:1px solid #30363d;">
+      <div style="flex:1; background:#0d1117; border-radius:8px; padding:10px 14px; border-left:3px solid #ff9800;">
+        <div style="color:#ff9800; font-size:10px; text-transform:uppercase; letter-spacing:1px;">Fiziksel Risk</div>
+        <div style="color:white; font-size:22px; font-weight:700;">0.72</div>
+        <div style="color:#8b949e; font-size:10px;">Yüksek • Open-Meteo + WRI</div>
+      </div>
+      <div style="flex:1; background:#0d1117; border-radius:8px; padding:10px 14px; border-left:3px solid #9c27b0;">
+        <div style="color:#9c27b0; font-size:10px; text-transform:uppercase; letter-spacing:1px;">Gecis Riski</div>
+        <div style="color:white; font-size:22px; font-weight:700;">0.58</div>
+        <div style="color:#8b949e; font-size:10px;">Orta-Yüksek • Copernicus</div>
+      </div>
+      <div style="flex:1; background:#0d1117; border-radius:8px; padding:10px 14px; border-left:3px solid #f44336;">
+        <div style="color:#f44336; font-size:10px; text-transform:uppercase; letter-spacing:1px;">Su Stresi</div>
+        <div style="color:white; font-size:22px; font-weight:700;">Yüksek</div>
+        <div style="color:#8b949e; font-size:10px;">WRI Aqueduct 4.0</div>
+      </div>
+      <div style="flex:1; background:#0d1117; border-radius:8px; padding:10px 14px; border-left:3px solid #4caf50;">
+        <div style="color:#4caf50; font-size:10px; text-transform:uppercase; letter-spacing:1px;">MDP Etkisi</div>
+        <div style="color:white; font-size:22px; font-weight:700;">-$4.2M</div>
+        <div style="color:#8b949e; font-size:10px;">2050 Tahmini</div>
+      </div>
+      <div style="flex:1; background:#0d1117; border-radius:8px; padding:10px 14px; border-left:3px solid #2196f3;">
+        <div style="color:#2196f3; font-size:10px; text-transform:uppercase; letter-spacing:1px;">Politika</div>
+        <div style="color:white; font-size:22px; font-weight:700;">WARN</div>
+        <div style="color:#8b949e; font-size:10px;">Intentum Kararı</div>
+      </div>
+    </div>
+
+    <!-- Main Content: Sidebar + Map + Charts -->
+    <div style="display:flex; height:480px;">
+
+      <!-- Left Sidebar: Controls -->
+      <div style="width:220px; background:#161b22; padding:12px; overflow-y:auto; border-right:1px solid #30363d;">
+        <div style="color:#8b949e; font-size:10px; text-transform:uppercase; margin-bottom:6px;">Senaryo</div>
+        <select style="width:100%; padding:5px 8px; border-radius:4px; border:1px solid #30363d; background:#0d1117; color:#c9d1d9; font-size:11px; margin-bottom:8px;">
+          <option>SSP2-4.5 (Orta Yol)</option>
+          <option>SSP1-2.6 (Sürdürülebilir)</option>
+          <option>SSP3-7.0 (Bölgesel Çekişme)</option>
+          <option>SSP5-8.5 (Fosil Yakıt)</option>
+        </select>
+
+        <div style="color:#8b949e; font-size:10px; text-transform:uppercase; margin-bottom:6px;">Sektor</div>
+        <select style="width:100%; padding:5px 8px; border-radius:4px; border:1px solid #30363d; background:#0d1117; color:#c9d1d9; font-size:11px; margin-bottom:8px;">
+          <option>Enerji</option>
+          <option>Tarim & Gida</option>
+          <option>Emlak & Insaaat</option>
+          <option>Finans & Sigorta</option>
+          <option>Turizm & Konaklama</option>
+          <option>Uretim & Sanayi</option>
+        </select>
+
+        <div style="color:#8b949e; font-size:10px; text-transform:uppercase; margin-bottom:6px;">Zaman Dilimi</div>
+        <div style="display:flex; gap:3px; margin-bottom:10px;">
+          <div style="flex:1; text-align:center; padding:4px; background:#0d1117; border-radius:4px; font-size:10px; border:1px solid #30363d; cursor:pointer;">2030</div>
+          <div style="flex:1; text-align:center; padding:4px; background:#ff9800; border-radius:4px; font-size:10px; font-weight:600; color:white;">2050</div>
+          <div style="flex:1; text-align:center; padding:4px; background:#0d1117; border-radius:4px; font-size:10px; border:1px solid #30363d; cursor:pointer;">2100</div>
+        </div>
+
+        <div style="color:#8b949e; font-size:10px; text-transform:uppercase; margin-bottom:6px;">Parametreler (Slider)</div>
+        <div style="margin-bottom:6px;">
+          <div style="display:flex; justify-content:space-between; font-size:9px; color:#8b949e;"><span>Sıcaklık Artışı</span><span style="color:#ff9800;">+2.4°C</span></div>
+          <input type="range" style="width:100%; accent-color:#ff9800; height:4px;" value="60">
+        </div>
+        <div style="margin-bottom:6px;">
+          <div style="display:flex; justify-content:space-between; font-size:9px; color:#8b949e;"><span>Yağış Değişimi</span><span style="color:#2196f3;">-15%</span></div>
+          <input type="range" style="width:100%; accent-color:#2196f3; height:4px;" value="40">
+        </div>
+        <div style="margin-bottom:6px;">
+          <div style="display:flex; justify-content:space-between; font-size:9px; color:#8b949e;"><span>Deniz Seviyesi</span><span style="color:#00bcd4;">+0.5m</span></div>
+          <input type="range" style="width:100%; accent-color:#00bcd4; height:4px;" value="35">
+        </div>
+        <div style="margin-bottom:6px;">
+          <div style="display:flex; justify-content:space-between; font-size:9px; color:#8b949e;"><span>Karbon Fiyatı</span><span style="color:#9c27b0;">€85/tCO₂</span></div>
+          <input type="range" style="width:100%; accent-color:#9c27b0; height:4px;" value="55">
+        </div>
+        <div style="margin-bottom:10px;">
+          <div style="display:flex; justify-content:space-between; font-size:9px; color:#8b949e;"><span>Nüfus Büyümesi</span><span style="color:#4caf50;">+1.2%</span></div>
+          <input type="range" style="width:100%; accent-color:#4caf50; height:4px;" value="45">
+        </div>
+
+        <div style="color:#8b949e; font-size:10px; text-transform:uppercase; margin-bottom:6px;">Lokasyon</div>
+        <div style="display:flex; gap:4px; margin-bottom:6px;">
+          <input placeholder="Enlem" style="flex:1; padding:5px 8px; border-radius:4px; border:1px solid #30363d; background:#0d1117; color:#c9d1d9; font-size:10px;" value="39.92">
+          <input placeholder="Boylam" style="flex:1; padding:5px 8px; border-radius:4px; border:1px solid #30363d; background:#0d1117; color:#c9d1d9; font-size:10px;" value="32.85">
+        </div>
+        <input placeholder="Lokasyon Adı (opsiyonel)" style="width:100%; padding:5px 8px; border-radius:4px; border:1px solid #30363d; background:#0d1117; color:#c9d1d9; font-size:10px; margin-bottom:6px;" value="Ankara Fabrikası">
+        <div style="color:#8b949e; font-size:9px; margin-bottom:4px;">Yarıçap:</div>
+        <div style="display:flex; gap:3px; margin-bottom:10px;">
+          <div style="flex:1; text-align:center; padding:3px; background:#ff5722; border-radius:3px; font-size:9px; font-weight:600; color:white; cursor:pointer;">10 km</div>
+          <div style="flex:1; text-align:center; padding:3px; background:#0d1117; border-radius:3px; font-size:9px; border:1px solid #30363d; cursor:pointer;">25 km</div>
+          <div style="flex:1; text-align:center; padding:3px; background:#0d1117; border-radius:3px; font-size:9px; border:1px solid #30363d; cursor:pointer;">50 km</div>
+        </div>
+
+        <div style="display:flex; gap:4px; margin-bottom:8px;">
+          <div style="flex:1; padding:5px; background:#238636; border-radius:4px; text-align:center; font-size:10px; cursor:pointer; color:white;">🔍 Analiz Et</div>
+          <div style="flex:1; padding:5px; background:#30363d; border-radius:4px; text-align:center; font-size:10px; cursor:pointer;">📍 Haritada Göster</div>
+        </div>
+
+        <div style="border-top:1px solid #30363d; padding-top:8px; margin-top:4px;">
+          <div style="color:#8b949e; font-size:10px; text-transform:uppercase; margin-bottom:6px;">Veri Yükleme</div>
+          <div style="padding:8px; background:#0d1117; border:1px dashed #30363d; border-radius:4px; text-align:center; font-size:10px; cursor:pointer; color:#58a6ff;">
+            📁 CSV/JSON dosyası sürükleyin<br>
+            <span style="color:#8b949e; font-size:8px;">veya tıklayın</span>
+          </div>
+          <div style="margin-top:6px; padding:4px 8px; background:#1c2128; border-radius:3px; font-size:9px; color:#8b949e;">
+            📄 ornek_veriler.csv (örnek)
+          </div>
+        </div>
+      </div>
+
+      <!-- Center: Map -->
+      <div style="flex:1; position:relative; background:#0d1117;">
+        <!-- Map Header -->
+        <div style="position:absolute; top:0; left:0; right:0; background:rgba(22,27,34,0.9); padding:8px 14px; display:flex; justify-content:space-between; align-items:center; z-index:10; border-bottom:1px solid #30363d;">
+          <div style="font-size:11px; font-weight:600;">🌍 İnteraktif Risk Haritası</div>
+          <div style="display:flex; gap:6px;">
+            <div style="padding:3px 8px; background:#238636; border-radius:3px; font-size:9px; cursor:pointer;">Ülke</div>
+            <div style="padding:3px 8px; background:#30363d; border-radius:3px; font-size:9px; cursor:pointer;">Bölge</div>
+            <div style="padding:3px 8px; background:#30363d; border-radius:3px; font-size:9px; cursor:pointer;">İl</div>
+            <div style="padding:3px 8px; background:#30363d; border-radius:3px; font-size:9px; cursor:pointer;">İlçe</div>
+          </div>
+        </div>
+
+        <!-- World Map SVG -->
+        <div style="position:absolute; inset:0; padding-top:35px; display:flex; align-items:center; justify-content:center;">
+          <svg viewBox="0 0 700 350" style="width:95%; opacity:0.15;">
+            <ellipse cx="350" cy="175" rx="320" ry="150" fill="none" stroke="#3fb950" stroke-width="0.5"/>
+            <ellipse cx="230" cy="160" rx="90" ry="120" fill="none" stroke="#3fb950" stroke-width="0.5"/>
+            <ellipse cx="400" cy="150" rx="70" ry="110" fill="none" stroke="#3fb950" stroke-width="0.5"/>
+            <ellipse cx="500" cy="180" rx="60" ry="70" fill="none" stroke="#3fb950" stroke-width="0.5"/>
+            <ellipse cx="170" cy="200" rx="45" ry="55" fill="none" stroke="#3fb950" stroke-width="0.5"/>
+            <ellipse cx="580" cy="210" rx="35" ry="35" fill="none" stroke="#3fb950" stroke-width="0.5"/>
+          </svg>
+        </div>
+
+        <!-- Risk Heat Overlay on Turkey Region -->
+        <div style="position:absolute; top:38%; left:54%; width:100px; height:80px; background:radial-gradient(circle, rgba(255,152,0,0.4) 0%, rgba(255,87,34,0.2) 40%, transparent 70%); border-radius:50%;"></div>
+
+        <!-- Factory Point Marker -->
+        <div style="position:absolute; top:40%; left:55%; transform:translate(-50%,-50%); z-index:5;">
+          <div style="width:14px; height:14px; background:#ff5722; border-radius:50%; border:2px solid white; box-shadow:0 0 16px rgba(255,87,34,0.7); animation:pulse 2s infinite;"></div>
+          <div style="position:absolute; top:-26px; left:50%; transform:translateX(-50%); background:rgba(0,0,0,0.85); color:white; padding:3px 8px; border-radius:4px; font-size:9px; white-space:nowrap; border:1px solid #30363d;">
+            📍 Ankara Fabrikası<br>
+            <span style="color:#8b949e;">39.92°N, 32.85°E</span>
+          </div>
+        </div>
+
+        <!-- Radius Circle (10km) -->
+        <div style="position:absolute; top:40%; left:55%; width:90px; height:90px; transform:translate(-50%,-50%); border:2px dashed rgba(255,87,34,0.6); border-radius:50%; background:rgba(255,87,34,0.06);"></div>
+
+        <!-- Risk Zones within radius -->
+        <div style="position:absolute; top:38%; left:53%; width:40px; height:35px; background:rgba(255,193,7,0.15); border-radius:4px; border:1px solid rgba(255,193,7,0.3);"></div>
+        <div style="position:absolute; top:42%; left:57%; width:30px; height:25px; background:rgba(244,67,54,0.15); border-radius:4px; border:1px solid rgba(244,67,54,0.3);"></div>
+
+        <!-- Map Controls -->
+        <div style="position:absolute; top:45px; right:10px; display:flex; flex-direction:column; gap:3px; z-index:5;">
+          <div style="width:26px; height:26px; background:rgba(22,27,34,0.9); border:1px solid #30363d; border-radius:4px; display:flex; align-items:center; justify-content:center; color:#c9d1d9; font-size:13px; cursor:pointer;">+</div>
+          <div style="width:26px; height:26px; background:rgba(22,27,34,0.9); border:1px solid #30363d; border-radius:4px; display:flex; align-items:center; justify-content:center; color:#c9d1d9; font-size:13px; cursor:pointer;">−</div>
+          <div style="width:26px; height:26px; background:rgba(22,27,34,0.9); border:1px solid #30363d; border-radius:4px; display:flex; align-items:center; justify-content:center; color:#c9d1d9; font-size:11px; cursor:pointer;">⌂</div>
+        </div>
+
+        <!-- Map Legend -->
+        <div style="position:absolute; bottom:10px; left:10px; background:rgba(22,27,34,0.95); border:1px solid #30363d; border-radius:6px; padding:8px 12px; z-index:5;">
+          <div style="font-size:9px; color:#8b949e; margin-bottom:4px;">Risk Seviyesi (ülke/bölge renklendirmesi)</div>
+          <div style="display:flex; gap:8px; align-items:center;">
+            <div style="display:flex; align-items:center; gap:3px;"><div style="width:10px; height:8px; background:#3fb950; border-radius:2px;"></div><span style="font-size:8px; color:#8b949e;">Düşük</span></div>
+            <div style="display:flex; align-items:center; gap:3px;"><div style="width:10px; height:8px; background:#ff9800; border-radius:2px;"></div><span style="font-size:8px; color:#8b949e;">Orta</span></div>
+            <div style="display:flex; align-items:center; gap:3px;"><div style="width:10px; height:8px; background:#f44336; border-radius:2px;"></div><span style="font-size:8px; color:#8b949e;">Yüksek</span></div>
+            <div style="display:flex; align-items:center; gap:3px;"><div style="width:10px; height:8px; background:#9c27b0; border-radius:2px;"></div><span style="font-size:8px; color:#8b949e;">Çok Yüksek</span></div>
+          </div>
+          <div style="font-size:8px; color:#58a6ff; margin-top:4px;">ⓘ Ülke > Bölge > İl > İlçe drill-down</div>
+        </div>
+
+        <!-- Data Source Badge -->
+        <div style="position:absolute; bottom:10px; right:10px; background:rgba(22,27,34,0.95); border:1px solid #30363d; border-radius:6px; padding:6px 10px; z-index:5;">
+          <div style="font-size:8px; color:#8b949e;">Veri: GADM 4.1 + WRI Aqueduct</div>
+        </div>
+      </div>
+
+      <!-- Right Sidebar: Charts -->
+      <div style="width:300px; background:#161b22; padding:10px; overflow-y:auto; border-left:1px solid #30363d;">
+
+        <!-- Risk Breakdown -->
+        <div style="margin-bottom:10px;">
+          <div style="font-size:10px; text-transform:uppercase; color:#8b949e; margin-bottom:6px;">Risk Dagilimi</div>
+          <div style="background:#0d1117; border:1px solid #30363d; border-radius:6px; padding:10px; display:flex; gap:10px; align-items:center;">
+            <div style="position:relative; width:80px; height:80px; flex-shrink:0;">
+              <svg viewBox="0 0 42 42" style="width:100%; height:100%;">
+                <circle cx="21" cy="21" r="15.9" fill="none" stroke="#30363d" stroke-width="3"/>
+                <circle cx="21" cy="21" r="15.9" fill="none" stroke="#ff9800" stroke-width="3" stroke-dasharray="45 55" stroke-dashoffset="25"/>
+                <circle cx="21" cy="21" r="15.9" fill="none" stroke="#9c27b0" stroke-width="3" stroke-dasharray="30 70" stroke-dashoffset="80"/>
+                <circle cx="21" cy="21" r="15.9" fill="none" stroke="#4caf50" stroke-width="3" stroke-dasharray="25 75" stroke-dashoffset="50"/>
+              </svg>
+            </div>
+            <div style="font-size:9px; color:#c9d1d9;">
+              <div style="margin-bottom:2px;"><span style="display:inline-block; width:6px; height:6px; background:#ff9800; border-radius:2px; margin-right:4px;"></span>Fiziksel <strong>45%</strong></div>
+              <div style="margin-bottom:2px;"><span style="display:inline-block; width:6px; height:6px; background:#9c27b0; border-radius:2px; margin-right:4px;"></span>Gecis <strong>30%</strong></div>
+              <div><span style="display:inline-block; width:6px; height:6px; background:#4caf50; border-radius:2px; margin-right:4px;"></span>Ekonomi <strong>25%</strong></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Economic Impact Bars -->
+        <div style="margin-bottom:10px;">
+          <div style="font-size:10px; text-transform:uppercase; color:#8b949e; margin-bottom:6px;">Ekonomik Etki (Milyon $)</div>
+          <div style="background:#0d1117; border:1px solid #30363d; border-radius:6px; padding:10px;">
+            <div style="display:flex; align-items:flex-end; gap:5px; height:70px;">
+              <div style="flex:1; display:flex; flex-direction:column; align-items:center;">
+                <div style="width:100%; background:#ff5722; border-radius:3px 3px 0 0; height:55px;"></div>
+                <span style="font-size:7px; color:#8b949e; margin-top:2px;">MDP</span>
+              </div>
+              <div style="flex:1; display:flex; flex-direction:column; align-items:center;">
+                <div style="width:100%; background:#ff9800; border-radius:3px 3px 0 0; height:40px;"></div>
+                <span style="font-size:7px; color:#8b949e; margin-top:2px;">CAPEX</span>
+              </div>
+              <div style="flex:1; display:flex; flex-direction:column; align-items:center;">
+                <div style="width:100%; background:#4caf50; border-radius:3px 3px 0 0; height:25px;"></div>
+                <span style="font-size:7px; color:#8b949e; margin-top:2px;">Sigorta</span>
+              </div>
+              <div style="flex:1; display:flex; flex-direction:column; align-items:center;">
+                <div style="width:100%; background:#2196f3; border-radius:3px 3px 0 0; height:18px;"></div>
+                <span style="font-size:7px; color:#8b949e; margin-top:2px;">Borç</span>
+              </div>
+              <div style="flex:1; display:flex; flex-direction:column; align-items:center;">
+                <div style="width:100%; background:#9c27b0; border-radius:3px 3px 0 0; height:12px;"></div>
+                <span style="font-size:7px; color:#8b949e; margin-top:2px;">Operasyon</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Scenario Comparison Line Chart -->
+        <div style="margin-bottom:10px;">
+          <div style="font-size:10px; text-transform:uppercase; color:#8b949e; margin-bottom:6px;">Senaryo Karsilastirma (Risk Skoru)</div>
+          <div style="background:#0d1117; border:1px solid #30363d; border-radius:6px; padding:10px;">
+            <svg viewBox="0 0 240 90" style="width:100%; height:100%;">
+              <line x1="30" y1="10" x2="30" y2="75" stroke="#30363d" stroke-width="0.5"/>
+              <line x1="30" y1="75" x2="230" y2="75" stroke="#30363d" stroke-width="0.5"/>
+              <line x1="30" y1="40" x2="230" y2="40" stroke="#30363d" stroke-width="0.3" stroke-dasharray="3"/>
+              <polyline points="30,65 80,58 130,48 180,40 230,35" fill="none" stroke="#3fb950" stroke-width="1.5"/>
+              <polyline points="30,65 80,55 130,40 180,28 230,22" fill="none" stroke="#ff9800" stroke-width="1.5"/>
+              <polyline points="30,65 80,50 130,30 180,15 230,8" fill="none" stroke="#f44336" stroke-width="1.5"/>
+              <polyline points="30,65 80,48 130,25 180,8 230,3" fill="none" stroke="#9c27b0" stroke-width="1.5"/>
+              <text x="32" y="85" fill="#8b949e" font-size="6">2025</text>
+              <text x="78" y="85" fill="#8b949e" font-size="6">2050</text>
+              <text x="175" y="85" fill="#8b949e" font-size="6">2100</text>
+              <text x="232" y="37" fill="#3fb950" font-size="6">SSP1</text>
+              <text x="232" y="24" fill="#ff9800" font-size="6">SSP2</text>
+              <text x="232" y="10" fill="#f44336" font-size="6">SSP3</text>
+              <text x="232" y="5" fill="#9c27b0" font-size="6">SSP5</text>
+            </svg>
+          </div>
+        </div>
+
+        <!-- Water Stress (from WRI) -->
+        <div style="margin-bottom:10px;">
+          <div style="font-size:10px; text-transform:uppercase; color:#8b949e; margin-bottom:6px;">Su Stresi Endeksi (WRI)</div>
+          <div style="background:#0d1117; border:1px solid #30363d; border-radius:6px; padding:10px;">
+            <div style="display:flex; gap:4px; align-items:center; margin-bottom:6px;">
+              <div style="flex:1; height:8px; background:linear-gradient(to right, #3fb950, #ff9800, #f44336); border-radius:4px;"></div>
+              <div style="width:8px; height:8px; background:#f44336; border-radius:50%; margin-left:-2px; border:1px solid white;"></div>
+            </div>
+            <div style="display:flex; justify-content:space-between; font-size:7px; color:#8b949e;">
+              <span>0 Düşük</span>
+              <span>2 Orta</span>
+              <span>3 Yüksek</span>
+              <span>5 Ekstrem</span>
+            </div>
+            <div style="text-align:center; margin-top:6px;">
+              <span style="font-size:18px; font-weight:700; color:#f44336;">3.8</span>
+              <span style="font-size:9px; color:#8b949e; margin-left:4px;">/ 5.0 — Yüksek Risk</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Policy Decision -->
+        <div style="margin-bottom:10px;">
+          <div style="font-size:10px; text-transform:uppercase; color:#8b949e; margin-bottom:6px;">Politika Kararı (Intentum)</div>
+          <div style="background:#ff9800; border-radius:6px; padding:8px 10px; text-align:center;">
+            <div style="color:white; font-size:13px; font-weight:700;">⚠ WARN</div>
+            <div style="color:rgba(255,255,255,0.8); font-size:8px; margin-top:2px;">Iklim uyum onlemleri gerekli</div>
+          </div>
+        </div>
+
+        <!-- Trend Sparklines -->
+        <div>
+          <div style="font-size:10px; text-transform:uppercase; color:#8b949e; margin-bottom:6px;">Trendler (Gerçek Zamanlı)</div>
+          <div style="background:#0d1117; border:1px solid #30363d; border-radius:6px; padding:8px;">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
+              <span style="font-size:9px; color:#8b949e;">CO₂</span>
+              <span style="font-size:9px; color:#f44336;">421 ppm ▲</span>
+            </div>
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
+              <span style="font-size:9px; color:#8b949e;">Deniz Seviyesi</span>
+              <span style="font-size:9px; color:#ff9800;">+3.6mm/yıl ▲</span>
+            </div>
+            <div style="display:flex; justify-content:space-between; align-items:center;">
+              <span style="font-size:9px; color:#8b949e;">Ort. Sıcaklık</span>
+              <span style="font-size:9px; color:#f44336;">+1.45°C ▲</span>
+            </div>
+            <div style="font-size:7px; color:#58a6ff; margin-top:4px;">Kaynak: Climate Monitor API</div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>
+@keyframes pulse {
+  0% { box-shadow: 0 0 8px rgba(255,87,34,0.4); }
+  50% { box-shadow: 0 0 20px rgba(255,87,34,0.8); }
+  100% { box-shadow: 0 0 8px rgba(255,87,34,0.4); }
+}
+</style>
