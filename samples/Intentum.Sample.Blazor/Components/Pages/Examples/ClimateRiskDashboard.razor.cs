@@ -205,14 +205,12 @@ public sealed partial class ClimateRiskDashboard : IAsyncDisposable
             {
                 tooltip = new { trigger = "axis" },
                 grid = new { left = "5%", right = "10%", bottom = "5%", top = "5%", containLabel = true },
-                xAxis = new { type = "category", data = new[] { "2025", "2035", "2050", "2075", "2100" } },
+                xAxis = new { type = "category", data = _scenarioResults.Select(r => (object)r.Scenario).ToArray() },
                 yAxis = new { type = "value", min = 0, max = 1 },
                 series = new object[]
                 {
-                    new { name = "SSP1", type = "line", data = new[] { 0.2, 0.25, 0.3, 0.35, 0.38 }, smooth = true, lineStyle = new { color = "#22c55e" }, itemStyle = new { color = "#22c55e" } },
-                    new { name = "SSP2", type = "line", data = new[] { 0.2, 0.35, 0.5, 0.65, 0.72 }, smooth = true, lineStyle = new { color = "#ff9800" }, itemStyle = new { color = "#ff9800" } },
-                    new { name = "SSP3", type = "line", data = new[] { 0.2, 0.45, 0.68, 0.85, 0.92 }, smooth = true, lineStyle = new { color = "#f44336" }, itemStyle = new { color = "#f44336" } },
-                    new { name = "SSP5", type = "line", data = new[] { 0.2, 0.5, 0.75, 0.92, 0.98 }, smooth = true, lineStyle = new { color = "#9c27b0" }, itemStyle = new { color = "#9c27b0" } }
+                    new { name = "Fiziksel Risk", type = "bar", data = _scenarioResults.Select(r => (object)Math.Round(r.Assessment.PhysicalRisk, 2)).ToArray(), itemStyle = new { color = "#38bdf8" } },
+                    new { name = "Gecis Riski", type = "bar", data = _scenarioResults.Select(r => (object)Math.Round(r.Assessment.TransitionRisk, 2)).ToArray(), itemStyle = new { color = "#fb923c" } }
                 }
             });
         }

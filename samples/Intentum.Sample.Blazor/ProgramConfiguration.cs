@@ -167,7 +167,13 @@ internal static class ProgramConfiguration
         builder.Services.AddScoped<WriAqueductService>();
         builder.Services.AddScoped<ClimateMonitorService>();
         builder.Services.AddScoped<GadmGeoJsonService>();
-        builder.Services.AddScoped<RiskCalculationEngine>();
+        builder.Services.AddScoped<RiskCalculationEngine>(sp =>
+            new RiskCalculationEngine(
+                sp.GetRequiredService<OpenMeteoService>(),
+                sp.GetRequiredService<WriAqueductService>(),
+                sp.GetRequiredService<ClimateMonitorService>(),
+                sp.GetService<FinancialImpactEngine>(),
+                sp.GetService<CompanyProfileService>()));
         builder.Services.AddIntentum();
         builder.Services.AddIntentumHealthChecks();
 
