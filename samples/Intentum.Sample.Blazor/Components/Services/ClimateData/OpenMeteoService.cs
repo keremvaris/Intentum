@@ -21,6 +21,13 @@ public sealed class OpenMeteoService
         string endDate = "2030-12-31",
         CancellationToken ct = default)
     {
+        // Skip API call for invalid coordinates (null island, etc.)
+        if (Math.Abs(latitude) < 0.01 && Math.Abs(longitude) < 0.01)
+        {
+            _logger.LogDebug("Skipping Open-Meteo for null island (0,0)");
+            return null;
+        }
+
         try
         {
             var url = $"https://climate-api.open-meteo.com/v1/climate" +
@@ -37,11 +44,11 @@ public sealed class OpenMeteoService
             return new ClimateProjection
             {
                 Time = daily.GetProperty("time").EnumerateArray().Select(x => x.GetString() ?? "").ToArray(),
-                TempMax = daily.GetProperty("temperature_2m_max").EnumerateArray().Select(x => x.GetDouble()).ToArray(),
-                TempMin = daily.GetProperty("temperature_2m_min").EnumerateArray().Select(x => x.GetDouble()).ToArray(),
-                Precipitation = daily.GetProperty("precipitation_sum").EnumerateArray().Select(x => x.GetDouble()).ToArray(),
-                WindMax = daily.GetProperty("wind_speed_10m_max").EnumerateArray().Select(x => x.GetDouble()).ToArray(),
-                Humidity = daily.GetProperty("relative_humidity_2m_mean").EnumerateArray().Select(x => x.GetDouble()).ToArray()
+                TempMax = ParseDoubleArray(daily, "temperature_2m_max"),
+                TempMin = ParseDoubleArray(daily, "temperature_2m_min"),
+                Precipitation = ParseDoubleArray(daily, "precipitation_sum"),
+                WindMax = ParseDoubleArray(daily, "wind_speed_10m_max"),
+                Humidity = ParseDoubleArray(daily, "relative_humidity_2m_mean")
             };
         }
         catch (Exception ex)
@@ -49,6 +56,15 @@ public sealed class OpenMeteoService
             _logger.LogWarning(ex, "Failed to fetch Open-Meteo projection for {Lat},{Lng}", latitude, longitude);
             return null;
         }
+    }
+
+    private static double[] ParseDoubleArray(JsonElement daily, string property)
+    {
+        if (!daily.TryGetProperty(property, out var arr) || arr.ValueKind != JsonValueKind.Array)
+            return [];
+        return arr.EnumerateArray()
+            .Select(x => x.ValueKind == JsonValueKind.Number ? x.GetDouble() : 0)
+            .ToArray();
     }
 
     public async Task<CurrentWeather?> GetCurrentAsync(

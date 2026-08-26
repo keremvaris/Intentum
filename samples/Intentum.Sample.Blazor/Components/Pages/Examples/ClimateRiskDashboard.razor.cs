@@ -81,6 +81,15 @@ public sealed partial class ClimateRiskDashboard : IAsyncDisposable
 
     private async Task RunAnalysis()
     {
+        // Validate coordinates
+        if (Math.Abs(_input.Latitude) < 0.01 && Math.Abs(_input.Longitude) < 0.01)
+        {
+            // Default to Ankara if no coordinates entered
+            _input.Latitude = 39.93;
+            _input.Longitude = 32.86;
+            _input.LocationName = string.IsNullOrWhiteSpace(_input.LocationName) ? "Ankara" : _input.LocationName;
+        }
+
         _running = true;
         StateHasChanged();
 
