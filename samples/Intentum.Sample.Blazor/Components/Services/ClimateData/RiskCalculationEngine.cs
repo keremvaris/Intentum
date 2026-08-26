@@ -1,5 +1,6 @@
 namespace Intentum.Sample.Blazor.Components.Services.ClimateData;
 
+using System.Linq;
 using Intentum.Core;
 using Intentum.Core.Behavior;
 using Intentum.Core.Intents;
@@ -10,15 +11,29 @@ public class RiskCalculationEngine
     private readonly OpenMeteoService _openMeteo;
     private readonly WriAqueductService _wri;
     private readonly ClimateMonitorService _climateMonitor;
+    private readonly FinancialImpactEngine? _financialImpactEngine;
+    private readonly CompanyProfileService? _companyProfileService;
 
     public RiskCalculationEngine(
         OpenMeteoService openMeteo,
         WriAqueductService wri,
         ClimateMonitorService climateMonitor)
+        : this(openMeteo, wri, climateMonitor, null, null)
+    {
+    }
+
+    public RiskCalculationEngine(
+        OpenMeteoService openMeteo,
+        WriAqueductService wri,
+        ClimateMonitorService climateMonitor,
+        FinancialImpactEngine? financialImpactEngine,
+        CompanyProfileService? companyProfileService)
     {
         _openMeteo = openMeteo;
         _wri = wri;
         _climateMonitor = climateMonitor;
+        _financialImpactEngine = financialImpactEngine;
+        _companyProfileService = companyProfileService;
     }
 
     public virtual async Task<RiskAssessment> AssessAsync(
@@ -42,20 +57,33 @@ public class RiskCalculationEngine
         var economicImpact = CalculateEconomicImpact(physicalScore, transitionScore, input);
 
         // Gerçek Intentum: BehaviorSpace → IntentModel → Policy
-        var space = BuildBehaviorSpace(input, physicalScore, transitionScore, wriRisk, effectiveSea, coastal);
+        CompanyProfile? companyProfile = null;
+        if (_companyProfileService != null && !string.IsNullOrEmpty(input.CompanyProfileId))
+        {
+            companyProfile = _companyProfileService.GetById(input.CompanyProfileId);
+        }
+
+        var space = BuildBehaviorSpace(input, physicalScore, transitionScore, wriRisk, effectiveSea, coastal, companyProfile);
         var model = new ClimateRiskIntentModel();
         var intent = model.Infer(space);
         var policy = ClimateRiskPolicy.Create();
         var policyDecision = IntentPolicyEngine.Evaluate(intent, policy);
         var decision = ClimateRiskPolicy.MapToDecision(policyDecision.ToString());
 
+        // Calculate financial impact
+        FinancialImpact? financialImpact = null;
+        if (_financialImpactEngine != null && companyProfile != null)
+        {
+            financialImpact = _financialImpactEngine.Calculate(companyProfile, physicalScore, transitionScore, intent.Signals.Select(s => s.Source).ToList());
+        }
+
         // Skor-policy tutarlılığı: çok yüksek skor intent ALLOW verse bile REVIEW/REJECT'e çek
         var overall = (physicalScore * 0.6 + transitionScore * 0.4);
         if (overall > 0.68 && decision == "ALLOW") decision = "REVIEW";
         if (overall > 0.78 && decision == "REVIEW") decision = "REJECT";
 
-        var reasons = BuildDecisionReasons(input, physicalScore, transitionScore, wriRisk, projection, coastal, effectiveSea, intent);
-        var actions = BuildRecommendedActions(decision, input, physicalScore, transitionScore, coastal, wriRisk);
+        var reasons = BuildDecisionReasons(input, physicalScore, transitionScore, wriRisk, projection, coastal, effectiveSea, intent, financialImpact);
+        var actions = BuildRecommendedActions(decision, input, physicalScore, transitionScore, coastal, wriRisk, financialImpact);
         var summary = BuildDecisionSummary(decision, overall, physicalScore, transitionScore, input, intent, coastal);
 
         space.Observe("ClimateRisk:result", $"{intent.Name} {policyDecision} → {decision} ({intent.Confidence.Score:F2})");
@@ -79,6 +107,7 @@ public class RiskCalculationEngine
             IsCoastal = coastal.isCoastal,
             EffectiveSeaLevel = effectiveSea,
             EconomicImpact = economicImpact,
+            FinancialImpact = financialImpact,
             WaterStress = wriRisk?.WaterStress ?? 0,
             WaterStressLabel = wriRisk?.WaterStressLabel ?? "Veri Yok",
             Projection = projection,
@@ -88,7 +117,7 @@ public class RiskCalculationEngine
     }
 
     private static BehaviorSpace BuildBehaviorSpace(
-        RiskInput input, double physical, double transition, WriCountryRisk? wri, double effectiveSea, (bool isCoastal, double distanceKm, string note) coastal)
+        RiskInput input, double physical, double transition, WriCountryRisk? wri, double effectiveSea, (bool isCoastal, double distanceKm, string note) coastal, CompanyProfile? companyProfile = null)
     {
         var space = new BehaviorSpace();
         space.SetMetadata("location", input.LocationName);
@@ -122,6 +151,34 @@ public class RiskCalculationEngine
         Add("transition:market", input.Scenario == "SSP5-8.5" ? 0.85 : input.Scenario == "SSP3-7.0" ? 0.6 : 0.35);
         Add("transition:reputation", input.Scenario == "SSP1-2.6" ? 0.15 : 0.4);
         Add("economic:impact", Math.Clamp((physical * 0.6 + transition * 0.4), 0, 1));
+
+        // Financial signals from company profile
+        if (companyProfile != null)
+        {
+            var costOfGoods = companyProfile.Categories
+                .Where(c => c.Type == FinancialCategoryType.Opex)
+                .SelectMany(c => c.LineItems)
+                .Sum(li => li.Value);
+            space.Observe("economic", $"cost_of_goods:{costOfGoods}");
+
+            var opex = companyProfile.Categories
+                .Where(c => c.Type == FinancialCategoryType.Opex)
+                .SelectMany(c => c.LineItems)
+                .Sum(li => li.Value);
+            space.Observe("economic", $"operational_expenses:{opex}");
+
+            var revenue = companyProfile.Categories
+                .Where(c => c.Type == FinancialCategoryType.Revenue)
+                .SelectMany(c => c.LineItems)
+                .Sum(li => li.Value);
+            space.Observe("economic", $"revenue_at_risk:{revenue}");
+
+            var capex = companyProfile.Categories
+                .Where(c => c.Type == FinancialCategoryType.Capex)
+                .SelectMany(c => c.LineItems)
+                .Sum(li => li.Value);
+            space.Observe("economic", $"capital_expenditure:{capex}");
+        }
 
         return space;
     }
@@ -256,7 +313,7 @@ public class RiskCalculationEngine
     private static List<string> BuildDecisionReasons(
         RiskInput input, double physical, double transition,
         WriCountryRisk? wri, ClimateProjection? proj,
-        (bool isCoastal, double distanceKm, string note) coastal, double effectiveSea, Intent intent)
+        (bool isCoastal, double distanceKm, string note) coastal, double effectiveSea, Intent intent, FinancialImpact? financialImpact = null)
     {
         var reasons = new List<string>();
 
@@ -319,11 +376,20 @@ public class RiskCalculationEngine
         if (topSignals.Count > 0)
             reasons.Add($"En etkili sinyaller: {string.Join(", ", topSignals.Select(s => $"{s.Description} ({s.Weight:F2})"))}");
 
+        if (financialImpact != null)
+        {
+            var net = financialImpact.NetCashFlowImpact;
+            if (net < 0)
+            {
+                reasons.Add($"Net financial exposure: {net:N0} TL/year ({(net < -10_000_000 ? "critical" : "significant")})");
+            }
+        }
+
         return reasons;
     }
 
     private static List<string> BuildRecommendedActions(
-        string decision, RiskInput input, double physical, double transition, (bool isCoastal, double distanceKm, string note) coastal, WriCountryRisk? wri)
+        string decision, RiskInput input, double physical, double transition, (bool isCoastal, double distanceKm, string note) coastal, WriCountryRisk? wri, FinancialImpact? financialImpact = null)
     {
         var actions = new List<string>();
         switch (decision)
@@ -356,6 +422,20 @@ public class RiskCalculationEngine
                 actions.Add("Piyasa veya regülasyon değişikliği olursa analizi yenileyin");
                 break;
         }
+
+        if (financialImpact != null)
+        {
+            var net = financialImpact.NetCashFlowImpact;
+            if (net < -10_000_000)
+            {
+                actions.Add("Develop comprehensive financial resilience plan for major climate-related cost exposure");
+            }
+            else if (net < -5_000_000)
+            {
+                actions.Add("Implement targeted cost-reduction and revenue-protection measures");
+            }
+        }
+
         return actions;
     }
 
