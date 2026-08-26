@@ -34,6 +34,7 @@ using MediatR;
 using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.Extensions.Caching.Memory;
 using Scalar.AspNetCore;
+using Intentum.Sample.Blazor.Components.Services.ClimateData;
 
 namespace Intentum.Sample.Blazor;
 
@@ -159,6 +160,11 @@ internal static class ProgramConfiguration
             var host = req != null ? req.Host.Value : (config["Intentum:FallbackBaseHost"] ?? "localhost:5018");
             return new HttpClient { BaseAddress = new Uri($"{scheme}://{host}") };
         });
+        builder.Services.AddScoped<OpenMeteoService>();
+        builder.Services.AddScoped<WriAqueductService>();
+        builder.Services.AddScoped<ClimateMonitorService>();
+        builder.Services.AddScoped<GadmGeoJsonService>();
+        builder.Services.AddScoped<RiskCalculationEngine>();
         builder.Services.AddIntentum();
         builder.Services.AddIntentumHealthChecks();
 

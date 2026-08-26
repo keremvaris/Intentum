@@ -1,0 +1,210 @@
+@page "/examples/climate-risk-dashboard"
+@rendermode InteractiveServer
+@inject IJSRuntime JSRuntime
+@inject OpenMeteoService OpenMeteo
+@inject WriAqueductService WriAqueduct
+@inject ClimateMonitorService ClimateMonitor
+@inject GadmGeoJsonService GadmGeoJson
+@inject RiskCalculationEngine RiskEngine
+@implements IAsyncDisposable
+
+<PageTitle>Iklim Riski Dashboard — Intentum</PageTitle>
+
+<div class="page-card">
+    <h3>Iklim Riski Dashboard</h3>
+    <p style="font-size:0.8rem;color:#8b949e;margin:0;">Gerçek veri kaynaklı interaktif iklim riski analizi — Open-Meteo, WRI Aqueduct, GADM</p>
+</div>
+
+@if (_assessment == null && !_running)
+{
+    <div class="page-card" style="text-align:center;padding:3rem;">
+        <p style="font-size:1rem;color:#8b949e;">Sol panelden parametreleri ayarlayıp <strong>Analiz Et</strong> butonuna tıklayın</p>
+    </div>
+}
+
+@if (_assessment != null)
+{
+    <div class="climate-kpi-bar">
+        <div class="climate-kpi-item" style="border-left-color:#ff9800;">
+            <div class="kpi-label" style="color:#ff9800;">Fiziksel Risk</div>
+            <div class="kpi-value">@_assessment.PhysicalRisk.ToString("F2")</div>
+            <div class="kpi-sub">@GetRiskLabel(_assessment.PhysicalRisk)</div>
+        </div>
+        <div class="climate-kpi-item" style="border-left-color:#9c27b0;">
+            <div class="kpi-label" style="color:#9c27b0;">Gecis Riski</div>
+            <div class="kpi-value">@_assessment.TransitionRisk.ToString("F2")</div>
+            <div class="kpi-sub">@GetRiskLabel(_assessment.TransitionRisk)</div>
+        </div>
+        <div class="climate-kpi-item" style="border-left-color:#f44336;">
+            <div class="kpi-label" style="color:#f44336;">Su Stresi</div>
+            <div class="kpi-value">@_assessment.WaterStress.ToString("F1")</div>
+            <div class="kpi-sub">@_assessment.WaterStressLabel</div>
+        </div>
+        <div class="climate-kpi-item" style="border-left-color:#4caf50;">
+            <div class="kpi-label" style="color:#4caf50;">MDP Etkisi</div>
+            <div class="kpi-value">-$@_assessment.EconomicImpact.MdpLoss.ToString("F1")M</div>
+            <div class="kpi-sub">@_input.Horizon Tahmini</div>
+        </div>
+        <div class="climate-kpi-item" style="border-left-color:#2196f3;">
+            <div class="kpi-label" style="color:#2196f3;">Politika</div>
+            <div class="kpi-value">@GetPolicyDecision()</div>
+            <div class="kpi-sub">Intentum Karari</div>
+        </div>
+    </div>
+}
+
+<div class="climate-dashboard">
+    <!-- Left: Controls -->
+    <div class="climate-controls">
+        <label>Senaryo</label>
+        <select @bind="_input.Scenario">
+            <option value="SSP1-2.6">SSP1-2.6 (Surdurulebilir)</option>
+            <option value="SSP2-4.5">SSP2-4.5 (Orta Yol)</option>
+            <option value="SSP3-7.0">SSP3-7.0 (Bolgesel Cekisme)</option>
+            <option value="SSP5-8.5">SSP5-8.5 (Fosil Yakit)</option>
+        </select>
+
+        <label>Sektor</label>
+        <select @bind="_input.Sector">
+            <option value="Enerji">Enerji</option>
+            <option value="Tarim">Tarim & Gida</option>
+            <option value="Emlak">Emlak & Insaat</option>
+            <option value="Finans">Finans & Sigorta</option>
+            <option value="Turizm">Turizm & Konaklama</option>
+            <option value="Sanayi">Uretim & Sanayi</option>
+        </select>
+
+        <label>Zaman Dilimi</label>
+        <div class="climate-time-btns">
+            <div class="climate-time-btn @(_input.Horizon == 2030 ? "active" : "")" @onclick="() => _input.Horizon = 2030">2030</div>
+            <div class="climate-time-btn @(_input.Horizon == 2050 ? "active" : "")" @onclick="() => _input.Horizon = 2050">2050</div>
+            <div class="climate-time-btn @(_input.Horizon == 2100 ? "active" : "")" @onclick="() => _input.Horizon = 2100">2100</div>
+        </div>
+
+        <label>Parametreler</label>
+        <div class="climate-slider-group">
+            <div class="slider-header"><span>Sicaklik Artisi</span><span>@(_tempAnomaly.ToString("F1")) C</span></div>
+            <input type="range" min="0" max="60" @bind="_tempSlider" @bind:after="UpdateTempAnomaly" style="accent-color:#ff9800;">
+        </div>
+        <div class="climate-slider-group">
+            <div class="slider-header"><span>Yagis Degisimi</span><span>@(_precipChange.ToString("F0"))%</span></div>
+            <input type="range" min="-50" max="50" @bind="_precipSlider" @bind:after="UpdatePrecipChange" style="accent-color:#2196f3;">
+        </div>
+        <div class="climate-slider-group">
+            <div class="slider-header"><span>Deniz Seviyesi</span><span>+@(_seaLevelRise.ToString("F1"))m</span></div>
+            <input type="range" min="0" max="100" @bind="_seaSlider" @bind:after="UpdateSeaLevel" style="accent-color:#00bcd4;">
+        </div>
+        <div class="climate-slider-group">
+            <div class="slider-header"><span>Karbon Fiyati</span><span>EUR@(_carbonPrice)/tCO2</span></div>
+            <input type="range" min="0" max="200" @bind="_carbonSlider" @bind:after="UpdateCarbonPrice" style="accent-color:#9c27b0;">
+        </div>
+
+        <label style="margin-top:0.5rem;">Lokasyon</label>
+        <input type="number" step="0.01" placeholder="Enlem" @bind="_input.Latitude" style="display:inline-block;width:48%;">
+        <input type="number" step="0.01" placeholder="Boylam" @bind="_input.Longitude" style="display:inline-block;width:48%;margin-left:4%;">
+        <input type="text" placeholder="Lokasyon Adi" @bind="_input.LocationName">
+
+        <label>Yaricap</label>
+        <div class="climate-radius-btns">
+            <div class="climate-radius-btn @(_input.RadiusKm == 10 ? "active" : "")" @onclick="() => _input.RadiusKm = 10">10 km</div>
+            <div class="climate-radius-btn @(_input.RadiusKm == 25 ? "active" : "")" @onclick="() => _input.RadiusKm = 25">25 km</div>
+            <div class="climate-radius-btn @(_input.RadiusKm == 50 ? "active" : "")" @onclick="() => _input.RadiusKm = 50">50 km</div>
+        </div>
+
+        <button class="climate-analyze-btn" @onclick="RunAnalysis" disabled="@_running">
+            @(_running ? "Analiz Ediliyor..." : "Analiz Et")
+        </button>
+
+        <div class="climate-upload-area" @onclick="TriggerFileUpload">
+            Dosya Yukle (CSV/JSON)
+        </div>
+        <input id="climate-file-input" type="file" accept=".csv,.json" style="display:none;" @ref="_fileInputRef" @onchange="OnFileInputChange" />
+    </div>
+
+    <!-- Center: Map -->
+    <div class="climate-map-container">
+        <div class="map-header">
+            <span>Interaktif Risk Haritasi</span>
+            <div class="drill-down-btns">
+                <div class="drill-down-btn @(_mapLevel == 0 ? "active" : "")" @onclick="() => SetMapLevel(0)">Ulke</div>
+                <div class="drill-down-btn @(_mapLevel == 1 ? "active" : "")" @onclick="() => SetMapLevel(1)">Bolge</div>
+            </div>
+        </div>
+        <div id="climate-geo-map" style="width:100%;height:100%;min-height:450px;padding-top:35px;"></div>
+        <div class="map-legend">
+            <div>Risk Seviyesi</div>
+            <div class="legend-items">
+                <div class="legend-item"><div class="legend-color" style="background:#22c55e;"></div><span>Dusuk</span></div>
+                <div class="legend-item"><div class="legend-color" style="background:#f59e0b;"></div><span>Orta</span></div>
+                <div class="legend-item"><div class="legend-color" style="background:#ef4444;"></div><span>Yuksek</span></div>
+                <div class="legend-item"><div class="legend-color" style="background:#991b1b;"></div><span>Cok Yuksek</span></div>
+            </div>
+        </div>
+        <div class="map-controls">
+            <button @onclick="ZoomIn">+</button>
+            <button @onclick="ZoomOut">−</button>
+            <button @onclick="ResetZoom">⌂</button>
+        </div>
+    </div>
+
+    <!-- Right: Charts Panel -->
+    <div class="climate-charts-panel">
+        <div class="climate-chart-card">
+            <div class="chart-title">Risk Dagilimi</div>
+            <div id="climate-risk-pie" class="chart-container" style="min-height:140px;"></div>
+        </div>
+
+        <div class="climate-chart-card">
+            <div class="chart-title">Ekonomik Etki (Milyon $)</div>
+            <div id="climate-economic-bar" class="chart-container" style="min-height:130px;"></div>
+        </div>
+
+        <div class="climate-chart-card">
+            <div class="chart-title">Senaryo Karsilastirma</div>
+            <div id="climate-scenario-line" class="chart-container" style="min-height:120px;"></div>
+        </div>
+
+        <div class="climate-chart-card">
+            <div class="chart-title">Su Stresi Endeksi (WRI)</div>
+            <div id="climate-water-gauge" class="chart-container" style="min-height:100px;"></div>
+        </div>
+
+        @if (_assessment != null)
+        {
+            <div class="climate-chart-card" style="text-align:center;">
+                <div class="chart-title">Politika Karari (Intentum)</div>
+                <div style="padding:0.5rem;border-radius:6px;background:@GetPolicyColor();color:white;font-weight:700;font-size:1rem;">
+                    @GetPolicyDecision()
+                </div>
+                <div style="font-size:0.65rem;color:#8b949e;margin-top:4px;">@GetPolicyDescription()</div>
+            </div>
+        }
+
+        <div class="climate-chart-card">
+            <div class="chart-title">Canli Trendler</div>
+            <div style="font-size:0.7rem;">
+                @if (_trends?.co2 != null)
+                {
+                    <div style="display:flex;justify-content:space-between;margin-bottom:3px;">
+                        <span style="color:#8b949e;">CO2</span>
+                        <span style="color:#f44336;">@(_trends.co2.current_value) ppm</span>
+                    </div>
+                }
+                @if (_trends?.sea_level != null)
+                {
+                    <div style="display:flex;justify-content:space-between;margin-bottom:3px;">
+                        <span style="color:#8b949e;">Deniz Seviyesi</span>
+                        <span style="color:#ff9800;">+@(_trends.sea_level.current_rate_mm_per_year) mm/yil</span>
+                    </div>
+                }
+                @if (_trends?.temperature_anomaly != null)
+                {
+                    <div style="display:flex;justify-content:space-between;">
+                        <span style="color:#8b949e;">Ort. Sicaklik</span>
+                        <span style="color:#f44336;">+@(_trends.temperature_anomaly.current_value) C</span>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+</div>

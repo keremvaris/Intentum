@@ -168,3 +168,82 @@ window.initIntentumGeoMap = function (elementId) {
   setTimeout(function () { chart.resize(); }, 80);
   return true;
 };
+
+// Climate Risk Map - register custom GeoJSON and render choropleth
+window.setClimateRiskMap = async function(elementId, geoJson, riskData, mapName) {
+  var el = document.getElementById(elementId);
+  if (!el || typeof echarts === 'undefined') return false;
+  try { echarts.registerMap(mapName, geoJson); } catch(e) { }
+  var chart = echarts.getInstanceByDom(el) || echarts.init(el);
+  var option = {
+    tooltip: { trigger: 'item', formatter: function(params) { return params.name + '<br/>Risk: ' + (params.value || 'N/A'); } },
+    visualMap: { min: 0, max: 5, left: 'left', bottom: 20, text: ['Yüksek', 'Düşük'], inRange: { color: ['#22c55e', '#f59e0b', '#ef4444', '#991b1b'] }, calculable: true },
+    series: [{ name: mapName, type: 'map', map: mapName, roam: true, emphasis: { label: { show: true, fontSize: 10 }, itemStyle: { areaColor: '#3b82f6' } }, label: { show: false, fontSize: 8 }, data: riskData || [] }]
+  };
+  chart.setOption(option);
+  return true;
+};
+
+window.setFactoryMarker = function(elementId, lat, lng, radiusKm, label, riskColor) {
+  var el = document.getElementById(elementId);
+  if (!el || typeof echarts === 'undefined') return false;
+  var chart = echarts.getInstanceByDom(el);
+  if (!chart) return false;
+  var radiusDeg = radiusKm / 111.32;
+  chart.setOption({
+    series: [{
+      type: 'effectScatter', coordinateSystem: 'geo',
+      data: [{ name: label || 'Target', value: [lng, lat, 50], itemStyle: { color: riskColor || '#ef4444' } }],
+      symbolSize: 12, rippleEffect: { brushType: 'stroke', scale: 3 }
+    },
+    {
+      type: 'scatter', coordinateSystem: 'geo',
+      data: generateCirclePoints(lat, lng, radiusDeg, 60),
+      symbolSize: 2, itemStyle: { color: riskColor || 'rgba(239,68,68,0.5)' }, silent: true
+    }]
+  });
+  return true;
+};
+
+function generateCirclePoints(centerLat, centerLng, radiusDeg, points) {
+  var result = [];
+  for (var i = 0; i <= points; i++) {
+    var angle = (i / points) * 2 * Math.PI;
+    var lat = centerLat + radiusDeg * Math.cos(angle);
+    var lng = centerLng + (radiusDeg * Math.cos(centerLat * Math.PI / 180)) * Math.sin(angle);
+    result.push([lng, lat]);
+  }
+  return result;
+}
+
+window.initClimateGeoMap = async function(elementId) {
+  var el = document.getElementById(elementId);
+  if (!el || typeof echarts === 'undefined') return false;
+  if (window.IntentumECharts.instances[elementId]) return true;
+  var worldJson = null;
+  var urls = [
+    'https://echarts.apache.org/examples/data/asset/geo/world.json',
+    'https://fastly.jsdelivr.net/npm/echarts@5/map/json/world.json',
+    'https://cdn.jsdelivr.net/npm/echarts@5.4.3/map/json/world.json'
+  ];
+  for (var i = 0; i < urls.length; i++) {
+    try { var resp = await fetch(urls[i]); if (resp.ok) { worldJson = await resp.json(); break; } } catch(e) { continue; }
+  }
+  if (!worldJson) { console.warn('Failed to load world.json'); return false; }
+  echarts.registerMap('world', worldJson);
+  var chart = echarts.init(el);
+  window.IntentumECharts.instances[elementId] = chart;
+  chart.setOption({
+    tooltip: { trigger: 'item' },
+    visualMap: { min: 0, max: 5, left: 'left', bottom: 20, text: ['Yüksek', 'Düşük'], inRange: { color: ['#22c55e', '#f59e0b', '#ef4444', '#991b1b'] }, calculable: true },
+    series: [{ name: 'World Risk', type: 'map', map: 'world', roam: true, emphasis: { label: { show: true } }, data: [] }]
+  });
+  return true;
+};
+
+window.updateClimateWorldMap = function(elementId, riskData) {
+  var chart = window.IntentumECharts.instances[elementId];
+  if (!chart) return false;
+  chart.setOption({ series: [{ data: riskData || [] }] });
+  return true;
+};
