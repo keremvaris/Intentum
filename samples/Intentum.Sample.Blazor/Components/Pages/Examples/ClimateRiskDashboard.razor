@@ -149,39 +149,35 @@
         <div class="map-header">
             @if (_mapLevel == 1)
             {
-                <span style="cursor:pointer;color:#60a5fa;" @onclick="MapBackToWorld">← Dunya</span>
-                <span style="margin:0 6px;color:#475569;">/</span>
-                <span>@_currentCountryName Bölgeleri</span>
+                <span style="cursor:pointer;color:#60a5fa;font-weight:600;" @onclick="MapBackToWorld">← Dünya</span>
+                <span style="margin:0 4px;color:#475569;">/</span>
+                <span style="color:#e2e8f0;">@_currentCountryName</span>
             }
             else
             {
-                <span>Interaktif Risk Haritasi</span>
+                <span style="color:#e2e8f0;">Interaktif Risk Haritası</span>
             }
-            <div class="drill-down-btns">
-                @if (_mapLevel == 1)
-                {
-                    <div class="drill-down-btn active">Bolge</div>
-                }
-                else
-                {
-                    <div class="drill-down-btn active">Ulke</div>
-                }
-            </div>
+            @if (_selectedProfile != null)
+            {
+                <span style="margin-left:auto;font-size:0.7rem;color:#94a3b8;">
+                    📍 @_selectedProfile.Name — @_selectedProfile.LocationName
+                </span>
+            }
         </div>
         <div id="climate-geo-map" style="width:100%;height:100%;min-height:450px;padding-top:35px;"></div>
         <div class="map-legend">
-            <div>Risk Seviyesi</div>
+            <div style="color:#94a3b8;font-size:0.65rem;margin-bottom:4px;">Risk Seviyesi</div>
             <div class="legend-items">
-                <div class="legend-item"><div class="legend-color" style="background:#22c55e;"></div><span>Dusuk</span></div>
+                <div class="legend-item"><div class="legend-color" style="background:#22c55e;"></div><span>Düşük</span></div>
                 <div class="legend-item"><div class="legend-color" style="background:#f59e0b;"></div><span>Orta</span></div>
-                <div class="legend-item"><div class="legend-color" style="background:#ef4444;"></div><span>Yuksek</span></div>
-                <div class="legend-item"><div class="legend-color" style="background:#991b1b;"></div><span>Cok Yuksek</span></div>
+                <div class="legend-item"><div class="legend-color" style="background:#ef4444;"></div><span>Yüksek</span></div>
+                <div class="legend-item"><div class="legend-color" style="background:#991b1b;"></div><span>Çok Yüksek</span></div>
             </div>
         </div>
         <div class="map-controls">
-            <button @onclick="ZoomIn">+</button>
-            <button @onclick="ZoomOut">−</button>
-            <button @onclick="ResetZoom">⌂</button>
+            <button @onclick="ZoomIn" title="Yakınlaş">+</button>
+            <button @onclick="ZoomOut" title="Uzaklaş">−</button>
+            <button @onclick="ResetZoom" title="Sıfırla">⌂</button>
         </div>
     </div>
 

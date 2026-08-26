@@ -170,66 +170,62 @@ window.setIntentumGeoMapData = async function (elementId, normalLng, normalLat, 
 };
 
 // ============================================================
-// CLIMATE RISK MAP — Drill-Down: Ülke > Bölge/İl + Fabrika
+// CLIMATE RISK MAP — Redesigned: Clean hierarchy, consistent markers
 // ============================================================
 window.ClimateMap = {
   instance: null,
   elementId: null,
-  currentLevel: 'world',
-  currentCountry: null,
-  currentCountryName: null,
-  worldRiskData: [],
-  factoryMarker: null,
+  level: 'world',        // 'world' | 'country'
+  countryIso3: null,
+  countryName: null,
+  riskData: [],          // world risk data [{name, value, iso3}]
+  location: null,        // {lat, lng, label, color, radiusKm}
   _initialized: false,
 
   init: async function(elementId) {
     this.elementId = elementId;
     var el = document.getElementById(elementId);
-    if (!el || typeof echarts === 'undefined') {
-      console.warn('[ClimateMap] ECharts or element missing');
-      return false;
-    }
-    // Load world.json from local wwwroot
+    if (!el || typeof echarts === 'undefined') return false;
+
+    // Load world.json
     var worldJson = null;
     var urls = ['/data/world.json', '/world.json'];
     for (var i = 0; i < urls.length; i++) {
       try {
         var r = await fetch(urls[i]);
-        if (r.ok) { worldJson = await r.json(); console.log('[ClimateMap] world.json loaded from ' + urls[i]); break; }
-        else console.warn('[ClimateMap] world.json fetch ' + urls[i] + ' -> ' + r.status);
-      } catch(e) { console.warn('[ClimateMap] world.json fetch error ' + urls[i], e); }
+        if (r.ok) { worldJson = await r.json(); break; }
+      } catch(e) {}
     }
     if (!worldJson) {
-      el.innerHTML = '<div style="color:#ef4444;padding:20px;text-align:center;">Harita yüklenemedi (world.json bulunamadı)</div>';
+      el.innerHTML = '<div style="color:#ef4444;padding:20px;text-align:center;">Harita yüklenemedi</div>';
       return false;
     }
-    try { echarts.registerMap('world', worldJson); } catch(e) { console.warn('[ClimateMap] registerMap world error', e); }
+    try { echarts.registerMap('world', worldJson); } catch(e) {}
 
     if (this.instance) { try { this.instance.dispose(); } catch(e){} }
     this.instance = echarts.init(el);
-    this.currentLevel = 'world';
+    this.level = 'world';
     this._initialized = true;
-    this._bindWorldClick();
-    this.renderWorldView();
-    console.log('[ClimateMap] init done');
+    this._bindClicks();
+    this._renderWorld();
     return true;
   },
 
-  _bindWorldClick: function() {
+  _bindClicks: function() {
     var self = this;
     if (!this.instance) return;
     this.instance.off('click');
     this.instance.on('click', function(params) {
-      if (self.currentLevel === 'world' && params.componentType === 'series' && params.seriesType === 'map') {
-        var countryName = params.name;
-        var iso3 = self._getIso3FromName(countryName);
-        console.log('[ClimateMap] world click:', countryName, '->', iso3);
+      if (params.componentType !== 'series' || params.seriesType !== 'map') return;
+
+      if (self.level === 'world') {
+        // Click on country → drill down
+        var iso3 = self._nameToIso3(params.name);
         if (iso3) {
-          self.drillDown(iso3, countryName);
-        } else {
-          console.warn('[ClimateMap] ISO3 not found for', countryName);
+          self._drillToCountry(iso3, params.name);
         }
-      } else if (self.currentLevel === 'country' && params.componentType === 'series') {
+      } else if (self.level === 'country') {
+        // Click on province → notify Blazor
         if (window.DotNetClimateMap) {
           window.DotNetClimateMap.invokeMethodAsync('OnProvinceClicked', params.name);
         }
@@ -237,11 +233,14 @@ window.ClimateMap = {
     });
   },
 
-  renderWorldView: function() {
+  // ── WORLD VIEW ──────────────────────────────────────────────
+  _renderWorld: function() {
     if (!this.instance) return;
-    this.currentLevel = 'world';
-    var riskData = this.worldRiskData || [];
-    console.log('[ClimateMap] renderWorldView with', riskData.length, 'countries');
+    this.level = 'world';
+
+    var data = (this.riskData || []).map(function(d) {
+      return { name: d.name, value: d.value, iso3: d.iso3 };
+    });
 
     this.instance.setOption({
       backgroundColor: 'transparent',
@@ -250,29 +249,26 @@ window.ClimateMap = {
         confine: true,
         formatter: function(params) {
           if (params.seriesType !== 'map') return params.name;
-          var d = null;
-          for (var i = 0; i < riskData.length; i++) { if (riskData[i].name === params.name) { d = riskData[i]; break; } }
+          var d = data.find(function(x) { return x.name === params.name; });
           var score = d ? d.value : null;
           if (score == null) return '<b>' + params.name + '</b><br/>Veri yok';
-          var level = score > 4 ? 'Çok Yüksek' : score > 3 ? 'Yüksek' : score > 2 ? 'Orta' : 'Düşük';
-          return '<b>' + params.name + '</b><br/>Su Stresi: ' + score + '/5<br/>Seviye: ' + level + '<br/><i style="color:#60a5fa;">Detay için tıklayın</i>';
+          var level = score > 4 ? 'Cok Yuksek' : score > 3 ? 'Yuksek' : score > 2 ? 'Orta' : 'Dusuk';
+          return '<b>' + params.name + '</b><br/>Su Stresi: ' + score + '/5 (' + level + ')';
         }
       },
       visualMap: {
         min: 0, max: 5,
-        left: 'left', bottom: 15,
-        text: ['Yüksek', 'Düşük'],
+        left: 'left', bottom: 10,
+        text: ['Yuksek', 'Dusuk'],
         textStyle: { color: '#94a3b8', fontSize: 10 },
         inRange: { color: ['#22c55e', '#84cc16', '#f59e0b', '#ef4444', '#991b1b'] },
-        calculable: true,
-        show: true
+        calculable: true
       },
       geo: {
         map: 'world',
         roam: true,
         zoom: 1.1,
         center: [25, 30],
-        selectedMode: false,
         itemStyle: { areaColor: '#1e293b', borderColor: '#334155', borderWidth: 0.5 },
         emphasis: {
           itemStyle: { areaColor: '#334155', borderColor: '#60a5fa', borderWidth: 1.2 },
@@ -280,99 +276,66 @@ window.ClimateMap = {
         }
       },
       series: [{
-        name: 'Risk Haritası',
+        name: 'Risk Haritasi',
         type: 'map',
         map: 'world',
         roam: false,
         zoom: 1.1,
         center: [25, 30],
-        selectedMode: false,
         label: { show: false },
         itemStyle: { areaColor: '#1e293b', borderColor: '#334155', borderWidth: 0.5 },
         emphasis: {
           label: { show: false },
           itemStyle: { areaColor: '#334155' }
         },
-        data: riskData
+        data: data
       }]
     }, true);
 
-    this._bindWorldClick();
-    if (this.factoryMarker) {
-      var self = this;
-      setTimeout(function(){ self.showFactory(); }, 150);
-    }
+    this._bindClicks();
+    this._showLocationMarker();
   },
 
   updateRiskData: function(riskData) {
-    console.log('[ClimateMap] updateRiskData', (riskData||[]).length);
-    this.worldRiskData = riskData || [];
-    if (this.currentLevel === 'world' && this._initialized) this.renderWorldView();
+    this.riskData = riskData || [];
+    if (this.level === 'world' && this._initialized) this._renderWorld();
   },
 
-  _nameToIso3: {
-    'South Korea': 'KOR', 'North Korea': 'PRK', 'Czech Republic': 'CZE',
-    'Dominican Republic': 'DOM', 'South Sudan': 'SSD', 'Laos': 'LAO',
-    'Bosnia and Herz.': 'BIH', 'Bosnia and Herzegovina': 'BIH',
-    'Republic of the Congo': 'COG', 'Republic of Congo': 'COG',
-    'Dem. Rep. Congo': 'COD', 'Democratic Republic of the Congo': 'COD',
-    'Central African Rep.': 'CAF', 'Central African Republic': 'CAF',
-    "Côte d'Ivoire": 'CIV', "Ivory Coast": 'CIV',
-    'Eq. Guinea': 'GNQ', 'Equatorial Guinea': 'GNQ',
-    'Antigua and Barb.': 'ATG', 'Antigua and Barbuda': 'ATG',
-    'Saint Kitts and Nevis': 'KNA', 'St. Kitts and Nevis': 'KNA',
-    'San Marino': 'SMR'
-  },
-
-  _getIso3FromName: function(name) {
-    if (this._nameToIso3[name]) return this._nameToIso3[name];
-    var n = name.toLowerCase();
-    var map = {
-      'turkey': 'TUR', 'united states of america': 'USA', 'united states': 'USA',
-      'united kingdom': 'GBR', 'germany': 'DEU', 'france': 'FRA', 'italy': 'ITA',
-      'china': 'CHN', 'india': 'IND', 'japan': 'JPN', 'brazil': 'BRA',
-      'russia': 'RUS', 'canada': 'CAN', 'australia': 'AUS', 'south africa': 'ZAF',
-      'saudi arabia': 'SAU', 'spain': 'ESP', 'mexico': 'MEX', 'indonesia': 'IDN'
-    };
-    return map[n] || '';
-  },
-
-  drillDown: async function(iso3, countryName) {
-    console.log('[ClimateMap] drillDown', iso3, countryName);
+  // ── COUNTRY DRILL-DOWN ──────────────────────────────────────
+  _drillToCountry: async function(iso3, countryName) {
     if (!this.instance) return;
-    this.currentLevel = 'country';
-    this.currentCountry = iso3;
-    this.currentCountryName = countryName;
+    this.level = 'country';
+    this.countryIso3 = iso3;
+    this.countryName = countryName;
 
+    // Fetch GADM level 1
     var geoJson = null;
     try {
       var resp = await fetch('/data/gadm/gadm41_' + iso3 + '_1.json');
-      console.log('[ClimateMap] GADM fetch /data/gadm/gadm41_' + iso3 + '_1.json ->', resp.status);
       if (resp.ok) geoJson = await resp.json();
-    } catch(e) { console.warn('[ClimateMap] GADM fetch error:', e); }
+    } catch(e) {}
 
     if (!geoJson || !geoJson.features || geoJson.features.length === 0) {
-      console.warn('[ClimateMap] GADM level 1 not found for ' + iso3 + ', staying on world view');
-      this.currentLevel = 'world';
-      this.currentCountry = null;
-      // Fallback: just zoom to country area on world map if GADM missing, and show factory
-      if (this.factoryMarker) {
+      // Fallback: zoom to country on world map
+      this.level = 'world';
+      this.countryIso3 = null;
+      this.countryName = null;
+      if (this.location) {
         this.instance.setOption({
-          geo: { center: [this.factoryMarker.lng, this.factoryMarker.lat], zoom: 4 },
-          series: [{ center: [this.factoryMarker.lng, this.factoryMarker.lat], zoom: 4 }]
+          geo: { center: [this.location.lng, this.location.lat], zoom: 5 },
+          series: [{ center: [this.location.lng, this.location.lat], zoom: 5 }]
         });
-        this.showFactory();
+        this._showLocationMarker();
       }
       return;
     }
 
     var mapName = 'gadm_' + iso3 + '_1';
-    try { echarts.registerMap(mapName, geoJson); console.log('[ClimateMap] registered', mapName); } catch(e) { console.warn('[ClimateMap] registerMap error:', e); }
+    try { echarts.registerMap(mapName, geoJson); } catch(e) {}
 
-    // Calculate bounds for centering
+    // Calculate bounds
     var minLng = Infinity, maxLng = -Infinity, minLat = Infinity, maxLat = -Infinity;
     geoJson.features.forEach(function(f) {
-      var coords = f.geometry.coordinates;
       function scan(arr) {
         if (typeof arr[0] === 'number') {
           if (arr[0] < minLng) minLng = arr[0];
@@ -381,16 +344,33 @@ window.ClimateMap = {
           if (arr[1] > maxLat) maxLat = arr[1];
         } else { arr.forEach(scan); }
       }
-      scan(coords);
+      scan(f.geometry.coordinates);
     });
     var centerLng = (minLng + maxLng) / 2;
     var centerLat = (minLat + maxLat) / 2;
     var span = Math.max(maxLng - minLng, maxLat - minLat);
     var zoom = span > 30 ? 1.2 : span > 15 ? 2 : span > 8 ? 3 : span > 4 ? 4.5 : 6;
-    console.log('[ClimateMap] bounds', minLng, maxLng, minLat, maxLat, 'center', centerLng, centerLat, 'zoom', zoom);
 
+    // Country risk baseline
+    var countryRisk = 2.5;
+    for (var r = 0; r < this.riskData.length; r++) {
+      if (this.riskData[r].iso3 === iso3 || this.riskData[r].name === countryName) {
+        countryRisk = this.riskData[r].value || 2.5;
+        break;
+      }
+    }
+
+    // Province risk with variation
     var provinces = geoJson.features.map(function(f, idx) {
-      return { name: f.properties.NAME_1, value: parseFloat((1 + (idx % 5) * 0.8).toFixed(1)) };
+      var name = f.properties.NAME_1 || ('Province ' + idx);
+      var hash = 0;
+      for (var c = 0; c < name.length; c++) {
+        hash = ((hash << 5) - hash) + name.charCodeAt(c);
+        hash = hash & hash;
+      }
+      var variation = ((Math.abs(hash % 1000) / 1000) - 0.5) * 2.0;
+      var risk = Math.max(0.3, Math.min(5.0, countryRisk + variation));
+      return { name: name, value: parseFloat(risk.toFixed(1)) };
     });
 
     this.instance.setOption({
@@ -405,19 +385,17 @@ window.ClimateMap = {
       },
       visualMap: {
         min: 0, max: 5,
-        left: 'left', bottom: 15,
-        text: ['Yüksek', 'Düşük'],
+        left: 'left', bottom: 10,
+        text: ['Yuksek', 'Dusuk'],
         textStyle: { color: '#94a3b8', fontSize: 10 },
         inRange: { color: ['#22c55e', '#84cc16', '#f59e0b', '#ef4444', '#991b1b'] },
-        calculable: true,
-        show: true
+        calculable: true
       },
       geo: {
         map: mapName,
         roam: true,
         center: [centerLng, centerLat],
         zoom: zoom,
-        selectedMode: false,
         itemStyle: { areaColor: '#1e293b', borderColor: '#475569', borderWidth: 0.8 },
         emphasis: {
           itemStyle: { areaColor: '#1e3a5f', borderColor: '#60a5fa', borderWidth: 1.5 },
@@ -425,136 +403,123 @@ window.ClimateMap = {
         }
       },
       series: [{
-        name: countryName + ' Bölgeleri',
+        name: countryName,
         type: 'map',
         map: mapName,
         roam: false,
         center: [centerLng, centerLat],
         zoom: zoom,
-        label: { show: true, fontSize: 8, color: '#94a3b8' },
+        label: { show: true, fontSize: 9, color: '#94a3b8' },
         itemStyle: { areaColor: '#1e293b', borderColor: '#475569', borderWidth: 0.8 },
         emphasis: {
-          label: { show: true, color: '#fff', fontSize: 10 },
+          label: { show: true, color: '#fff', fontSize: 11 },
           itemStyle: { areaColor: '#3b82f6' }
         },
         data: provinces
       }]
     }, true);
 
-    var self = this;
-    this.instance.off('click');
-    this.instance.on('click', function(params) {
-      if (params.componentType === 'series' && params.seriesType === 'map') {
-        console.log('[ClimateMap] province click', params.name);
-        if (window.DotNetClimateMap) {
-          window.DotNetClimateMap.invokeMethodAsync('OnProvinceClicked', params.name);
-        }
-      }
-    });
-
-    if (this.factoryMarker) {
-      setTimeout(function(){ self.showFactory(); }, 150);
-    }
+    this._bindClicks();
+    this._showLocationMarker();
 
     if (window.DotNetClimateMap) {
       window.DotNetClimateMap.invokeMethodAsync('OnCountryDrillDown', iso3, countryName);
     }
   },
 
+  // ── BACK TO WORLD ───────────────────────────────────────────
   goBack: function() {
-    if (this.currentLevel === 'country') {
-      console.log('[ClimateMap] goBack to world');
-      this.currentCountry = null;
-      this.currentCountryName = null;
-      this.renderWorldView();
+    if (this.level === 'country') {
+      this.countryIso3 = null;
+      this.countryName = null;
+      this._renderWorld();
       if (window.DotNetClimateMap) {
         window.DotNetClimateMap.invokeMethodAsync('OnMapBackToWorld');
       }
     }
   },
 
-  // Factory marker: effectScatter + dairesel polygon + doğrudan zoom
-  showFactory: function() {
-    if (!this.instance || !this.factoryMarker) {
-      console.log('[ClimateMap] showFactory: no instance or marker');
-      return;
-    }
-    var f = this.factoryMarker;
-    console.log('[ClimateMap] showFactory', f);
-    var radiusDeg = (f.radiusKm || 10) / 111.0;
+  // ── LOCATION MARKER ─────────────────────────────────────────
+  _showLocationMarker: function() {
+    if (!this.instance || !this.location) return;
+    var loc = this.location;
+    var color = loc.color || '#ef4444';
+    var label = loc.label || 'Konum';
+    var radiusDeg = (loc.radiusKm || 10) / 111.0;
+
+    // Circle points
     var circlePoints = [];
     for (var i = 0; i <= 64; i++) {
       var angle = (i / 64) * 2 * Math.PI;
       var dLat = radiusDeg * Math.cos(angle);
-      var dLng = radiusDeg * Math.sin(angle) / Math.cos(f.lat * Math.PI / 180);
-      circlePoints.push([f.lng + dLng, f.lat + dLat]);
+      var dLng = radiusDeg * Math.sin(angle) / Math.cos(loc.lat * Math.PI / 180);
+      circlePoints.push([loc.lng + dLng, loc.lat + dLat]);
     }
-    // polygon line for radius
+
+    // Circle lines
     var lineData = [];
     for (var j = 0; j < circlePoints.length - 1; j++) {
       lineData.push({ coords: [circlePoints[j], circlePoints[j+1]] });
     }
 
-    var geoName = this.currentLevel === 'country' ? ('gadm_' + this.currentCountry + '_1') : 'world';
-    console.log('[ClimateMap] showFactory geo', geoName);
-
-    // Use setOption with merge to keep map, add overlay series
-    this.instance.setOption({
-      series: [
-        // keep existing map series is handled by notMerge=false; we append factory series via extra setOption
-      ]
-    });
-
-    // Add factory series as overlay (merge)
+    // Get existing non-factory series
     var opt = this.instance.getOption();
-    // ECharts getOption returns series array; we re-set with factory appended
-    // For simplicity, append two series for factory
     var currentSeries = opt.series || [];
-    // Remove old factory series
     var baseSeries = [];
     for (var k = 0; k < currentSeries.length; k++) {
-      if (currentSeries[k].name !== 'factory' && currentSeries[k].name !== 'factory-radius') baseSeries.push(currentSeries[k]);
+      if (currentSeries[k].name !== 'location' && currentSeries[k].name !== 'location-radius') {
+        baseSeries.push(currentSeries[k]);
+      }
     }
+
+    // Add location marker
     baseSeries.push({
-      name: 'factory',
+      name: 'location',
       type: 'effectScatter',
       coordinateSystem: 'geo',
       geoIndex: 0,
-      data: [{ name: f.label || 'Fabrika', value: [f.lng, f.lat, 1], itemStyle: { color: f.color || '#ef4444' } }],
-      symbolSize: 16,
+      data: [{ name: label, value: [loc.lng, loc.lat, 1], itemStyle: { color: color } }],
+      symbolSize: 14,
       rippleEffect: { brushType: 'stroke', scale: 4, period: 3 },
-      label: { show: true, formatter: f.label || 'Fabrika', position: 'right', color: '#f1f5f9', fontSize: 12, fontWeight: 'bold', backgroundColor: 'rgba(15,23,42,0.8)', padding: [3,6], borderRadius: 4 },
+      label: {
+        show: true,
+        formatter: label,
+        position: 'right',
+        color: '#f1f5f9',
+        fontSize: 11,
+        fontWeight: 'bold',
+        backgroundColor: 'rgba(15,23,42,0.85)',
+        padding: [4, 8],
+        borderRadius: 4,
+        borderColor: color,
+        borderWidth: 1
+      },
       zlevel: 5
     });
+
+    // Add radius circle
     baseSeries.push({
-      name: 'factory-radius',
+      name: 'location-radius',
       type: 'lines',
       coordinateSystem: 'geo',
       geoIndex: 0,
       polyline: false,
-      lineStyle: { color: f.color || '#ef4444', width: 1.5, opacity: 0.6, type: 'dashed' },
+      lineStyle: { color: color, width: 1.5, opacity: 0.5, type: 'dashed' },
       effect: { show: false },
       data: lineData,
       zlevel: 4,
       silent: true
     });
+
     this.instance.setOption({ series: baseSeries });
-
-    // Center map on factory if world level, keep factory in view
-    if (this.currentLevel === 'world') {
-      this.instance.setOption({
-        geo: { center: [f.lng, f.lat], zoom: 5 },
-        series: [{ center: [f.lng, f.lat], zoom: 5 }]
-      });
-    }
   },
 
-  setFactory: function(lat, lng, radiusKm, label, color) {
-    console.log('[ClimateMap] setFactory', lat, lng, radiusKm, label, color);
-    this.factoryMarker = { lat: lat, lng: lng, radiusKm: radiusKm, label: label, color: color };
-    if (this.instance) this.showFactory();
+  setLocation: function(lat, lng, radiusKm, label, color) {
+    this.location = { lat: lat, lng: lng, radiusKm: radiusKm, label: label, color: color };
+    if (this.instance) this._showLocationMarker();
   },
 
+  // ── NAVIGATION ──────────────────────────────────────────────
   zoomIn: function() {
     if (!this.instance) return;
     var opt = this.instance.getOption();
@@ -573,27 +538,50 @@ window.ClimateMap = {
 
   resetZoom: function() {
     if (!this.instance) return;
-    if (this.currentLevel === 'world') {
+    if (this.level === 'world') {
       this.instance.setOption({ geo: { center: [25, 30], zoom: 1.1 }, series: [{ center: [25, 30], zoom: 1.1 }] });
-    } else if (this.currentCountry) {
-      this.drillDown(this.currentCountry, this.currentCountryName || this.currentCountry);
+    } else if (this.countryIso3) {
+      this._drillToCountry(this.countryIso3, this.countryName || this.countryIso3);
     }
   },
 
-  focusFactory: function() {
-    if (!this.instance || !this.factoryMarker) return;
-    var f = this.factoryMarker;
+  focusLocation: function() {
+    if (!this.instance || !this.location) return;
+    var loc = this.location;
     this.instance.setOption({
-      geo: { center: [f.lng, f.lat], zoom: 6 }
+      geo: { center: [loc.lng, loc.lat], zoom: 6 }
     });
-    this.showFactory();
+    this._showLocationMarker();
+  },
+
+  // ── ISO3 MAPPING ────────────────────────────────────────────
+  _nameToIso3: function(name) {
+    var n = name.toLowerCase();
+    var map = {
+      'turkey': 'TUR', 'united states of america': 'USA', 'united states': 'USA',
+      'united kingdom': 'GBR', 'germany': 'DEU', 'france': 'FRA', 'italy': 'ITA',
+      'china': 'CHN', 'india': 'IND', 'japan': 'JPN', 'brazil': 'BRA',
+      'russia': 'RUS', 'canada': 'CAN', 'australia': 'AUS', 'south africa': 'ZAF',
+      'saudi arabia': 'SAU', 'spain': 'ESP', 'mexico': 'MEX', 'indonesia': 'IDN',
+      'south korea': 'KOR', 'north korea': 'PRK', 'czech republic': 'CZE',
+      'dominican republic': 'DOM', 'south sudan': 'SSD', 'laos': 'LAO',
+      'bosnia and Herz.': 'BIH', 'bosnia and herzegovina': 'BIH',
+      'republic of the congo': 'COG', 'republic of congo': 'COG',
+      'dem. rep. congo': 'COD', 'democratic republic of the congo': 'COD',
+      'central african rep.': 'CAF', 'central african republic': 'CAF',
+      "cote d'ivoire": 'CIV', "ivory coast": 'CIV',
+      'eq. guinea': 'GNQ', 'equatorial guinea': 'GNQ',
+      'antigua and barb.': 'ATG', 'antigua and baruda': 'ATG',
+      'saint kitts and nevis': 'KNA', 'st. kitts and nevis': 'KNA',
+      'san marino': 'SMR'
+    };
+    return map[n] || '';
   }
 };
 
 // Blazor callable functions
 window.registerDotNetClimateMap = function(dotNetRef) {
   window.DotNetClimateMap = dotNetRef;
-  console.log('[ClimateMap] DotNet registered');
 };
 
 window.unregisterDotNetClimateMap = function() {
@@ -610,17 +598,17 @@ window.updateClimateWorldMap = function(elementId, riskData) {
 };
 
 window.setFactoryMarkerOnMap = function(lat, lng, radiusKm, label, color) {
-  ClimateMap.setFactory(lat, lng, radiusKm, label, color);
+  ClimateMap.setLocation(lat, lng, radiusKm, label, color);
   return true;
 };
 
 window.focusFactoryOnMap = function() {
-  ClimateMap.focusFactory();
+  ClimateMap.focusLocation();
   return true;
 };
 
 window.drillDownCountry = function(iso3, name) {
-  ClimateMap.drillDown(iso3, name);
+  ClimateMap._drillToCountry(iso3, name);
   return true;
 };
 
