@@ -147,7 +147,7 @@ internal static class ProgramConfiguration
         builder.Services.AddSingleton<DigitalTwinService>();
         builder.Services.AddSingleton<CompanyProfileService>();
         builder.Services.AddSingleton<FinancialImpactEngine>();
-        builder.Services.AddSingleton<ScenarioComparisonEngine>();
+        builder.Services.AddScoped<ScenarioComparisonEngine>();
         builder.Services.AddSingleton<SustainabilitySimulationState>();
         builder.Services.AddSingleton<SustainabilityTimelineBroadcaster>();
         builder.Services.AddHostedService<SustainabilityTimelineService>();
