@@ -5,7 +5,7 @@ using Intentum.Core.Behavior;
 using Intentum.Core.Intents;
 using Intentum.Runtime.Engine;
 
-public sealed class RiskCalculationEngine
+public class RiskCalculationEngine
 {
     private readonly OpenMeteoService _openMeteo;
     private readonly WriAqueductService _wri;
@@ -21,7 +21,7 @@ public sealed class RiskCalculationEngine
         _climateMonitor = climateMonitor;
     }
 
-    public async Task<RiskAssessment> AssessAsync(
+    public virtual async Task<RiskAssessment> AssessAsync(
         RiskInput input, CancellationToken ct = default)
     {
         var projection = await _openMeteo.GetProjectionAsync(
