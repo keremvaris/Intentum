@@ -19,6 +19,10 @@ public sealed class ClimateRiskIntentModel : IIntentModel
         ["transition:technology"] = 0.10,
         ["transition:market"] = 0.09,
         ["transition:reputation"] = 0.06,
+        ["economic:cost_of_goods"] = 0.9,
+        ["economic:operational_expenses"] = 0.85,
+        ["economic:revenue_at_risk"] = 0.95,
+        ["economic:capital_expenditure"] = 0.8,
         ["economic:impact"] = 0.05
     };
 
