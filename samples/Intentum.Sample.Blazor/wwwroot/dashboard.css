@@ -1528,16 +1528,18 @@ body.dashboard-root { margin: 0; padding: 0; }
     border-radius: 4px;
     overflow: hidden;
     display: flex;
+    gap: 2px;
 }
 
 .impact-bar {
     height: 100%;
     transition: width 0.3s;
+    display: block;
 }
 
 .impact-bar.physical { background: #58a6ff; }
 .impact-bar.transition { background: #d29922; }
-.impact-bar.negative { opacity: 0.7; }
+.impact-bar.negative { opacity: 0.85; }
 
 .impact-category-total {
     width: 100px;

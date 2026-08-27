@@ -547,7 +547,9 @@ public sealed partial class ClimateRiskDashboard : IAsyncDisposable
             .SelectMany(c => new[] { Math.Abs(c.PhysicalImpact), Math.Abs(c.TransitionImpact) })
             .DefaultIfEmpty(1)
             .Max();
-        return $"{Math.Abs(value) / maxAbs * 100:F1}%";
+        var pct = Math.Abs(value) / maxAbs * 100;
+        // Çok küçük etkilerde bile bar görünür olsun diye min %6 taban kullan.
+        return pct <= 0.5 ? "0%" : $"{Math.Max(pct, 6):F1}%";
     }
 
     private string FormatCurrency(double amount) => amount switch

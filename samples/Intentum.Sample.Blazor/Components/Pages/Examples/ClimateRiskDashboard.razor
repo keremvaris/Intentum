@@ -441,26 +441,29 @@
                 </div>
             }
 
-            <!-- IPCC Risk Matrix: Tehlike × Varlık -->
-            @if (_assessment.HazardExposureMatrix != null)
+            <!-- IPCC Risk Matrix: Tehlike × Varlık & Tehlike × Senaryo -->
+            @if (_assessment.HazardExposureMatrix != null || _assessment.ScenarioMatrix != null)
             {
-                <div class="climate-chart-card">
-                    <div class="chart-title">🔥 Tehlike × Varlık Matrix</div>
-                    <div id="climate-hazard-exposure" class="chart-container" style="height:270px;"></div>
-                    <div style="font-size:0.58rem;color:#94a3b8;margin-top:6px;line-height:1.4;">
-                        Risk = Tehlike (İklim) × Maruziyet (Değer) × Kırılganlık (Hassasiyet/Uyum Kapasitesi)
+                <div class="climate-chart-card span-2">
+                    <div class="chart-title">📊 İklim Risk Matrix — Tehlike × (Varlık / Senaryo)</div>
+                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+                        @if (_assessment.HazardExposureMatrix != null)
+                        {
+                            <div style="min-width:0;">
+                                <div style="font-size:0.65rem;color:#94a3b8;margin-bottom:6px;">🔥 Tehlike × Varlık</div>
+                                <div id="climate-hazard-exposure" class="chart-container" style="height:280px;"></div>
+                            </div>
+                        }
+                        @if (_assessment.ScenarioMatrix != null)
+                        {
+                            <div style="min-width:0;">
+                                <div style="font-size:0.65rem;color:#94a3b8;margin-bottom:6px;">📈 Tehlike × Senaryo</div>
+                                <div id="climate-scenario-heat" class="chart-container" style="height:280px;"></div>
+                            </div>
+                        }
                     </div>
-                </div>
-            }
-
-            <!-- IPCC Risk Matrix: Tehlike × Senaryo -->
-            @if (_assessment.ScenarioMatrix != null)
-            {
-                <div class="climate-chart-card">
-                    <div class="chart-title">📈 Tehlike × Senaryo Matrix</div>
-                    <div id="climate-scenario-heat" class="chart-container" style="height:270px;"></div>
-                    <div style="font-size:0.58rem;color:#94a3b8;margin-top:6px;line-height:1.4;">
-                        Her senaryonun (SSP1-4) iklim tehlikesi üzerindeki bileşik riski
+                    <div style="font-size:0.58rem;color:#94a3b8;margin-top:8px;line-height:1.4;">
+                        Risk = Tehlike (İklim) × Maruziyet (Değer) × Kırılganlık (Hassasiyet / Uyum Kapasitesi). Senaryo matrix'i her SSP senaryosunun tehlikeler üzerindeki bileşik riskini gösterir.
                     </div>
                 </div>
             }
