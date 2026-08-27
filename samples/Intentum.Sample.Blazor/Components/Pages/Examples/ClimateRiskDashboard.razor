@@ -536,27 +536,44 @@
 
             <!-- Canlı Trendler -->
             <div class="climate-chart-card">
-                <div class="chart-title" data-tip="Küresel iklim göstergelerinin güncel değerleri: CO₂ konsantrasyonu (ppm), deniz seviyesi artış hızı (mm/yıl) ve ortalama sıcaklık anomalisi (°C). Gerçek zamanlı izleme verileridir.">Canli Trendler</div>
+                <div class="chart-title" data-tip="Küresel iklim göstergelerinin güncel değerleri (NOAA/NASA kaynaklı). CO₂ konsantrasyonu, deniz seviyesi artış hızı ve sıcaklık anomalisi. Veriler statik dosyadan yüklenir, periyodik olarak güncellenir.">Küresel İklim Göstergeleri</div>
                 <div style="display:flex;flex-direction:column;gap:8px;">
                     @if (_trends?.co2 != null)
                     {
-                        <div>
+                        <div data-tip="@(_trends.co2.source): 1960'tan bugüne artış. Endüstriyel sürecin başladığı döneme göre %33+ artış. Her 2,4 ppm artış ~yıl başına. İklim Diplomasisi kritik eşiği 450 ppm.">
                             <div style="font-size:0.55rem;color:#64748b;margin-bottom:2px;">CO₂ Konsantrasyonu</div>
-                            <div style="font-size:0.85rem;font-weight:700;color:#f44336;">@(_trends.co2.current_value) ppm</div>
+                            <div style="font-size:0.85rem;font-weight:700;color:#f44336;">@(_trends.co2.current_value.ToString("F2")) ppm</div>
+                            <div style="font-size:0.5rem;color:#64748b;">@(_trends.co2.trend == "increasing" ? "↑ Artış" : _trends.co2.trend) · @(_trends.co2.annual_change_ppm?.ToString("F1") ?? "?") ppm/yıl</div>
                         </div>
                     }
                     @if (_trends?.sea_level != null)
                     {
-                        <div>
+                        <div data-tip="@(_trends.sea_level.source): 1993'ten bu yana toplam +@(_trends.sea_level.total_rise_since_1993_mm?.ToString("F0") ?? "101")mm yükselme. Hızlanan trend: eriyen buzul ve termal genleşme. Kıyı tesisleri için doğrudan tehdit.">
                             <div style="font-size:0.55rem;color:#64748b;margin-bottom:2px;">Deniz Seviyesi Artışı</div>
-                            <div style="font-size:0.85rem;font-weight:700;color:#ff9800;">+@(_trends.sea_level.current_rate_mm_per_year) mm/yıl</div>
+                            <div style="font-size:0.85rem;font-weight:700;color:#ff9800;">+@(_trends.sea_level.current_rate_mm_per_year?.ToString("F1") ?? "3.6") mm/yıl</div>
+                            <div style="font-size:0.5rem;color:#64748b;">@(_trends.sea_level.trend == "accelerating" ? "↑ Hızlanan" : _trends.sea_level.trend) · 1993'ten beri toplam +@(_trends.sea_level.total_rise_since_1993_mm?.ToString("F0") ?? "101")mm</div>
                         </div>
                     }
                     @if (_trends?.temperature_anomaly != null)
                     {
-                        <div>
+                        <div data-tip="@(_trends.temperature_anomaly.source): 1850-1900 temeline göre sapma. Paris Anlaşması hedefi: 1,5°C altında tutmak. 1,45°C → hedefe çok yaklaşıldı. Sıcak dalgası, kuraklık ve sel olaylarını doğrudan etkiler.">
                             <div style="font-size:0.55rem;color:#64748b;margin-bottom:2px;">Ort. Sıcaklık Anomalisi</div>
-                            <div style="font-size:0.85rem;font-weight:700;color:#f44336;">+@(_trends.temperature_anomaly.current_value) °C</div>
+                            <div style="font-size:0.85rem;font-weight:700;color:#f44336;">+@(_trends.temperature_anomaly.current_value.ToString("F2")) °C</div>
+                            <div style="font-size:0.5rem;color:#64748b;">@(_trends.temperature_anomaly.trend == "increasing" ? "↑ Artış" : _trends.temperature_anomaly.trend) · 1850-1900 temeline göre</div>
+                        </div>
+                    }
+                    @if (_trends?.ice_mass != null)
+                    {
+                        <div style="border-top:1px solid #1e293b;padding-top:6px;margin-top:2px;" data-tip="Grönland ve Antarktika buzul kütlelerinin yıllık kayıp hızı. Eriyen buzullar deniz seviyesi yükselmesinin ana nedenlerinden biri.">
+                            <div style="font-size:0.55rem;color:#64748b;margin-bottom:2px;">Buzul Kütlesi Kaybı</div>
+                            <div style="font-size:0.7rem;color:#a78bfa;">
+                                🏔️ Grönland: @_trends.ice_mass.greenland?.loss_rate Gt/yıl
+                                <span style="font-size:0.5rem;color:#64748b;">(@(_trends.ice_mass.greenland?.trend == "accelerating_loss" ? "hızlanan" : _trends.ice_mass.greenland?.trend))</span>
+                            </div>
+                            <div style="font-size:0.7rem;color:#a78bfa;">
+                                🧊 Antarktika: @_trends.ice_mass.antarctica?.loss_rate Gt/yıl
+                                <span style="font-size:0.5rem;color:#64748b;">(@(_trends.ice_mass.antarctica?.trend == "accelerating_loss" ? "hızlanan" : _trends.ice_mass.antarctica?.trend))</span>
+                            </div>
                         </div>
                     }
                 </div>
