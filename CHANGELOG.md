@@ -18,6 +18,336 @@ Bu dosya **conventional commit** mesajlarından otomatik üretilir. Commit'te **
 
 
 
+
+
+
+
+
+### Bug Fixes
+
+- **Use local world.json for map to avoid CORS** *(climate-dashboard)*
+
+- Download world.json (986KB) to wwwroot/data/
+- Priority order: local /data/world.json first, then CDN fallbacks
+- Fixes CORS block from echarts.apache.org and 404s from jsdelivr
+
+
+
+- **Slider values now affect risk calculation + country detection** *(climate-dashboard)*
+
+- RiskInput now includes TempAnomaly, PrecipChange, SeaLevelRise, CarbonPrice
+- RunAnalysis() syncs slider values into RiskInput before calling engine
+- CalculatePhysicalRisk blends slider values (60%) with API data (40%)
+- CalculateTransitionRisk uses carbon price (35% weight) + sector adjustment
+- Added Decision property to RiskAssessment (ALLOW/REVIEW/REJECT)
+- Added DetectCountry() from lat/lng coordinates
+- Added BehaviorSpace Observe statements for intent tracking
+- Fixed BehaviorSpace usage (instance method, not static)
+
+
+
+- **Replace eval with proper JS interop registration** *(climate-dashboard)*
+
+- DotNetObjectReference cannot be serialized via eval()
+- Added registerDotNetClimateMap/unregisterDotNetClimateMap JS functions
+- Fixes 'Unexpected end of input' SyntaxError on page load
+
+
+
+- **Fix water stress lookup + country name matching** *(climate-dashboard)*
+
+- WriAqueductService.GetCountryRiskAsync: was using FirstOrDefault then
+  checking indicator/weight, returning wrong row (Dom instead of Tot)
+  → Fixed: filter by gid_0 + indicator_name='bws' + weight='Tot' in query
+- UpdateWorldMap: remove iso3 field, match countries by name in JS
+- Added _nameToIso3 mapping for 20 mismatched countries (South Korea etc)
+- Country click drill-down now uses name→ISO3 lookup
+
+
+
+- **Null-safe JSON parsing + coordinate validation** *(climate-dashboard)*
+
+- OpenMeteoService: ParseDoubleArray handles null/missing JSON values
+- Skip API call for null island (0,0) coordinates
+- Default to Ankara (39.93, 32.86) when no coordinates entered
+- Fixes 'GetDouble() on Null' exception and 400 Bad Request errors
+
+
+
+- **InvariantCulture parsing + map drill-down rendering** *(climate-dashboard)*
+
+- WRI CSV parsing: added CultureInfo.InvariantCulture to all double/int TryParse
+  Fixes Turkish locale interpreting '3.386' as '3,386' (3 billion)
+- Map drill-down: dispose+recreate chart for clean state
+- Auto-calculate center/zoom from GADM feature bounds
+- Added visualMap to drill-down view for consistent styling
+- Physical risk defaults: only fallback estimates when API unavailable
+- Default to Ankara (39.93, 32.86) when no coordinates entered
+
+
+
+- **400 Bad Request + harita drill-down + fabrika konumu** *(climate-dashboard)*
+
+- OpenMeteoService: tr-TR locale'de 39.93 -> 39,93 olup 400 veriyordu, InvariantCulture ile duzeltildi
+  + AddHttpClient<OpenMeteoService> ile HttpClient BaseAddress cakismasi cozuldu
+  + null-safe JSON parsing korundu
+- echarts-interop.js: ClimateMap tamamen yenilendi
+  + world.json /data/world.json'dan yukleme + fallback + console log
+  + drillDown: GADM fetch basarisiz olursa dunya haritasinda fabrika konumuna odaklanma
+  + showFactory: effectScatter + lines (dashed polygon) + label, geoIndex ile dogru koordinat
+  + fabrika isaretcisi world/country her seviyede korunuyor, center/zoom hesaplamasi duzeltildi
+  + world click -> iso3 mapping + goBack + provincie click dogru DotNet interop
+  + zoom/reset duzeltildi
+- Su stresi 3.386 milyar bug'u zaten b39bd00'de InvariantCulture ile cozulmustu
+
+
+
+- **Differentiate COGS signal to use Capex category** *(climate-risk)*
+
+
+- **Change ScenarioComparisonEngine to Scoped to avoid singleton-scoped mismatch** *(climate-risk)*
+
+
+- **Wire up all features end-to-end - DI factory, real scenario chart, new profile button** *(climate-risk)*
+
+
+- **Use selected profile name/coordinates instead of hardcoded Fabrika** *(climate-risk)*
+
+
+- **Turkish signal labels, category grouping, balanced financial weights** *(climate-risk)*
+
+
+- **Fix policy name matching, normalize financial signals, improve decision consistency** *(climate-risk)*
+
+
+- **Map country name normalization + comprehensive ISO3 mapping** *(climate-risk)*
+
+
+- **NotMerge chart options to prevent duplicate series + full-width wide cards to remove gaps** *(climate-risk)*
+
+
+- **Compact card heights - fixed chart sizes, no uneven stretching** *(climate-risk)*
+
+
+- **Clamp Open-Meteo projection year to 2050 - models only produce data until 2050** *(climate-risk)*
+
+
+- **Button colors - override Bootstrap white bg on profile/edit buttons** *(climate-risk)*
+
+
+- **Map province name matching + tooltip + clickable province detail panel** *(climate-risk)*
+
+
+- **Force green bg + white text on analyze btn and upload area** *(climate-risk)*
+
+
+- **Realistic seed values + sensitivity/adaptive capacity for risk matrices** *(climate-risk)*
+
+
+- **Clean heatmap design - hidden legend, aligned hazard names, proper tooltip** *(climate-risk)*
+
+
+- **Fill impact bars with min width + merge heatmaps into one full-width card** *(climate-risk)*
+
+
+- **Ensure financial impact progress bars fill - per-category normalize + min-width** *(climate-risk)*
+
+
+- **Heatmap tooltip supports single-item trigger - rich explanatory cell tooltips** *(climate-risk)*
+
+
+- **Normalize intent confidence so it is not always 1.00 - signal-count-relative strength** *(climate-risk)*
+
+
+
+
+### Documentation
+
+- **Add company financial profiles design documentation** *(climate-risk)*
+
+
+
+
+### Features
+
+- **Add climate risk example to Intent Intelligence Hub** *(blazor)*
+
+- Add ClimateRiskExample.razor with SSP/RCP/WRI scenario selection
+- Add sector (Energy, Agriculture, RealEstate, Finance, Tourism) and horizon (2030/2050/2100) selectors
+- Display physical/transition risk scores, intent inference, policy decision, economic impact
+- Add nav link under 'Örnekler' section
+- Add Intentum.Example.ClimateRisk.csproj to solution
+
+
+
+- **Complete interactive dashboard with real data APIs** *(climate-dashboard)*
+
+Backend services:
+- OpenMeteoService: CMIP6 climate projections (temperature, precipitation, wind)
+- WriAqueductService: Water stress/flood/drought risk from WRI 4.0 CSV
+- ClimateMonitorService: CO2, sea level, temperature baseline trends
+- GadmGeoJsonService: Country/province GeoJSON for map drill-down
+- RiskCalculationEngine: Physical + transition risk scoring, economic impact
+
+
+
+- **Full drill-down map with factory marker** *(climate-dashboard)*
+
+- Country click → GADM level 1 provinces/states drill-down
+- Breadcrumb navigation: ← Dunya / Ulke Adi
+- Factory location marker with radius circle on map
+- World map shows WRI water stress risk colors per country
+- Map updates when analysis runs with risk-colored factory marker
+- .NET ↔ JS interop for drill-down callbacks (DotNetClimateMap)
+- All 10 countries now have GADM level 1 data (USA, TUR, GBR, etc.)
+- Zoom in/out/reset controls functional
+- Province click callback ready for future detail panel
+
+
+
+- **Detailed decision reasoning and risk factor breakdown** *(climate-dashboard)*
+
+- Added DecisionSummary: human-readable explanation of the overall result
+- Added DecisionReasons: list of specific factors that led to the decision
+- Added RecommendedActions: sector-specific action items
+- Added RiskFactors visual bar chart with score percentages
+- Each reason explains WHY (threshold exceeded, data point, etc.)
+- Each action is specific and actionable (TCFD report, insurance, etc.)
+- UI shows reasons with colored left-border, actions with green border
+- Risk factors show progress bars with score %, source label
+
+
+
+- **Cografi farkindalik + Intentum gercek gucu + harita fix** *(climate-dashboard)*
+
+- GeoRiskHelper: kiyiya Haversine mesafe, Ankara ~280km ic bolge -> deniz efektif 0m, not '10km yaricap denize ulasmaz'
+  RiskCalculationEngine.CalculatePhysicalRisk artik effectiveSea kullaniyor (ic bolgede 0)
+  BuildDecisionReasons: ic bolgede deniz satiri 'katkisi 0' + yariCap/uzaklik aciklamasi
+- Intentum: ClimateRiskIntentModel (IIntentModel) + ClimateRiskPolicy (IntentPolicyBuilder) eklendi
+  AssessAsync artik BehaviorSpace -> Infer -> IntentPolicyEngine.Evaluate -> REJECT/REVIEW/ALLOW
+  RiskAssessment: IntentName, ConfidenceLevel/Score, IntentReasoning, Signals, CoastalInfo, EffectiveSeaLevel, IsCoastal
+  BuildBehaviorSpace: physical:heatwave/drought/sea_level/storm/water_stress/flood + transition/policy...
+  Confidence ve top sinyaller nedenler listesinde
+- Harita: echarts province value string->number (parseFloat), visualMap sayisal; Turk illeri arasi dogru ge��is
+- UI: politika karti collapsible <details>, intent badge + given + kiyi/ic tag + efektif deniz, sinyal agirlik barlari, sinyal toplami ve 'via Intentum.Runtime.Engine' notu; sayfa uzamasi kontrol altinda
+
+
+
+- **Add company profile financial data models** *(climate-risk)*
+
+
+- **Add company profile service with seed data** *(climate-risk)*
+
+
+- **Add FinancialImpactEngine with TDD tests** *(climate-risk)*
+
+
+- **Add ScenarioComparisonEngine with TDD tests** *(climate-risk)*
+
+
+- **Add economic signal weights to intent model** *(climate-risk)*
+
+
+- **Integrate financial signals into RiskCalculationEngine** *(climate-risk)*
+
+
+- **Register financial services in DI** *(climate-risk)*
+
+
+- **Add CompanyProfileDrawer component** *(climate-risk)*
+
+
+- **Wire up dashboard UI with financial features** *(climate-risk)*
+
+
+- **Dynamic WRI scenario-based water stress + map iso3 drill-down fix** *(climate-risk)*
+
+
+- **Deterministic monotonic decision function - max inputs always escalate to REJECT** *(climate-risk)*
+
+
+- **Responsive card grid layout - map on top, 3-col card grid below** *(climate-risk)*
+
+
+- **Reorder cards - water stress/risk factors/live trends side-by-side, policy at bottom** *(climate-risk)*
+
+
+- **Link financial exposure to Intentum decision - supportive escalation + tests** *(climate-risk)*
+
+
+- **IPCC risk matrix - Hazard x Exposure x Vulnerability heatmaps** *(climate-risk)*
+
+
+- **Add help dialog explaining data sources, methodology, Intentum interpretation** *(climate-risk)*
+
+
+- **Smarter context-aware Turkish recommendations, reasons and decision summaries** *(climate-risk)*
+
+
+- **Auto-fill location detail from selected company profile instead of manual province click** *(climate-risk)*
+
+
+- **Add info tooltips to all dashboard card titles** *(climate-risk)*
+
+
+- **Company CSV import with downloadable template + full-profile parser** *(climate-risk)*
+
+
+- **Province risk profile + scenario commentary (location-based not company-based)** *(climate-risk)*
+
+
+- **District-level drill-down (GADM level 2) + rich matrix heatmap tooltips** *(climate-risk)*
+
+
+
+
+### Miscellaneous
+
+- **Ignore superpowers workspace + clean coastal note text**
+
+
+
+
+### Other
+
+- **Add climate risk dashboard data files**
+
+- GADM 4.1 GeoJSON: 10 countries (TUR level 0+1, USA, GBR, DEU, FRA, ITA, CHN, IND, JPN, BRA)
+- WRI Aqueduct 4.0: country baseline + future water risk rankings (11K rows)
+- Climate baseline: CO₂, sea level, temperature anomaly trends
+- Sample data: Ankara factory, Istanbul port, CSV template
+- Total: ~13MB of real-world climate/geospatial data
+
+
+
+
+
+### Refactor
+
+- **Convert RiskInput to record and add CompanyProfileId** *(climate-risk)*
+
+
+- **Redesign map - cleaner hierarchy, consistent markers, better navigation** *(climate-risk)*
+
+
+- **Rewrite map renderer with unified buildOption pattern to fix broken display** *(climate-risk)*
+
+
+
+
+### Styling
+
+- **Compact water stress, risk factors, live trends cards with balanced heights** *(climate-risk)*
+
+
+- **Stretch cards to fill grid row height - remove trailing empty space** *(climate-risk)*
+
+
+## [1.2.4] - 2026-08-26
+
+
+
+
 ### Documentation
 
 - **Add climate risk intent README** *(examples)*
