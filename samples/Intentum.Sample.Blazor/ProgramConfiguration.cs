@@ -167,6 +167,20 @@ internal static class ProgramConfiguration
         builder.Services.AddHttpClient<OpenMeteoService>();
         builder.Services.AddScoped<WriAqueductService>();
         builder.Services.AddScoped<ClimateMonitorService>();
+        builder.Services.AddScoped<NgfsScenarioService>();
+        builder.Services.AddScoped<ClimateVarEngine>(sp =>
+            new ClimateVarEngine(
+                sp.GetRequiredService<NgfsScenarioService>(),
+                sp.GetRequiredService<RiskCalculationEngine>()));
+        builder.Services.AddScoped<StressTestEngine>(sp =>
+            new StressTestEngine(
+                sp.GetRequiredService<RiskCalculationEngine>(),
+                sp.GetService<FinancialImpactEngine>()));
+        builder.Services.AddScoped<PortfolioRiskEngine>(sp =>
+            new PortfolioRiskEngine(
+                sp.GetRequiredService<RiskCalculationEngine>(),
+                sp.GetService<FinancialImpactEngine>(),
+                sp.GetService<ClimateVarEngine>()));
         builder.Services.AddScoped<GadmGeoJsonService>();
         builder.Services.AddScoped<RiskCalculationEngine>(sp =>
             new RiskCalculationEngine(
@@ -174,7 +188,8 @@ internal static class ProgramConfiguration
                 sp.GetRequiredService<WriAqueductService>(),
                 sp.GetRequiredService<ClimateMonitorService>(),
                 sp.GetService<FinancialImpactEngine>(),
-                sp.GetService<CompanyProfileService>()));
+                sp.GetService<CompanyProfileService>(),
+                sp.GetService<NgfsScenarioService>()));
         builder.Services.AddIntentum();
         builder.Services.AddIntentumHealthChecks();
 
