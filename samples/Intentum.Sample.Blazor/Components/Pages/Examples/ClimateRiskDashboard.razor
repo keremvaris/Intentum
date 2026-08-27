@@ -425,9 +425,9 @@
                                 <div class="impact-category-label">@GetCategoryLabel(cat.Type)</div>
                                 <div class="impact-category-bar">
                                     <div class="impact-bar physical @(cat.PhysicalImpact < 0 ? "negative" : "positive")"
-                                         style="width: @GetBarWidth(cat.PhysicalImpact, _assessment.FinancialImpact)"></div>
+                                         style="width: @GetBarWidth(cat.PhysicalImpact, _assessment.FinancialImpact);min-width:@(cat.PhysicalImpact != 0 ? "8px" : "0");"></div>
                                     <div class="impact-bar transition @(cat.TransitionImpact < 0 ? "negative" : "positive")"
-                                         style="width: @GetBarWidth(cat.TransitionImpact, _assessment.FinancialImpact)"></div>
+                                         style="width: @GetBarWidth(cat.TransitionImpact, _assessment.FinancialImpact);min-width:@(cat.TransitionImpact != 0 ? "8px" : "0");"></div>
                                 </div>
                                 <div class="impact-category-total @(cat.TotalImpact < 0 ? "negative" : "positive")">
                                     @FormatCurrency(cat.TotalImpact)

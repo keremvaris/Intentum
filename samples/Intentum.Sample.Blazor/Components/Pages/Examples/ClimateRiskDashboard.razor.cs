@@ -543,13 +543,15 @@ public sealed partial class ClimateRiskDashboard : IAsyncDisposable
 
     private string GetBarWidth(double value, FinancialImpact impact)
     {
-        var maxAbs = impact.CategoryImpacts
-            .SelectMany(c => new[] { Math.Abs(c.PhysicalImpact), Math.Abs(c.TransitionImpact) })
+        // Kategori bazlı görünür genişlik: mutlak değerin en büyük etkiye oranı.
+        var maxCat = impact.CategoryImpacts
+            .Select(c => Math.Max(Math.Abs(c.PhysicalImpact), Math.Abs(c.TransitionImpact)))
             .DefaultIfEmpty(1)
             .Max();
+        var maxAbs = Math.Max(maxCat, 1);
         var pct = Math.Abs(value) / maxAbs * 100;
-        // Çok küçük etkilerde bile bar görünür olsun diye min %6 taban kullan.
-        return pct <= 0.5 ? "0%" : $"{Math.Max(pct, 6):F1}%";
+        // Çok küçük etkilerde bile bar görünür olsun diye min %8 taban kullan.
+        return pct <= 0.5 ? "0%" : $"{Math.Max(pct, 8):F1}%";
     }
 
     private string FormatCurrency(double amount) => amount switch

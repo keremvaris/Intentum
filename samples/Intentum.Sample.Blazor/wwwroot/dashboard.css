@@ -1523,18 +1523,19 @@ body.dashboard-root { margin: 0; padding: 0; }
 
 .impact-category-bar {
     flex: 1;
-    height: 20px;
+    height: 18px;
     background: #161b22;
     border-radius: 4px;
     overflow: hidden;
     display: flex;
-    gap: 2px;
+    align-items: stretch;
 }
 
 .impact-bar {
     height: 100%;
     transition: width 0.3s;
     display: block;
+    flex: none;
 }
 
 .impact-bar.physical { background: #58a6ff; }
