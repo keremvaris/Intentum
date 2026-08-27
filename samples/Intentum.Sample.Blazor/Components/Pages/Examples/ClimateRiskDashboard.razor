@@ -11,6 +11,7 @@
 @inject RiskMatrixEngine MatrixEngine
 @inject NgfsScenarioService NgfsService
 @inject ClimateVarEngine VarEngine
+@inject StressTestEngine StressEngine
 
 <PageTitle>Iklim Riski Dashboard — Intentum</PageTitle>
 
@@ -570,6 +571,60 @@
                 <div id="climate-var-bar" class="chart-container" style="height:180px;"></div>
             </div>
         }
+
+        <div class="climate-chart-card">
+            <div class="chart-title" data-tip="Risk faktörlerini değiştirerek finansal etkinin nasıl değiştiğini test edin.">🔬 Stres Testi</div>
+
+            <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-bottom:10px;">
+                <div class="climate-stress-slider"><label>Sıcaklık</label><input type="range" min="0.5" max="3.0" step="0.1" @bind="_stressFactors.TemperatureMultiplier" @bind:event="oninput" /><span class="mult-value">@(_stressFactors.TemperatureMultiplier.ToString("F1", System.Globalization.CultureInfo.InvariantCulture))×</span></div>
+                <div class="climate-stress-slider"><label>Yağış</label><input type="range" min="0.5" max="3.0" step="0.1" @bind="_stressFactors.PrecipitationMultiplier" @bind:event="oninput" /><span class="mult-value">@(_stressFactors.PrecipitationMultiplier.ToString("F1", System.Globalization.CultureInfo.InvariantCulture))×</span></div>
+                <div class="climate-stress-slider"><label>Deniz Seviyesi</label><input type="range" min="0.5" max="3.0" step="0.1" @bind="_stressFactors.SeaLevelMultiplier" @bind:event="oninput" /><span class="mult-value">@(_stressFactors.SeaLevelMultiplier.ToString("F1", System.Globalization.CultureInfo.InvariantCulture))×</span></div>
+                <div class="climate-stress-slider"><label>Su Stresi</label><input type="range" min="0.5" max="3.0" step="0.1" @bind="_stressFactors.WaterStressMultiplier" @bind:event="oninput" /><span class="mult-value">@(_stressFactors.WaterStressMultiplier.ToString("F1", System.Globalization.CultureInfo.InvariantCulture))×</span></div>
+                <div class="climate-stress-slider"><label>Karbon Fiyatı</label><input type="range" min="0.5" max="3.0" step="0.1" @bind="_stressFactors.CarbonPriceMultiplier" @bind:event="oninput" /><span class="mult-value">@(_stressFactors.CarbonPriceMultiplier.ToString("F1", System.Globalization.CultureInfo.InvariantCulture))×</span></div>
+                <div class="climate-stress-slider"><label>Rüzgar</label><input type="range" min="0.5" max="3.0" step="0.1" @bind="_stressFactors.WindSpeedMultiplier" @bind:event="oninput" /><span class="mult-value">@(_stressFactors.WindSpeedMultiplier.ToString("F1", System.Globalization.CultureInfo.InvariantCulture))×</span></div>
+                <div class="climate-stress-slider"><label>Fiziksel Risk</label><input type="range" min="0.5" max="3.0" step="0.1" @bind="_stressFactors.PhysicalRiskMultiplier" @bind:event="oninput" /><span class="mult-value">@(_stressFactors.PhysicalRiskMultiplier.ToString("F1", System.Globalization.CultureInfo.InvariantCulture))×</span></div>
+                <div class="climate-stress-slider"><label>Geçiş Riski</label><input type="range" min="0.5" max="3.0" step="0.1" @bind="_stressFactors.TransitionRiskMultiplier" @bind:event="oninput" /><span class="mult-value">@(_stressFactors.TransitionRiskMultiplier.ToString("F1", System.Globalization.CultureInfo.InvariantCulture))×</span></div>
+            </div>
+
+            <button class="climate-btn" @onclick="RunStressTest" disabled="@(_stressRunning || _assessment == null)">
+                @(_stressRunning ? "Hesaplanıyor..." : "Stres Testi Çalıştır")
+            </button>
+
+            @if (_stressResult != null)
+            {
+                <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:10px;">
+                    <div class="climate-var-metric">
+                        <div class="label">Fiziksel Risk Değişimi</div>
+                        <div class="value @(_stressResult.Delta.PhysicalRiskDelta >= 0 ? "negative" : "positive")">@(_stressResult.Delta.PhysicalRiskDelta >= 0 ? "+" : "")@(_stressResult.Delta.PhysicalRiskDelta.ToString("F3", System.Globalization.CultureInfo.InvariantCulture))</div>
+                    </div>
+                    <div class="climate-var-metric">
+                        <div class="label">Geçiş Riski Değişimi</div>
+                        <div class="value @(_stressResult.Delta.TransitionRiskDelta >= 0 ? "negative" : "positive")">@(_stressResult.Delta.TransitionRiskDelta >= 0 ? "+" : "")@(_stressResult.Delta.TransitionRiskDelta.ToString("F3", System.Globalization.CultureInfo.InvariantCulture))</div>
+                    </div>
+                    <div class="climate-var-metric">
+                        <div class="label">Karar Değişimi</div>
+                        <div class="value">@_stressResult.Delta.DecisionChange</div>
+                    </div>
+                </div>
+
+                @if (_stressResult.SensitivityRanking.Count > 0)
+                {
+                    <div style="margin-top:10px;">
+                        <div style="font-size:0.62rem;color:#94a3b8;margin-bottom:4px;">Duyarlılık Sıralaması</div>
+                        @foreach (var s in _stressResult.SensitivityRanking)
+                        {
+                            <div style="display:flex;align-items:center;gap:6px;margin-bottom:3px;">
+                                <span style="width:90px;font-size:0.6rem;color:#94a3b8;">@s.FactorName</span>
+                                <div style="flex:1;height:5px;background:#1e293b;border-radius:3px;overflow:hidden;">
+                                    <div style="height:100%;width:@(s.SensitivityScore * 100)%;background:@(s.Risk == "Yüksek" ? "#ef4444" : s.Risk == "Orta" ? "#f59e0b" : "#22c55e");border-radius:3px;"></div>
+                                </div>
+                                <span style="width:40px;font-size:0.55rem;color:@(s.Risk == "Yüksek" ? "#ef4444" : s.Risk == "Orta" ? "#f59e0b" : "#22c55e");">@s.Risk</span>
+                            </div>
+                        }
+                    </div>
+                }
+            }
+        </div>
 
         @if (_assessment != null)
         {

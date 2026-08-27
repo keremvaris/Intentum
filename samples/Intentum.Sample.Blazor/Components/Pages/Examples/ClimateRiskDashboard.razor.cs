@@ -25,6 +25,9 @@ public sealed partial class ClimateRiskDashboard : IAsyncDisposable
     private bool _drawerOpen;
     private List<NgfsMacroSnapshot> _ngfsComparison = new();
     private ClimateVarResult? _varResult;
+    private StressTestResult? _stressResult;
+    private StressFactors _stressFactors = new();
+    private bool _stressRunning;
     private CompanyProfile? _editingProfile;
     private bool _isNewProfile;
 
@@ -222,6 +225,23 @@ public sealed partial class ClimateRiskDashboard : IAsyncDisposable
             _running = false;
             StateHasChanged();
         }
+    }
+
+    private async Task RunStressTest()
+    {
+        if (_assessment == null || _stressRunning) return;
+        _stressRunning = true;
+        StateHasChanged();
+
+        try
+        {
+            _stressResult = await StressEngine.RunAsync(_input, _stressFactors, _selectedProfile);
+        }
+        finally
+        {
+            _stressRunning = false;
+        }
+        StateHasChanged();
     }
 
     // IPCC risk çerçevesi: Tehlike × Maruziyet × Kırılganlık matrix'lerini hesaplar.
