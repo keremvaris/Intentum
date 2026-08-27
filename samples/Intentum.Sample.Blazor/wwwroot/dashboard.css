@@ -1224,7 +1224,6 @@ body.dashboard-root { margin: 0; padding: 0; }
   padding: 0.75rem;
   min-width: 0;
   height: auto;
-  align-self: start;
 }
 /* Wide cards span full width (no empty column beside them) */
 .climate-chart-card.span-2 {
