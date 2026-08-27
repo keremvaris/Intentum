@@ -84,12 +84,13 @@ public class RiskCalculationEngine
         // Tek tutarlı karar: risk skorlarından monoton bir karar türet.
         // Intentum niyeti kararın gerekçesini (reasoning) sağlar, karar ise
         // her zaman yüksek risk → daha katı karar olacak şekilde hesaplanır.
+        // Finansal kayıp büyükse (destekleyici etki) karar bir kademe sıkılaştırılır.
         var overall = (physicalScore * 0.6 + transitionScore * 0.4);
-        decision = DetermineDecision(overall, intent.Name);
+        decision = DetermineDecision(overall, intent.Name, financialImpact);
 
         var reasons = BuildDecisionReasons(input, physicalScore, transitionScore, wriRisk, projection, coastal, effectiveSea, intent, financialImpact);
         var actions = BuildRecommendedActions(decision, input, physicalScore, transitionScore, coastal, wriRisk, financialImpact);
-        var summary = BuildDecisionSummary(decision, overall, physicalScore, transitionScore, input, intent, coastal);
+        var summary = BuildDecisionSummary(decision, overall, physicalScore, transitionScore, input, intent, coastal, financialImpact);
 
         space.Observe("ClimateRisk:result", $"{intent.Name} {policyDecision} → {decision} ({intent.Confidence.Score:F2})");
 
@@ -157,7 +158,8 @@ public class RiskCalculationEngine
         Add("transition:reputation", input.Scenario == "SSP1-2.6" ? 0.15 : 0.4);
         Add("economic:impact", Math.Clamp((physical * 0.6 + transition * 0.4), 0, 1));
 
-        // Financial signals from company profile
+        // Financial signals from company profile — maruziyet, risk skorlarıyla birleşir.
+        // Şirket büyüklüğü tek başına değil; büyüklük × (fiziksel/geçiş riski) sinyali üretir.
         if (companyProfile != null)
         {
             var revenue = companyProfile.Categories
@@ -173,15 +175,14 @@ public class RiskCalculationEngine
                 .SelectMany(c => c.LineItems)
                 .Sum(li => li.Value);
 
-            // Normalize: higher revenue = more exposure, higher opex/capex = more vulnerability
-            var revenueScore = Math.Clamp(revenue / 200_000_000.0, 0, 1); // 200M+ = max
-            var opexScore = Math.Clamp(opex / 100_000_000.0, 0, 1);
-            var capexScore = Math.Clamp(capex / 80_000_000.0, 0, 1);
+            // Maruz kalan finansal değer: büyüklük × risk. Ne kadar risk, o kadar maruziyet.
+            var revenueExposure = Math.Clamp((revenue / 200_000_000.0) * transition, 0, 1);   // gelir geçiş riskine maruz
+            var opexExposure = Math.Clamp((opex / 100_000_000.0) * physical, 0, 1);            // operasyon fiziksel riske maruz
+            var capexExposure = Math.Clamp((capex / 80_000_000.0) * physical, 0, 1);           // yatırım fiziksel riske maruz
 
-            // Add observations proportional to risk (1-5 observations per signal)
-            var revenueObs = (int)Math.Ceiling(revenueScore * 5);
-            var opexObs = (int)Math.Ceiling(opexScore * 5);
-            var capexObs = (int)Math.Ceiling(capexScore * 5);
+            var revenueObs = (int)Math.Ceiling(revenueExposure * 5);
+            var opexObs = (int)Math.Ceiling(opexExposure * 5);
+            var capexObs = (int)Math.Ceiling(capexExposure * 5);
 
             for (var i = 0; i < revenueObs; i++) space.Observe("economic", "revenue_at_risk");
             for (var i = 0; i < opexObs; i++) space.Observe("economic", "operational_expenses");
@@ -279,13 +280,23 @@ public class RiskCalculationEngine
     }
 
     // Monoton karar türetme: yüksek risk her zaman daha katı karar üretir.
-    private static string DetermineDecision(double overall, string intentName)
+    // Finansal kayıp büyükse (destekleyici etki) karar bir kademe sıkılaştırılır.
+    internal static string DetermineDecision(double overall, string intentName, FinancialImpact? financialImpact = null)
     {
-        // Niyet adıyla uyumlu ama tutarlı: genel skor belirleyicidir.
-        if (overall > 0.75) return "REJECT";
-        if (overall > 0.60) return "REVIEW";
-        if (overall > 0.40) return "ALLOW";
-        return "ALLOW";
+        string decision;
+        if (overall > 0.75) decision = "REJECT";
+        else if (overall > 0.60) decision = "REVIEW";
+        else decision = "ALLOW";
+
+        // Destekleyici finansal etki: net nakit akışı kaybı büyükse kararı bir kademe sıkılaştır.
+        if (financialImpact != null)
+        {
+            var net = financialImpact.NetCashFlowImpact;
+            if (net <= -10_000_000 && decision == "ALLOW") decision = "REVIEW";          // 10M+ kayıp: ALLOW → REVIEW
+            if (net <= -25_000_000 && decision == "REVIEW") decision = "REJECT";         // 25M+ kayıp: REVIEW → REJECT
+        }
+
+        return decision;
     }
 
     private EconomicImpact CalculateEconomicImpact(double physical, double transition, RiskInput input)
@@ -404,10 +415,12 @@ public class RiskCalculationEngine
         if (financialImpact != null)
         {
             var net = financialImpact.NetCashFlowImpact;
-            if (net < 0)
-            {
-                reasons.Add($"Net financial exposure: {net:N0} TL/year ({(net < -10_000_000 ? "critical" : "significant")})");
-            }
+            if (net <= -25_000_000)
+                reasons.Add($"Finansal maruziyet kritik: net nakit akışı kaybı {net:N0} TL/yıl — karar REJECT'e sıkılaştırıldı");
+            else if (net <= -10_000_000)
+                reasons.Add($"Finansal maruziyet yüksek: net nakit akışı kaybı {net:N0} TL/yıl — karar REVIEW'e sıkılaştırıldı");
+            else if (net < 0)
+                reasons.Add($"Finansal maruziyet: net nakit akışı kaybı {net:N0} TL/yıl");
         }
 
         return reasons;
@@ -465,18 +478,23 @@ public class RiskCalculationEngine
     }
 
     private static string BuildDecisionSummary(
-        string decision, double overall, double physical, double transition, RiskInput input, Intent intent, (bool isCoastal, double distanceKm, string note) coastal)
+        string decision, double overall, double physical, double transition, RiskInput input, Intent intent, (bool isCoastal, double distanceKm, string note) coastal, FinancialImpact? financialImpact = null)
     {
         var physLabel = physical > 0.7 ? "yüksek" : physical > 0.4 ? "orta" : "düşük";
         var transLabel = transition > 0.7 ? "yüksek" : transition > 0.4 ? "orta" : "düşük";
         var coastalNote = coastal.isCoastal ? "" : $" {coastal.note}";
         var intentInfo = $"Intentum: {intent.Name} ({intent.Confidence.Level} {intent.Confidence.Score:F2}) — {intent.Reasoning}.";
 
+        // Finansal maruziyet kararın gerekçesini destekler.
+        var financialNote = "";
+        if (financialImpact != null && financialImpact.NetCashFlowImpact < 0)
+            financialNote = $" Finansal maruziyet: net {financialImpact.NetCashFlowImpact:N0} TL/yıl.";
+
         return decision switch
         {
-            "REJECT" => $"Genel %{overall * 100:F0} ile RED (fiziksel %{physical * 100:F0} {physLabel}, geçiş %{transition * 100:F0} {transLabel}). {intentInfo}{coastalNote}",
-            "REVIEW" => $"Genel %{overall * 100:F0} ile İNCELEME (fiziksel %{physical * 100:F0} {physLabel}, geçiş %{transition * 100:F0} {transLabel}). {intentInfo}{coastalNote}",
-            _ => $"Genel %{overall * 100:F0} kabul edilebilir (fiziksel %{physical * 100:F0} {physLabel}, geçiş %{transition * 100:F0} {transLabel}). {intentInfo}{coastalNote}"
+            "REJECT" => $"Genel %{overall * 100:F0} ile RED (fiziksel %{physical * 100:F0} {physLabel}, geçiş %{transition * 100:F0} {transLabel}). {intentInfo}{financialNote}{coastalNote}",
+            "REVIEW" => $"Genel %{overall * 100:F0} ile İNCELEME (fiziksel %{physical * 100:F0} {physLabel}, geçiş %{transition * 100:F0} {transLabel}). {intentInfo}{financialNote}{coastalNote}",
+            _ => $"Genel %{overall * 100:F0} kabul edilebilir (fiziksel %{physical * 100:F0} {physLabel}, geçiş %{transition * 100:F0} {transLabel}). {intentInfo}{financialNote}{coastalNote}"
         };
     }
 

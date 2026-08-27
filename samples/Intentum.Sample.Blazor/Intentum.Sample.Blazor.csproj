@@ -29,4 +29,8 @@
     <ProjectReference Include="..\..\src\Intentum.Explainability\Intentum.Explainability.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <InternalsVisibleTo Include="Intentum.Sample.Blazor.Tests" />
+  </ItemGroup>
+
 </Project>

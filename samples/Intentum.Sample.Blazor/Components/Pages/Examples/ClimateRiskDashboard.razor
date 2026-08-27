@@ -331,6 +331,15 @@
                             Net Nakit Akışı: @FormatCurrency(_assessment.FinancialImpact.NetCashFlowImpact)
                         </span>
                     </div>
+                    @{
+                        var net = _assessment.FinancialImpact.NetCashFlowImpact;
+                    }
+                    @if (net <= -10_000_000)
+                    {
+                        <div style="font-size:0.62rem;color:#fbbf24;background:rgba(251,191,36,0.08);border:1px solid rgba(251,191,36,0.3);border-radius:6px;padding:6px 8px;margin-bottom:8px;">
+                            ⚠️ Bu finansal maruziyet Intentum kararını <strong>sıkılaştırdı</strong> — net kayıp @($"{(net <= -25_000_000 ? "REJECT" : "REVIEW")}") seviyesini tetikledi.
+                        </div>
+                    }
                     <div class="impact-categories">
                         @foreach (var cat in _assessment.FinancialImpact.CategoryImpacts)
                         {
