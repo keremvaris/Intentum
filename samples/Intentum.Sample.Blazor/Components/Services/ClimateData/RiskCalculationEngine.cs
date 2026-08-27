@@ -331,18 +331,14 @@ public class RiskCalculationEngine
             factors.Add(new RiskFactor("Yağış Değişimi", Math.Clamp(Math.Abs(proj.AvgPrecipitation - 2) / 8.0, 0, 1), "open-meteo"));
             factors.Add(new RiskFactor("Maks. Rüzgar", Math.Clamp(proj.WindMax.DefaultIfEmpty(0).Average() / 50.0, 0, 1), "open-meteo"));
         }
-        factors.Add(new RiskFactor("Sıcaklık (+2.4°C)", Math.Clamp(input.TempAnomaly / 5.0, 0, 1), "slider"));
-        factors.Add(new RiskFactor("Yağış (-15%)", Math.Clamp(Math.Abs(input.PrecipChange)/50.0,0,1), "slider"));
-        // Deniz faktörü coğrafi notla
-        var seaLabel = coastal.isCoastal ? $"Deniz (+{effectiveSea:F1}m)" : $"Deniz (iç bölge)";
-        factors.Add(new RiskFactor(seaLabel, Math.Clamp(effectiveSea/2.0,0,1), coastal.isCoastal ? "coastal" : "inland"));
+        factors.Add(new RiskFactor("Sıcaklık Artışı", Math.Clamp(input.TempAnomaly / 5.0, 0, 1), "slider"));
+        factors.Add(new RiskFactor("Yağış Değişimi", Math.Clamp(Math.Abs(input.PrecipChange)/50.0,0,1), "slider"));
+        // Deniz faktörü coğrafi notla — RiskMatrixEngine tehlikesiyle aynı ad.
+        factors.Add(new RiskFactor("Deniz Seviyesi", Math.Clamp(effectiveSea/2.0,0,1), coastal.isCoastal ? "coastal" : "inland"));
 
-        if (wri != null)
-        {
-            factors.Add(new RiskFactor("Su Stresi", wri.WaterStress / 5.0, "wri-aqueduct"));
-            factors.Add(new RiskFactor("Sel Riski", wri.FloodRisk / 5.0, "wri-aqueduct"));
-            factors.Add(new RiskFactor("Kuraklık Riski", wri.DroughtRisk / 5.0, "wri-aqueduct"));
-        }
+        factors.Add(new RiskFactor("Su Stresi", wri != null ? wri.WaterStress / 5.0 : Math.Clamp(Math.Abs(input.PrecipChange)/100.0,0,1), "wri-aqueduct"));
+        factors.Add(new RiskFactor("Sel Riski", wri != null ? wri.FloodRisk / 5.0 : 0, "wri-aqueduct"));
+        factors.Add(new RiskFactor("Kuraklık Riski", wri != null ? wri.DroughtRisk / 5.0 : 0, "wri-aqueduct"));
         return factors;
     }
 

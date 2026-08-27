@@ -280,22 +280,21 @@ public sealed partial class ClimateRiskDashboard : IAsyncDisposable
             if (await _hazardExposureEcharts.InitAsync())
             {
                 var m = _assessment.HazardExposureMatrix;
-                var x = m.Categories.Select((c, i) => new { name = c, idx = i }).ToArray();
-                var y = m.Hazards.Select((c, i) => new { name = c, idx = i }).ToArray();
+                var xIdx = m.Categories.Select((c, i) => i).ToArray();
                 var data = m.Cells.Select(cell => new object[]
                 {
-                    (object)x.First(v => v.name == cell.Category).idx,
-                    (object)y.First(v => v.name == cell.Hazard).idx,
+                    (object)m.Categories.IndexOf(cell.Category),
+                    (object)m.Hazards.IndexOf(cell.Hazard),
                     (object)Math.Round(cell.Value, 2)
                 }).ToArray();
                 await _hazardExposureEcharts.SetHeatmapOptionAsync(new
                 {
-                    tooltip = new { },
-                    grid = new { left = "3%", right = "3%", bottom = "3%", top = "5%", containLabel = true },
-                    xAxis = new { type = "category", data = m.Categories, splitArea = new { show = true } },
-                    yAxis = new { type = "category", data = m.Hazards, splitArea = new { show = true }, inverse = true },
-                    visualMap = new { min = 0, max = 1, calculable = true, orient = "vertical", right = 0, top = "center", inRange = new { color = new[] { "#22c55e", "#f59e0b", "#ef4444", "#991b1b" } } },
-                    series = new[] { new { type = "heatmap", data = data, label = new { show = true, fontSize = 9 } } }
+                    tooltip = new { trigger = "item" },
+                    grid = new { left = "2%", right = "2%", bottom = "2%", top = "2%", containLabel = true },
+                    xAxis = new { type = "category", data = m.Categories, splitArea = new { show = true }, splitLine = new { show = false }, axisLabel = new { fontSize = 10 } },
+                    yAxis = new { type = "category", data = m.Hazards, splitArea = new { show = true }, splitLine = new { show = false }, inverse = true, axisLabel = new { fontSize = 10 } },
+                    visualMap = new { min = 0, max = 1, show = false, inRange = new { color = new[] { "#22c55e", "#84cc16", "#f59e0b", "#ef4444", "#991b1b" } } },
+                    series = new[] { new { type = "heatmap", data = data, label = new { show = true, fontSize = 10, color = "#e5e7eb" }, itemStyle = new { borderColor = "#0d1117", borderWidth = 1 }, emphasis = new { itemStyle = new { borderColor = "#fff", borderWidth = 2 } } } }
                 });
             }
         }
@@ -306,22 +305,20 @@ public sealed partial class ClimateRiskDashboard : IAsyncDisposable
             if (await _scenarioHeatEcharts.InitAsync())
             {
                 var m = _assessment.ScenarioMatrix;
-                var x = m.Scenarios.Select((c, i) => new { name = c, idx = i }).ToArray();
-                var y = m.Hazards.Select((c, i) => new { name = c, idx = i }).ToArray();
                 var data = m.Cells.Select(cell => new object[]
                 {
-                    (object)x.First(v => v.name == cell.Category).idx,
-                    (object)y.First(v => v.name == cell.Hazard).idx,
+                    (object)m.Scenarios.IndexOf(cell.Category),
+                    (object)m.Hazards.IndexOf(cell.Hazard),
                     (object)Math.Round(cell.Value, 2)
                 }).ToArray();
                 await _scenarioHeatEcharts.SetHeatmapOptionAsync(new
                 {
-                    tooltip = new { },
-                    grid = new { left = "3%", right = "3%", bottom = "3%", top = "5%", containLabel = true },
-                    xAxis = new { type = "category", data = m.Scenarios, splitArea = new { show = true } },
-                    yAxis = new { type = "category", data = m.Hazards, splitArea = new { show = true }, inverse = true },
-                    visualMap = new { min = 0, max = 1, calculable = true, orient = "vertical", right = 0, top = "center", inRange = new { color = new[] { "#22c55e", "#f59e0b", "#ef4444", "#991b1b" } } },
-                    series = new[] { new { type = "heatmap", data = data, label = new { show = true, fontSize = 9 } } }
+                    tooltip = new { trigger = "item" },
+                    grid = new { left = "2%", right = "2%", bottom = "2%", top = "2%", containLabel = true },
+                    xAxis = new { type = "category", data = m.Scenarios, splitArea = new { show = true }, splitLine = new { show = false }, axisLabel = new { fontSize = 10 } },
+                    yAxis = new { type = "category", data = m.Hazards, splitArea = new { show = true }, splitLine = new { show = false }, inverse = true, axisLabel = new { fontSize = 10 } },
+                    visualMap = new { min = 0, max = 1, show = false, inRange = new { color = new[] { "#22c55e", "#84cc16", "#f59e0b", "#ef4444", "#991b1b" } } },
+                    series = new[] { new { type = "heatmap", data = data, label = new { show = true, fontSize = 10, color = "#e5e7eb" }, itemStyle = new { borderColor = "#0d1117", borderWidth = 1 }, emphasis = new { itemStyle = new { borderColor = "#fff", borderWidth = 2 } } } }
                 });
             }
         }

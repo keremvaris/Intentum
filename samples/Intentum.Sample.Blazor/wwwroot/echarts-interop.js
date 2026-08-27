@@ -93,11 +93,13 @@ window.IntentumECharts = {
       var yData = (option.yAxis && option.yAxis.data) || [];
       var xData = (option.xAxis && option.xAxis.data) || [];
       option.series[0].label = option.series[0].label || {};
-      option.series[0].label.formatter = function (params) {
-        var v = params.value;
-        var num = Array.isArray(v) ? v[2] : v;
-        return (Math.round((num || 0) * 100)) + '%';
-      };
+      if (!option.series[0].label.formatter) {
+        option.series[0].label.formatter = function (params) {
+          var v = params.value;
+          var num = Array.isArray(v) ? v[2] : v;
+          return (Math.round((num || 0) * 100)) + '%';
+        };
+      }
       if (!option.tooltip) option.tooltip = {};
       option.tooltip.confine = true;
       option.tooltip.formatter = function (params) {
@@ -108,11 +110,12 @@ window.IntentumECharts = {
         var xi = arr[0], yi = arr[1], score = arr[2];
         var yLabel = yData[yi] != null ? yData[yi] : yi;
         var xLabel = xData[xi] != null ? xData[xi] : xi;
-        var pct = (Math.round((score || 0) * 100));
-        return 'Niyet: ' + yLabel + '<br/>Zaman: ' + xLabel + '<br/>Güven: ' + pct + '%';
+        var color = score > 0.75 ? '#991b1b' : score > 0.5 ? '#ef4444' : score > 0.25 ? '#f59e0b' : '#22c55e';
+        return '<b>' + yLabel + '</b><br/>' + xLabel + ' riski: ' +
+          '<span style="color:' + color + ';font-weight:700;">' + (Math.round((score || 0) * 100)) + '%</span>';
       };
     }
-    chart.setOption(option);
+    chart.setOption(option, true);
   },
   resize: function (elementId) {
     var chart = this.instances[elementId];
