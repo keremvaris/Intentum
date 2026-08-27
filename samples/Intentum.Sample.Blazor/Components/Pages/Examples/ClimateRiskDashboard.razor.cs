@@ -259,7 +259,7 @@ public sealed partial class ClimateRiskDashboard : IAsyncDisposable
                     type = "gauge",
                     startAngle = 180, endAngle = 0, min = 0, max = 5,
                     progress = new { show = true, width = 14 },
-                    detail = new { valueAnimation = true, formatter = "{value}", offsetCenter = new[] { "0%", "65%" }, fontSize = 16, fontWeight = "bold" },
+                    detail = new { valueAnimation = true, formatter = "{value}", offsetCenter = new[] { "0%", "65%" }, fontSize = 22, fontWeight = "bold" },
                     data = new[] { new { value = _assessment.WaterStress, name = "Su Stresi" } },
                     axisLine = new { lineStyle = new { width = 14, color = new object[] {
                         new object[] { 0.4, "#22c55e" },
