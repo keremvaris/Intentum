@@ -8,6 +8,7 @@
 @inject RiskCalculationEngine RiskEngine
 @inject CompanyProfileService ProfileService
 @inject ScenarioComparisonEngine ComparisonEngine
+@inject RiskMatrixEngine MatrixEngine
 
 <PageTitle>Iklim Riski Dashboard — Intentum</PageTitle>
 
@@ -360,6 +361,30 @@
                     <div class="impact-legend">
                         <span class="legend-item"><span class="legend-dot physical"></span> Fiziksel Risk</span>
                         <span class="legend-item"><span class="legend-dot transition"></span> Geçiş Riski</span>
+                    </div>
+                </div>
+            }
+
+            <!-- IPCC Risk Matrix: Tehlike × Varlık -->
+            @if (_assessment.HazardExposureMatrix != null)
+            {
+                <div class="climate-chart-card">
+                    <div class="chart-title">🔥 Tehlike × Varlık Matrix</div>
+                    <div id="climate-hazard-exposure" class="chart-container" style="height:270px;"></div>
+                    <div style="font-size:0.58rem;color:#94a3b8;margin-top:6px;line-height:1.4;">
+                        Risk = Tehlike (İklim) × Maruziyet (Değer) × Kırılganlık (Hassasiyet/Uyum Kapasitesi)
+                    </div>
+                </div>
+            }
+
+            <!-- IPCC Risk Matrix: Tehlike × Senaryo -->
+            @if (_assessment.ScenarioMatrix != null)
+            {
+                <div class="climate-chart-card">
+                    <div class="chart-title">📈 Tehlike × Senaryo Matrix</div>
+                    <div id="climate-scenario-heat" class="chart-container" style="height:270px;"></div>
+                    <div style="font-size:0.58rem;color:#94a3b8;margin-top:6px;line-height:1.4;">
+                        Her senaryonun (SSP1-4) iklim tehlikesi üzerindeki bileşik riski
                     </div>
                 </div>
             }

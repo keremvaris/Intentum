@@ -51,6 +51,10 @@ public sealed class FinancialLineItem
     public double Value { get; set; }
     public double PhysicalSensitivity { get; set; }
     public double TransitionSensitivity { get; set; }
+    // IPCC risk çerçevesi: Hassasiyet (Sensitivity) ve Uyum Kapasitesi (Adaptive Capacity) 0-1 arası.
+    // Kırılganlık = f(Sensitivity / AdaptiveCapacity). AdaptiveCapacity 0 ise kırılganlık maksimum olur.
+    public double Sensitivity { get; set; }
+    public double AdaptiveCapacity { get; set; } = 1.0;
     public List<string> MappedRiskSignals { get; set; } = [];
 }
 
@@ -126,6 +130,8 @@ public static class CompanyProfileExtensions
                     Value = li.Value,
                     PhysicalSensitivity = li.PhysicalSensitivity,
                     TransitionSensitivity = li.TransitionSensitivity,
+                    Sensitivity = li.Sensitivity,
+                    AdaptiveCapacity = li.AdaptiveCapacity,
                     MappedRiskSignals = new List<string>(li.MappedRiskSignals)
                 }).ToList()
             }).ToList()

@@ -550,6 +550,9 @@ public sealed class RiskAssessment
     public ClimateProjection? Projection { get; set; }
     public ClimateBaselineTrends? Baseline { get; set; }
     public List<RiskFactor> RiskFactors { get; set; } = [];
+    // IPCC risk çerçevesi: Tehlike × Maruziyet × Kırılganlık matrix'leri.
+    public HazardExposureMatrix? HazardExposureMatrix { get; set; }
+    public ScenarioMatrix? ScenarioMatrix { get; set; }
 }
 
 public sealed class EconomicImpact

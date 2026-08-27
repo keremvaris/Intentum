@@ -47,6 +47,8 @@ public sealed partial class ClimateRiskDashboard : IAsyncDisposable
     private EChartsInterop? _barEcharts;
     private EChartsInterop? _lineEcharts;
     private EChartsInterop? _gaugeEcharts;
+    private EChartsInterop? _hazardExposureEcharts;
+    private EChartsInterop? _scenarioHeatEcharts;
 
     private ElementReference _fileInputRef;
 
@@ -141,6 +143,7 @@ public sealed partial class ClimateRiskDashboard : IAsyncDisposable
                     _input.LocationName ?? _selectedProfile?.Name ?? "Konum", riskColor);
             }
 
+            BuildRiskMatrices();
             await UpdateAllCharts();
             await UpdateWorldMap();
         }
@@ -152,6 +155,29 @@ public sealed partial class ClimateRiskDashboard : IAsyncDisposable
         {
             _running = false;
             StateHasChanged();
+        }
+    }
+
+    // IPCC risk çerçevesi: Tehlike × Maruziyet × Kırılganlık matrix'lerini hesaplar.
+    private void BuildRiskMatrices()
+    {
+        if (_assessment == null) return;
+
+        // Tehlike skoru: RiskFactors listesindeki faktör adını RiskMatrixEngine tehlikeleriyle eşleştir.
+        double Hazard(string hazardName)
+        {
+            var factor = _assessment.RiskFactors.FirstOrDefault(f => f.Name == hazardName);
+            return factor?.Score ?? 0;
+        }
+
+        if (_selectedProfile != null)
+        {
+            _assessment.HazardExposureMatrix = MatrixEngine.ComputeHazardExposureMatrix(_selectedProfile, Hazard);
+
+            var risksByScenario = _scenarioResults.ToDictionary(
+                r => r.Scenario,
+                r => r.Assessment.OverallRisk);
+            _assessment.ScenarioMatrix = MatrixEngine.ComputeScenarioMatrix(_selectedProfile, risksByScenario, Hazard);
         }
     }
 
@@ -247,6 +273,59 @@ public sealed partial class ClimateRiskDashboard : IAsyncDisposable
             });
         }
 
+        // IPCC risk matrix heatmap'leri: Tehlike × Varlık ve Tehlike × Senaryo
+        if (_assessment.HazardExposureMatrix != null)
+        {
+            _hazardExposureEcharts ??= new EChartsInterop(JSRuntime, "climate-hazard-exposure");
+            if (await _hazardExposureEcharts.InitAsync())
+            {
+                var m = _assessment.HazardExposureMatrix;
+                var x = m.Categories.Select((c, i) => new { name = c, idx = i }).ToArray();
+                var y = m.Hazards.Select((c, i) => new { name = c, idx = i }).ToArray();
+                var data = m.Cells.Select(cell => new object[]
+                {
+                    (object)x.First(v => v.name == cell.Category).idx,
+                    (object)y.First(v => v.name == cell.Hazard).idx,
+                    (object)Math.Round(cell.Value, 2)
+                }).ToArray();
+                await _hazardExposureEcharts.SetHeatmapOptionAsync(new
+                {
+                    tooltip = new { },
+                    grid = new { left = "3%", right = "3%", bottom = "3%", top = "5%", containLabel = true },
+                    xAxis = new { type = "category", data = m.Categories, splitArea = new { show = true } },
+                    yAxis = new { type = "category", data = m.Hazards, splitArea = new { show = true }, inverse = true },
+                    visualMap = new { min = 0, max = 1, calculable = true, orient = "vertical", right = 0, top = "center", inRange = new { color = new[] { "#22c55e", "#f59e0b", "#ef4444", "#991b1b" } } },
+                    series = new[] { new { type = "heatmap", data = data, label = new { show = true, fontSize = 9 } } }
+                });
+            }
+        }
+
+        if (_assessment.ScenarioMatrix != null)
+        {
+            _scenarioHeatEcharts ??= new EChartsInterop(JSRuntime, "climate-scenario-heat");
+            if (await _scenarioHeatEcharts.InitAsync())
+            {
+                var m = _assessment.ScenarioMatrix;
+                var x = m.Scenarios.Select((c, i) => new { name = c, idx = i }).ToArray();
+                var y = m.Hazards.Select((c, i) => new { name = c, idx = i }).ToArray();
+                var data = m.Cells.Select(cell => new object[]
+                {
+                    (object)x.First(v => v.name == cell.Category).idx,
+                    (object)y.First(v => v.name == cell.Hazard).idx,
+                    (object)Math.Round(cell.Value, 2)
+                }).ToArray();
+                await _scenarioHeatEcharts.SetHeatmapOptionAsync(new
+                {
+                    tooltip = new { },
+                    grid = new { left = "3%", right = "3%", bottom = "3%", top = "5%", containLabel = true },
+                    xAxis = new { type = "category", data = m.Scenarios, splitArea = new { show = true } },
+                    yAxis = new { type = "category", data = m.Hazards, splitArea = new { show = true }, inverse = true },
+                    visualMap = new { min = 0, max = 1, calculable = true, orient = "vertical", right = 0, top = "center", inRange = new { color = new[] { "#22c55e", "#f59e0b", "#ef4444", "#991b1b" } } },
+                    series = new[] { new { type = "heatmap", data = data, label = new { show = true, fontSize = 9 } } }
+                });
+            }
+        }
+
         // Grid içinde boyutlar oturunca chart'ları yeniden boyutlandır.
         try
         {
@@ -254,6 +333,8 @@ public sealed partial class ClimateRiskDashboard : IAsyncDisposable
             if (_barEcharts != null) await _barEcharts.ResizeAsync();
             if (_lineEcharts != null) await _lineEcharts.ResizeAsync();
             if (_gaugeEcharts != null) await _gaugeEcharts.ResizeAsync();
+            if (_hazardExposureEcharts != null) await _hazardExposureEcharts.ResizeAsync();
+            if (_scenarioHeatEcharts != null) await _scenarioHeatEcharts.ResizeAsync();
         }
         catch { }
     }
@@ -502,6 +583,8 @@ public sealed partial class ClimateRiskDashboard : IAsyncDisposable
         if (_barEcharts != null) await _barEcharts.DisposeAsync();
         if (_lineEcharts != null) await _lineEcharts.DisposeAsync();
         if (_gaugeEcharts != null) await _gaugeEcharts.DisposeAsync();
+        if (_hazardExposureEcharts != null) await _hazardExposureEcharts.DisposeAsync();
+        if (_scenarioHeatEcharts != null) await _scenarioHeatEcharts.DisposeAsync();
         try { await JSRuntime.InvokeAsync<object?>("IntentumECharts.dispose", "climate-geo-map"); } catch { }
         try { await JSRuntime.InvokeVoidAsync("unregisterDotNetClimateMap"); } catch { }
     }
