@@ -78,10 +78,14 @@ public sealed class ClimateRiskIntentModel : IIntentModel
             signals.Add(new IntentSignal(dim, label, w));
         }
 
-        var score = Math.Min(1.0, totalWeight / 2.8);
+        // Güven: toplam ağırlığı sinyal sayısına normalize et — "sinyal başına ortalama güç".
+        // Böylece çok sayıda sinyalde bile güven 1.00'e takılmaz, firmalar arasında anlamlı fark oluşur.
+        var signalCount = Math.Max(vector.Dimensions.Count, 1);
+        var avgStrength = totalWeight / signalCount;
+        var score = Math.Min(1.0, avgStrength);
         var confidence = IntentConfidence.FromScore(score);
         var name = GetIntentNameFromScore(score);
-        var reasoning = $"{behaviorSpace.Events.Count} sinyal; ağırlıklı skor {totalWeight:F2} → {name} (güven {score:F2})";
+        var reasoning = $"{behaviorSpace.Events.Count} sinyal; sinyal başına güç {avgStrength:F2} → {name} (güven {score:F2})";
 
         return new Intent(Name: name, Signals: signals, Confidence: confidence, Reasoning: reasoning);
     }
