@@ -666,6 +666,53 @@
                 </div>
             }
 
+            <!-- Bütün Sistemden Etkilenecek Şeyler -->
+            @if (_assessment?.SystemImpact != null)
+            {
+                <div class="climate-chart-card span-2">
+                    <div class="chart-title" data-tip="İklim risk analizinin şirketin tüm sistemlerine (operasyon, tedarik zinciri, finans, İK, altyapı, paydaşlar, BT) yayılacak etkileri. Her kategori risk seviyesine göre filtrelenmiştir.">Bütün Sistemden Etkilenecek Şeyler</div>
+                    <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px;">
+                        <span style="padding:3px 7px;border-radius:999px;background:#1e293b;color:#e2e8f0;font-size:0.6rem;">Toplam @_assessment.SystemImpact.TotalImpacts etki</span>
+                        @if (_assessment.SystemImpact.CriticalCount > 0)
+                        {
+                            <span style="padding:3px 7px;border-radius:999px;background:#7f1d1d;color:#fca5a5;font-size:0.6rem;">@_assessment.SystemImpact.CriticalCount kritik</span>
+                        }
+                        @if (_assessment.SystemImpact.HighCount > 0)
+                        {
+                            <span style="padding:3px 7px;border-radius:999px;background:#78350f;color:#fde68a;font-size:0.6rem;">@_assessment.SystemImpact.HighCount yüksek</span>
+                        }
+                    </div>
+                    <div style="font-size:0.65rem;color:#94a3b8;margin-bottom:10px;background:#0f172a;border:1px solid #1e293b;border-radius:6px;padding:7px;">
+                        @_assessment.SystemImpact.Summary
+                    </div>
+                    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:8px;">
+                        @foreach (var cat in _assessment.SystemImpact.Categories)
+                        {
+                            <div style="background:#0f172a;border:1px solid #1e293b;border-radius:8px;padding:8px;">
+                                <div style="font-weight:700;font-size:0.65rem;color:#e2e8f0;margin-bottom:6px;display:flex;align-items:center;gap:6px;">
+                                    <span>@cat.Icon</span> @cat.Name
+                                    <span style="font-size:0.5rem;color:#64748b;font-weight:400;">(@cat.Items.Count)</span>
+                                </div>
+                                @foreach (var item in cat.Items)
+                                {
+                                    var urgencyColor = item.Urgency switch
+                                    {
+                                        "CRITICAL" => "#ef4444",
+                                        "HIGH" => "#f59e0b",
+                                        "MEDIUM" => "#3b82f6",
+                                        _ => "#22c55e"
+                                    };
+                                    <div style="font-size:0.55rem;color:#cbd5e1;padding:4px 0 4px 6px;border-left:2px solid @urgencyColor;margin-bottom:4px;line-height:1.35;" title="Tetikleyici: @item.Trigger | Zamanlama: @item.Timeline">
+                                        <span style="font-weight:600;color:@urgencyColor;">[@item.Urgency]</span> @item.Description
+                                        <div style="font-size:0.5rem;color:#64748b;margin-top:2px;">⏱ @item.Timeline · 📌 @item.Trigger</div>
+                                    </div>
+                                }
+                            </div>
+                        }
+                    </div>
+                </div>
+            }
+
             <!-- Politika Kararı (en altta, tam genişlik) -->
             <div class="climate-chart-card span-2">
                 <div class="chart-title" data-tip="Intentum'un davranış uzayından çıkardığı niyet ve güven seviyesine göre verilen nihai karar (ALLOW/REVIEW/REJECT). Altında kararın nedenleri, önerileri ve sinyalleri ayrıntılı olarak açıklanır.">Politika Karari (Intentum)</div>

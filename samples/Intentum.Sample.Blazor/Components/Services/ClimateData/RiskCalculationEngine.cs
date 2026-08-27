@@ -168,6 +168,13 @@ public class RiskCalculationEngine
         assessment.MissingDataSources = dataResult.Missing;
         assessment.IsRegionalEstimate = dataResult.IsRegionalEstimate;
 
+        // Sistem geneli etki analizi.
+        assessment.SystemImpact = SystemImpactModel.Calculate(
+            decision, physicalScore, transitionScore,
+            wriRisk?.WaterStress ?? 0, coastal, wriRisk,
+            financialImpact, companyProfile, input.Sector,
+            region, region?.DominantHazards ?? []);
+
         return assessment;
     }
 
@@ -801,6 +808,8 @@ public sealed class RiskAssessment
     public double DataConfidence { get; set; } = 1.0;
     public List<string> MissingDataSources { get; set; } = [];
     public bool IsRegionalEstimate { get; set; }
+    // Sistem geneli etki analizi.
+    public SystemImpactResult? SystemImpact { get; set; }
 }
 
 public sealed class EconomicImpact
