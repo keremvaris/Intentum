@@ -182,6 +182,44 @@
         </div>
     </div>
 
+    <!-- Seçili İl Detayı -->
+    @if (!string.IsNullOrEmpty(_selectedProvince))
+    {
+        <div class="climate-chart-card span-2">
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
+                <span style="font-size:0.7rem;text-transform:uppercase;color:#8b949e;letter-spacing:0.5px;">
+                    📍 Seçili İl: @_selectedProvince
+                </span>
+                @if (_selectedProvinceRisk.HasValue)
+                {
+                    <span class="intent-badge" style="background:rgba(255,152,0,0.15);color:#ff9800;">Risk: @_selectedProvinceRisk.Value.ToString("F1")/5</span>
+                }
+            </div>
+            @if (_selectedProvinceRisk.HasValue)
+            {
+                <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">
+                    <div style="flex:1;height:10px;background:#1e293b;border-radius:5px;overflow:hidden;">
+                        <div style="height:100%;width:@((_selectedProvinceRisk.Value / 5.0 * 100))%;background:@GetRiskColor(_selectedProvinceRisk.Value);border-radius:5px;"></div>
+                    </div>
+                    <span style="font-size:0.75rem;color:@GetRiskColor(_selectedProvinceRisk.Value);font-weight:700;">@GetRiskLevel5(_selectedProvinceRisk.Value)</span>
+                </div>
+                <div style="font-size:0.68rem;color:#cbd5e1;line-height:1.5;">
+                    @(_selectedProvinceCountry) @_selectedProvince ilinde su stresi riski @_selectedProvinceRisk.Value.ToString("F1")/5 seviyesinde. 
+                    @if (_selectedProfile != null)
+                    {
+                        <text>
+                            <strong>@_selectedProfile.Name</strong> (sektör: @_selectedProfile.Sector) bu bölgede faaliyet gösteriyor.
+                            @if (_assessment != null)
+                            {
+                                <text>Mevcut analiz sonucu: <strong>@GetPolicyDecision()</strong> (fiziksel risk %@(_assessment.PhysicalRisk * 100):F0, geçiş riski %@(_assessment.TransitionRisk * 100):F0).</text>
+                            }
+                        </text>
+                    }
+                </div>
+            }
+        </div>
+    }
+
     <!-- Grid: Cards -->
     <div class="climate-charts-panel">
         <div class="climate-chart-card">

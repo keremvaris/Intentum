@@ -296,8 +296,15 @@ window.ClimateMap = {
           if (v == null) return '<b>' + params.name + '</b><br/>Veri yok';
           var score = +v;
           var level = score > 4 ? 'Çok Yüksek' : score > 3 ? 'Yüksek' : score > 2 ? 'Orta' : 'Düşük';
-          var extra = tooltipSuffix ? '<br/><i>' + tooltipSuffix + '</i>' : '';
-          return '<b>' + params.name + '</b><br/>Risk: ' + score + '/5 (' + level + ')' + extra;
+          var color = score > 4 ? '#991b1b' : score > 3 ? '#ef4444' : score > 2 ? '#f59e0b' : '#22c55e';
+          var extra = tooltipSuffix ? '<br/><i style="color:#64748b;">' + tooltipSuffix + '</i>' : '';
+          return '<div style="min-width:160px;">' +
+            '<div style="font-weight:700;font-size:13px;color:#e2e8f0;margin-bottom:4px;">' + params.name + '</div>' +
+            '<div style="font-size:12px;margin-bottom:3px;">Su Stresi Riski: ' +
+              '<span style="font-weight:700;color:' + color + ';">' + score + '/5 (' + level + ')</span>' +
+            '</div>' +
+            '<div style="font-size:11px;color:#94a3b8;">İl detayı için tıklayın</div>' +
+            '</div>';
         }
       },
       visualMap: {
@@ -351,7 +358,8 @@ window.ClimateMap = {
         }
       } else if (self.level === 'country') {
         if (window.DotNetClimateMap) {
-          window.DotNetClimateMap.invokeMethodAsync('OnProvinceClicked', params.name);
+          var riskVal = (params.value != null) ? (+params.value).toFixed(1) : '';
+          window.DotNetClimateMap.invokeMethodAsync('OnProvinceClicked', params.name, riskVal, self.countryName || '');
         }
       }
     });
@@ -451,6 +459,13 @@ window.ClimateMap = {
     }
 
     var mapName = 'gadm_' + iso3 + '_1';
+    // ECharts map series matches data.name to feature.properties.name.
+    // GADM uses NAME_1 (and VARNAME_1), so inject a 'name' prop for matching.
+    geoJson.features.forEach(function(f) {
+      if (!f.properties) f.properties = {};
+      f.properties.name = f.properties.NAME_1 || f.properties.VARNAME_1 || f.properties.NAME || 'Unknown';
+      if (!f.properties.NAME) f.properties.NAME = f.properties.name;
+    });
     try { echarts.registerMap(mapName, geoJson); } catch(e) {}
 
     // Country risk baseline

@@ -25,6 +25,10 @@ public sealed partial class ClimateRiskDashboard : IAsyncDisposable
     private CompanyProfile? _editingProfile;
     private bool _isNewProfile;
 
+    private string _selectedProvince = "";
+    private double? _selectedProvinceRisk;
+    private string _selectedProvinceCountry = "";
+
     protected override async Task OnInitializedAsync()
     {
         _profiles = ProfileService.GetAll().ToList();
@@ -86,9 +90,12 @@ public sealed partial class ClimateRiskDashboard : IAsyncDisposable
     }
 
     [JSInvokable]
-    public void OnProvinceClicked(string provinceName)
+    public void OnProvinceClicked(string provinceName, string riskValue, string countryName)
     {
-        // Province click - could show detailed info in future
+        _selectedProvince = provinceName;
+        _selectedProvinceRisk = double.TryParse(riskValue, System.Globalization.CultureInfo.InvariantCulture, out var r) ? r : (double?)null;
+        _selectedProvinceCountry = countryName;
+        StateHasChanged();
     }
 
     private async Task RunAnalysis()
@@ -346,6 +353,23 @@ public sealed partial class ClimateRiskDashboard : IAsyncDisposable
         > 0.7 => "Yuksek",
         > 0.4 => "Orta",
         _ => "Dusuk"
+    };
+
+    // 0-5 ölçekli su stresi riski için etiket ve renk
+    private static string GetRiskColor(double score) => score switch
+    {
+        > 4 => "#991b1b",
+        > 3 => "#ef4444",
+        > 2 => "#f59e0b",
+        _ => "#22c55e"
+    };
+
+    private static string GetRiskLevel5(double score) => score switch
+    {
+        > 4 => "Çok Yüksek",
+        > 3 => "Yüksek",
+        > 2 => "Orta",
+        _ => "Düşük"
     };
 
     private string GetPolicyDecision()
