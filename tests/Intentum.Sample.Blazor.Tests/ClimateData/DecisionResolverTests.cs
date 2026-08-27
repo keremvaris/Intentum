@@ -62,4 +62,23 @@ public class DecisionResolverTests
     {
         Assert.Equal("ALLOW", RiskCalculationEngine.DetermineDecision(0.50, "Orta İklim Riski", null));
     }
+
+    [Fact]
+    public void DetermineDecision_LowDataConfidence_EscalatesAllowToReview()
+    {
+        Assert.Equal("REVIEW", RiskCalculationEngine.DetermineDecision(0.50, "Orta İklim Riski", null, dataConfidence: 0.5));
+    }
+
+    [Fact]
+    public void DetermineDecision_RegionalEstimate_EscalatesAllowToReview()
+    {
+        Assert.Equal("REVIEW", RiskCalculationEngine.DetermineDecision(0.50, "Orta İklim Riski", null, dataConfidence: 1.0, isRegionalEstimate: true));
+    }
+
+    [Fact]
+    public void DetermineDecision_HighRiskWithLowData_StaysReject()
+    {
+        // Güvenlik ağı: aşırı risk skoru veri düşüklüğünde bile REJECT kalmalı.
+        Assert.Equal("REJECT", RiskCalculationEngine.DetermineDecision(0.85, "Kritik İklim Riski", null, dataConfidence: 0.5));
+    }
 }

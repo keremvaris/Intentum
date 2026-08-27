@@ -33,6 +33,8 @@
                 <button class="help-close" @onclick="() => _showHelp = false">&times;</button>
             </div>
             <div class="help-dialog-body">
+
+                <!-- ==================== RİSK ÇERÇEVESİ ==================== -->
                 <div class="help-section">
                     <div class="help-section-title">🎯 Risk Çerçevesi: Risk = Tehlike × Maruziyet × Kırılganlık</div>
                     <p>Bu dashboard, IPCC (Hükümetlerarası İklim Değişikliği Paneli) risk çerçevesini kullanır. İklim riski üç bileşenin çarpımıdır:</p>
@@ -43,49 +45,201 @@
                     </ul>
                 </div>
 
+                <!-- ==================== VERİ KAYNAKLARI ==================== -->
                 <div class="help-section">
-                    <div class="help-section-title">🌍 Veri Kaynakları</div>
-                    <ul>
-                        <li><strong>Open-Meteo Climate API:</strong> İklim projeksiyonları — sıcaklık, yağış, rüzgar, nem. SSP senaryolarına göre (SSP1-2.6 … SSP5-8.5) model seçer. Modeller veriyi ~2050'ye kadar sağlar, bu yüzden 2050+ seçimlerinde en yakın kullanılabilir yıl kullanılır.</li>
-                        <li><strong>WRI Aqueduct:</strong> Su stresi (Water Stress), sel ve kuraklık riski verileri. Ülke bazında, indikatör <em>bws</em> / ağırlık <em>Tot</em>. Senaryo ve yıl projeksiyonlarıyla güncellenir.</li>
-                        <li><strong>GADM:</strong> Ülke → il/bölge sınırları. Haritada ülkeye tıklayınca il bazında detay iner.</li>
-                        <li><strong>Open-Meteo güncel hava + iklim izleme:</strong> Canlı CO₂, deniz seviyesi ve sıcaklık trendleri.</li>
-                    </ul>
+                    <div class="help-section-title">🌍 Veri Kaynakları &amp; Kullanım Detayları</div>
+
+                    <!-- WRI Aqueduct -->
+                    <div style="background:#0f172a;border:1px solid #1e3a5f;border-radius:8px;padding:10px;margin-bottom:8px;">
+                        <div style="font-weight:700;color:#38bdf8;font-size:0.75rem;margin-bottom:4px;">💧 WRI Aqueduct (Water Resources Institute)</div>
+                        <div style="font-size:0.65rem;color:#94a3b8;line-height:1.5;">
+                            <strong>Dosyalar:</strong> <code>wwwroot/data/wri/country_baseline.csv</code> + <code>country_future.csv</code><br/>
+                            <strong>İçerik:</strong> 192 ülke için su stresi (<code>bws/Tot</code>, 0-5 skoru), sel riski, kuraklık riski. Gelecek projeksiyonları SSP senaryolarına göre (SSP1→opt, SSP2→bau, SSP3/5→pes) 2030/2050/2080 yılları için.<br/>
+                            <strong>Kullanım:</strong>
+                            <ul style="margin:2px 0;padding-left:16px;">
+                                <li><code>WriAqueductService.GetForCountry(iso3)</code> → <code>WriCountryRisk</code> (baseline su stresi, sel, kuraklık)</li>
+                                <li><code>GetFutureScenario(iso3, scenario)</code> → gelecek senaryosuna göre su stresi değişimi</li>
+                                <li>Ülke kodu <code>RiskInput.CountryIso3</code>'ten gelir (koordinattan <code>GeoRiskHelper</code> ile türetilir)</li>
+                            </ul>
+                            <strong>Ürettiği sinyaller:</strong> <code>physical:water_stress</code>, <code>physical:flood</code>, <code>physical:drought</code><br/>
+                            <strong>Etkilediği:</strong> Fiziksel risk skoru, su stresi KPI bar'ı, heatmap tehlike ekseni, öneri metinleri
+                        </div>
+                    </div>
+
+                    <!-- Open-Meteo -->
+                    <div style="background:#0f172a;border:1px solid #1e3a5f;border-radius:8px;padding:10px;margin-bottom:8px;">
+                        <div style="font-weight:700;color:#f59e0b;font-size:0.75rem;margin-bottom:4px;">🌤️ Open-Meteo Climate API (Canlı API)</div>
+                        <div style="font-size:0.65rem;color:#94a3b8;line-height:1.5;">
+                            <strong>Kaynak:</strong> <code>https://climate-api.open-meteo.com/v1/climate</code> (canlı istek, local dosya yok)<br/>
+                            <strong>İçerik:</strong> Enlem/boylam + model + senaryo + yıl aralığına göre günlük sıcaklık (min/max ortalama), yağış, rüzgar, nem projeksiyonları. Modeller: EC_Earth3P_HR, MPI_ESM1_2_XR vs.<br/>
+                            <strong>Kullanım:</strong>
+                            <ul style="margin:2px 0;padding-left:16px;">
+                                <li><code>OpenMeteoService.GetProjectionAsync(lat, lon, model, startYear, endYear)</code> → <code>ClimateProjection</code></li>
+                                <li>Harita marker konumu (<code>Lat/Lon</code>) kullanılır — Anadolu'da bir nokta için gerçek koordinatlara dayalı projeksiyon</li>
+                                <li>Model verileri ~2050'ye kadar mevcut, daha sonraki yıllar 2050 değerine sabitlenir (clamp)</li>
+                            </ul>
+                            <strong>Ürettiği sinyaller:</strong> <code>physical:heatwave</code> (sıcaklık max), <code>physical:storm</code> (rüzgar max), yağış değişiminden türetilen kuraklık/sel sinyalleri<br/>
+                            <strong>Etkilediği:</strong> Fiziksel risk skoru, sıcaklık trendi, termal histogram, heatmap, termal risk faktörü
+                        </div>
+                    </div>
+
+                    <!-- GADM -->
+                    <div style="background:#0f172a;border:1px solid #1e3a5f;border-radius:8px;padding:10px;margin-bottom:8px;">
+                        <div style="font-weight:700;color:#22c55e;font-size:0.75rem;margin-bottom:4px;">🗺️ GADM (Global Administrative Areas)</div>
+                        <div style="font-size:0.65rem;color:#94a3b8;line-height:1.5;">
+                            <strong>Dosyalar:</strong> <code>wwwroot/data/gadm/gadm41_{ISO3}_{level}.json</code><br/>
+                            <strong>İçerik:</strong> Ülke sınırları (Level 0), il/bölge sınırları (Level 1), ilçe sınırları (Level 2 — sadece Türkiye). 10 ülke: TUR, USA, DEU, GBR, FRA, ITA, JPN, BRA, CHN, IND.<br/>
+                            <strong>Kullanım:</strong>
+                            <ul style="margin:2px 0;padding-left:16px;">
+                                <li>Harita katmanları: tıklandığında ülke→il→ilçe drill-down (3 seviye breadcrumb)</li>
+                                <li><code>echarts-interop.js</code>: <code>_buildOption</code> içinde <code>geo</code> + <code>geoIndex</code> pattern ile render</li>
+                                <li>İlçe düzeyinde (Level 2): Türkiye için 929 ilçe sınırı — haritada tıklanan ilçenin adı province name injection ile eklenir</li>
+                                <li>WRI verisiyle eşleştirme: <code>GeoRiskHelper.DetectIso3(lat, lon)</code> → GADM polygon içinde nokta var mı kontrolü</li>
+                            </ul>
+                            <strong>Etkilediği:</strong> Harita render, breadcrumb navigasyonu, ilçe-level risk renklendirmesi
+                        </div>
+                    </div>
+
+                    <!-- World.json -->
+                    <div style="background:#0f172a;border:1px solid #1e3a5f;border-radius:8px;padding:10px;margin-bottom:8px;">
+                        <div style="font-weight:700;color:#a78bfa;font-size:0.75rem;margin-bottom:4px;">🌐 World.json (ECharts Map Data)</div>
+                        <div style="font-size:0.65rem;color:#94a3b8;line-height:1.5;">
+                            <strong>Dosya:</strong> <code>wwwroot/data/world.json</code><br/>
+                            <strong>İçerik:</strong> GeoJSON formatında dünya haritası — tüm ülkelerin sınırları, координатları ve isimleri.<br/>
+                            <strong>Kullanım:</strong>
+                            <ul style="margin:2px 0;padding-left:16px;">
+                                <li><code>echarts-interop.js</code>'de <code>echarts.registerMap('world', worldData)</code> ile harita kaydı</li>
+                                <li>İlk yüklemede tüm dünya gösterilir, ülke tıklamasıyla GADM level 1/2'ye geçiş</li>
+                                <li><code>layoutCenter: ['50%', '50%']</code> + <code>layoutSize: '95%'</code> ile otomatik sığdırma</li>
+                            </ul>
+                            <strong>Etkilediği:</strong> Ana harita görünümü, dünya-genelinde ülke risk renklendirmesi
+                        </div>
+                    </div>
+
+                    <!-- Baseline Trends -->
+                    <div style="background:#0f172a;border:1px solid #1e3a5f;border-radius:8px;padding:10px;margin-bottom:8px;">
+                        <div style="font-weight:700;color:#ec4899;font-size:0.75rem;margin-bottom:4px;">📈 Baseline Trends (İklim Temel Eğilimleri)</div>
+                        <div style="font-size:0.65rem;color:#94a3b8;line-height:1.5;">
+                            <strong>Dosya:</strong> <code>wwwroot/data/climate/baseline_trends.json</code><br/>
+                            <strong>İçerik:</strong> Ülke bazında iklim temel eğilimleri — tarihsel sıcaklık, yağış, deniz seviyesi değişimleri.<br/>
+                            <strong>Kullanım:</strong> <code>RiskCalculationEngine</code>'de <code>ClimateBaselineTrends</code> olarak yüklenir, <code>RiskAssessment.Baseline</code> alanına doldurulur.<br/>
+                            <strong>Etkilediği:</strong> Risk değerlendirme gerekçeleri, trend karşılaştırmaları
+                        </div>
+                    </div>
+
+                    <!-- ClimateRegionCatalog -->
+                    <div style="background:#0f172a;border:1px solid #1e3a5f;border-radius:8px;padding:10px;margin-bottom:8px;">
+                        <div style="font-weight:700;color:#f97316;font-size:0.75rem;margin-bottom:4px;">🗺️ ClimateRegionCatalog (Bölgesel Profil — Sabit Veri)</div>
+                        <div style="font-size:0.65rem;color:#94a3b8;line-height:1.5;">
+                            <strong>Kaynak:</strong> <code>ClimateRegionCatalog.cs</code> (hardcoded, 11 ülke profili + varsayılan)<br/>
+                            <strong>İçerik:</strong> Her ülke için: iklim tipi, baskın tehlikeler (Kuraklık/Su Stresi/Taşkın/Sıcaklık), mevsimsellik notları, uyum önerileri (adaptive recommendations).<br/>
+                            <strong>Kullanım:</strong>
+                            <ul style="margin:2px 0;padding-left:16px;">
+                                <li><code>ClimateRegionCatalog.Get(iso3)</code> → <code>ClimateRegionProfile</code></li>
+                                <li><code>DetectIso3(lat, lon)</code> → koordinattan ülke kodu tespiti (GADM polygon kontrolü ile)</li>
+                                <li>Her analizde otomatik: <code>RiskAssessment.ClimateRegion</code> doldurulur</li>
+                            </ul>
+                            <strong>Ürettiği:</strong> Baskın tehlike listesi, mevsimsellik notları, bölgesel adaptif öneriler<br/>
+                            <strong>Etkilediği:</strong> Öneriler (sadece baskın tehlikelerle eşleşenler eklenir), bölgesel rozet, karar gerekçeleri
+                        </div>
+                    </div>
+
+                    <!-- GeoRiskHelper -->
+                    <div style="background:#0f172a;border:1px solid #1e3a5f;border-radius:8px;padding:10px;margin-bottom:8px;">
+                        <div style="font-weight:700;color:#06b6d4;font-size:0.75rem;margin-bottom:4px;">📍 GeoRiskHelper (Coğrafi Analiz)</div>
+                        <div style="font-size:0.65rem;color:#94a3b8;line-height:1.5;">
+                            <strong>Kaynak:</strong> <code>GeoRiskHelper.cs</code> (hesaplama mantığı)<br/>
+                            <strong>İçerik:</strong> Kıyıya uzaklık, kıyı olup olmadığı, efektif deniz seviyesi yüksekliği, coğrafi not.<br/>
+                            <strong>Kullanım:</strong>
+                            <ul style="margin:2px 0;padding-left:16px;">
+                                <li><code>GetCoastalInfo(lat, lon)</code> → <code>(isCoastal, distanceKm, note)</code></li>
+                                <li>Kıyıya 25km'den yakınsa <code>isCoastal = true</code>, değilse <code>note = "Denize kıyısı yok"</code></li>
+                                <li><code>GetEffectiveSeaLevel(seaLevelRise, distanceKm)</code> → iç bölgelerde deniz seviyesi etkisi sıfırlanır</li>
+                                <li>İç bölgelerde <code>effectiveSea = 0m</code> — deniz riski hesaba katılmaz</li>
+                            </ul>
+                            <strong>Etkilediği:</strong> Kıyı/iç bölge rozeti, <code>physical:sea_level</code> sinyali, heatmap deniz seviyesi ekseni, öneri metinleri
+                        </div>
+                    </div>
+
+                    <!-- DataSufficiency -->
+                    <div style="background:#0f172a;border:1px solid #1e3a5f;border-radius:8px;padding:10px;margin-bottom:8px;">
+                        <div style="font-weight:700;color:#ef4444;font-size:0.75rem;margin-bottom:4px;">📊 DataSufficiency (Veri Yeterlilik Katmanı)</div>
+                        <div style="font-size:0.65rem;color:#94a3b8;line-height:1.5;">
+                            <strong>Kaynak:</strong> <code>DataSufficiency.cs</code> (hesaplama mantığı)<br/>
+                            <strong>İçerik:</strong> Her analizde 3 kaynağın mevcudiyetini kontrol eder: Open-Meteo proje verisi, WRI su stresi, şirket profili.<br/>
+                            <strong>Kullanım:</strong>
+                            <ul style="margin:2px 0;padding-left:16px;">
+                                <li><code>DataSufficiency.Evaluate(hasProjection, hasWri, hasCompanyProfile)</code> → <code>DataConfidenceResult</code></li>
+                                <li>Skor: tüm kaynaklar varsa 1.0, eksikse düşer (0.25'er azalma)</li>
+                                <li><code>RiskAssessment.DataConfidence</code>, <code>MissingDataSources</code>, <code>IsRegionalEstimate</code> doldurulur</li>
+                            </ul>
+                            <strong>Etkilediği:</strong> Karar akışı (DataConfidence &lt; 0.75 → ALLOW yerine REVIEW), eksik veri gerekçeleri, Dashboard Veri Yeterlilik rozeti
+                        </div>
+                    </div>
+
+                    <!-- Company Profile -->
+                    <div style="background:#0f172a;border:1px solid #1e3a5f;border-radius:8px;padding:10px;margin-bottom:8px;">
+                        <div style="font-weight:700;color:#8b5cf6;font-size:0.75rem;margin-bottom:4px;">🏢 Şirket Profilleri (Finansal Veri)</div>
+                        <div style="font-size:0.65rem;color:#94a3b8;line-height:1.5;">
+                            <strong>Kaynak:</strong> <code>CompanyProfileService</code> (seed: 3 hazır şirket) + <code>CompanyProfileImporter</code> (CSV yükleme)<br/>
+                            <strong>İçerik:</strong> Şirket adı, sektörü, konumu, gelir/gider kalemleri (hassasiyet + uyum kapasitesi ile), kırılganlık skoru.<br/>
+                            <strong>Kullanım:</strong>
+                            <ul style="margin:2px 0;padding-left:16px;">
+                                <li><code>CompanyProfileService.Get(id)</code> → seçili şirket profili</li>
+                                <li><code>FinancialImpactEngine.Calculate(profile, physical, transition, signals)</code> → <code>FinancialImpact</code></li>
+                                <li>Her gelir/gider kalemi: <code>Sensitivity × AdaptiveCapacity × RiskSkoru = ParasalEtki</code></li>
+                                <li>Toplam finansal etki → karar sıkılaştırması (net kayıp > 10M → REVIEW, > 25M → REJECT)</li>
+                                <li>CSV ile özel şirket verisi yüklenebilir (<code>templates/sirket_sablonu.csv</code>)</li>
+                            </ul>
+                            <strong>Ürettiği sinyaller:</strong> <code>economic:revenue_at_risk</code>, <code>economic:operational_expenses</code>, <code>economic:cost_of_goods</code>, <code>economic:capital_expenditure</code>, <code>economic:impact</code><br/>
+                            <strong>Etkilediği:</strong> Finansal etki kartı, gelir kaybı sinyalleri, karar sıkılaştırması, önerilerde finansal tedbirler
+                        </div>
+                    </div>
                 </div>
 
+                <!-- ==================== SİNYAL AKIŞI ==================== -->
                 <div class="help-section">
-                    <div class="help-section-title">⚙️ Nasıl Çalıştırılıyor?</div>
+                    <div class="help-section-title">⚡ Sinyal Akışı: Veri → BehaviorSpace → Niyet → Karar</div>
+                    <p>Her veri kaynağı belirli sinyalleri BehaviorSpace'e yazar. IntentModel bu sinyallerden niyeti çıkarır:</p>
+                    <div style="background:#0f172a;border:1px solid #1e3a5f;border-radius:8px;padding:10px;font-size:0.65rem;color:#94a3b8;line-height:1.6;">
+                        <code style="color:#38bdf8;">Open-Meteo</code> → <code style="color:#f59e0b;">physical:heatwave</code>, <code style="color:#f59e0b;">physical:storm</code><br/>
+                        <code style="color:#38bdf8;">WRI Aqueduct</code> → <code style="color:#f59e0b;">physical:water_stress</code>, <code style="color:#f59e0b;">physical:flood</code>, <code style="color:#f59e0b;">physical:drought</code><br/>
+                        <code style="color:#38bdf8;">GeoRiskHelper</code> → <code style="color:#f59e0b;">physical:sea_level</code><br/>
+                        <code style="color:#38bdf8;">RiskInput (kullanıcı)</code> → <code style="color:#f59e0b;">transition:policy</code>, <code style="color:#f59e0b;">transition:market</code>, <code style="color:#f59e0b;">transition:technology</code>, <code style="color:#f59e0b;">transition:reputation</code><br/>
+                        <code style="color:#38bdf8;">CompanyProfile</code> → <code style="color:#f59e0b;">economic:revenue_at_risk</code>, <code style="color:#f59e0b;">economic:operational_expenses</code>, <code style="color:#f59e0b;">economic:cost_of_goods</code>, <code style="color:#f59e0b;">economic:capital_expenditure</code>, <code style="color:#f59e0b;">economic:impact</code><br/>
+                        <code style="color:#38bdf8;">DataSufficiency</code> → <code style="color:#f59e0b;">signal:missing_data</code>, <code style="color:#f59e0b;">signal:regional_estimate</code>
+                        <br/><br/>
+                        <span style="color:#22c55e;">→ IntentModel.Infer(space) → </span><span style="color:#ef4444;">Niyet (Kritik/Yüksek/Orta/Düşük) + Güven</span><br/>
+                        <span style="color:#22c55e;">→ IntentPolicyEngine.Evaluate(intent, policy) → </span><span style="color:#ef4444;">ALLOW / REVIEW / REJECT</span>
+                    </div>
+                </div>
+
+                <!-- ==================== NASIL ÇALIŞTIRILIYOR ==================== -->
+                <div class="help-section">
+                    <div class="help-section-title">⚙️ Analiz Akışı (Adım Adım)</div>
                     <ol>
-                        <li><strong>Girdi:</strong> Sol panelden senaryo, sektör, zaman dilimi, parametreleri (sıcaklık artışı, yağış, deniz, karbon fiyatı), lokasyon ve şirket profilini ayarlayın.</li>
-                        <li><strong>Veri toplama:</strong> Open-Meteo projeksiyonu, WRI su stresi ve canlı trendler çekilir.</li>
-                        <li><strong>Risk skorları:</strong> Fiziksel risk (iklim verisi + slider) ve geçiş riski (karbon fiyatı + senaryo + sektör) ağırlıklı olarak hesaplanır.</li>
-                        <li><strong>Intentum Inference:</strong> Toplanan tüm sinyaller bir <em>BehaviorSpace</em>'e yazılır (ör. <code>physical:heatwave</code>, <code>economic:revenue_at_risk</code>). IntentModel bu uzaydan niyeti çıkarır.</li>
-                        <li><strong>Policy:</strong> IntentPolicyBuilder niyet + güven seviyesine göre karar üretir (ALLOW / REVIEW / REJECT).</li>
-                        <li><strong>Finansal bağlantı:</strong> Şirket profili varsa finansal maruziyet hesaplanır ve büyük kayıp kararı bir kademe sıkılaştırır.</li>
+                        <li><strong>Girdi:</strong> Sol panelden senaryo, sektör, zaman dilimi, parametreler (sıcaklık, yağış, deniz, karbon fiyatı), lokasyon ve şirket profili ayarlanır.</li>
+                        <li><strong>Veri toplama:</strong> Open-Meteo projeksiyonu, WRI su stresi, GeoRiskHelper kıyı analizi, şirket profili paralel olarak çekilir.</li>
+                        <li><strong>Veri yeterlilik:</strong> Kaynakların mevcudiyeti kontrol edilir — eksik veri varsa <code>DataConfidence</code> düşer ve karar REVIEW'e çekilir.</li>
+                        <li><strong>Risk hesaplama:</strong> Fiziksel risk (iklim verisi + WRI + slider) ve geçiş riski (karbon fiyatı + senaryo + sektör) ağırlıklı olarak hesaplanır.</li>
+                        <li><strong>BehaviorSpace:</strong> Tüm sinyaller <code>Observe("actor", "action")</code> ile BehaviorSpace'e yazılır. Örn: <code>physical:water_stress</code>, <code>economic:revenue_at_risk</code>.</li>
+                        <li><strong>Niyet çıkarma:</strong> IntentModel sinyallerden toplam ağırlık hesaplar, ortalamayı niyete bağlar (Kritik/Yüksek/Orta/Düşük).</li>
+                        <li><strong>Politika kararı:</strong> IntentPolicy niyet + güven seviyesine göre karar üretir. Veri yetersizse ALLOW → REVIEW sıkılaştırması uygulanır.</li>
+                        <li><strong>Finansal bağlantı:</strong> Şirket profili varsa finansal maruziyet hesaplanır. Büyük kayıp (>10M TL) kararı bir kademe sıkılaştırır.</li>
+                        <li><strong>Öneriler:</strong> Karar, risk seviyesi, bölgesel profil ve baskın tehlikelere göre koşullu öneriler üretilir.</li>
                     </ol>
                 </div>
 
-                <div class="help-section">
-                    <div class="help-section-title">🧠 Intentum Neyi Nasıl Yorumluyor?</div>
-                    <p>Intentum, çevresel gözlemleri <strong>aktör:eylem</strong> biçiminde toplar. Her gözlem bir niyet sinyaline dönüşür ve kendi ağırlığıyla skorlanır:</p>
-                    <ul>
-                        <li><strong>Niyet adı:</strong> Kritik / Yüksek / Orta / Düşük / Minimal İklim Riski — toplam ağırlıklı sinyal skorundan türetilir.</li>
-                        <li><strong>Güven (Confidence):</strong> Sinyal yoğunluğundan hesaplanır.</li>
-                        <li><strong>Policy kararı:</strong> Niyet + güven bir karar kuralına bağlanır (REJECT: kritik risk, REVIEW: yüksek risk, ALLOW: düşük risk).</li>
-                        <li><strong>Finansal etki:</strong> Finansal sinyaller de davranış uzayına girer — gelir geçiş riskine, operasyon/yatırım fiziksel riske maruz kalır.</li>
-                    </ul>
-                </div>
-
+                <!-- ==================== DASHBOARD OKUMA ==================== -->
                 <div class="help-section">
                     <div class="help-section-title">📊 Dashboard'ı Okuma</div>
                     <ul>
                         <li><strong>KPI bar:</strong> Fiziksel risk, geçiş riski, su stresi, MDP etkisi ve nihai politika kararı.</li>
-                        <li><strong>Harita:</strong> Ülke tıklayın → il/bölge. Marker = seçili şirket konumu.</li>
-                        <li><strong>Risk Dağılımı / Senaryo Karşılaştırma:</strong> Risk bileşenleri ve SSP senaryoları arası fark.</li>
-                        <li><strong>Su Stresi / Risk Faktörleri:</strong> WRI su stresi ve iklim faktörlerinin katkısı.</li>
+                        <li><strong>Harita:</strong> Ülke tıklayın → il/bölge. Marker = seçili şirket konumu. İlçe düzeyine kadar inilebilir.</li>
                         <li><strong>İklim Risk Matrix (heatmap):</strong> Tehlike × Varlık ve Tehlike × Senaryo — bileşik riskin hücre hücre görünümü.</li>
+                        <li><strong>Sinyal Dağılımı:</strong> Her sinyalin ağırlığı gerçek veriden hesaplanır (WRI skoru, şirket geliri, fiziksel risk skoru).</li>
                         <li><strong>Finansal Etki:</strong> Fiziksel/geçiş riskinin şirket kalemlerine parasal yansıması.</li>
-                        <li><strong>Politika Kararı:</strong> Intentum niyeti, güveni, nedenleri, önerileri ve sinyalleri — en ayrıntılı açıklama.</li>
+                        <li><strong>Politika Kararı:</strong> Intentum niyeti, güveni, Veri Yeterlilik rozeti, bölgesel profil, nedenleri, koşullu öneriler ve sinyaller.</li>
                     </ul>
                 </div>
             </div>
@@ -103,27 +257,32 @@
 @if (_assessment != null)
 {
     <div class="climate-kpi-bar">
-        <div class="climate-kpi-item" style="border-left-color:#ff9800;">
+        <div class="climate-kpi-item" style="border-left-color:#ef4444;" title="Genel risk skoru: Fiziksel risk × 0,6 + Geçiş riski × 0,4 ağırlıklı ortalaması. Tüm risk bileşenlerinin tek skorda birleşimi.">
+            <div class="kpi-label" style="color:#ef4444;">Genel Risk</div>
+            <div class="kpi-value">@_assessment.OverallRisk.ToString("F2")</div>
+            <div class="kpi-sub">@GetRiskLabel(_assessment.OverallRisk)</div>
+        </div>
+        <div class="climate-kpi-item" style="border-left-color:#ff9800;" title="İklimsel doğa olaylarının şiddeti ve sıklığı: sıcaklık, yağış, rüzgar, sel, kuraklık. Open-Meteo + WRI verilerinden hesaplanır.">
             <div class="kpi-label" style="color:#ff9800;">Fiziksel Risk</div>
             <div class="kpi-value">@_assessment.PhysicalRisk.ToString("F2")</div>
             <div class="kpi-sub">@GetRiskLabel(_assessment.PhysicalRisk)</div>
         </div>
-        <div class="climate-kpi-item" style="border-left-color:#9c27b0;">
+        <div class="climate-kpi-item" style="border-left-color:#9c27b0;" title="Ekonomik geçiş süreci riski: karbon fiyatı, regülasyon, teknoloji değişimi, piyasa baskısı. Kullanıcı parametrelerinden hesaplanır.">
             <div class="kpi-label" style="color:#9c27b0;">Gecis Riski</div>
             <div class="kpi-value">@_assessment.TransitionRisk.ToString("F2")</div>
             <div class="kpi-sub">@GetRiskLabel(_assessment.TransitionRisk)</div>
         </div>
-        <div class="climate-kpi-item" style="border-left-color:#f44336;">
+        <div class="climate-kpi-item" style="border-left-color:#f44336;" title="WRI Aqueduct verisine göre bölgenin su talebinin su kaynaklarına oranı (0-5). 3+ = yüksek, 4+ = çok yüksek stres.">
             <div class="kpi-label" style="color:#f44336;">Su Stresi</div>
             <div class="kpi-value">@_assessment.WaterStress.ToString("F1")</div>
             <div class="kpi-sub">@_assessment.WaterStressLabel</div>
         </div>
-        <div class="climate-kpi-item" style="border-left-color:#4caf50;">
+        <div class="climate-kpi-item" style="border-left-color:#4caf50;" title="İklim riskinin şirkete parasal etkisi: MDP (Marka Değeri Kaybı) kaybı, milyon dolar cinsinden. Şirket profili varsa hesaplanır.">
             <div class="kpi-label" style="color:#4caf50;">MDP Etkisi</div>
             <div class="kpi-value">-$@_assessment.EconomicImpact.MdpLoss.ToString("F1")M</div>
             <div class="kpi-sub">@_input.Horizon Tahmini</div>
         </div>
-        <div class="climate-kpi-item" style="border-left-color:#2196f3;">
+        <div class="climate-kpi-item" style="border-left-color:#2196f3;" title="Intentum niyet analizi sonucu: ALLOW (düşük risk, standart izleme), REVIEW (orta-yüksek risk, detaylı değerlendirme), REJECT (kritik risk, acil eylem).">
             <div class="kpi-label" style="color:#2196f3;">Politika</div>
             <div class="kpi-value">@GetPolicyDecision()</div>
             <div class="kpi-sub">Intentum Karari</div>
@@ -515,6 +674,15 @@
                     <span style="padding:3px 7px;border-radius:999px;background:#1e293b;color:#e2e8f0;font-size:0.6rem;border:1px solid #334155;">@_assessment.IntentName</span>
                     <span style="padding:3px 7px;border-radius:999px;background:#0f172a;color:#38bdf8;font-size:0.6rem;border:1px solid #0ea5e9;">Güven @_assessment.ConfidenceLevel @_assessment.ConfidenceScore.ToString("F2")</span>
                     <span style="padding:3px 7px;border-radius:999px;background:@(_assessment.IsCoastal ? "#064e3b" : "#1e1b4b");color:@(_assessment.IsCoastal ? "#6ee7b7" : "#a5b4fc");font-size:0.55rem;">@(_assessment.IsCoastal ? "Kıyı" : "İç Bölge") · @_assessment.EffectiveSeaLevel.ToString("F1")m efektif</span>
+                    <span style="padding:3px 7px;border-radius:999px;background:@GetDataConfidenceColor();color:white;font-size:0.6rem;" data-tip="Veri yeterlilik skoru: kaynakların mevcudiyetine göre hesaplanır. Düşük skor REVIEW kararını tetikler.">Veri @((_assessment.DataConfidence * 100).ToString("F0"))%</span>
+                    @if (_assessment.ClimateRegion != null)
+                    {
+                        <span style="padding:3px 7px;border-radius:999px;background:#312e81;color:#c4b5fd;font-size:0.55rem;border:1px solid #6366f1;" data-tip="@_assessment.ClimateRegion.Name — @_assessment.ClimateRegion.ClimateType bölgesel adaptasyon önerileri">🌍 @_assessment.ClimateRegion.Name</span>
+                    }
+                    @if (_assessment.IsRegionalEstimate)
+                    {
+                        <span style="padding:3px 7px;border-radius:999px;background:#78350f;color:#fde68a;font-size:0.55rem;border:1px solid #b45309;">⚠️ Bölgesel Tahmin</span>
+                    }
                 </div>
                 <div style="font-size:0.68rem;color:#e2e8f0;line-height:1.45;margin-bottom:8px;background:#0f172a;border:1px solid #1e293b;border-radius:6px;padding:8px;">
                     @_assessment.DecisionSummary
@@ -557,8 +725,8 @@
                             </div>
                             @foreach (var sig in category.OrderByDescending(s => s.Weight))
                             {
-                                <div style="display:flex;align-items:center;gap:6px;margin-bottom:3px;font-size:0.55rem;padding-left:14px;">
-                                    <span style="width:120px;color:#cbd5e1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="@sig.Source">@sig.Description</span>
+                                <div style="display:flex;align-items:center;gap:6px;margin-bottom:3px;font-size:0.55rem;padding-left:14px;" title="@GetSignalTooltip(sig.Source, sig.Weight)">
+                                    <span style="width:120px;color:#cbd5e1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">@sig.Description</span>
                                     <div style="flex:1;height:5px;background:#1e293b;border-radius:3px;overflow:hidden;">
                                         <div style="height:100%;width:@(Math.Min(sig.Weight*100,100))%;background:@GetSignalCategoryColor(sig.Source);border-radius:3px;"></div>
                                     </div>

@@ -67,9 +67,16 @@ public class RiskCalculationEngine
             companyProfile = _companyProfileService.GetById(input.CompanyProfileId);
         }
 
-        var space = BuildBehaviorSpace(input, physicalScore, transitionScore, wriRisk, effectiveSea, coastal, companyProfile);
+        // Veri yeterlilik: kaynak mevcudiyetini hesapla (signal:missing için).
+        var dataResult = DataSufficiency.Evaluate(
+            hasProjection: projection != null && projection.TempMax.Length > 0,
+            hasWri: wriRisk != null,
+            hasCompanyProfile: companyProfile != null && companyProfile.Categories.Count > 0);
+
+        var space = BuildBehaviorSpace(input, physicalScore, transitionScore, wriRisk, effectiveSea, coastal, companyProfile, dataResult);
         var model = new ClimateRiskIntentModel();
         var intent = model.Infer(space);
+
         var policy = ClimateRiskPolicy.Create();
         var policyDecision = IntentPolicyEngine.Evaluate(intent, policy);
         var decision = ClimateRiskPolicy.MapToDecision(policyDecision.ToString());
@@ -81,20 +88,54 @@ public class RiskCalculationEngine
             financialImpact = _financialImpactEngine.Calculate(companyProfile, physicalScore, transitionScore, intent.Signals.Select(s => s.Source).ToList());
         }
 
-        // Tek tutarlı karar: risk skorlarından monoton bir karar türet.
-        // Intentum niyeti kararın gerekçesini (reasoning) sağlar, karar ise
-        // her zaman yüksek risk → daha katı karar olacak şekilde hesaplanır.
-        // Finansal kayıp büyükse (destekleyici etki) karar bir kademe sıkılaştırılır.
-        var overall = (physicalScore * 0.6 + transitionScore * 0.4);
-        decision = DetermineDecision(overall, intent.Name, financialImpact);
+        // Gerçek veri değerlerinden sinyal ağırlıklarını hesapla — statik sözlük yerine dinamik.
+        var computedWeights = ComputeSignalWeights(physicalScore, transitionScore, wriRisk, effectiveSea, companyProfile, financialImpact, dataResult);
+        intent = intent with
+        {
+            Signals = intent.Signals.Select(s =>
+            {
+                if (computedWeights.TryGetValue(s.Source, out var computed))
+                    return s with { Weight = computed };
+                return s;
+            }).ToList()
+        };
 
-        var reasons = BuildDecisionReasons(input, physicalScore, transitionScore, wriRisk, projection, coastal, effectiveSea, intent, financialImpact, companyProfile);
-        var actions = BuildRecommendedActions(decision, input, physicalScore, transitionScore, coastal, wriRisk, financialImpact, companyProfile);
+        // Ağırlıklar gerçek veriden hesaplandı — confidence ve niyeti yeniden hesapla.
+        var activeSignals = intent.Signals.Where(s => s.Weight > 0).ToList();
+        var recomputedTotal = activeSignals.Sum(s => s.Weight);
+        var activeCount = Math.Max(activeSignals.Count, 1);
+        var recomputedAvg = recomputedTotal / activeCount;
+        var recomputedScore = Math.Min(1.0, recomputedAvg);
+        var recomputedConfidence = IntentConfidence.FromScore(recomputedScore);
+        var recomputedName = recomputedScore switch
+        {
+            >= 0.80 => "Kritik İklim Riski",
+            >= 0.60 => "Yüksek İklim Riski",
+            >= 0.40 => "Orta İklim Riski",
+            >= 0.20 => "Düşük İklim Riski",
+            _ => "Minimal İklim Riski"
+        };
+        var recomputedReasoning = $"{activeSignals.Count} aktif sinyal; sinyal başına güç {recomputedAvg:F2} → {recomputedName} (güven {recomputedScore:F2})";
+        intent = intent with
+        {
+            Name = recomputedName,
+            Confidence = recomputedConfidence,
+            Reasoning = recomputedReasoning
+        };
+
+        // Tek tutarlı karar: Intentum niyeti ağırlıklı, risk skoru güvenlik ağı.
+        // Veri yetersizse REVIEW'e çekilir; aşırı yüksek risk skoru REJECT'i zorlar.
+        var overall = (physicalScore * 0.6 + transitionScore * 0.4);
+        decision = DetermineDecision(overall, intent.Name, financialImpact, dataResult.Score, dataResult.IsRegionalEstimate);
+
+        var reasons = BuildDecisionReasons(input, physicalScore, transitionScore, wriRisk, projection, coastal, effectiveSea, intent, financialImpact, companyProfile, dataResult);
+        var region = ClimateRegionCatalog.Get(input.CountryIso3);
+        var actions = BuildRecommendedActions(decision, input, physicalScore, transitionScore, coastal, wriRisk, financialImpact, companyProfile, region);
         var summary = BuildDecisionSummary(decision, overall, physicalScore, transitionScore, input, intent, coastal, financialImpact, companyProfile);
 
         space.Observe("ClimateRisk:result", $"{intent.Name} {policyDecision} → {decision} ({intent.Confidence.Score:F2})");
 
-        return new RiskAssessment
+        var assessment = new RiskAssessment
         {
             Input = input,
             PhysicalRisk = physicalScore,
@@ -120,10 +161,18 @@ public class RiskCalculationEngine
             Baseline = baseline,
             RiskFactors = BuildRiskFactors(projection, wriRisk, input, effectiveSea, coastal)
         };
+
+        // Bölgesel bağlam + veri yeterlilik katmanları.
+        assessment.ClimateRegion = ClimateRegionCatalog.Get(input.CountryIso3);
+        assessment.DataConfidence = dataResult.Score;
+        assessment.MissingDataSources = dataResult.Missing;
+        assessment.IsRegionalEstimate = dataResult.IsRegionalEstimate;
+
+        return assessment;
     }
 
     private static BehaviorSpace BuildBehaviorSpace(
-        RiskInput input, double physical, double transition, WriCountryRisk? wri, double effectiveSea, (bool isCoastal, double distanceKm, string note) coastal, CompanyProfile? companyProfile = null)
+        RiskInput input, double physical, double transition, WriCountryRisk? wri, double effectiveSea, (bool isCoastal, double distanceKm, string note) coastal, CompanyProfile? companyProfile = null, DataConfidenceResult? dataResult = null)
     {
         var space = new BehaviorSpace();
         space.SetMetadata("location", input.LocationName);
@@ -188,6 +237,18 @@ public class RiskCalculationEngine
             for (var i = 0; i < opexObs; i++) space.Observe("economic", "operational_expenses");
             for (var i = 0; i < capexObs; i++) space.Observe("economic", "capital_expenditure");
             for (var i = 0; i < capexObs; i++) space.Observe("economic", "cost_of_goods");
+        }
+
+        // Veri yeterlilik sinyalleri: eksik veri ve bölgesel tahmin, niyet kararını etkiler.
+        if (dataResult != null)
+        {
+            if (dataResult.Missing.Count > 0)
+            {
+                var n = Math.Min(dataResult.Missing.Count, 4);
+                for (var i = 0; i < n; i++) space.Observe("signal", "missing_data");
+            }
+            if (dataResult.IsRegionalEstimate)
+                space.Observe("signal", "regional_estimate");
         }
 
         return space;
@@ -280,13 +341,18 @@ public class RiskCalculationEngine
     }
 
     // Monoton karar türetme: yüksek risk her zaman daha katı karar üretir.
-    // Finansal kayıp büyükse (destekleyici etki) karar bir kademe sıkılaştırılır.
-    internal static string DetermineDecision(double overall, string intentName, FinancialImpact? financialImpact = null)
+    // Veri yetersizse REVIEW'e çekilir (düşük veriyle REJECT/ALLOW riskli).
+    // Finansal kayıp büyükse bir kademe sıkılaştırılır. Aşırı yüksek risk skoru REJECT'i zorlar.
+    internal static string DetermineDecision(double overall, string intentName, FinancialImpact? financialImpact = null, double dataConfidence = 1.0, bool isRegionalEstimate = false)
     {
         string decision;
-        if (overall > 0.75) decision = "REJECT";
+        if (overall >= 0.80) decision = "REJECT";                                           // güvenlik ağı: aşırı risk her zaman REJECT
         else if (overall > 0.60) decision = "REVIEW";
         else decision = "ALLOW";
+
+        // Veri yeterlilik: eksik veri kararı REVIEW'e çeker (ALLOW/REJECT'i baskılar).
+        if (dataConfidence < 0.75 && decision == "ALLOW") decision = "REVIEW";
+        if (isRegionalEstimate && decision == "ALLOW") decision = "REVIEW";
 
         // Destekleyici finansal etki: net nakit akışı kaybı büyükse kararı bir kademe sıkılaştır.
         if (financialImpact != null)
@@ -342,10 +408,74 @@ public class RiskCalculationEngine
         return factors;
     }
 
+    /// <summary>Gerçek veri değerlerinden sinyal ağırlıklarını hesaplar — statik sözlük yerine dinamik.</summary>
+    private static Dictionary<string, double> ComputeSignalWeights(
+        double physical, double transition, WriCountryRisk? wri, double effectiveSea,
+        CompanyProfile? companyProfile, FinancialImpact? financialImpact, DataConfidenceResult? dataResult)
+    {
+        var weights = new Dictionary<string, double>(StringComparer.OrdinalIgnoreCase);
+        var waterStress = wri?.WaterStress ?? 0;
+        var floodRisk = wri?.FloodRisk ?? 0;
+        var droughtRisk = wri?.DroughtRisk ?? 0;
+
+        // Fiziksel: her sinyal kendi verisinden türetilir
+        weights["physical:water_stress"] = waterStress / 5.0;
+        weights["physical:flood"] = floodRisk / 5.0;
+        weights["physical:drought"] = droughtRisk / 5.0;
+        weights["physical:heatwave"] = physical * 0.9;  // physical skorundan türet
+        weights["physical:storm"] = physical * 0.7;     // physical skorundan türet
+        weights["physical:sea_level"] = Math.Clamp(effectiveSea / 2.0, 0, 1);
+
+        // Geçiş: physical/transition skorlarından + karbon fiyatından
+        weights["transition:market"] = transition * 0.9;
+        weights["transition:technology"] = transition * 0.75;
+        weights["transition:policy"] = transition * 0.85;
+        weights["transition:reputation"] = transition * 0.6;
+
+        // Finansal: şirket profili + finansal etki
+        if (companyProfile != null && financialImpact != null)
+        {
+            var revenue = companyProfile.TotalRevenue;
+            var net = financialImpact.NetCashFlowImpact;
+            weights["economic:revenue_at_risk"] = revenue > 0 ? Math.Clamp(Math.Abs(net) / revenue, 0, 1) : 0;
+            weights["economic:operational_expenses"] = financialImpact.CategoryImpacts
+                .Where(c => c.Type == FinancialCategoryType.Opex)
+                .Select(c => c.TotalImpact)
+                .DefaultIfEmpty(0).First() / (revenue > 0 ? revenue : 1);
+            weights["economic:cost_of_goods"] = financialImpact.CategoryImpacts
+                .Where(c => c.Type == FinancialCategoryType.Capex)
+                .Select(c => c.TotalImpact)
+                .DefaultIfEmpty(0).First() / (revenue > 0 ? revenue : 1);
+            weights["economic:capital_expenditure"] = financialImpact.CategoryImpacts
+                .Where(c => c.Type == FinancialCategoryType.Capex)
+                .Select(c => c.TotalImpact)
+                .DefaultIfEmpty(0).First() / (revenue > 0 ? revenue : 1);
+            weights["economic:impact"] = physical * 0.5 + transition * 0.5;
+        }
+        else
+        {
+            weights["economic:revenue_at_risk"] = 0;
+            weights["economic:operational_expenses"] = 0;
+            weights["economic:cost_of_goods"] = 0;
+            weights["economic:capital_expenditure"] = 0;
+            weights["economic:impact"] = physical * 0.5 + transition * 0.5;
+        }
+
+        // Veri yeterlilik
+        weights["signal:missing_data"] = dataResult != null ? 1.0 - dataResult.Score : 0;
+        weights["signal:regional_estimate"] = dataResult?.IsRegionalEstimate == true ? 0.8 : 0;
+
+        // 0-1 aralığında sıkıştır
+        foreach (var key in weights.Keys.ToList())
+            weights[key] = Math.Clamp(weights[key], 0, 1);
+
+        return weights;
+    }
+
     private static List<string> BuildDecisionReasons(
         RiskInput input, double physical, double transition,
         WriCountryRisk? wri, ClimateProjection? proj,
-        (bool isCoastal, double distanceKm, string note) coastal, double effectiveSea, Intent intent, FinancialImpact? financialImpact = null, CompanyProfile? companyProfile = null)
+        (bool isCoastal, double distanceKm, string note) coastal, double effectiveSea, Intent intent, FinancialImpact? financialImpact = null, CompanyProfile? companyProfile = null, DataConfidenceResult? dataResult = null)
     {
         var reasons = new List<string>();
 
@@ -417,71 +547,175 @@ public class RiskCalculationEngine
         if (financialImpact != null)
         {
             var net = financialImpact.NetCashFlowImpact;
-            if (net <= -25_000_000)
-                reasons.Add($"Finansal maruziyet kritik: net nakit akışı kaybı {net:N0} TL/yıl — karar REJECT'e sıkılaştırıldı");
-            else if (net <= -10_000_000)
-                reasons.Add($"Finansal maruziyet yüksek: net nakit akışı kaybı {net:N0} TL/yıl — karar REVIEW'e sıkılaştırıldı");
-            else if (net < 0)
-                reasons.Add($"Finansal maruziyet: net nakit akışı kaybı {net:N0} TL/yıl");
-        }
+                if (net <= -25_000_000)
+                    reasons.Add($"Finansal maruziyet kritik: net nakit akışı kaybı {net:N0} TL/yıl — karar REJECT'e sıkılaştırıldı");
+                else if (net <= -10_000_000)
+                    reasons.Add($"Finansal maruziyet yüksek: net nakit akışı kaybı {net:N0} TL/yıl — karar REVIEW'e sıkılaştırıldı");
+                else if (net < 0)
+                    reasons.Add($"Finansal maruziyet: net nakit akışı kaybı {net:N0} TL/yıl");
+            }
 
-        return reasons;
+            // Veri yeterlilik gerekçesi.
+            if (dataResult != null && dataResult.Missing.Count > 0)
+                reasons.Add($"Eksik veri kaynakları: {string.Join(", ", dataResult.Missing)} — veri güvenliği {dataResult.Score:P0}");
+            if (dataResult != null && dataResult.IsRegionalEstimate)
+                reasons.Add("Yerel veri olmadığı için bölgesel profilden genel tahmin kullanıldı");
+
+            return reasons;
     }
 
     private static List<string> BuildRecommendedActions(
-        string decision, RiskInput input, double physical, double transition, (bool isCoastal, double distanceKm, string note) coastal, WriCountryRisk? wri, FinancialImpact? financialImpact = null, CompanyProfile? companyProfile = null)
+        string decision, RiskInput input, double physical, double transition, (bool isCoastal, double distanceKm, string note) coastal, WriCountryRisk? wri, FinancialImpact? financialImpact = null, CompanyProfile? companyProfile = null, ClimateRegionProfile? region = null)
     {
         var actions = new List<string>();
         var company = companyProfile != null ? $" ({companyProfile.Name})" : "";
         var location = string.IsNullOrWhiteSpace(input.LocationName) ? "bu bölge" : input.LocationName;
+        var waterStress = wri?.WaterStress ?? 0;
+        var dominantHazards = region?.DominantHazards ?? [];
 
         switch (decision)
         {
             case "REJECT":
                 actions.Add($"⚠️ {input.Sector} sektörü{company} için {location} bölgesinde derin iklim risk azaltım planı hazırlayın — TCFD/TNFD çerçevesinde somut hedefler belirleyin");
-                if (physical > 0.6)
+
+                // Fiziksel risk high → somut yatırım/tedbir
+                if (physical > 0.7)
                 {
-                    actions.Add("🛡️ Fiziksel dayanıklılık yatırımları: yedek su/su kaynağı ve soğutma kapasitesi artırımı için bütçe ayırın");
-                    actions.Add("🛡️ Sigorta kapsamını genişletin: sel/sıcaklık teminatını mevcut poliçeye ekletin");
+                    actions.Add("🛡️ Kritik fiziksel risk: yedek su kaynağı + soğutma kapasitesi artırımı için derhal bütçe ayırın");
+                    if (dominantHazards.Contains("Kuraklık Riski") || dominantHazards.Contains("Su Stresi"))
+                        actions.Add("💧 Kuraklık/su stresi baskın: acil su verimliliği programı — geri dönüşüm sistemi + alternatif su kaynağı (geri kazanılmış su/yağmur suyu)");
+                    if (dominantHazards.Contains("Taşkın Riski"))
+                        actions.Add("🌊 Taşkın baskın: drenaj altyapısı güçlendirme + tesis kotu revizyonu + acil durum tahliye planı");
+                    if (dominantHazards.Contains("Sıcaklık Artışı") || dominantHazards.Contains("Isı Stresi"))
+                        actions.Add("🌡️ Isı stresi baskın: soğutma altyapısı yatırımı + işçi sağlığı protokolü + yaz operasyon planlaması");
+                    actions.Add("🛡️ Sigorta kapsamını genişletin: sel/sıcaklık/kuraklık teminatını mevcut poliçeye ekletin");
                 }
-                if (wri != null && wri.WaterStress > 3)
-                    actions.Add($"💧 {location} bölgesinde su verimliliği: geri dönüşüm + alternatif su kaynağı (yağmur suyu) fizibilitesi çıkarın");
-                if (!coastal.isCoastal)
-                    actions.Add("🏜️ Kıyı riski düşük — odak noktası: kuraklık ve su kıstı senaryoları, ısı stresi");
-                actions.Add("🌱 Karbon ayak izi azaltım yol haritası: düşük karbon teknolojisi fizibilitesi ve geçiş maliyet analizi");
+                else if (physical > 0.5)
+                {
+                    actions.Add("🛡️ Orta fiziksel risk: mevcut altyapı dayanıklılık testi yaptırın, kırılgan noktaları belirleyin");
+                }
+
+                // Su stresi eşiğine göre su önerileri
+                if (waterStress >= 4)
+                    actions.Add($"💧 {location}: çok yüksek su stresi ({waterStress:F1}/5) — su ayak izi azaltım zorunlu, geri dönüşüm + alternatif su kaynağı fizibilitesi çıkarın");
+                else if (waterStress >= 3)
+                    actions.Add($"💧 {location}: yüksek su stresi ({waterStress:F1}/5) — su verimliliği izleme sistemi kurun, DSİ/bölge verileriyle çapraz kontrol edin");
+
+                // Kıyı/iç bölge
+                if (coastal.isCoastal)
+                    actions.Add("🌊 Kıyı tesisleri: deniz seviyesi yükselmesi + fırtına senaryolarında tesis kotu ve drenaj kontrolü yapın");
+                else
+                    actions.Add("🏜️ İç bölge: odak noktası kuraklık, su kıstı ve ısı stresi senaryoları");
+
+                // Geçiş riski high → regülasyon/sürdürülebilirlik
+                if (transition > 0.6)
+                    actions.Add("🌱 Yüksek geçiş riski: karbon ayak izi azaltım yol haritası + düşük karbon teknolojisi fizibilitesi ve geçiş maliyet analizi");
+
+                // Sektörel öneriler
+                if (input.Sector == "Enerji")
+                    actions.Add("⚡ Enerji sektörü: yenilenebilir kaynak geçiş planı + emisyon yoğunluğu azaltım hedefleri");
+                else if (input.Sector == "Tarım")
+                    actions.Add("🌾 Tarım: alternatif ürün çeşitlendirme + sulama optimizasyonu + kuraklık dayanıklı tohum seçimi");
+
+                // Finansal tedbir (REJECT'te tek blok)
+                if (financialImpact != null && financialImpact.NetCashFlowImpact < 0)
+                {
+                    var net = financialImpact.NetCashFlowImpact;
+                    if (net <= -25_000_000)
+                        actions.Add($"💸 Kritik finansal maruziyet ({net:N0} TL/yıl): kapsamlı finansal dayanıklılık planı — sermaye planlaması, sigorta limitlerini yeniden yapılandırın ve likidite riskini yönetin");
+                    else
+                        actions.Add($"💸 Yüksek finansal maruziyet ({net:N0} TL/yıl): hedefli maliyet düşürme + gelir koruma önlemleri uygulayın, nakit akışı senaryoları oluşturun");
+                }
                 break;
+
             case "REVIEW":
-                actions.Add($"📡 {location} için 6 ayda bir güncel izleme: WRI su stresi + Open-Meteo sıcaklık verilerini takip edin");
-                if (input.CarbonPrice >= 80)
-                    actions.Add("💶 Karbon fiyat duyarlılık matrisi: €50/100/180 senaryolarında maliyet analizi yapın (TR geçiş riski)");
-                if (!coastal.isCoastal && wri != null && wri.WaterStress > 2)
-                    actions.Add("💧 Yerel su havzası verilerini çapraz kontrol edin: DSİ/bölge verileriyle doğrulayın");
+                // Tek izleme sıklığı: su stresi ve fiziksel riski birlikte değerlendir, tek öneri üret
+                var monitoringFrequency = (waterStress >= 3 || physical > 0.5) ? "3 ayda bir" : "6 ayda bir";
+                actions.Add($"📡 {location} için {monitoringFrequency} izleme: WRI su stresi + Open-Meteo sıcaklık verilerini takip edin{(waterStress >= 3 ? $" (su stresi: {waterStress:F1}/5)" : "")}");
+
+                // Kıyı/iç bölge riski
                 if (coastal.isCoastal)
                     actions.Add("🌊 Kıyı taşkını: +0.5m/+1.0m senaryolarında tesis kotu ve drenaj kontrolü yapın");
-                actions.Add("📈 Sektörel gelişmeleri izleyin: regülasyon ve piyasa sinyalleri, rakip uyum planları");
+                else if (waterStress > 2)
+                    actions.Add($"🏜️ {location} iç bölge: kuraklık ve su kıstı senaryolarını izleyin, ısı stresi için yaz operasyon planlaması yapın");
+
+                // Karbon fiyat duyarlılığı
+                if (input.CarbonPrice >= 80)
+                    actions.Add("💶 Karbon fiyat duyarlılık matrisi: €50/100/180 senaryolarında maliyet analizi yapın");
+
+                // Bölgesel baskın tehlike bazlı
+                if (dominantHazards.Count > 0)
+                {
+                    var topHazard = dominantHazards[0];
+                    actions.Add($"🎯 {location} için öncelikli tehlike: {topHazard} — bu tehlikeye odaklanarak izleme planı oluşturun");
+                }
+
+                // Finansal tampon (REVIEW'te tek blok)
                 if (financialImpact != null && financialImpact.NetCashFlowImpact < 0)
-                    actions.Add("💰 Finansal tampon oluşturun: beklenen kayıp için yedek fon / türev (hedge) seçenekleri değerlendirin");
+                {
+                    var net = financialImpact.NetCashFlowImpact;
+                    if (net <= -25_000_000)
+                        actions.Add($"💸 Kritik finansal maruziyet ({net:N0} TL/yıl): yedek fon + sigorta + türev enstrümanlarını değerlendirin");
+                    else
+                        actions.Add($"💰 Finansal tampon ({net:N0} TL/yıl): beklenen kayıp için yedek fon ayırın, nakit akışı senaryoları oluşturun");
+                }
                 break;
-            default:
+
+            default: // ALLOW
                 actions.Add($"✅ {company} için mevcut izleme yeterli — yıllık rapor döngüsünü koruyun");
-                actions.Add("🔄 Piyasa veya regülasyon değişikliği olursa analizi yenileyin");
                 if (physical > 0.3 || transition > 0.3)
                     actions.Add("📋 Düşük risk bölgesinde bile: iklim etkenlerini yatırım kararlarına dahil etmeye devam edin");
+                if (waterStress >= 3)
+                    actions.Add($"💧 {location}: su stresi yüksek ({waterStress:F1}/5) — ALLOW kararına rağmen su verimliliği izlemesini sürdürün");
                 break;
         }
 
-        if (financialImpact != null)
+        // Bölgesel adaptif öneriler: SADECE baskın tehlikelerle eşleşen öneriler
+        if (region != null)
         {
-            var net = financialImpact.NetCashFlowImpact;
-            if (net <= -25_000_000)
-                actions.Add($"💸 Kritik finansal maruziyet ({net:N0} TL/yıl): kapsamlı finansal dayanıklılık planı — sermaye planlaması ve sigorta limitlerini yeniden yapılandırın");
-            else if (net <= -10_000_000)
-                actions.Add($"💸 Yüksek finansal maruziyet ({net:N0} TL/yıl): hedefli maliyet düşürme + gelir koruma önlemleri uygulayın");
-            else if (net < 0)
-                actions.Add($"📊 Finansal maruziyet ({net:N0} TL/yıl): en çok etkilenen kalemleri izleyin, azaltım önceliklerini belirleyin");
+            foreach (var rec in region.AdaptiveRecommendations)
+            {
+                var recLower = rec.ToLowerInvariant();
+                var anyHazardMatch = dominantHazards.Any(h => recLower.Contains(h.ToLowerInvariant()));
+                if (anyHazardMatch || dominantHazards.Count == 0)
+                    actions.Add($"🗺️ {region.Name} ({region.ClimateType}): {rec}");
+            }
+
+            var seasonalNote = BuildSeasonalNote(region, coastal, waterStress, physical, dominantHazards);
+            if (!string.IsNullOrEmpty(seasonalNote))
+                actions.Add($"📅 {seasonalNote}");
         }
 
         return actions;
+    }
+
+    /// <summary>Lokasyona özel mevsimsellik notu üretir — ülke profili + kıyı durumu + su stresi + baskın tehlikeler.</summary>
+    private static string BuildSeasonalNote(ClimateRegionProfile region, (bool isCoastal, double distanceKm, string note) coastal, double waterStress, double physical, List<string> dominantHazards)
+    {
+        var parts = new List<string>();
+
+        // Bölge tipine göre mevsimsel riskler
+        if (coastal.isCoastal)
+        {
+            parts.Add("Kıyı şeridinde kış fırtınası ve ani taşkın riski yüksek");
+            if (physical > 0.5)
+                parts.Add("yaz sıcağı ve kuraklık operasyonları doğrudan etkiler");
+        }
+        else
+        {
+            if (waterStress >= 3)
+                parts.Add("yaz kuraklığı ve su kıstı baskın");
+            else
+                parts.Add("iç bölgelerde yaz kuraklığı ve gece-gündüz sıcaklık farkı yüksek");
+            if (dominantHazards.Contains("Sıcaklık Artışı") || dominantHazards.Contains("Isı Stresi"))
+                parts.Add("artan sıcak dalgaları işçi sağlığını ve soğutma yükünü etkiler");
+        }
+
+        // Ülke/genel not sadece bölgeye özgü bilgi yoksa ekle
+        if (parts.Count == 0 && !string.IsNullOrEmpty(region.Seasonality))
+            return $"{region.Seasonality} — mevsimsellik dikkate alınmalı";
+
+        return parts.Count > 0 ? string.Join("; ", parts) + " — mevsimsellik dikkate alınmalı" : "";
     }
 
     private static string BuildDecisionSummary(
@@ -561,6 +795,12 @@ public sealed class RiskAssessment
     // IPCC risk çerçevesi: Tehlike × Maruziyet × Kırılganlık matrix'leri.
     public HazardExposureMatrix? HazardExposureMatrix { get; set; }
     public ScenarioMatrix? ScenarioMatrix { get; set; }
+    // Bölgesel bağlam katmanı: ülke bazlı iklim profili.
+    public ClimateRegionProfile? ClimateRegion { get; set; }
+    // Veri yeterlilik katmanı: 0-1 arası güven + eksik kaynak listesi.
+    public double DataConfidence { get; set; } = 1.0;
+    public List<string> MissingDataSources { get; set; } = [];
+    public bool IsRegionalEstimate { get; set; }
 }
 
 public sealed class EconomicImpact

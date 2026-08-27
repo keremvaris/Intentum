@@ -551,6 +551,19 @@ public sealed partial class ClimateRiskDashboard : IAsyncDisposable
         };
     }
 
+    private string GetDataConfidenceColor()
+    {
+        if (_assessment == null) return "#666";
+        return _assessment.DataConfidence switch
+        {
+            >= 0.9 => "#22c55e",
+            >= 0.75 => "#84cc16",
+            >= 0.5 => "#eab308",
+            >= 0.25 => "#f97316",
+            _ => "#ef4444"
+        };
+    }
+
     private void SelectProfile(string profileId)
     {
         _input.CompanyProfileId = profileId;
@@ -644,6 +657,28 @@ public sealed partial class ClimateRiskDashboard : IAsyncDisposable
         _ when source.StartsWith("transition") => "Geçiş Riski",
         _ when source.StartsWith("economic") => "Finansal Risk",
         _ => "Diğer"
+    };
+
+    private static string GetSignalTooltip(string source, double weight) => source switch
+    {
+        "physical:water_stress" => $"Su Stresi: WRI Aqueduct verisine göre bölgenin su talebinin su kaynaklarına oranı ({weight:F2}). Yüksek değer → su kıtlığı riski artar.",
+        "physical:flood" => $"Sel Riski: WRI Aqueduct nehir taşkını verisi ({weight:F2}). Yüksek değer → taşkın hasar potansiyeli yüksek.",
+        "physical:drought" => $"Kuraklık Riski: WRI Aqueduct kuraklık endeksi ({weight:F2}). Yüksek değer → uzun süreli kuraklık beklentisi.",
+        "physical:heatwave" => $"Sıcak Dalgası: Open-Meteo iklim projeksiyonundan sıcaklık maksimumları ({weight:F2}). Yüksek değer → aşırı sıcaklık günleri artar.",
+        "physical:storm" => $"Fırtına: Open-Meteo rüzgar hızı maksimumları ({weight:F2}). Yüksek değer → fırtına hasar riski yükselir.",
+        "physical:sea_level" => $"Deniz Seviyesi: GeoRiskHelper'dan hesapanan efektif deniz seviyesi yüksekliği ({weight:F2}). Kıyı tesisleri için doğrudan tehdit.",
+        "transition:market" => $"Piyasa Riski: Karbon fiyatı, emtia fiyatları ve talep değişimleri ({weight:F2}). Geçiş sürecinde pazar payı kaybı riski.",
+        "transition:policy" => $"Politika/Regülasyon: Karbon fiyatına duyarlılık + regülasyon değişiklikleri ({weight:F2}). Yeni düzenlemelere uyum maliyeti.",
+        "transition:technology" => $"Teknoloji Dönüşümü: Düşük karbon teknolojilerine geçiş hızı ({weight:F2}). Mevcut teknolojinin eskimesi riski.",
+        "transition:reputation" => $"İtibar Riski: Paydaş baskısı ve kamuoyu algısı ({weight:F2}). İklim eylemlerinden itibar kaybı riski.",
+        "economic:revenue_at_risk" => $"Gelir Kaybı: İklim riskinin şirkete gelir etkisi / toplam ciro ({weight:F2}). Yüksek değer → gelir kaybı cironun büyük kısmını etkiler.",
+        "economic:operational_expenses" => $"Operasyonel Giderler: İklim riskinin operasyonel maliyetlere etkisi / ciro ({weight:F2}). Yüksek değer → bakım, onarım, iş gücü maliyetleri artar.",
+        "economic:cost_of_goods" => $"Maliyet Riski: Hammaddedarı ve lojistik maliyetleri üzerindeki iklim etkisi / ciro ({weight:F2}). Yüksek değer → tedarik zinciri kesintileri.",
+        "economic:capital_expenditure" => $"Yatırım Riski: Yeni yatırım gereksinimleri ve mevcut varlıkların değer kaybı / ciro ({weight:F2}). Yüksek değer → sermaye yoğun yatırımlar gerekir.",
+        "economic:impact" => $"Ekonomik Etki: Fiziksel ve geçiş riskinin birleşik Parasal etkisi ({weight:F2}). Tüm sektörler için genel ekonomik yansıma.",
+        "signal:missing_data" => $"Eksik Veri: Kullanılamayan veri kaynaklarının sayısı ({weight:F2}). Yüksek değer → analiz güvenilirliği düşer, REVIEW kararı tetiklenir.",
+        "signal:regional_estimate" => $"Bölgesel Tahmin: Yerel veri olmadığı için ülke profili kullanıldı ({weight:F2}). Yüksek değer → analiz tahminsel, doğruluk payı düşük.",
+        _ => $"{source}: Ağırlık {weight:F2}"
     };
 
     public async ValueTask DisposeAsync()

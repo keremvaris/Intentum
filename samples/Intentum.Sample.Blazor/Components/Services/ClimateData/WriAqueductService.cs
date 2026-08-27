@@ -58,6 +58,17 @@ public sealed class WriAqueductService
 
         if (country == null) return null;
 
+        // Kuraklık ve sel riski ayrı indikatörlerden (drr/rfr) okunur.
+        var drought = baseline.FirstOrDefault(x =>
+            string.Equals(x.gid_0, iso3, StringComparison.OrdinalIgnoreCase) &&
+            x.indicator_name == "drr" && x.weight == "Tot");
+        var flood = baseline.FirstOrDefault(x =>
+            string.Equals(x.gid_0, iso3, StringComparison.OrdinalIgnoreCase) &&
+            x.indicator_name == "rfr" && x.weight == "Tot")
+            ?? baseline.FirstOrDefault(x =>
+            string.Equals(x.gid_0, iso3, StringComparison.OrdinalIgnoreCase) &&
+            x.indicator_name == "rfr");
+
         return new WriCountryRisk
         {
             Iso3 = country.gid_0,
@@ -66,8 +77,8 @@ public sealed class WriAqueductService
             WaterDepletion = 0,
             InterannualVariability = 0,
             SeasonalVariability = 0,
-            DroughtRisk = 0,
-            FloodRisk = 0,
+            DroughtRisk = drought?.score ?? 0,
+            FloodRisk = flood?.score ?? 0,
             GroundwaterStress = 0,
             WaterStressLabel = country.label ?? ""
         };

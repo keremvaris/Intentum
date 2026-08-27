@@ -23,7 +23,9 @@ public sealed class ClimateRiskIntentModel : IIntentModel
         ["economic:operational_expenses"] = 0.14,
         ["economic:revenue_at_risk"] = 0.18,
         ["economic:capital_expenditure"] = 0.13,
-        ["economic:impact"] = 0.05
+        ["economic:impact"] = 0.05,
+        ["signal:missing_data"] = 0.20,
+        ["signal:regional_estimate"] = 0.10
     };
 
     public static readonly Dictionary<string, string> SignalLabels = new(StringComparer.OrdinalIgnoreCase)
@@ -42,7 +44,9 @@ public sealed class ClimateRiskIntentModel : IIntentModel
         ["economic:operational_expenses"] = "Operasyonel Giderler",
         ["economic:revenue_at_risk"] = "Gelir Kaybı",
         ["economic:capital_expenditure"] = "Yatırım Riski",
-        ["economic:impact"] = "Ekonomik Etki"
+        ["economic:impact"] = "Ekonomik Etki",
+        ["signal:missing_data"] = "Eksik Veri",
+        ["signal:regional_estimate"] = "Bölgesel Tahmin"
     };
 
     public static readonly Dictionary<string, string> SignalCategories = new(StringComparer.OrdinalIgnoreCase)
@@ -61,7 +65,9 @@ public sealed class ClimateRiskIntentModel : IIntentModel
         ["economic:operational_expenses"] = "Finansal",
         ["economic:revenue_at_risk"] = "Finansal",
         ["economic:capital_expenditure"] = "Finansal",
-        ["economic:impact"] = "Finansal"
+        ["economic:impact"] = "Finansal",
+        ["signal:missing_data"] = "Veri",
+        ["signal:regional_estimate"] = "Veri"
     };
 
     public Intent Infer(BehaviorSpace behaviorSpace, BehaviorVector? precomputedVector = null)
@@ -85,7 +91,7 @@ public sealed class ClimateRiskIntentModel : IIntentModel
         var score = Math.Min(1.0, avgStrength);
         var confidence = IntentConfidence.FromScore(score);
         var name = GetIntentNameFromScore(score);
-        var reasoning = $"{behaviorSpace.Events.Count} sinyal; sinyal başına güç {avgStrength:F2} → {name} (güven {score:F2})";
+        var reasoning = $"{signalCount} sinyal; sinyal başına güç {avgStrength:F2} → {name} (güven {score:F2})";
 
         return new Intent(Name: name, Signals: signals, Confidence: confidence, Reasoning: reasoning);
     }
