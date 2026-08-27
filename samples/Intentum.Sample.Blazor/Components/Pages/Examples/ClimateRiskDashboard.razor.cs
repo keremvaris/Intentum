@@ -23,6 +23,8 @@ public sealed partial class ClimateRiskDashboard : IAsyncDisposable
     private CompanyProfile? _selectedProfile;
     private List<ScenarioComparisonResult> _scenarioResults = new();
     private bool _drawerOpen;
+    private List<NgfsMacroSnapshot> _ngfsComparison = new();
+    private ClimateVarResult? _varResult;
     private CompanyProfile? _editingProfile;
     private bool _isNewProfile;
 
@@ -175,6 +177,16 @@ public sealed partial class ClimateRiskDashboard : IAsyncDisposable
                 _scenarioResults = await ComparisonEngine.CompareAllAsync(_selectedProfile, _input);
             }
 
+            // NGFS karşılaştırma verisi.
+            _ngfsComparison = await NgfsService.GetComparisonAsync(_input.CountryIso3, _input.Horizon);
+
+            // Climate VaR
+            var ngfsScenarioIds = _ngfsComparison.Select(s => s.Scenario).Distinct().ToList();
+            if (ngfsScenarioIds.Count > 0 && _selectedProfile != null)
+            {
+                _varResult = await VarEngine.CalculateAsync(_selectedProfile, _input, ngfsScenarioIds);
+            }
+
             // Update factory marker on map
             if (_input.Latitude != 0 || _input.Longitude != 0)
             {
@@ -300,6 +312,58 @@ public sealed partial class ClimateRiskDashboard : IAsyncDisposable
                     new { name = "Gecis Riski", type = "bar", data = _scenarioResults.Select(r => (object)Math.Round(r.Assessment.TransitionRisk, 2)).ToArray(), itemStyle = new { color = "#fb923c" } }
                 }
             });
+        }
+
+        // NGFS makro karşılaştırma grafiği.
+        if (_ngfsComparison.Count > 0)
+        {
+            var ngfsEcharts = new EChartsInterop(JSRuntime, "climate-ngfs-comparison");
+            if (await ngfsEcharts.InitAsync())
+            {
+                var scenarios = _ngfsComparison.Select(s => s.Scenario).Distinct().ToList();
+                var categories = scenarios.Select(s => (object)s).ToArray();
+                var gdpData = scenarios.Select(s => (object)Math.Round(_ngfsComparison.FirstOrDefault(x => x.Scenario == s && x.GdpChange != null)?.GdpChange ?? 0, 1)).ToArray();
+                var carbonData = scenarios.Select(s => (object)Math.Round(_ngfsComparison.FirstOrDefault(x => x.Scenario == s && x.CarbonPrice != null)?.CarbonPrice ?? 0, 0)).ToArray();
+
+                await ngfsEcharts.SetOptionAsync(new
+                {
+                    tooltip = new { trigger = "axis", axisPointer = new { type = "shadow" } },
+                    legend = new { data = new[] { "GSYİH Değişimi (%)", "Karbon Fiyatı ($/tCO₂)" }, textStyle = new { color = "#94a3b8", fontSize = 10 }, top = 0 },
+                    grid = new { left = "8%", right = "8%", bottom = "5%", top = "18%", containLabel = true },
+                    xAxis = new { type = "category", data = categories },
+                    yAxis = new[]
+                    {
+                        new { type = "value", name = "GSYİH %", position = "left", axisLabel = new { color = "#94a3b8", fontSize = 9 } },
+                        new { type = "value", name = "$/tCO₂", position = "right", axisLabel = new { color = "#94a3b8", fontSize = 9 } }
+                    },
+                    series = new object[]
+                    {
+                        new { name = "GSYİH Değişimi (%)", type = "bar", yAxisIndex = 0, data = gdpData, itemStyle = new { color = "#22c55e" } },
+                        new { name = "Karbon Fiyatı ($/tCO₂)", type = "bar", yAxisIndex = 1, data = carbonData, itemStyle = new { color = "#60a5fa" } }
+                    }
+                });
+            }
+        }
+
+        // Climate VaR chart
+        if (_varResult != null && _varResult.LossDistribution.Count > 0)
+        {
+            var varEcharts = new EChartsInterop(JSRuntime, "climate-var-bar");
+            if (await varEcharts.InitAsync())
+            {
+                var names = _varResult.LossDistribution.Select(l => (object)l.ScenarioName).ToArray();
+                var losses = _varResult.LossDistribution.Select(l => (object)Math.Round(l.Loss, 0)).ToArray();
+                var colors = _varResult.LossDistribution.Select(l => (object)(l.Loss >= 0 ? "#22c55e" : "#ef4444")).ToArray();
+
+                await varEcharts.SetOptionAsync(new
+                {
+                    tooltip = new { trigger = "axis", axisPointer = new { type = "shadow" } },
+                    grid = new { left = "10%", right = "5%", bottom = "15%", top = "5%", containLabel = true },
+                    xAxis = new { type = "category", data = names, axisLabel = new { rotate = 30, fontSize = 9, color = "#94a3b8" } },
+                    yAxis = new { type = "value", name = "Kayıp (TL)", axisLabel = new { color = "#94a3b8", fontSize = 9 } },
+                    series = new[] { new { type = "bar", data = losses.Select((l, i) => new { value = l, itemStyle = new { color = colors[i] } }).ToArray() } }
+                });
+            }
         }
 
         _gaugeEcharts ??= new EChartsInterop(JSRuntime, "climate-water-gauge");

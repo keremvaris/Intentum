@@ -9,6 +9,8 @@
 @inject CompanyProfileService ProfileService
 @inject ScenarioComparisonEngine ComparisonEngine
 @inject RiskMatrixEngine MatrixEngine
+@inject NgfsScenarioService NgfsService
+@inject ClimateVarEngine VarEngine
 
 <PageTitle>Iklim Riski Dashboard — Intentum</PageTitle>
 
@@ -301,6 +303,18 @@
             <option value="SSP5-8.5">SSP5-8.5 (Fosil Yakit)</option>
         </select>
 
+        <label>NGFS Senaryo <span style="color:#94a3b8;font-weight:normal;">(opsiyonel)</span></label>
+        <select @bind="_input.NgfsScenarioId">
+            <option value="">Yok</option>
+            <option value="n nz2050">Net Zero 2050 (Orderly, 1.5°C)</option>
+            <option value="n below2c">Below 2°C (Orderly, 1.7°C)</option>
+            <option value="n delayed">Delayed Transition (Disorderly, 1.5°C)</option>
+            <option value="n ndcs">NDCs (Disorderly, 1.8°C)</option>
+            <option value="n fragmented">Fragmented World (Disorderly, 2.3°C)</option>
+            <option value="n currpol">Current Policies (HotHouse, 3°C+)</option>
+            <option value="n lowdemand">Low Demand (Orderly, 1.5°C)</option>
+        </select>
+
         <label>Sektor</label>
         <select @bind="_input.Sector">
             <option value="Enerji">Enerji</option>
@@ -510,6 +524,52 @@
             <div class="chart-title" data-tip="Seçili şirket için farklı iklim senaryolarındaki (SSP1-2.6 … SSP5-8.5) fiziksel ve geçiş riskini karşılaştırır. Her senaryo paralel hesaplanır; hangi senaryoda riskin nasıl değiştiğini gösterir.">Senaryo Karsilastirma</div>
             <div id="climate-scenario-line" class="chart-container" style="height:170px;"></div>
         </div>
+
+        @if (_ngfsComparison != null && _ngfsComparison.Count > 0)
+        {
+            <div class="climate-chart-card">
+                <div class="chart-title" data-tip="NGFS Phase 5 senaryolarına göre GSYİH değişimi, karbon fiyatı ve sıcaklık artışını gösterir. Seçili ülke ve yıl için tüm NGFS senaryolarını karşılaştırır.">🌍 NGFS Makro Karşılaştırma</div>
+                <div id="climate-ngfs-comparison" class="chart-container" style="height:190px;"></div>
+                <div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:6px;">
+                    @foreach (var s in _ngfsComparison.Where(s => s.GdpChange is not null))
+                    {
+                        var scenarioDef = NgfsScenarios.GetByName(s.Scenario);
+                        <div style="flex:1 1 120px;background:#1e293b;border:1px solid @(scenarioDef?.Category == "HotHouse" ? "#ef4444" : scenarioDef?.Category == "Disorderly" ? "#f59e0b" : "#22c55e");border-radius:6px;padding:6px 8px;font-size:0.58rem;">
+                            <div style="font-weight:600;color:#e2e8f0;margin-bottom:2px;">@s.Scenario</div>
+                            <div style="color:#94a3b8;">@((scenarioDef?.WarmingLevel ?? 0).ToString("F1"))°C · @scenarioDef?.Category</div>
+                            <div style="color:@(s.GdpChange >= 0 ? "#22c55e" : "#ef4444");font-weight:600;">GSYİH: @(((s.GdpChange ?? 0) >= 0 ? "+" : "") + (s.GdpChange ?? 0).ToString("F1"))%</div>
+                            <div style="color:#60a5fa;">Karbon: $@(s.CarbonPrice?.ToString("F0") ?? "—")/tCO₂</div>
+                        </div>
+                    }
+                </div>
+            </div>
+        }
+
+        @if (_varResult != null && _varResult.LossDistribution.Count > 0)
+        {
+            <div class="climate-chart-card">
+                <div class="chart-title" data-tip="NGFS senaryolarına göre şirketin beklenen iklim kayıplarını gösterir. VaR95, %95 güvenle bu kaybın aşılmayacağını; CVaR95 ise aşıldığında ortalama kaybı temsil eder.">💰 Climate VaR</div>
+                <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:10px;">
+                    <div class="climate-var-metric">
+                        <div class="label">VaR95</div>
+                        <div class="value negative">@(_varResult.VaR95.ToString("N0", System.Globalization.CultureInfo.InvariantCulture)) TL</div>
+                    </div>
+                    <div class="climate-var-metric">
+                        <div class="label">VaR99</div>
+                        <div class="value negative">@(_varResult.VaR99.ToString("N0", System.Globalization.CultureInfo.InvariantCulture)) TL</div>
+                    </div>
+                    <div class="climate-var-metric">
+                        <div class="label">CVaR95</div>
+                        <div class="value negative">@(_varResult.CVaR95.ToString("N0", System.Globalization.CultureInfo.InvariantCulture)) TL</div>
+                    </div>
+                    <div class="climate-var-metric">
+                        <div class="label">Beklenen Kayıp</div>
+                        <div class="value @(_varResult.ExpectedLoss >= 0 ? "positive" : "negative")">@(_varResult.ExpectedLoss.ToString("N0", System.Globalization.CultureInfo.InvariantCulture)) TL</div>
+                    </div>
+                </div>
+                <div id="climate-var-bar" class="chart-container" style="height:180px;"></div>
+            </div>
+        }
 
         @if (_assessment != null)
         {
