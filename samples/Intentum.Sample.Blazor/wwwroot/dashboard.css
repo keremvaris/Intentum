@@ -988,12 +988,20 @@ body.dashboard-root { margin: 0; padding: 0; }
 /* Climate Risk Dashboard */
 .climate-dashboard {
   display: grid;
-  grid-template-columns: 220px 1fr 300px;
+  grid-template-columns: 220px 1fr;
   gap: 1rem;
-  min-height: 500px;
+  align-items: start;
 }
 @media (max-width: 1200px) {
   .climate-dashboard { grid-template-columns: 1fr; }
+}
+
+/* Right works area: map on top, cards grid below */
+.climate-workspace {
+  display: grid;
+  grid-template-rows: auto auto;
+  gap: 1rem;
+  min-width: 0;
 }
 
 .climate-controls {
@@ -1197,19 +1205,28 @@ body.dashboard-root { margin: 0; padding: 0; }
 }
 
 .climate-charts-panel {
-  background: #161b22;
-  border: 1px solid #30363d;
-  border-radius: 8px;
-  padding: 0.75rem;
-  overflow-y: auto;
-  color: #c9d1d9;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1rem;
+  align-items: stretch;
+}
+@media (max-width: 1400px) {
+  .climate-charts-panel { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (max-width: 900px) {
+  .climate-charts-panel { grid-template-columns: 1fr; }
 }
 .climate-chart-card {
   background: #0d1117;
   border: 1px solid #30363d;
   border-radius: 6px;
   padding: 0.75rem;
-  margin-bottom: 0.75rem;
+  min-width: 0;
+  height: auto;
+}
+/* Wide cards span 2 columns */
+.climate-chart-card.span-2 {
+  grid-column: span 2;
 }
 .climate-chart-card .chart-title {
   font-size: 0.7rem;

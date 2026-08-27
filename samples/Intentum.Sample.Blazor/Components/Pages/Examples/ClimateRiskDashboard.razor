@@ -145,6 +145,7 @@
     </div>
 
     <!-- Center: Map -->
+    <div class="climate-workspace">
     <div class="climate-map-container">
         <div class="map-header">
             @if (_mapLevel == 1)
@@ -181,7 +182,7 @@
         </div>
     </div>
 
-    <!-- Right: Charts Panel -->
+    <!-- Grid: Cards -->
     <div class="climate-charts-panel">
         <div class="climate-chart-card">
             <div class="chart-title">Risk Dagilimi</div>
@@ -205,7 +206,7 @@
 
         @if (_assessment != null)
         {
-            <div class="climate-chart-card">
+            <div class="climate-chart-card span-2">
                 <div class="chart-title">Politika Karari (Intentum)</div>
                 <div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin-bottom:8px;">
                     <span style="padding:4px 8px;border-radius:6px;background:@GetPolicyColor();color:white;font-weight:700;font-size:0.85rem;">@GetPolicyDecision()</span>
@@ -287,7 +288,7 @@
             <!-- Senaryo Karşılaştırma -->
             @if (_scenarioResults != null && _scenarioResults.Count > 0)
             {
-                <div class="climate-chart-card">
+                <div class="climate-chart-card span-2">
                     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
                         <span style="font-size:0.7rem;text-transform:uppercase;color:#8b949e;letter-spacing:0.5px;">📊 Senaryo Karşılaştırması</span>
                         <span style="padding:2px 6px;border-radius:4px;background:rgba(168,130,255,0.15);color:#a882ff;font-size:0.6rem;">4 Senaryo</span>
@@ -321,7 +322,7 @@
             <!-- Finansal Etki Analizi -->
             @if (_assessment?.FinancialImpact != null && _assessment.FinancialImpact.CategoryImpacts.Any())
             {
-                <div class="climate-chart-card">
+                <div class="climate-chart-card span-2">
                     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
                         <span style="font-size:0.7rem;text-transform:uppercase;color:#8b949e;letter-spacing:0.5px;">💰 Finansal Etki Analizi</span>
                         <span class="net-cash-flow @(_assessment.FinancialImpact.NetCashFlowImpact < 0 ? "negative" : "positive")">
@@ -379,6 +380,7 @@
                 }
             </div>
         </div>
+    </div>
     </div>
 </div>
 

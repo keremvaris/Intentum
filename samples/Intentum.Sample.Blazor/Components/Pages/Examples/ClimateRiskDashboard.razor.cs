@@ -239,6 +239,16 @@ public sealed partial class ClimateRiskDashboard : IAsyncDisposable
                 }}
             });
         }
+
+        // Grid içinde boyutlar oturunca chart'ları yeniden boyutlandır.
+        try
+        {
+            if (_pieEcharts != null) await _pieEcharts.ResizeAsync();
+            if (_barEcharts != null) await _barEcharts.ResizeAsync();
+            if (_lineEcharts != null) await _lineEcharts.ResizeAsync();
+            if (_gaugeEcharts != null) await _gaugeEcharts.ResizeAsync();
+        }
+        catch { }
     }
 
     private async Task UpdateWorldMap()
