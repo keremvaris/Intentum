@@ -1724,3 +1724,41 @@ body.dashboard-root { margin: 0; padding: 0; }
   color: #7ee787;
 }
 .help-section strong { color: #e2e8f0; }
+
+/* Card title tooltips */
+[data-tip] {
+  position: relative;
+  cursor: help;
+  border-bottom: 1px dotted rgba(139,148,158,0.4);
+}
+[data-tip]:hover::after {
+  content: attr(data-tip);
+  position: absolute;
+  left: 0;
+  top: 100%;
+  margin-top: 6px;
+  z-index: 100;
+  white-space: normal;
+  width: 260px;
+  background: #161b22;
+  border: 1px solid #30363d;
+  border-radius: 6px;
+  padding: 8px 10px;
+  font-size: 0.7rem;
+  line-height: 1.45;
+  color: #c9d1d9;
+  font-weight: 400;
+  text-transform: none;
+  letter-spacing: 0;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.5);
+}
+[data-tip]:hover::before {
+  content: '';
+  position: absolute;
+  left: 14px;
+  top: 100%;
+  margin-top: 2px;
+  border: 5px solid transparent;
+  border-bottom-color: #30363d;
+  z-index: 100;
+}
