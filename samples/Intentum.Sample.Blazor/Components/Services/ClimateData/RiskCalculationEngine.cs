@@ -39,11 +39,15 @@ public class RiskCalculationEngine
     public virtual async Task<RiskAssessment> AssessAsync(
         RiskInput input, CancellationToken ct = default)
     {
+        // Open-Meteo climate modelleri yaklaşık 2050'ye kadar veri sağlar.
+        // Horizon 2050'yi aşarsa en yakın kullanılabilir yıla (2050) sınırlayıp
+        // projeksiyonu mevcut veriyle alır, böylece 400 Bad Request oluşmaz.
+        var projectionYear = Math.Min(input.Horizon, 2050);
         var projection = await _openMeteo.GetProjectionAsync(
             input.Latitude, input.Longitude,
             model: GetModelForScenario(input.Scenario),
-            startDate: $"{input.Horizon}-01-01",
-            endDate: $"{input.Horizon}-12-31",
+            startDate: $"{projectionYear}-01-01",
+            endDate: $"{projectionYear}-12-31",
             ct);
 
         var wriRisk = await _wri.GetCountryRiskAsync(input.CountryIso3, input.Scenario, input.Horizon, ct);
