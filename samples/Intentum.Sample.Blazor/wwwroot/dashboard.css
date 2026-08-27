@@ -1091,17 +1091,17 @@ body.dashboard-root { margin: 0; padding: 0; }
 .climate-analyze-btn {
   width: 100%;
   padding: 0.5rem;
-  background: #238636;
+  background: #238636 !important;
   border: none;
   border-radius: 4px;
-  color: white;
+  color: #fff !important;
   font-size: 0.8rem;
   font-weight: 600;
   cursor: pointer;
   margin-bottom: 0.5rem;
 }
-.climate-analyze-btn:hover { background: #2ea043; }
-.climate-analyze-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+.climate-analyze-btn:hover { background: #2ea043 !important; color: #fff !important; }
+.climate-analyze-btn:disabled { opacity: 0.5; cursor: not-allowed; color: #fff !important; }
 
 .climate-upload-area {
   border: 1px dashed #30363d;
@@ -1109,7 +1109,8 @@ body.dashboard-root { margin: 0; padding: 0; }
   padding: 0.5rem;
   text-align: center;
   font-size: 0.7rem;
-  color: #58a6ff;
+  color: #58a6ff !important;
+  background: transparent !important;
   cursor: pointer;
   margin-bottom: 0.5rem;
 }
