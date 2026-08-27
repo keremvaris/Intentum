@@ -1596,8 +1596,8 @@ body.dashboard-root { margin: 0; padding: 0; }
     padding: 6px 12px;
     border: 1px solid #30363d;
     border-radius: 6px;
-    background: #0d1117;
-    color: #c9d1d9;
+    background: #0d1117 !important;
+    color: #c9d1d9 !important;
     cursor: pointer;
     font-size: 13px;
     transition: all 0.2s;
@@ -1605,12 +1605,14 @@ body.dashboard-root { margin: 0; padding: 0; }
 
 .btn-profile:hover {
     border-color: #58a6ff;
+    background: #161b22 !important;
+    color: #e6edf3 !important;
 }
 
 .btn-profile.active {
-    background: #238636;
-    color: #fff;
-    border-color: #238636;
+    background: #238636 !important;
+    color: #fff !important;
+    border-color: #238636 !important;
 }
 
 .selected-profile-info {
@@ -1623,11 +1625,12 @@ body.dashboard-root { margin: 0; padding: 0; }
 }
 
 .btn-edit-profile {
-    background: none;
+    background: #0d1117 !important;
     border: 1px solid #30363d;
-    color: #58a6ff;
+    color: #58a6ff !important;
     padding: 4px 8px;
     border-radius: 4px;
     cursor: pointer;
     font-size: 12px;
 }
+.btn-edit-profile:hover { border-color: #58a6ff; }
