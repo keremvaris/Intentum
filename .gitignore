@@ -31,6 +31,7 @@ docs/case-studies/downloaded/
 
 ## Superpowers workspace (opencode agent plans/specs)
 docs/superpowers/
+.superpowers/
 
 ## IDE / OS
 .idea/

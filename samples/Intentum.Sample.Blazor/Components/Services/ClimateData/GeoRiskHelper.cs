@@ -21,7 +21,7 @@ public static class GeoRiskHelper
     {
         // İsim tabanlı hızlı kontrol
         if (!string.IsNullOrWhiteSpace(locationName) && InlandProvinceNames.Contains(locationName.Trim()))
-            return (false, 280, $"{locationName} İç Anadolu'da — denize ~250-350km, doğrudan deniz seviyesi riski yok");
+            return (false, 280, "İç Anadolu'da — denize ~250-350km, doğrudan deniz seviyesi riski yok");
 
         // Türkiye bounding box dışındaysa: genel kural — deniz seviyesi riski düşük kabul et amanot bırak
         var isTurkeyLike = lat >= 35.5 && lat <= 42.5 && lng >= 25 && lng <= 45;
@@ -40,7 +40,7 @@ public static class GeoRiskHelper
         var isCoastal = minKm <= 80;
         var note = isCoastal
             ? $"Kıyıya ~{minKm:F0}km — +{0.5:F1}m deniz seviyesi kıyı tesisleri için risk"
-            : $"İç bölge (kıyıya ~{minKm:F0}km) — Ankara/İç Anadolu gibi doğrudan deniz seviyesi riski yok, 50km yarıçap denize ulaşmaz";
+            : $"İç bölge (kıyıya ~{minKm:F0}km) — doğrudan deniz seviyesi riski yok, 50km yarıçap denize ulaşmaz";
 
         return (isCoastal, minKm, note);
     }
