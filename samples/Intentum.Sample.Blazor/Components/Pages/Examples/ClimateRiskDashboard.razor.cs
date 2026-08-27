@@ -28,6 +28,9 @@ public sealed partial class ClimateRiskDashboard : IAsyncDisposable
     private StressTestResult? _stressResult;
     private StressFactors _stressFactors = new();
     private bool _stressRunning;
+    private PortfolioResult? _portfolioResult;
+    private List<string> _selectedCompanyIds = [];
+    private bool _portfolioRunning;
     private CompanyProfile? _editingProfile;
     private bool _isNewProfile;
 
@@ -242,6 +245,35 @@ public sealed partial class ClimateRiskDashboard : IAsyncDisposable
             _stressRunning = false;
         }
         StateHasChanged();
+    }
+
+    private async Task RunPortfolioAnalysis()
+    {
+        if (_profiles.Count == 0 || _portfolioRunning) return;
+        _portfolioRunning = true;
+        StateHasChanged();
+
+        try
+        {
+            var selected = _profiles.Where(p => _selectedCompanyIds.Contains(p.Id)).ToList();
+            if (selected.Count == 0) selected = _profiles.ToList();
+
+            var ngfsScenarioIds = _ngfsComparison.Select(s => s.Scenario).Distinct().ToList();
+            _portfolioResult = await PortfolioEngine.CalculateAsync(selected, _input, ngfsScenarioIds);
+        }
+        finally
+        {
+            _portfolioRunning = false;
+        }
+        StateHasChanged();
+    }
+
+    private void ToggleCompany(string id, ChangeEventArgs e)
+    {
+        if ((bool)e.Value!)
+            _selectedCompanyIds.Add(id);
+        else
+            _selectedCompanyIds.Remove(id);
     }
 
     // IPCC risk çerçevesi: Tehlike × Maruziyet × Kırılganlık matrix'lerini hesaplar.

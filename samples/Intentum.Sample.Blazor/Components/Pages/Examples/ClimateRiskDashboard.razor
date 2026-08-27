@@ -12,6 +12,7 @@
 @inject NgfsScenarioService NgfsService
 @inject ClimateVarEngine VarEngine
 @inject StressTestEngine StressEngine
+@inject PortfolioRiskEngine PortfolioEngine
 
 <PageTitle>Iklim Riski Dashboard — Intentum</PageTitle>
 
@@ -625,6 +626,65 @@
                 }
             }
         </div>
+
+        @if (_profiles.Count > 0)
+        {
+            <div class="climate-chart-card">
+                <div class="chart-title" data-tip="Seçili şirketlerin risk durumunu karşılaştırır, portföy toplam riski ve çeşitlendirme avantajını hesaplar.">🏢 Portföy Risk Görünümü</div>
+
+                <div class="climate-portfolio-check">
+                    @foreach (var p in _profiles)
+                    {
+                        <label>
+                            <input type="checkbox" checked="@(_selectedCompanyIds.Contains(p.Id))" @onchange="e => ToggleCompany(p.Id, e)" />
+                            @p.Name
+                        </label>
+                    }
+                </div>
+
+                <button class="climate-btn" @onclick="RunPortfolioAnalysis" disabled="@_portfolioRunning">
+                    @(_portfolioRunning ? "Hesaplanıyor..." : "Portföy Analizi Çalıştır")
+                </button>
+
+                @if (_portfolioResult != null)
+                {
+                    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin:10px 0;">
+                        <div class="climate-var-metric">
+                            <div class="label">Toplam Ciro</div>
+                            <div class="value">@(_portfolioResult.TotalRevenue.ToString("N0", System.Globalization.CultureInfo.InvariantCulture)) TL</div>
+                        </div>
+                        <div class="climate-var-metric">
+                            <div class="label">Risk Altında</div>
+                            <div class="value negative">@(_portfolioResult.TotalAtRisk.ToString("N0", System.Globalization.CultureInfo.InvariantCulture)) TL</div>
+                        </div>
+                        <div class="climate-var-metric">
+                            <div class="label">Konsantrasyon</div>
+                            <div class="value">@(_portfolioResult.ConcentrationRisk.ToString("F1", System.Globalization.CultureInfo.InvariantCulture))%</div>
+                        </div>
+                        <div class="climate-var-metric">
+                            <div class="label">Portföy Kararı</div>
+                            <div class="value" style="color:@(_portfolioResult.PortfolioDecision == "ALLOW" ? "#22c55e" : "#f59e0b")">@_portfolioResult.PortfolioDecision</div>
+                        </div>
+                    </div>
+
+                    <table class="climate-portfolio-table">
+                        <thead><tr><th>Şirket</th><th>Sektör</th><th>Risk Skoru</th><th>Karar</th><th>Ciroda Risk</th></tr></thead>
+                        <tbody>
+                            @foreach (var c in _portfolioResult.RiskRanking)
+                            {
+                                <tr class="@(c.Decision == "REJECT" ? "climate-portfolio-row-reject" : c.Decision == "REVIEW" ? "climate-portfolio-row-review" : "")">
+                                    <td>@c.Company.Name</td>
+                                    <td>@c.Company.Sector</td>
+                                    <td style="color:@(c.RiskScore >= 0.6 ? "#ef4444" : c.RiskScore >= 0.4 ? "#f59e0b" : "#22c55e")">@c.RiskScore.ToString("F2", System.Globalization.CultureInfo.InvariantCulture)</td>
+                                    <td>@c.Decision</td>
+                                    <td>@c.RevenueAtRisk.ToString("N0", System.Globalization.CultureInfo.InvariantCulture) TL</td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                }
+            </div>
+        }
 
         @if (_assessment != null)
         {
