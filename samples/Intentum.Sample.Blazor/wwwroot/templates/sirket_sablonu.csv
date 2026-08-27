@@ -1,0 +1,24 @@
+# Şirket Profili İçe Aktarma Şablonu (CSV / Excel uyumlu)
+# 
+# KULLANIM:
+# 1. Bu dosyayı Excel'de açıp düzenleyebilirsiniz (Excel CSV'yi otomatik tanır).
+# 2. Aynı formatta birden fazla şirket ekleyebilirsiniz — her şirket bloğu:
+#    "SHIRKET" satırıyla başlar ve bir sonraki "SHIRKET" satırına kadar devam eder.
+# 3. Para birimi: TL (yıllık). Sensitivity & AdaptiveCapacity: 0 ile 1 arası.
+# 4. MappedRiskSignals: virgülle ayrılmış risk sinyalleri (carbon_price, drought,
+#    water_stress, heatwave, flood, storm, ...) — boş bırakılabilir.
+#
+# ZORUNLU ALANLAR: ShirketAdi, Sektor, Lokasyon, Enlem, Boylam (ilk SHIRKET satırı)
+# KATEGORI: Revenue | Opex | Capex | CashFlow
+#
+# ÖRNEK — İlk şirket hazır dolu, kopyalayıp kendi şirketinizi ekleyebilirsiniz.
+
+SHIRKET,Ornek Gida A.S.,Tarim,Konya,37.87,32.48
+Kategori,KategoriAdi,KalemAdi,Value,PhysSens,TransSens,Sensitivity,AdaptiveCapacity,Signals
+Revenue,Ciro,Bugday Satisi,60000000,0.3,0.2,0.5,0.4,
+Revenue,Ciro,Hayvancilik,25000000,0.2,0.1,0.3,0.6,
+Opex,OPEX,Sulama Enerjisi,8000000,0.7,0.3,0.7,0.3,drought
+Opex,OPEX,Gubre,5000000,0.3,0.2,0.4,0.6,
+Opex,OPEX,Isgucu,12000000,0.15,0.1,0.3,0.7,
+Capex,CAPEX,Sulama Altyapisi,7000000,0.6,0.2,0.5,0.4,drought,water_stress
+Capex,CAPEX,Depo Modernizasyonu,3000000,0.3,0.2,0.4,0.6,

@@ -30,6 +30,9 @@ public sealed partial class ClimateRiskDashboard : IAsyncDisposable
     private string _selectedProvinceCountry = "";
     private bool _showHelp;
 
+    private string _importMessage = "";
+    private bool _importError;
+
     protected override async Task OnInitializedAsync()
     {
         _profiles = ProfileService.GetAll().ToList();
@@ -399,25 +402,38 @@ public sealed partial class ClimateRiskDashboard : IAsyncDisposable
 
     private async Task OnFileInputChange(ChangeEventArgs e)
     {
-        var content = await JSRuntime.InvokeAsync<string>("eval", "(() => { const f = document.querySelector('#climate-file-input').files[0]; return f ? f.text() : ''; })()");
-        if (string.IsNullOrEmpty(content)) return;
+        _importMessage = "";
+        _importError = false;
 
-        if (content.TrimStart().StartsWith("{"))
+        var content = await JSRuntime.InvokeAsync<string>("eval", "(() => { const f = document.querySelector('#climate-file-input').files[0]; return f ? f.text() : ''; })()");
+        if (string.IsNullOrEmpty(content))
         {
-            try
-            {
-                var data = JsonSerializer.Deserialize<JsonElement>(content);
-                if (data.TryGetProperty("latitude", out var lat) && data.TryGetProperty("longitude", out var lng))
-                {
-                    _input.Latitude = lat.GetDouble();
-                    _input.Longitude = lng.GetDouble();
-                    if (data.TryGetProperty("name", out var name)) _input.LocationName = name.GetString() ?? "";
-                    if (data.TryGetProperty("radius_km", out var radius)) _input.RadiusKm = (int)radius.GetDouble();
-                    StateHasChanged();
-                }
-            }
-            catch { }
+            _importMessage = "Dosya okunamadı.";
+            _importError = true;
+            StateHasChanged();
+            return;
         }
+
+        var result = CompanyProfileImporter.Parse(content);
+        if (!result.IsSuccess || result.Profiles == null || result.Profiles.Count == 0)
+        {
+            _importMessage = $"İçe aktarma başarısız: {result.Error}";
+            _importError = true;
+            StateHasChanged();
+            return;
+        }
+
+        foreach (var profile in result.Profiles)
+        {
+            ProfileService.Add(profile);
+        }
+
+        _profiles = ProfileService.GetAll().ToList();
+        var first = result.Profiles[0];
+        SelectProfile(first.Id);
+        _importMessage = $"✅ {result.Profiles.Count} şirket eklendi: {string.Join(", ", result.Profiles.Select(p => p.Name))}";
+        _importError = false;
+        StateHasChanged();
     }
 
     private static string DetectCountry(double lat, double lng)

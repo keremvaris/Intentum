@@ -193,10 +193,22 @@
             @(_running ? "Analiz Ediliyor..." : "Analiz Et")
         </button>
 
-        <div class="climate-upload-area" @onclick="TriggerFileUpload">
-            Dosya Yukle (CSV/JSON)
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:6px;">
+            <span style="font-size:0.65rem;color:#8b949e;text-transform:uppercase;letter-spacing:0.5px;">📥 Şirket İçe Aktar</span>
+            <a href="templates/sirket_sablonu.csv" download style="font-size:0.62rem;color:#58a6ff;text-decoration:none;white-space:nowrap;">
+                ⬇️ Şablon (CSV)
+            </a>
         </div>
-        <input id="climate-file-input" type="file" accept=".csv,.json" style="display:none;" @ref="_fileInputRef" @onchange="OnFileInputChange" />
+        <div class="climate-upload-area" @onclick="TriggerFileUpload">
+            Dosya Yukle (CSV — yeni şirket ekler)
+        </div>
+        <input id="climate-file-input" type="file" accept=".csv" style="display:none;" @ref="_fileInputRef" @onchange="OnFileInputChange" />
+        @if (!string.IsNullOrEmpty(_importMessage))
+        {
+            <div style="font-size:0.62rem;margin-top:6px;padding:6px 8px;border-radius:4px;line-height:1.4;@(_importError ? "background:rgba(248,81,73,0.1);border:1px solid rgba(248,81,73,0.3);color:#f85149;" : "background:rgba(63,185,80,0.1);border:1px solid rgba(63,185,80,0.3);color:#3fb950;")">
+                @_importMessage
+            </div>
+        }
 
         <!-- Şirket Profili -->
         <div class="control-group">
