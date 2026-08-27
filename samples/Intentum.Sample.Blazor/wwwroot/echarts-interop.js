@@ -110,9 +110,17 @@ window.IntentumECharts = {
         var xi = arr[0], yi = arr[1], score = arr[2];
         var yLabel = yData[yi] != null ? yData[yi] : yi;
         var xLabel = xData[xi] != null ? xData[xi] : xi;
+        var pct = Math.round((score || 0) * 100);
         var color = score > 0.75 ? '#991b1b' : score > 0.5 ? '#ef4444' : score > 0.25 ? '#f59e0b' : '#22c55e';
-        return '<b>' + yLabel + '</b><br/>' + xLabel + ' riski: ' +
-          '<span style="color:' + color + ';font-weight:700;">' + (Math.round((score || 0) * 100)) + '%</span>';
+        var level = score > 0.75 ? 'Çok Yüksek' : score > 0.5 ? 'Yüksek' : score > 0.25 ? 'Orta' : 'Düşük';
+        return '<div style="min-width:210px;">' +
+          '<div style="font-weight:700;font-size:13px;color:#e2e8f0;margin-bottom:4px;">' + yLabel + '</div>' +
+          '<div style="font-size:12px;margin-bottom:2px;">' + xLabel + ' kesişiminde bileşik risk: ' +
+            '<span style="font-weight:700;color:' + color + ';">%' + pct + ' (' + level + ')</span></div>' +
+          '<div style="font-size:11px;line-height:1.45;color:#94a3b8;margin-top:4px;">' +
+            'Risk = Tehlike × Maruziyet × Kırılganlık. Bu hücre, ' + yLabel + ' tehlikesi ile ' + xLabel +
+            ' bileşeninin çarpımından oluşan normalize risk skorudur (0-1 arası, %0 = ihmal edilebilir, %100 = kritik).</div>' +
+          '</div>';
       };
     }
     chart.setOption(option, true);
@@ -178,10 +186,12 @@ window.setIntentumGeoMapData = async function (elementId, normalLng, normalLat, 
 window.ClimateMap = {
   instance: null,
   elementId: null,
-  level: 'world',        // 'world' | 'country'
+  level: 'world',        // 'world' | 'country' | 'district'
   countryIso3: null,
   countryName: null,
+  currentProvince: null, // seçili il (level 2 drill-down için)
   countryProvinces: null, // province risk data [{name, value}]
+  countryDistricts: null, // district risk data [{name, value}]
   riskData: [],          // world risk data [{name, value, iso3}]
   location: null,        // {lat, lng, label, color, radiusKm}
   _initialized: false,
@@ -338,6 +348,8 @@ window.ClimateMap = {
     var opt;
     if (this.level === 'country') {
       opt = this._buildOption('gadm_' + this.countryIso3 + '_1', this.countryProvinces || [], this.countryName);
+    } else if (this.level === 'district') {
+      opt = this._buildOption('gadm_' + this.countryIso3 + '_2', this.countryDistricts || [], this.currentProvince);
     } else {
       opt = this._buildOption('world', (this.riskData || []).map(function(d) {
         return { name: d.name, value: d.value };
@@ -360,9 +372,12 @@ window.ClimateMap = {
           self._drillToCountry(iso3, params.name);
         }
       } else if (self.level === 'country') {
+        // İl tıklandı → ilçe seviyesine in (GADM level 2 varsa).
+        self._drillToDistrict(params.name);
+      } else if (self.level === 'district') {
         if (window.DotNetClimateMap) {
           var riskVal = (params.value != null) ? (+params.value).toFixed(1) : '';
-          window.DotNetClimateMap.invokeMethodAsync('OnProvinceClicked', params.name, riskVal, self.countryName || '');
+          window.DotNetClimateMap.invokeMethodAsync('OnProvinceClicked', params.name, riskVal, self.currentProvince || '');
         }
       }
     });
@@ -501,12 +516,102 @@ window.ClimateMap = {
     }
   },
 
-  // ── BACK TO WORLD ───────────────────────────────────────────
+  // ── DISTRICT DRILL-DOWN (İl → İlçe) ─────────────────────────
+  _drillToDistrict: async function(provinceName) {
+    if (!this.instance) return;
+    if (!provinceName) return;
+    this.currentProvince = provinceName;
+    this.level = 'district';
+
+    // GADM level 2'yi yükle (ör. gadm41_TUR_2.json)
+    var iso3 = this.countryIso3;
+    var geoJson = null;
+    var url = '/data/gadm/gadm41_' + iso3 + '_2.json';
+    try {
+      var resp = await fetch(url);
+      if (resp.ok) geoJson = await resp.json();
+    } catch(e) {}
+
+    // İl seviyesinde filtrele: sadece seçili ilin ilçelerini göster.
+    var districtFeatures = [];
+    if (geoJson && geoJson.features) {
+      districtFeatures = geoJson.features.filter(function(f) {
+        var p = f.properties || {};
+        return (p.NAME_1 || '').toLowerCase() === (provinceName || '').toLowerCase() ||
+               (p.VARNAME_1 || '').toLowerCase() === (provinceName || '').toLowerCase();
+      });
+    }
+
+    if (districtFeatures.length === 0) {
+      // Level 2 yok — il görünümünde kal.
+      this.level = 'country';
+      this.currentProvince = null;
+      this._render();
+      if (window.DotNetClimateMap) {
+        window.DotNetClimateMap.invokeMethodAsync('OnProvinceClicked', provinceName, '', this.countryName || '');
+      }
+      return;
+    }
+
+    // name property ekle ve haritayı register et
+    districtFeatures.forEach(function(f) {
+      if (!f.properties) f.properties = {};
+      f.properties.name = f.properties.NAME_2 || f.properties.VARNAME_2 || 'Unknown';
+      if (!f.properties.NAME) f.properties.NAME = f.properties.name;
+    });
+
+    var filteredGeo = { type: 'FeatureCollection', features: districtFeatures };
+    var mapName = 'gadm_' + iso3 + '_2';
+    try { echarts.registerMap(mapName, filteredGeo); } catch(e) {}
+
+    // İl riski baz alınarak ilçe riskleri deterministik varyasyonla üretilir.
+    var baseline = 2.5;
+    for (var r = 0; r < this.countryProvinces.length; r++) {
+      if (this.countryProvinces[r].name === provinceName) {
+        baseline = this.countryProvinces[r].value || 2.5;
+        break;
+      }
+    }
+
+    var districts = districtFeatures.map(function(f, idx) {
+      var name = f.properties.NAME_2 || ('District ' + idx);
+      var hash = 0;
+      for (var c = 0; c < name.length; c++) {
+        hash = ((hash << 5) - hash) + name.charCodeAt(c);
+        hash = hash & hash;
+      }
+      var variation = ((Math.abs(hash % 1000) / 1000) - 0.5) * 2.0;
+      var risk = Math.max(0.3, Math.min(5.0, baseline + variation));
+      return { name: name, value: parseFloat(risk.toFixed(1)) };
+    });
+    this.countryDistricts = districts;
+
+    this._render();
+
+    if (window.DotNetClimateMap) {
+      window.DotNetClimateMap.invokeMethodAsync('OnDistrictDrillDown', provinceName);
+    }
+  },
+
+  // ── BACK ────────────────────────────────────────────────────
   goBack: function() {
+    if (this.level === 'district') {
+      // İlçe → il dön
+      this.level = 'country';
+      this.currentProvince = null;
+      this.countryDistricts = null;
+      this._render();
+      if (window.DotNetClimateMap) {
+        window.DotNetClimateMap.invokeMethodAsync('OnMapBackToCountry');
+      }
+      return;
+    }
     if (this.level === 'country') {
       this.countryIso3 = null;
       this.countryName = null;
       this.countryProvinces = null;
+      this.countryDistricts = null;
+      this.currentProvince = null;
       this._render();
       if (window.DotNetClimateMap) {
         window.DotNetClimateMap.invokeMethodAsync('OnMapBackToWorld');
@@ -628,6 +733,20 @@ window.drillDownCountry = function(iso3, name) {
 
 window.goBackToWorld = function() {
   ClimateMap.goBack();
+  return true;
+};
+
+window.resetMapToWorld = function() {
+  ClimateMap.level = 'world';
+  ClimateMap.countryIso3 = null;
+  ClimateMap.countryName = null;
+  ClimateMap.currentProvince = null;
+  ClimateMap.countryProvinces = null;
+  ClimateMap.countryDistricts = null;
+  ClimateMap._render();
+  if (window.DotNetClimateMap) {
+    window.DotNetClimateMap.invokeMethodAsync('OnMapBackToWorld');
+  }
   return true;
 };
 

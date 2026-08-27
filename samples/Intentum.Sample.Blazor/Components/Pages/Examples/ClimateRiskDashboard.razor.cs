@@ -17,6 +17,7 @@ public sealed partial class ClimateRiskDashboard : IAsyncDisposable
     private int _mapLevel;
     private string _currentCountryName = "";
     private string _currentIso3 = "";
+    private string _currentProvinceName = "";
 
     private List<CompanyProfile> _profiles = new();
     private CompanyProfile? _selectedProfile;
@@ -92,6 +93,23 @@ public sealed partial class ClimateRiskDashboard : IAsyncDisposable
         _mapLevel = 0;
         _currentIso3 = "";
         _currentCountryName = "";
+        _currentProvinceName = "";
+        StateHasChanged();
+    }
+
+    [JSInvokable]
+    public void OnMapBackToCountry()
+    {
+        _mapLevel = 1;
+        _currentProvinceName = "";
+        StateHasChanged();
+    }
+
+    [JSInvokable]
+    public void OnDistrictDrillDown(string provinceName)
+    {
+        _mapLevel = 2;
+        _currentProvinceName = provinceName;
         StateHasChanged();
     }
 
@@ -405,7 +423,8 @@ public sealed partial class ClimateRiskDashboard : IAsyncDisposable
         _mapLevel = 0;
         _currentIso3 = "";
         _currentCountryName = "";
-        await JSRuntime.InvokeAsync<bool>("goBackToWorld");
+        _currentProvinceName = "";
+        await JSRuntime.InvokeAsync<bool>("resetMapToWorld");
         StateHasChanged();
     }
 

@@ -237,11 +237,16 @@
     <div class="climate-workspace">
     <div class="climate-map-container">
         <div class="map-header">
-            @if (_mapLevel == 1)
+            @if (_mapLevel >= 1)
             {
                 <span style="cursor:pointer;color:#60a5fa;font-weight:600;" @onclick="MapBackToWorld">← Dünya</span>
                 <span style="margin:0 4px;color:#475569;">/</span>
                 <span style="color:#e2e8f0;">@_currentCountryName</span>
+                @if (_mapLevel >= 2 && !string.IsNullOrEmpty(_currentProvinceName))
+                {
+                    <span style="margin:0 4px;color:#475569;">/</span>
+                    <span style="color:#e2e8f0;">@_currentProvinceName (ilçeler)</span>
+                }
             }
             else
             {
