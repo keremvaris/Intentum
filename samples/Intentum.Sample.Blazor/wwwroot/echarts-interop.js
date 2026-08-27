@@ -103,7 +103,8 @@ window.IntentumECharts = {
       if (!option.tooltip) option.tooltip = {};
       option.tooltip.confine = true;
       option.tooltip.formatter = function (params) {
-        var p = params && params[0];
+        // trigger: "item" tek nesne, trigger: "axis" ise dizi gönderir — ikisini de destekle.
+        var p = Array.isArray(params) ? params[0] : params;
         if (!p || !p.data) return '';
         var v = p.data;
         var arr = Array.isArray(v) ? v : [v];
@@ -113,7 +114,7 @@ window.IntentumECharts = {
         var pct = Math.round((score || 0) * 100);
         var color = score > 0.75 ? '#991b1b' : score > 0.5 ? '#ef4444' : score > 0.25 ? '#f59e0b' : '#22c55e';
         var level = score > 0.75 ? 'Çok Yüksek' : score > 0.5 ? 'Yüksek' : score > 0.25 ? 'Orta' : 'Düşük';
-        return '<div style="min-width:210px;">' +
+        return '<div style="min-width:220px;">' +
           '<div style="font-weight:700;font-size:13px;color:#e2e8f0;margin-bottom:4px;">' + yLabel + '</div>' +
           '<div style="font-size:12px;margin-bottom:2px;">' + xLabel + ' kesişiminde bileşik risk: ' +
             '<span style="font-weight:700;color:' + color + ';">%' + pct + ' (' + level + ')</span></div>' +
