@@ -1223,16 +1223,11 @@ body.dashboard-root { margin: 0; padding: 0; }
   padding: 0.75rem;
   min-width: 0;
   height: auto;
+  align-self: start;
 }
 /* Wide cards span full width (no empty column beside them) */
 .climate-chart-card.span-2 {
   grid-column: 1 / -1;
-}
-/* Equal row heights so short cards don't leave gaps */
-@media (min-width: 901px) {
-  .climate-charts-panel {
-    grid-auto-rows: 1fr;
-  }
 }
 .climate-chart-card .chart-title {
   font-size: 0.7rem;
@@ -1243,7 +1238,6 @@ body.dashboard-root { margin: 0; padding: 0; }
 }
 .climate-chart-card .chart-container {
   width: 100%;
-  min-height: 120px;
 }
 
 .climate-kpi-bar {
