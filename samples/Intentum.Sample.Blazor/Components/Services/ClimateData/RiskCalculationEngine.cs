@@ -88,9 +88,9 @@ public class RiskCalculationEngine
         var overall = (physicalScore * 0.6 + transitionScore * 0.4);
         decision = DetermineDecision(overall, intent.Name, financialImpact);
 
-        var reasons = BuildDecisionReasons(input, physicalScore, transitionScore, wriRisk, projection, coastal, effectiveSea, intent, financialImpact);
-        var actions = BuildRecommendedActions(decision, input, physicalScore, transitionScore, coastal, wriRisk, financialImpact);
-        var summary = BuildDecisionSummary(decision, overall, physicalScore, transitionScore, input, intent, coastal, financialImpact);
+        var reasons = BuildDecisionReasons(input, physicalScore, transitionScore, wriRisk, projection, coastal, effectiveSea, intent, financialImpact, companyProfile);
+        var actions = BuildRecommendedActions(decision, input, physicalScore, transitionScore, coastal, wriRisk, financialImpact, companyProfile);
+        var summary = BuildDecisionSummary(decision, overall, physicalScore, transitionScore, input, intent, coastal, financialImpact, companyProfile);
 
         space.Observe("ClimateRisk:result", $"{intent.Name} {policyDecision} → {decision} ({intent.Confidence.Score:F2})");
 
@@ -345,12 +345,18 @@ public class RiskCalculationEngine
     private static List<string> BuildDecisionReasons(
         RiskInput input, double physical, double transition,
         WriCountryRisk? wri, ClimateProjection? proj,
-        (bool isCoastal, double distanceKm, string note) coastal, double effectiveSea, Intent intent, FinancialImpact? financialImpact = null)
+        (bool isCoastal, double distanceKm, string note) coastal, double effectiveSea, Intent intent, FinancialImpact? financialImpact = null, CompanyProfile? companyProfile = null)
     {
         var reasons = new List<string>();
 
         // Intentum niyet analizi
         reasons.Add($"Intentum niyeti: {intent.Name} — {intent.Reasoning}");
+
+        // Şirket ve sektör bağlamı
+        if (companyProfile != null)
+            reasons.Add($"Şirket: {companyProfile.Name} ({companyProfile.Sector} sektörü, {companyProfile.LocationName}) — {companyProfile.TotalRevenue:N0} TL/yıl ciro");
+        else
+            reasons.Add($"Bağlam: {input.Sector} sektörü, {input.LocationName}");
 
         // Sıcaklık
         if (input.TempAnomaly >= 3.0)
@@ -423,63 +429,69 @@ public class RiskCalculationEngine
     }
 
     private static List<string> BuildRecommendedActions(
-        string decision, RiskInput input, double physical, double transition, (bool isCoastal, double distanceKm, string note) coastal, WriCountryRisk? wri, FinancialImpact? financialImpact = null)
+        string decision, RiskInput input, double physical, double transition, (bool isCoastal, double distanceKm, string note) coastal, WriCountryRisk? wri, FinancialImpact? financialImpact = null, CompanyProfile? companyProfile = null)
     {
         var actions = new List<string>();
+        var company = companyProfile != null ? $" ({companyProfile.Name})" : "";
+        var location = string.IsNullOrWhiteSpace(input.LocationName) ? "bu bölge" : input.LocationName;
+
         switch (decision)
         {
             case "REJECT":
-                actions.Add("İklim risk azaltım planı hazırlayın: TCFD/TNFD çerçevenizde somut hedefler belirleyin");
+                actions.Add($"⚠️ {input.Sector} sektörü{company} için {location} bölgesinde derin iklim risk azaltım planı hazırlayın — TCFD/TNFD çerçevesinde somut hedefler belirleyin");
                 if (physical > 0.6)
                 {
-                    actions.Add("Fiziksel dayanıklılık: yedek su kaynağı ayırın, soğutma kapasitesini %20 artırın");
-                    actions.Add("Sigorta kapsamını genişletin: sel/sıcaklık teminatı ekleyin");
+                    actions.Add("🛡️ Fiziksel dayanıklılık yatırımları: yedek su/su kaynağı ve soğutma kapasitesi artırımı için bütçe ayırın");
+                    actions.Add("🛡️ Sigorta kapsamını genişletin: sel/sıcaklık teminatını mevcut poliçeye ekletin");
                 }
                 if (wri != null && wri.WaterStress > 3)
-                    actions.Add("Su verimliliği: geri dönüşüm sistemi kurun, alternatif su kaynağı (yağmur suyu) planlayın");
+                    actions.Add($"💧 {location} bölgesinde su verimliliği: geri dönüşüm + alternatif su kaynağı (yağmur suyu) fizibilitesi çıkarın");
                 if (!coastal.isCoastal)
-                    actions.Add("Kıyı riski yok: odak noktanız su kıstı ve kuraklık senaryoları olmalı");
-                actions.Add("Karbon ayak izi azaltım yol haritası: düşük karbon teknolojisi fizibilitesi çıkarın");
+                    actions.Add("🏜️ Kıyı riski düşük — odak noktası: kuraklık ve su kıstı senaryoları, ısı stresi");
+                actions.Add("🌱 Karbon ayak izi azaltım yol haritası: düşük karbon teknolojisi fizibilitesi ve geçiş maliyet analizi");
                 break;
             case "REVIEW":
-                actions.Add("6 ayda bir güncel izleme: WRI su stresi + Open-Meteo sıcaklık verilerini takip edin");
+                actions.Add($"📡 {location} için 6 ayda bir güncel izleme: WRI su stresi + Open-Meteo sıcaklık verilerini takip edin");
                 if (input.CarbonPrice >= 80)
-                    actions.Add("Karbon fiyat duyarlılık matrisi: €50/100/180 senaryolarında maliyet analizi");
+                    actions.Add("💶 Karbon fiyat duyarlılık matrisi: €50/100/180 senaryolarında maliyet analizi yapın (TR geçiş riski)");
                 if (!coastal.isCoastal && wri != null && wri.WaterStress > 2)
-                    actions.Add("Yerel su havzası verilerini kontrol edin: DSİ/konya havzası çapraz kontrol");
+                    actions.Add("💧 Yerel su havzası verilerini çapraz kontrol edin: DSİ/bölge verileriyle doğrulayın");
                 if (coastal.isCoastal)
-                    actions.Add("Kıyı taşkını: 0.5m/1.0m senaryolarında tesis kotu kontrolü yapın");
-                actions.Add("Sektörel gelişmeleri izleyin: regülasyon değişiklikleri veya piyasa sinyalleri");
+                    actions.Add("🌊 Kıyı taşkını: +0.5m/+1.0m senaryolarında tesis kotu ve drenaj kontrolü yapın");
+                actions.Add("📈 Sektörel gelişmeleri izleyin: regülasyon ve piyasa sinyalleri, rakip uyum planları");
+                if (financialImpact != null && financialImpact.NetCashFlowImpact < 0)
+                    actions.Add("💰 Finansal tampon oluşturun: beklenen kayıp için yedek fon / türev (hedge) seçenekleri değerlendirin");
                 break;
             default:
-                actions.Add("Mevcut izleme yeterli: yıllık rapor döngüsünü koruyun");
-                actions.Add("Piyasa veya regülasyon değişikliği olursa analizi yenileyin");
+                actions.Add($"✅ {company} için mevcut izleme yeterli — yıllık rapor döngüsünü koruyun");
+                actions.Add("🔄 Piyasa veya regülasyon değişikliği olursa analizi yenileyin");
+                if (physical > 0.3 || transition > 0.3)
+                    actions.Add("📋 Düşük risk bölgesinde bile: iklim etkenlerini yatırım kararlarına dahil etmeye devam edin");
                 break;
         }
 
         if (financialImpact != null)
         {
             var net = financialImpact.NetCashFlowImpact;
-            if (net < -10_000_000)
-            {
-                actions.Add("Develop comprehensive financial resilience plan for major climate-related cost exposure");
-            }
-            else if (net < -5_000_000)
-            {
-                actions.Add("Implement targeted cost-reduction and revenue-protection measures");
-            }
+            if (net <= -25_000_000)
+                actions.Add($"💸 Kritik finansal maruziyet ({net:N0} TL/yıl): kapsamlı finansal dayanıklılık planı — sermaye planlaması ve sigorta limitlerini yeniden yapılandırın");
+            else if (net <= -10_000_000)
+                actions.Add($"💸 Yüksek finansal maruziyet ({net:N0} TL/yıl): hedefli maliyet düşürme + gelir koruma önlemleri uygulayın");
+            else if (net < 0)
+                actions.Add($"📊 Finansal maruziyet ({net:N0} TL/yıl): en çok etkilenen kalemleri izleyin, azaltım önceliklerini belirleyin");
         }
 
         return actions;
     }
 
     private static string BuildDecisionSummary(
-        string decision, double overall, double physical, double transition, RiskInput input, Intent intent, (bool isCoastal, double distanceKm, string note) coastal, FinancialImpact? financialImpact = null)
+        string decision, double overall, double physical, double transition, RiskInput input, Intent intent, (bool isCoastal, double distanceKm, string note) coastal, FinancialImpact? financialImpact = null, CompanyProfile? companyProfile = null)
     {
         var physLabel = physical > 0.7 ? "yüksek" : physical > 0.4 ? "orta" : "düşük";
         var transLabel = transition > 0.7 ? "yüksek" : transition > 0.4 ? "orta" : "düşük";
         var coastalNote = coastal.isCoastal ? "" : $" {coastal.note}";
         var intentInfo = $"Intentum: {intent.Name} ({intent.Confidence.Level} {intent.Confidence.Score:F2}) — {intent.Reasoning}.";
+        var entity = companyProfile != null ? companyProfile.Name : input.LocationName;
 
         // Finansal maruziyet kararın gerekçesini destekler.
         var financialNote = "";
@@ -488,9 +500,9 @@ public class RiskCalculationEngine
 
         return decision switch
         {
-            "REJECT" => $"Genel %{overall * 100:F0} ile RED (fiziksel %{physical * 100:F0} {physLabel}, geçiş %{transition * 100:F0} {transLabel}). {intentInfo}{financialNote}{coastalNote}",
-            "REVIEW" => $"Genel %{overall * 100:F0} ile İNCELEME (fiziksel %{physical * 100:F0} {physLabel}, geçiş %{transition * 100:F0} {transLabel}). {intentInfo}{financialNote}{coastalNote}",
-            _ => $"Genel %{overall * 100:F0} kabul edilebilir (fiziksel %{physical * 100:F0} {physLabel}, geçiş %{transition * 100:F0} {transLabel}). {intentInfo}{financialNote}{coastalNote}"
+            "REJECT" => $"{entity} için {input.Scenario} senaryosunda genel %{overall * 100:F0} RED — fiziksel %{physical * 100:F0} ({physLabel}), geçiş %{transition * 100:F0} ({transLabel}). {intentInfo}{financialNote}{coastalNote}",
+            "REVIEW" => $"{entity} için {input.Scenario} senaryosunda genel %{overall * 100:F0} İNCELEME — fiziksel %{physical * 100:F0} ({physLabel}), geçiş %{transition * 100:F0} ({transLabel}). {intentInfo}{financialNote}{coastalNote}",
+            _ => $"{entity} için {input.Scenario} senaryosunda genel %{overall * 100:F0} kabul edilebilir — fiziksel %{physical * 100:F0} ({physLabel}), geçiş %{transition * 100:F0} ({transLabel}). {intentInfo}{financialNote}{coastalNote}"
         };
     }
 
