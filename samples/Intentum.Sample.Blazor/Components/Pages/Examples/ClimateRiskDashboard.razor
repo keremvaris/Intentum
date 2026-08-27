@@ -199,75 +199,11 @@
             <div id="climate-scenario-line" class="chart-container" style="min-height:120px;"></div>
         </div>
 
-        <div class="climate-chart-card">
-            <div class="chart-title">Su Stresi Endeksi (WRI)</div>
-            <div id="climate-water-gauge" class="chart-container" style="min-height:100px;"></div>
-        </div>
-
         @if (_assessment != null)
         {
-            <div class="climate-chart-card span-2">
-                <div class="chart-title">Politika Karari (Intentum)</div>
-                <div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin-bottom:8px;">
-                    <span style="padding:4px 8px;border-radius:6px;background:@GetPolicyColor();color:white;font-weight:700;font-size:0.85rem;">@GetPolicyDecision()</span>
-                    <span style="padding:3px 7px;border-radius:999px;background:#1e293b;color:#e2e8f0;font-size:0.6rem;border:1px solid #334155;">@_assessment.IntentName</span>
-                    <span style="padding:3px 7px;border-radius:999px;background:#0f172a;color:#38bdf8;font-size:0.6rem;border:1px solid #0ea5e9;">Güven @_assessment.ConfidenceLevel @_assessment.ConfidenceScore.ToString("F2")</span>
-                    <span style="padding:3px 7px;border-radius:999px;background:@(_assessment.IsCoastal ? "#064e3b" : "#1e1b4b");color:@(_assessment.IsCoastal ? "#6ee7b7" : "#a5b4fc");font-size:0.55rem;">@(_assessment.IsCoastal ? "Kıyı" : "İç Bölge") · @_assessment.EffectiveSeaLevel.ToString("F1")m efektif</span>
-                </div>
-                <div style="font-size:0.68rem;color:#e2e8f0;line-height:1.45;margin-bottom:8px;background:#0f172a;border:1px solid #1e293b;border-radius:6px;padding:8px;">
-                    @_assessment.DecisionSummary
-                </div>
-                <div style="font-size:0.6rem;color:#93c5fd;background:#0b1220;border:1px dashed #1e3a5f;border-radius:6px;padding:7px;margin-bottom:8px;">
-                    <strong>Coğrafi not:</strong> @_assessment.CoastalInfo<br/>
-                    <span style="color:#64748b;">@(_selectedProfile?.Name ?? _input.LocationName) @(_assessment.Input.RadiusKm)km yarıçap — @( _assessment.IsCoastal ? "kıyı taşkını potensiyeli var" : "denize ulaşmıyor, dolaylı riskler izlenir")</span>
-                </div>
-                <details open style="margin-bottom:6px;">
-                    <summary style="cursor:pointer;font-size:0.65rem;font-weight:600;color:#cbd5e1;list-style:none;display:flex;align-items:center;gap:6px;">▸ Nedenleri (@_assessment.DecisionReasons.Count)</summary>
-                    <div style="margin-top:6px;">
-                    @foreach (var reason in _assessment.DecisionReasons)
-                    {
-                        <div style="font-size:0.6rem;color:#cbd5e1;padding:3px 0 3px 8px;border-left:2px solid @GetPolicyColor();margin-bottom:3px;line-height:1.35;">
-                            @reason
-                        </div>
-                    }
-                    </div>
-                </details>
-                <details style="margin-bottom:6px;">
-                    <summary style="cursor:pointer;font-size:0.65rem;font-weight:600;color:#86efac;list-style:none;">▸ Öneriler (@_assessment.RecommendedActions.Count)</summary>
-                    <div style="margin-top:6px;">
-                    @foreach (var action in _assessment.RecommendedActions)
-                    {
-                        <div style="font-size:0.6rem;color:#bbf7d0;padding:3px 0 3px 8px;border-left:2px solid #22c55e;margin-bottom:2px;line-height:1.35;">
-                            @action
-                        </div>
-                    }
-                    </div>
-                </details>
-                <details>
-                    <summary style="cursor:pointer;font-size:0.65rem;font-weight:600;color:#fbbf24;list-style:none;">▸ Intentum Sinyalleri (@_assessment.Signals.Count sinyal) — @_assessment.IntentReasoning</summary>
-                    <div style="margin-top:8px;">
-                    @foreach (var category in _assessment.Signals.GroupBy(s => ClimateRiskIntentModel.SignalCategories.GetValueOrDefault(s.Source, "Diğer")).OrderBy(g => g.Key))
-                    {
-                        <div style="margin-bottom:8px;">
-                            <div style="font-size:0.6rem;font-weight:700;color:@GetSignalCategoryColor(category.First().Source);margin-bottom:4px;display:flex;align-items:center;gap:6px;">
-                                <span style="width:8px;height:8px;border-radius:50%;background:@GetSignalCategoryColor(category.First().Source);display:inline-block;"></span>
-                                @category.Key (@category.Count())
-                            </div>
-                            @foreach (var sig in category.OrderByDescending(s => s.Weight))
-                            {
-                                <div style="display:flex;align-items:center;gap:6px;margin-bottom:3px;font-size:0.55rem;padding-left:14px;">
-                                    <span style="width:120px;color:#cbd5e1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="@sig.Source">@sig.Description</span>
-                                    <div style="flex:1;height:5px;background:#1e293b;border-radius:3px;overflow:hidden;">
-                                        <div style="height:100%;width:@(Math.Min(sig.Weight*100,100))%;background:@GetSignalCategoryColor(sig.Source);border-radius:3px;"></div>
-                                    </div>
-                                    <span style="width:32px;color:#94a3b8;font-weight:600;">@sig.Weight.ToString("F2")</span>
-                                </div>
-                            }
-                        </div>
-                    }
-                    </div>
-                </details>
-                <div style="font-size:0.5rem;color:#475569;margin-top:6px;">BehaviorSpace · @(_assessment.Signals.Sum(s=>s.Weight).ToString("F2")) ağırlık · Policy: @GetPolicyDecision() via Intentum.Runtime.Engine</div>
+            <div class="climate-chart-card">
+                <div class="chart-title">Su Stresi Endeksi (WRI)</div>
+                <div id="climate-water-gauge" class="chart-container" style="min-height:140px;"></div>
             </div>
 
             <div class="climate-chart-card">
@@ -283,6 +219,34 @@
                         <span style="width:42px;color:#64748b;font-size:0.5rem;">@factor.Source</span>
                     </div>
                 }
+            </div>
+
+            <!-- Canlı Trendler -->
+            <div class="climate-chart-card">
+                <div class="chart-title">Canli Trendler</div>
+                <div style="font-size:0.7rem;">
+                    @if (_trends?.co2 != null)
+                    {
+                        <div style="display:flex;justify-content:space-between;margin-bottom:3px;">
+                            <span style="color:#8b949e;">CO2</span>
+                            <span style="color:#f44336;">@(_trends.co2.current_value) ppm</span>
+                        </div>
+                    }
+                    @if (_trends?.sea_level != null)
+                    {
+                        <div style="display:flex;justify-content:space-between;margin-bottom:3px;">
+                            <span style="color:#8b949e;">Deniz Seviyesi</span>
+                            <span style="color:#ff9800;">+@(_trends.sea_level.current_rate_mm_per_year) mm/yil</span>
+                        </div>
+                    }
+                    @if (_trends?.temperature_anomaly != null)
+                    {
+                        <div style="display:flex;justify-content:space-between;">
+                            <span style="color:#8b949e;">Ort. Sicaklik</span>
+                            <span style="color:#f44336;">+@(_trends.temperature_anomaly.current_value) C</span>
+                        </div>
+                    }
+                </div>
             </div>
 
             <!-- Senaryo Karşılaştırma -->
@@ -352,34 +316,72 @@
                     </div>
                 </div>
             }
-        }
 
-        <div class="climate-chart-card">
-            <div class="chart-title">Canli Trendler</div>
-            <div style="font-size:0.7rem;">
-                @if (_trends?.co2 != null)
-                {
-                    <div style="display:flex;justify-content:space-between;margin-bottom:3px;">
-                        <span style="color:#8b949e;">CO2</span>
-                        <span style="color:#f44336;">@(_trends.co2.current_value) ppm</span>
+            <!-- Politika Kararı (en altta, tam genişlik) -->
+            <div class="climate-chart-card span-2">
+                <div class="chart-title">Politika Karari (Intentum)</div>
+                <div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin-bottom:8px;">
+                    <span style="padding:4px 8px;border-radius:6px;background:@GetPolicyColor();color:white;font-weight:700;font-size:0.85rem;">@GetPolicyDecision()</span>
+                    <span style="padding:3px 7px;border-radius:999px;background:#1e293b;color:#e2e8f0;font-size:0.6rem;border:1px solid #334155;">@_assessment.IntentName</span>
+                    <span style="padding:3px 7px;border-radius:999px;background:#0f172a;color:#38bdf8;font-size:0.6rem;border:1px solid #0ea5e9;">Güven @_assessment.ConfidenceLevel @_assessment.ConfidenceScore.ToString("F2")</span>
+                    <span style="padding:3px 7px;border-radius:999px;background:@(_assessment.IsCoastal ? "#064e3b" : "#1e1b4b");color:@(_assessment.IsCoastal ? "#6ee7b7" : "#a5b4fc");font-size:0.55rem;">@(_assessment.IsCoastal ? "Kıyı" : "İç Bölge") · @_assessment.EffectiveSeaLevel.ToString("F1")m efektif</span>
+                </div>
+                <div style="font-size:0.68rem;color:#e2e8f0;line-height:1.45;margin-bottom:8px;background:#0f172a;border:1px solid #1e293b;border-radius:6px;padding:8px;">
+                    @_assessment.DecisionSummary
+                </div>
+                <div style="font-size:0.6rem;color:#93c5fd;background:#0b1220;border:1px dashed #1e3a5f;border-radius:6px;padding:7px;margin-bottom:8px;">
+                    <strong>Coğrafi not:</strong> @_assessment.CoastalInfo<br/>
+                    <span style="color:#64748b;">@(_selectedProfile?.Name ?? _input.LocationName) @(_assessment.Input.RadiusKm)km yarıçap — @( _assessment.IsCoastal ? "kıyı taşkını potensiyeli var" : "denize ulaşmıyor, dolaylı riskler izlenir")</span>
+                </div>
+                <details open style="margin-bottom:6px;">
+                    <summary style="cursor:pointer;font-size:0.65rem;font-weight:600;color:#cbd5e1;list-style:none;display:flex;align-items:center;gap:6px;">▸ Nedenleri (@_assessment.DecisionReasons.Count)</summary>
+                    <div style="margin-top:6px;">
+                    @foreach (var reason in _assessment.DecisionReasons)
+                    {
+                        <div style="font-size:0.6rem;color:#cbd5e1;padding:3px 0 3px 8px;border-left:2px solid @GetPolicyColor();margin-bottom:3px;line-height:1.35;">
+                            @reason
+                        </div>
+                    }
                     </div>
-                }
-                @if (_trends?.sea_level != null)
-                {
-                    <div style="display:flex;justify-content:space-between;margin-bottom:3px;">
-                        <span style="color:#8b949e;">Deniz Seviyesi</span>
-                        <span style="color:#ff9800;">+@(_trends.sea_level.current_rate_mm_per_year) mm/yil</span>
+                </details>
+                <details style="margin-bottom:6px;">
+                    <summary style="cursor:pointer;font-size:0.65rem;font-weight:600;color:#86efac;list-style:none;">▸ Öneriler (@_assessment.RecommendedActions.Count)</summary>
+                    <div style="margin-top:6px;">
+                    @foreach (var action in _assessment.RecommendedActions)
+                    {
+                        <div style="font-size:0.6rem;color:#bbf7d0;padding:3px 0 3px 8px;border-left:2px solid #22c55e;margin-bottom:2px;line-height:1.35;">
+                            @action
+                        </div>
+                    }
                     </div>
-                }
-                @if (_trends?.temperature_anomaly != null)
-                {
-                    <div style="display:flex;justify-content:space-between;">
-                        <span style="color:#8b949e;">Ort. Sicaklik</span>
-                        <span style="color:#f44336;">+@(_trends.temperature_anomaly.current_value) C</span>
+                </details>
+                <details>
+                    <summary style="cursor:pointer;font-size:0.65rem;font-weight:600;color:#fbbf24;list-style:none;">▸ Intentum Sinyalleri (@_assessment.Signals.Count sinyal) — @_assessment.IntentReasoning</summary>
+                    <div style="margin-top:8px;">
+                    @foreach (var category in _assessment.Signals.GroupBy(s => ClimateRiskIntentModel.SignalCategories.GetValueOrDefault(s.Source, "Diğer")).OrderBy(g => g.Key))
+                    {
+                        <div style="margin-bottom:8px;">
+                            <div style="font-size:0.6rem;font-weight:700;color:@GetSignalCategoryColor(category.First().Source);margin-bottom:4px;display:flex;align-items:center;gap:6px;">
+                                <span style="width:8px;height:8px;border-radius:50%;background:@GetSignalCategoryColor(category.First().Source);display:inline-block;"></span>
+                                @category.Key (@category.Count())
+                            </div>
+                            @foreach (var sig in category.OrderByDescending(s => s.Weight))
+                            {
+                                <div style="display:flex;align-items:center;gap:6px;margin-bottom:3px;font-size:0.55rem;padding-left:14px;">
+                                    <span style="width:120px;color:#cbd5e1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="@sig.Source">@sig.Description</span>
+                                    <div style="flex:1;height:5px;background:#1e293b;border-radius:3px;overflow:hidden;">
+                                        <div style="height:100%;width:@(Math.Min(sig.Weight*100,100))%;background:@GetSignalCategoryColor(sig.Source);border-radius:3px;"></div>
+                                    </div>
+                                    <span style="width:32px;color:#94a3b8;font-weight:600;">@sig.Weight.ToString("F2")</span>
+                                </div>
+                            }
+                        </div>
+                    }
                     </div>
-                }
+                </details>
+                <div style="font-size:0.5rem;color:#475569;margin-top:6px;">BehaviorSpace · @(_assessment.Signals.Sum(s=>s.Weight).ToString("F2")) ağırlık · Policy: @GetPolicyDecision() via Intentum.Runtime.Engine</div>
             </div>
-        </div>
+        }
     </div>
     </div>
 </div>
