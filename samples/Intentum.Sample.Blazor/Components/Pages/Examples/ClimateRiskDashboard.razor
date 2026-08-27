@@ -259,13 +259,20 @@
         </div>
     </div>
 
-    <!-- Seçili İl Detayı -->
+    <!-- Seçili Lokasyon Detayı -->
     @if (!string.IsNullOrEmpty(_selectedProvince))
     {
         <div class="climate-chart-card span-2">
             <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
                 <span style="font-size:0.7rem;text-transform:uppercase;color:#8b949e;letter-spacing:0.5px;">
-                    📍 Seçili İl: @_selectedProvince
+                    @if (_selectedProfile != null)
+                    {
+                        <text>📍 @_selectedProfile.Name — @_selectedProvince</text>
+                    }
+                    else
+                    {
+                        <text>📍 Lokasyon: @_selectedProvince</text>
+                    }
                 </span>
                 @if (_selectedProvinceRisk.HasValue)
                 {
@@ -281,11 +288,11 @@
                     <span style="font-size:0.75rem;color:@GetRiskColor(_selectedProvinceRisk.Value);font-weight:700;">@GetRiskLevel5(_selectedProvinceRisk.Value)</span>
                 </div>
                 <div style="font-size:0.68rem;color:#cbd5e1;line-height:1.5;">
-                    @(_selectedProvinceCountry) @_selectedProvince ilinde su stresi riski @_selectedProvinceRisk.Value.ToString("F1")/5 seviyesinde. 
+                    @(_selectedProvince) lokasyonunda su stresi riski @_selectedProvinceRisk.Value.ToString("F1")/5 seviyesinde.
                     @if (_selectedProfile != null)
                     {
                         <text>
-                            <strong>@_selectedProfile.Name</strong> (sektör: @_selectedProfile.Sector) bu bölgede faaliyet gösteriyor.
+                            <strong>@_selectedProfile.Name</strong> (@_selectedProfile.Sector sektörü, @_selectedProfile.LocationName) bu lokasyonda faaliyet gösteriyor.
                             @if (_assessment != null)
                             {
                                 <text>Mevcut analiz sonucu: <strong>@GetPolicyDecision()</strong> (fiziksel risk %@(_assessment.PhysicalRisk * 100):F0, geçiş riski %@(_assessment.TransitionRisk * 100):F0).</text>

@@ -147,6 +147,14 @@ public sealed partial class ClimateRiskDashboard : IAsyncDisposable
             BuildRiskMatrices();
             await UpdateAllCharts();
             await UpdateWorldMap();
+
+            // Şirket profili seçiliyse lokasyonu otomatik "seçili il" yap — manuel harita tıklaması gerekmesin.
+            if (_selectedProfile != null)
+            {
+                _selectedProvince = _selectedProfile.LocationName;
+                _selectedProvinceRisk = _assessment.WaterStress;
+                _selectedProvinceCountry = _currentCountryName;
+            }
         }
         catch (Exception ex)
         {
