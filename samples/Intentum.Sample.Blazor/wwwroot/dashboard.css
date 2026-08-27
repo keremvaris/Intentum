@@ -1635,3 +1635,90 @@ body.dashboard-root { margin: 0; padding: 0; }
     font-size: 12px;
 }
 .btn-edit-profile:hover { border-color: #58a6ff; }
+/* Help button & dialog */
+.help-btn {
+  background: #161b22;
+  border: 1px solid #30363d;
+  border-radius: 50%;
+  width: 34px;
+  height: 34px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: #58a6ff;
+  transition: all 0.2s;
+  flex-shrink: 0;
+}
+.help-btn:hover { border-color: #58a6ff; background: #1f2937; }
+
+.help-overlay {
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(0, 0, 0, 0.7);
+  z-index: 2000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+}
+.help-dialog {
+  background: #0d1117;
+  border: 1px solid #30363d;
+  border-radius: 10px;
+  max-width: 760px;
+  width: 100%;
+  max-height: 85vh;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 10px 40px rgba(0,0,0,0.6);
+  overflow: hidden;
+}
+.help-dialog-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 18px;
+  border-bottom: 1px solid #30363d;
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: #e2e8f0;
+}
+.help-close {
+  background: none;
+  border: none;
+  font-size: 26px;
+  cursor: pointer;
+  color: #8b949e;
+  line-height: 1;
+  padding: 0 6px;
+}
+.help-close:hover { color: #e2e8f0; }
+.help-dialog-body {
+  padding: 16px 20px;
+  overflow-y: auto;
+  color: #c9d1d9;
+  font-size: 0.8rem;
+  line-height: 1.55;
+}
+.help-section { margin-bottom: 18px; }
+.help-section:last-child { margin-bottom: 0; }
+.help-section-title {
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: #58a6ff;
+  margin-bottom: 6px;
+  letter-spacing: 0.3px;
+}
+.help-section p { margin: 0 0 8px; }
+.help-section ul, .help-section ol { margin: 0; padding-left: 18px; }
+.help-section li { margin-bottom: 4px; }
+.help-section code {
+  background: #161b22;
+  border: 1px solid #30363d;
+  border-radius: 3px;
+  padding: 1px 5px;
+  font-size: 0.72rem;
+  color: #7ee787;
+}
+.help-section strong { color: #e2e8f0; }

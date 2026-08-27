@@ -28,6 +28,7 @@ public sealed partial class ClimateRiskDashboard : IAsyncDisposable
     private string _selectedProvince = "";
     private double? _selectedProvinceRisk;
     private string _selectedProvinceCountry = "";
+    private bool _showHelp;
 
     protected override async Task OnInitializedAsync()
     {

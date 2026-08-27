@@ -13,9 +13,85 @@
 <PageTitle>Iklim Riski Dashboard — Intentum</PageTitle>
 
 <div class="page-card">
-    <h3>Iklim Riski Dashboard</h3>
-    <p style="font-size:0.8rem;color:#8b949e;margin:0;">Gerçek veri kaynaklı interaktif iklim riski analizi — Open-Meteo, WRI Aqueduct, GADM</p>
+    <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;">
+        <div>
+            <h3 style="margin:0;">Iklim Riski Dashboard</h3>
+            <p style="font-size:0.8rem;color:#8b949e;margin:0;">Gerçek veri kaynaklı interaktif iklim riski analizi — Open-Meteo, WRI Aqueduct, GADM</p>
+        </div>
+        <button class="help-btn" @onclick="() => _showHelp = true" title="Nasıl çalışır?">
+            <span style="font-size:14px;font-weight:700;">?</span>
+        </button>
+    </div>
 </div>
+
+@if (_showHelp)
+{
+    <div class="help-overlay" @onclick="() => _showHelp = false">
+        <div class="help-dialog" @onclick:stopPropagation>
+            <div class="help-dialog-header">
+                <span>ℹ️ Nasıl Çalışır? — Metodoloji &amp; Veri Kaynakları</span>
+                <button class="help-close" @onclick="() => _showHelp = false">&times;</button>
+            </div>
+            <div class="help-dialog-body">
+                <div class="help-section">
+                    <div class="help-section-title">🎯 Risk Çerçevesi: Risk = Tehlike × Maruziyet × Kırılganlık</div>
+                    <p>Bu dashboard, IPCC (Hükümetlerarası İklim Değişikliği Paneli) risk çerçevesini kullanır. İklim riski üç bileşenin çarpımıdır:</p>
+                    <ul>
+                        <li><strong>Tehlike (Hazard):</strong> İklim modeli ve ölçümler belirler. Aşırı sıcaklık, kuraklık, sel gibi olayların <em>nerede ve ne şiddette</em> olacağı.</li>
+                        <li><strong>Maruziyet (Exposure):</strong> Şirketin varlığının nerede, ne kadar ve hangi değerde durduğu (finansal değer).</li>
+                        <li><strong>Kırılganlık (Vulnerability):</strong> Tesisin yapısı ve hazırlığı — <em>Hassasiyet (Sensitivity) / Uyum Kapasitesi (Adaptive Capacity)</em> oranı.</li>
+                    </ul>
+                </div>
+
+                <div class="help-section">
+                    <div class="help-section-title">🌍 Veri Kaynakları</div>
+                    <ul>
+                        <li><strong>Open-Meteo Climate API:</strong> İklim projeksiyonları — sıcaklık, yağış, rüzgar, nem. SSP senaryolarına göre (SSP1-2.6 … SSP5-8.5) model seçer. Modeller veriyi ~2050'ye kadar sağlar, bu yüzden 2050+ seçimlerinde en yakın kullanılabilir yıl kullanılır.</li>
+                        <li><strong>WRI Aqueduct:</strong> Su stresi (Water Stress), sel ve kuraklık riski verileri. Ülke bazında, indikatör <em>bws</em> / ağırlık <em>Tot</em>. Senaryo ve yıl projeksiyonlarıyla güncellenir.</li>
+                        <li><strong>GADM:</strong> Ülke → il/bölge sınırları. Haritada ülkeye tıklayınca il bazında detay iner.</li>
+                        <li><strong>Open-Meteo güncel hava + iklim izleme:</strong> Canlı CO₂, deniz seviyesi ve sıcaklık trendleri.</li>
+                    </ul>
+                </div>
+
+                <div class="help-section">
+                    <div class="help-section-title">⚙️ Nasıl Çalıştırılıyor?</div>
+                    <ol>
+                        <li><strong>Girdi:</strong> Sol panelden senaryo, sektör, zaman dilimi, parametreleri (sıcaklık artışı, yağış, deniz, karbon fiyatı), lokasyon ve şirket profilini ayarlayın.</li>
+                        <li><strong>Veri toplama:</strong> Open-Meteo projeksiyonu, WRI su stresi ve canlı trendler çekilir.</li>
+                        <li><strong>Risk skorları:</strong> Fiziksel risk (iklim verisi + slider) ve geçiş riski (karbon fiyatı + senaryo + sektör) ağırlıklı olarak hesaplanır.</li>
+                        <li><strong>Intentum Inference:</strong> Toplanan tüm sinyaller bir <em>BehaviorSpace</em>'e yazılır (ör. <code>physical:heatwave</code>, <code>economic:revenue_at_risk</code>). IntentModel bu uzaydan niyeti çıkarır.</li>
+                        <li><strong>Policy:</strong> IntentPolicyBuilder niyet + güven seviyesine göre karar üretir (ALLOW / REVIEW / REJECT).</li>
+                        <li><strong>Finansal bağlantı:</strong> Şirket profili varsa finansal maruziyet hesaplanır ve büyük kayıp kararı bir kademe sıkılaştırır.</li>
+                    </ol>
+                </div>
+
+                <div class="help-section">
+                    <div class="help-section-title">🧠 Intentum Neyi Nasıl Yorumluyor?</div>
+                    <p>Intentum, çevresel gözlemleri <strong>aktör:eylem</strong> biçiminde toplar. Her gözlem bir niyet sinyaline dönüşür ve kendi ağırlığıyla skorlanır:</p>
+                    <ul>
+                        <li><strong>Niyet adı:</strong> Kritik / Yüksek / Orta / Düşük / Minimal İklim Riski — toplam ağırlıklı sinyal skorundan türetilir.</li>
+                        <li><strong>Güven (Confidence):</strong> Sinyal yoğunluğundan hesaplanır.</li>
+                        <li><strong>Policy kararı:</strong> Niyet + güven bir karar kuralına bağlanır (REJECT: kritik risk, REVIEW: yüksek risk, ALLOW: düşük risk).</li>
+                        <li><strong>Finansal etki:</strong> Finansal sinyaller de davranış uzayına girer — gelir geçiş riskine, operasyon/yatırım fiziksel riske maruz kalır.</li>
+                    </ul>
+                </div>
+
+                <div class="help-section">
+                    <div class="help-section-title">📊 Dashboard'ı Okuma</div>
+                    <ul>
+                        <li><strong>KPI bar:</strong> Fiziksel risk, geçiş riski, su stresi, MDP etkisi ve nihai politika kararı.</li>
+                        <li><strong>Harita:</strong> Ülke tıklayın → il/bölge. Marker = seçili şirket konumu.</li>
+                        <li><strong>Risk Dağılımı / Senaryo Karşılaştırma:</strong> Risk bileşenleri ve SSP senaryoları arası fark.</li>
+                        <li><strong>Su Stresi / Risk Faktörleri:</strong> WRI su stresi ve iklim faktörlerinin katkısı.</li>
+                        <li><strong>İklim Risk Matrix (heatmap):</strong> Tehlike × Varlık ve Tehlike × Senaryo — bileşik riskin hücre hücre görünümü.</li>
+                        <li><strong>Finansal Etki:</strong> Fiziksel/geçiş riskinin şirket kalemlerine parasal yansıması.</li>
+                        <li><strong>Politika Kararı:</strong> Intentum niyeti, güveni, nedenleri, önerileri ve sinyalleri — en ayrıntılı açıklama.</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+}
 
 @if (_assessment == null && !_running)
 {
