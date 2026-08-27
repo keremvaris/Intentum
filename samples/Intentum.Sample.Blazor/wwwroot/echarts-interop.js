@@ -79,8 +79,8 @@ window.IntentumECharts = {
       if (option.tooltip && typeof option.tooltip === 'object' && !option.tooltip.confine) {
         option.tooltip.confine = true;
       }
-      chart.setOption(option);
-    } else if (chart) chart.setOption(option || {});
+      chart.setOption(option, true);
+    } else if (chart) chart.setOption(option || {}, true);
   },
   setHeatmapOption: function (elementId, option) {
     var chart = this.instances[elementId];
