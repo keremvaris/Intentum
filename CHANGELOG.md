@@ -18,6 +18,66 @@ Bu dosya **conventional commit** mesajlarından otomatik üretilir. Commit'te **
 
 
 
+### Features
+
+- **Add ClimateVarResult and ScenarioLoss models** *(climate)*
+
+
+- **Implement ClimateVarEngine with VaR/CVaR calculation** *(climate)*
+
+
+- **Add StressTestResult and StressFactors models** *(climate)*
+
+
+- **Implement StressTestEngine with factor analysis** *(climate)*
+
+
+- **Add PortfolioResult and PortfolioCompanyResult models** *(climate)*
+
+
+- **Implement PortfolioRiskEngine with concentration analysis** *(climate)*
+
+
+- **Register VaR, StressTest, Portfolio engines in DI** *(climate)*
+
+
+- **Add CSS for VaR, stress test, and portfolio cards** *(climate)*
+
+
+- **Add Climate VaR dashboard card with bar chart** *(climate)*
+
+
+- **Add Stress Test dashboard card with sliders** *(climate)*
+
+
+- **Add Portfolio Risk dashboard card with multi-company view** *(climate)*
+
+
+- **NGFS entegrasyonu + tasarım düzeltmeleri** *(climate)*
+
+- NgfsModels + NgfsScenarioService: NGFS Phase V senaryo verileri (7 senaryo)
+- RiskInput.NgfsScenarioId + RiskAssessment.NgfsMacro eklendi
+- NGFS makro verileri dashboard'da karşılaştırma kartı
+- Climate VaR + Stres Testi + Portföy Riski (Faz 1 Finansal Derinlik)
+- Gauge formatter düzeltmesi (Math.Round)
+- Kart grid düzenlemeleri (2→1 sütun, span-2 kaldırıldı)
+- Padding/gap artırıldı, boş alan giderildi
+- CSS: climate-var-metric, climate-stress-slider, climate-portfolio stilleri
+
+
+
+
+
+### Testing
+
+- **Add ClimateVarEngine unit tests** *(climate)*
+
+
+## [1.2.5] - 2026-08-27
+
+
+
+
 
 
 
