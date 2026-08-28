@@ -1,0 +1,36 @@
+[
+  {"Model":"REMIND","Scenario":"Net Zero 2050","Region":"TUR","Variable":"GDP|Index","Unit":"index (2020=1)","YearlyValues":{"2025":99.2,"2030":97.8,"2035":96.5,"2040":95.8,"2045":95.2,"2050":94.8}},
+  {"Model":"REMIND","Scenario":"Net Zero 2050","Region":"TUR","Variable":"Price|Carbon","Unit":"$/tCO2","YearlyValues":{"2025":25,"2030":85,"2035":150,"2040":220,"2045":280,"2050":340}},
+  {"Model":"REMIND","Scenario":"Net Zero 2050","Region":"TUR","Variable":"Temperature|Change","Unit":"°C","YearlyValues":{"2025":1.2,"2030":1.3,"2035":1.35,"2040":1.4,"2045":1.42,"2050":1.45}},
+  {"Model":"REMIND","Scenario":"Net Zero 2050","Region":"TUR","Variable":"Investment|Energy","Unit":"% change","YearlyValues":{"2025":5.2,"2030":12.8,"2035":18.5,"2040":22.1,"2045":24.5,"2050":26.0}},
+
+  {"Model":"REMIND","Scenario":"Delayed Transition","Region":"TUR","Variable":"GDP|Index","Unit":"index (2020=1)","YearlyValues":{"2025":100.1,"2030":100.5,"2035":99.2,"2040":96.8,"2045":95.0,"2050":94.2}},
+  {"Model":"REMIND","Scenario":"Delayed Transition","Region":"TUR","Variable":"Price|Carbon","Unit":"$/tCO2","YearlyValues":{"2025":5,"2030":15,"2035":200,"2040":350,"2045":420,"2050":480}},
+  {"Model":"REMIND","Scenario":"Delayed Transition","Region":"TUR","Variable":"Temperature|Change","Unit":"°C","YearlyValues":{"2025":1.2,"2030":1.35,"2035":1.4,"2040":1.45,"2045":1.48,"2050":1.5}},
+  {"Model":"REMIND","Scenario":"Delayed Transition","Region":"TUR","Variable":"Investment|Energy","Unit":"% change","YearlyValues":{"2025":1.5,"2030":3.0,"2035":25.0,"2040":35.0,"2045":38.0,"2050":40.0}},
+
+  {"Model":"REMIND","Scenario":"Current Policies","Region":"TUR","Variable":"GDP|Index","Unit":"index (2020=1)","YearlyValues":{"2025":100.5,"2030":101.2,"2035":101.8,"2040":102.0,"2045":101.5,"2050":100.8}},
+  {"Model":"REMIND","Scenario":"Current Policies","Region":"TUR","Variable":"Price|Carbon","Unit":"$/tCO2","YearlyValues":{"2025":2,"2030":3,"2035":4,"2040":5,"2045":6,"2050":7}},
+  {"Model":"REMIND","Scenario":"Current Policies","Region":"TUR","Variable":"Temperature|Change","Unit":"°C","YearlyValues":{"2025":1.2,"2030":1.5,"2035":1.8,"2040":2.2,"2045":2.6,"2050":3.0}},
+  {"Model":"REMIND","Scenario":"Current Policies","Region":"TUR","Variable":"Investment|Energy","Unit":"% change","YearlyValues":{"2025":0.5,"2030":1.0,"2035":1.2,"2040":1.5,"2045":1.8,"2050":2.0}},
+
+  {"Model":"REMIND","Scenario":"NDCs","Region":"TUR","Variable":"GDP|Index","Unit":"index (2020=1)","YearlyValues":{"2025":100.0,"2030":99.8,"2035":99.0,"2040":98.2,"2045":97.5,"2050":97.0}},
+  {"Model":"REMIND","Scenario":"NDCs","Region":"TUR","Variable":"Price|Carbon","Unit":"$/tCO2","YearlyValues":{"2025":8,"2030":25,"2035":50,"2040":80,"2045":100,"2050":120}},
+  {"Model":"REMIND","Scenario":"NDCs","Region":"TUR","Variable":"Temperature|Change","Unit":"°C","YearlyValues":{"2025":1.2,"2030":1.4,"2035":1.55,"2040":1.65,"2045":1.72,"2050":1.8}},
+  {"Model":"REMIND","Scenario":"NDCs","Region":"TUR","Variable":"Investment|Energy","Unit":"% change","YearlyValues":{"2025":2.0,"2030":5.5,"2035":9.0,"2040":12.0,"2045":14.0,"2050":15.5}},
+
+  {"Model":"REMIND","Scenario":"Below 2C","Region":"TUR","Variable":"GDP|Index","Unit":"index (2020=1)","YearlyValues":{"2025":99.5,"2030":98.5,"2035":97.2,"2040":96.5,"2045":96.0,"2050":95.5}},
+  {"Model":"REMIND","Scenario":"Below 2C","Region":"TUR","Variable":"Price|Carbon","Unit":"$/tCO2","YearlyValues":{"2025":30,"2030":100,"2035":175,"2040":250,"2045":310,"2050":370}},
+  {"Model":"REMIND","Scenario":"Below 2C","Region":"TUR","Variable":"Temperature|Change","Unit":"°C","YearlyValues":{"2025":1.2,"2030":1.32,"2035":1.38,"2040":1.42,"2045":1.45,"2050":1.48}},
+  {"Model":"REMIND","Scenario":"Below 2C","Region":"TUR","Variable":"Investment|Energy","Unit":"% change","YearlyValues":{"2025":4.5,"2030":11.0,"2035":16.0,"2040":20.0,"2045":22.5,"2050":24.0}},
+
+  {"Model":"REMIND","Scenario":"Fragmented World","Region":"TUR","Variable":"GDP|Index","Unit":"index (2020=1)","YearlyValues":{"2025":100.2,"2030":100.8,"2035":100.5,"2040":99.5,"2045":98.0,"2050":96.5}},
+  {"Model":"REMIND","Scenario":"Fragmented World","Region":"TUR","Variable":"Price|Carbon","Unit":"$/tCO2","YearlyValues":{"2025":5,"2030":20,"2035":60,"2040":90,"2045":110,"2050":130}},
+  {"Model":"REMIND","Scenario":"Fragmented World","Region":"TUR","Variable":"Temperature|Change","Unit":"°C","YearlyValues":{"2025":1.2,"2030":1.45,"2035":1.65,"2040":1.85,"2045":2.05,"2050":2.3}},
+  {"Model":"REMIND","Scenario":"Fragmented World","Region":"TUR","Variable":"Investment|Energy","Unit":"% change","YearlyValues":{"2025":1.0,"2030":3.5,"2035":7.0,"2040":10.0,"2045":12.0,"2050":13.5}},
+
+  {"Model":"REMIND","Scenario":"Low Demand","Region":"TUR","Variable":"GDP|Index","Unit":"index (2020=1)","YearlyValues":{"2025":99.8,"2030":99.0,"2035":98.2,"2040":97.8,"2045":97.5,"2050":97.2}},
+  {"Model":"REMIND","Scenario":"Low Demand","Region":"TUR","Variable":"Price|Carbon","Unit":"$/tCO2","YearlyValues":{"2025":15,"2030":55,"2035":100,"2040":145,"2045":180,"2050":210}},
+  {"Model":"REMIND","Scenario":"Low Demand","Region":"TUR","Variable":"Temperature|Change","Unit":"°C","YearlyValues":{"2025":1.2,"2030":1.28,"2035":1.32,"2040":1.35,"2045":1.38,"2050":1.4}},
+  {"Model":"REMIND","Scenario":"Low Demand","Region":"TUR","Variable":"Investment|Energy","Unit":"% change","YearlyValues":{"2025":3.0,"2030":8.0,"2035":12.5,"2040":16.0,"2045":18.5,"2050":20.0}}
+]

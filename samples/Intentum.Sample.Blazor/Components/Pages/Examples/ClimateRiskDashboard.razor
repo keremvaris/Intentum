@@ -551,7 +551,7 @@
         {
             <div class="climate-chart-card">
                 <div class="chart-title" data-tip="NGFS senaryolarına göre şirketin beklenen iklim kayıplarını gösterir. VaR95, %95 güvenle bu kaybın aşılmayacağını; CVaR95 ise aşıldığında ortalama kaybı temsil eder.">💰 Climate VaR</div>
-                <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:10px;">
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:10px;">
                     <div class="climate-var-metric">
                         <div class="label">VaR95</div>
                         <div class="value negative">@(_varResult.VaR95.ToString("N0", System.Globalization.CultureInfo.InvariantCulture)) TL</div>
@@ -576,7 +576,7 @@
         <div class="climate-chart-card">
             <div class="chart-title" data-tip="Risk faktörlerini değiştirerek finansal etkinin nasıl değiştiğini test edin.">🔬 Stres Testi</div>
 
-            <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-bottom:10px;">
+            <div style="display:grid;grid-template-columns:1fr;gap:4px;margin-bottom:10px;">
                 <div class="climate-stress-slider"><label>Sıcaklık</label><input type="range" min="0.5" max="3.0" step="0.1" @bind="_stressFactors.TemperatureMultiplier" @bind:event="oninput" /><span class="mult-value">@(_stressFactors.TemperatureMultiplier.ToString("F1", System.Globalization.CultureInfo.InvariantCulture))×</span></div>
                 <div class="climate-stress-slider"><label>Yağış</label><input type="range" min="0.5" max="3.0" step="0.1" @bind="_stressFactors.PrecipitationMultiplier" @bind:event="oninput" /><span class="mult-value">@(_stressFactors.PrecipitationMultiplier.ToString("F1", System.Globalization.CultureInfo.InvariantCulture))×</span></div>
                 <div class="climate-stress-slider"><label>Deniz Seviyesi</label><input type="range" min="0.5" max="3.0" step="0.1" @bind="_stressFactors.SeaLevelMultiplier" @bind:event="oninput" /><span class="mult-value">@(_stressFactors.SeaLevelMultiplier.ToString("F1", System.Globalization.CultureInfo.InvariantCulture))×</span></div>
@@ -593,7 +593,7 @@
 
             @if (_stressResult != null)
             {
-                <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:10px;">
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:10px;">
                     <div class="climate-var-metric">
                         <div class="label">Fiziksel Risk Değişimi</div>
                         <div class="value @(_stressResult.Delta.PhysicalRiskDelta >= 0 ? "negative" : "positive")">@(_stressResult.Delta.PhysicalRiskDelta >= 0 ? "+" : "")@(_stressResult.Delta.PhysicalRiskDelta.ToString("F3", System.Globalization.CultureInfo.InvariantCulture))</div>
@@ -648,7 +648,7 @@
 
                 @if (_portfolioResult != null)
                 {
-                    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin:10px 0;">
+                    <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin:10px 0;">
                         <div class="climate-var-metric">
                             <div class="label">Toplam Ciro</div>
                             <div class="value">@(_portfolioResult.TotalRevenue.ToString("N0", System.Globalization.CultureInfo.InvariantCulture)) TL</div>

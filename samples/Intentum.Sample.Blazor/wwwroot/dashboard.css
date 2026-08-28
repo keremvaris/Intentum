@@ -1208,7 +1208,8 @@ body.dashboard-root { margin: 0; padding: 0; }
 .climate-charts-panel {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 1rem;
+  grid-auto-flow: dense;
+  gap: 1.25rem;
   align-items: stretch;
 }
 @media (max-width: 1400px) {
@@ -1220,8 +1221,8 @@ body.dashboard-root { margin: 0; padding: 0; }
 .climate-chart-card {
   background: #0d1117;
   border: 1px solid #30363d;
-  border-radius: 6px;
-  padding: 0.75rem;
+  border-radius: 8px;
+  padding: 1rem;
   min-width: 0;
   height: auto;
 }
@@ -1230,14 +1231,15 @@ body.dashboard-root { margin: 0; padding: 0; }
   grid-column: 1 / -1;
 }
 .climate-chart-card .chart-title {
-  font-size: 0.7rem;
+  font-size: 0.72rem;
   text-transform: uppercase;
   color: #8b949e;
-  margin-bottom: 0.5rem;
+  margin-bottom: 0.75rem;
   letter-spacing: 0.5px;
 }
 .climate-chart-card .chart-container {
   width: 100%;
+  min-height: 0;
 }
 
 .climate-kpi-bar {
@@ -1764,17 +1766,17 @@ body.dashboard-root { margin: 0; padding: 0; }
 }
 
 /* Climate VaR */
-.climate-var-metric{background:#1e293b;border:1px solid #334155;border-radius:8px;padding:12px;text-align:center}
-.climate-var-metric .label{font-size:0.62rem;color:#94a3b8;margin-bottom:4px}
-.climate-var-metric .value{font-size:1.1rem;font-weight:700;color:#e2e8f0}
+.climate-var-metric{background:#1e293b;border:1px solid #334155;border-radius:8px;padding:8px 6px;text-align:center;min-width:0}
+.climate-var-metric .label{font-size:0.55rem;color:#94a3b8;margin-bottom:2px}
+.climate-var-metric .value{font-size:0.85rem;font-weight:700;color:#e2e8f0;word-break:break-all}
 .climate-var-metric .value.negative{color:#ef4444}
 .climate-var-metric .value.positive{color:#22c55e}
 
 /* Stress Test */
-.climate-stress-slider{display:flex;align-items:center;gap:8px;margin-bottom:6px}
-.climate-stress-slider label{width:100px;font-size:0.62rem;color:#94a3b8;text-align:right}
-.climate-stress-slider input[type=range]{flex:1;accent-color:#38bdf8}
-.climate-stress-slider .mult-value{width:40px;font-size:0.62rem;color:#e2e8f0;text-align:left}
+.climate-stress-slider{display:flex;align-items:center;gap:4px;margin-bottom:2px}
+.climate-stress-slider label{width:70px;font-size:0.58rem;color:#94a3b8;text-align:right;flex-shrink:0}
+.climate-stress-slider input[type=range]{flex:1;accent-color:#38bdf8;min-width:0}
+.climate-stress-slider .mult-value{width:32px;font-size:0.55rem;color:#e2e8f0;text-align:left;flex-shrink:0}
 
 /* Portfolio */
 .climate-portfolio-table{width:100%;border-collapse:collapse;font-size:0.62rem}

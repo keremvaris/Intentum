@@ -13,12 +13,13 @@ public class RiskCalculationEngine
     private readonly ClimateMonitorService _climateMonitor;
     private readonly FinancialImpactEngine? _financialImpactEngine;
     private readonly CompanyProfileService? _companyProfileService;
+    private readonly NgfsScenarioService? _ngfs;
 
     public RiskCalculationEngine(
         OpenMeteoService openMeteo,
         WriAqueductService wri,
         ClimateMonitorService climateMonitor)
-        : this(openMeteo, wri, climateMonitor, null, null)
+        : this(openMeteo, wri, climateMonitor, null, null, null)
     {
     }
 
@@ -27,13 +28,15 @@ public class RiskCalculationEngine
         WriAqueductService wri,
         ClimateMonitorService climateMonitor,
         FinancialImpactEngine? financialImpactEngine,
-        CompanyProfileService? companyProfileService)
+        CompanyProfileService? companyProfileService,
+        NgfsScenarioService? ngfs)
     {
         _openMeteo = openMeteo;
         _wri = wri;
         _climateMonitor = climateMonitor;
         _financialImpactEngine = financialImpactEngine;
         _companyProfileService = companyProfileService;
+        _ngfs = ngfs;
     }
 
     public virtual async Task<RiskAssessment> AssessAsync(
@@ -52,6 +55,19 @@ public class RiskCalculationEngine
 
         var wriRisk = await _wri.GetCountryRiskAsync(input.CountryIso3, input.Scenario, input.Horizon, ct);
         var baseline = await _climateMonitor.GetBaselineTrendsAsync(ct);
+
+        // NGFS makroekonomik veri (opsiyonel).
+        NgfsMacroSnapshot? ngfsMacro = null;
+        if (_ngfs != null && !string.IsNullOrEmpty(input.NgfsScenarioId))
+        {
+            ngfsMacro = await _ngfs.GetSnapshotAsync(input.CountryIso3, input.NgfsScenarioId, input.Horizon, ct);
+        }
+
+        // NGFS karbon fiyatı varsa input'u güncelle (SBTi/TCFD senaryo tutarlılığı).
+        if (ngfsMacro?.CarbonPrice is > 0)
+        {
+            input = input with { CarbonPrice = (int)ngfsMacro.CarbonPrice };
+        }
 
         var coastal = GeoRiskHelper.GetCoastalInfo(input.Latitude, input.Longitude, input.LocationName);
         var effectiveSea = GeoRiskHelper.SeaLevelEffective(input.SeaLevelRise, coastal.isCoastal, coastal.distanceKm);
@@ -128,7 +144,7 @@ public class RiskCalculationEngine
         var overall = (physicalScore * 0.6 + transitionScore * 0.4);
         decision = DetermineDecision(overall, intent.Name, financialImpact, dataResult.Score, dataResult.IsRegionalEstimate);
 
-        var reasons = BuildDecisionReasons(input, physicalScore, transitionScore, wriRisk, projection, coastal, effectiveSea, intent, financialImpact, companyProfile, dataResult);
+        var reasons = BuildDecisionReasons(input, physicalScore, transitionScore, wriRisk, projection, coastal, effectiveSea, intent, financialImpact, companyProfile, dataResult, ngfsMacro);
         var region = ClimateRegionCatalog.Get(input.CountryIso3);
         var actions = BuildRecommendedActions(decision, input, physicalScore, transitionScore, coastal, wriRisk, financialImpact, companyProfile, region);
         var summary = BuildDecisionSummary(decision, overall, physicalScore, transitionScore, input, intent, coastal, financialImpact, companyProfile);
@@ -175,6 +191,9 @@ public class RiskCalculationEngine
             financialImpact, companyProfile, input.Sector,
             region, region?.DominantHazards ?? []);
 
+        // NGFS makroekonomik veriyi assessment'e ekle.
+        assessment.NgfsMacro = ngfsMacro;
+
         return assessment;
     }
 
@@ -186,6 +205,7 @@ public class RiskCalculationEngine
         space.SetMetadata("lat", input.Latitude);
         space.SetMetadata("lng", input.Longitude);
         space.SetMetadata("scenario", input.Scenario);
+        space.SetMetadata("ngfsScenario", input.NgfsScenarioId ?? "");
         space.SetMetadata("sector", input.Sector);
         space.SetMetadata("coastal", coastal.isCoastal);
         space.SetMetadata("coastalNote", coastal.note);
@@ -482,7 +502,7 @@ public class RiskCalculationEngine
     private static List<string> BuildDecisionReasons(
         RiskInput input, double physical, double transition,
         WriCountryRisk? wri, ClimateProjection? proj,
-        (bool isCoastal, double distanceKm, string note) coastal, double effectiveSea, Intent intent, FinancialImpact? financialImpact = null, CompanyProfile? companyProfile = null, DataConfidenceResult? dataResult = null)
+        (bool isCoastal, double distanceKm, string note) coastal, double effectiveSea, Intent intent, FinancialImpact? financialImpact = null, CompanyProfile? companyProfile = null, DataConfidenceResult? dataResult = null, NgfsMacroSnapshot? ngfsMacro = null)
     {
         var reasons = new List<string>();
 
@@ -529,6 +549,18 @@ public class RiskCalculationEngine
             reasons.Add($"Karbon fiyatı €{input.CarbonPrice}/tCO₂: yüksek maliyet baskısı, karbon yoğun süreçlerde acil optimizasyon gerekir");
         else if (input.CarbonPrice >= 80)
             reasons.Add($"Karbon fiyatı €{input.CarbonPrice}/tCO₂: orta düzey maliyet, karbon azaltım yol haritası planlanmalı");
+
+        // NGFS makroekonomik bağlam.
+        if (ngfsMacro != null)
+        {
+            var scenarioInfo = NgfsScenarios.GetById(input.NgfsScenarioId ?? "") ?? NgfsScenarios.GetByName(ngfsMacro.Scenario);
+            if (scenarioInfo != null)
+                reasons.Add($"NGFS {scenarioInfo.Name} ({scenarioInfo.Category}): {scenarioInfo.WarmingLevel}°C patikası — {scenarioInfo.Description}");
+            if (ngfsMacro.GdpChange is var gdp and not null)
+                reasons.Add($"NGFS GSYİH etkisi ({ngfsMacro.Year}): {gdp:+0.0;-0.0}% — makroekonomik ortam {(gdp >= 0 ? "destekleyici" : " baskılanmış")}");
+            if (ngfsMacro.CarbonPrice is > 0)
+                reasons.Add($"NGFS karbon fiyatı ({ngfsMacro.Year}): ${ngfsMacro.CarbonPrice:F0}/tCO₂ — SBTi/TCFD uyumu için kritik eşik");
+        }
 
         // Senaryo
         if (input.Scenario == "SSP5-8.5")
@@ -772,6 +804,8 @@ public sealed record RiskInput
     public double SeaLevelRise { get; set; } = 0.5;
     public int CarbonPrice { get; set; } = 85;
     public string? CompanyProfileId { get; set; }
+    // NGFS senaryo seçimi (opsiyonel).
+    public string? NgfsScenarioId { get; set; }
 }
 
 public sealed class RiskAssessment
@@ -810,6 +844,8 @@ public sealed class RiskAssessment
     public bool IsRegionalEstimate { get; set; }
     // Sistem geneli etki analizi.
     public SystemImpactResult? SystemImpact { get; set; }
+    // NGFS makroekonomik veri (opsiyonel).
+    public NgfsMacroSnapshot? NgfsMacro { get; set; }
 }
 
 public sealed class EconomicImpact
