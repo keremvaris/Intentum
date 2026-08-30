@@ -31,13 +31,31 @@ rm -rf "$SCRIPT_DIR/typescript/intentum-sdk"
 echo "Generating C# SDK..."
 kiota generate --openapi "$SPEC_PATH" --language csharp --output "$SCRIPT_DIR/csharp/IntentumSdk" --class-name IntentumClient
 
+# Verify C# SDK was generated
+if [ ! -f "$SCRIPT_DIR/csharp/IntentumSdk/IntentumSdk.csproj" ]; then
+    echo "ERROR: C# SDK generation failed" >&2
+    exit 1
+fi
+
 # Generate Python SDK
 echo "Generating Python SDK..."
 kiota generate --openapi "$SPEC_PATH" --language python --output "$SCRIPT_DIR/python/intentum_sdk" --class-name IntentumClient
 
+# Verify Python SDK was generated
+if [ ! -d "$SCRIPT_DIR/python/intentum_sdk" ]; then
+    echo "ERROR: Python SDK generation failed" >&2
+    exit 1
+fi
+
 # Generate TypeScript SDK
 echo "Generating TypeScript SDK..."
 kiota generate --openapi "$SPEC_PATH" --language typescript --output "$SCRIPT_DIR/typescript/intentum-sdk" --class-name IntentumClient
+
+# Verify TypeScript SDK was generated
+if [ ! -d "$SCRIPT_DIR/typescript/intentum-sdk" ]; then
+    echo "ERROR: TypeScript SDK generation failed" >&2
+    exit 1
+fi
 
 echo ""
 echo "SDK generation complete!"

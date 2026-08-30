@@ -31,15 +31,30 @@ if (-not $kiotaAvailable) {
 
 # C# SDK
 Write-Host "Generating C# SDK..."
-kiota generate --openapi $SpecPath --language csharp --output csharp/IntentumSdk
+kiota generate --openapi $SpecPath --language csharp --output csharp/IntentumSdk --class-name IntentumClient
+
+if (-not (Test-Path "csharp/IntentumSdk/IntentumSdk.csproj")) {
+    Write-Host "ERROR: C# SDK generation failed" -ForegroundColor Red
+    exit 1
+}
 
 # Python SDK
 Write-Host "Generating Python SDK..."
-kiota generate --openapi $SpecPath --language python --output python/intentum_sdk
+kiota generate --openapi $SpecPath --language python --output python/intentum_sdk --class-name IntentumClient
+
+if (-not (Test-Path "python/intentum_sdk")) {
+    Write-Host "ERROR: Python SDK generation failed" -ForegroundColor Red
+    exit 1
+}
 
 # TypeScript SDK
 Write-Host "Generating TypeScript SDK..."
-kiota generate --openapi $SpecPath --language typescript --output typescript/intentum-sdk
+kiota generate --openapi $SpecPath --language typescript --output typescript/intentum-sdk --class-name IntentumClient
+
+if (-not (Test-Path "typescript/intentum-sdk")) {
+    Write-Host "ERROR: TypeScript SDK generation failed" -ForegroundColor Red
+    exit 1
+}
 
 Write-Host ""
 Write-Host "SDK generation complete!" -ForegroundColor Green

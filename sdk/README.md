@@ -17,10 +17,31 @@ Auto-generated client SDKs for the Intentum API.
 
 ## Generating SDKs
 
-```bash
+**PowerShell (Windows/Linux):**
+
+```powershell
 cd sdk
 ./generate.ps1
 ```
+
+**Bash (macOS/Linux):**
+
+```bash
+cd sdk
+./generate.sh
+```
+
+Both scripts perform the same operations:
+1. Validate the OpenAPI spec exists
+2. Check for Kiota CLI
+3. Generate C#, Python, and TypeScript SDKs
+4. Verify generated output directories
+
+### Options
+
+| Parameter | Default | Description |
+|-----------|---------|-------------|
+| `$1` / `$SpecPath` | `../docs/openapi/intentum.yaml` | Path to OpenAPI spec |
 
 ## API Reference
 
