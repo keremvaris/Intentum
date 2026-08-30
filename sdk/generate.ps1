@@ -24,9 +24,8 @@ Write-Host "Generating SDKs from: $SpecPath"
 # Check for Kiota
 $kiotaAvailable = Get-Command "kiota" -ErrorAction SilentlyContinue
 if (-not $kiotaAvailable) {
-    Write-Host "WARNING: Kiota not found. Install with: dotnet tool install -g Microsoft.OpenApi.Kiota" -ForegroundColor Yellow
-    Write-Host "Creating placeholder READMEs only."
-    exit 0
+    Write-Host "ERROR: Kiota not found. Run '.\sdk\setup.ps1' first." -ForegroundColor Red
+    exit 1
 }
 
 # Clean previous generated code
