@@ -1,6 +1,6 @@
 # sdk/generate.ps1
 param(
-    [string]$SpecPath = "../docs/openapi/intentum.yaml"
+    [string]$SpecPath = "$PSScriptRoot\..\docs\openapi\intentum.yaml"
 )
 
 Write-Host "Intentum SDK Generator"
@@ -29,9 +29,15 @@ if (-not $kiotaAvailable) {
     exit 0
 }
 
+# Clean previous generated code
+Write-Host "Cleaning previous SDK output..."
+if (Test-Path "$PSScriptRoot\csharp\IntentumSdk") { Remove-Item -Recurse -Force "$PSScriptRoot\csharp\IntentumSdk" }
+if (Test-Path "$PSScriptRoot\python\intentum_sdk") { Remove-Item -Recurse -Force "$PSScriptRoot\python\intentum_sdk" }
+if (Test-Path "$PSScriptRoot\typescript\intentum-sdk") { Remove-Item -Recurse -Force "$PSScriptRoot\typescript\intentum-sdk" }
+
 # C# SDK
 Write-Host "Generating C# SDK..."
-kiota generate --openapi $SpecPath --language csharp --output csharp/IntentumSdk --class-name IntentumClient
+kiota generate --openapi $SpecPath --language csharp --output "$PSScriptRoot\csharp\IntentumSdk" --class-name IntentumClient
 
 if (-not (Test-Path "csharp/IntentumSdk/IntentumSdk.csproj")) {
     Write-Host "ERROR: C# SDK generation failed" -ForegroundColor Red
@@ -40,7 +46,7 @@ if (-not (Test-Path "csharp/IntentumSdk/IntentumSdk.csproj")) {
 
 # Python SDK
 Write-Host "Generating Python SDK..."
-kiota generate --openapi $SpecPath --language python --output python/intentum_sdk --class-name IntentumClient
+kiota generate --openapi $SpecPath --language python --output "$PSScriptRoot\python\intentum_sdk" --class-name IntentumClient
 
 if (-not (Test-Path "python/intentum_sdk")) {
     Write-Host "ERROR: Python SDK generation failed" -ForegroundColor Red
@@ -49,7 +55,7 @@ if (-not (Test-Path "python/intentum_sdk")) {
 
 # TypeScript SDK
 Write-Host "Generating TypeScript SDK..."
-kiota generate --openapi $SpecPath --language typescript --output typescript/intentum-sdk --class-name IntentumClient
+kiota generate --openapi $SpecPath --language typescript --output "$PSScriptRoot\typescript\intentum-sdk" --class-name IntentumClient
 
 if (-not (Test-Path "typescript/intentum-sdk")) {
     Write-Host "ERROR: TypeScript SDK generation failed" -ForegroundColor Red
