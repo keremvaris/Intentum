@@ -2,7 +2,7 @@ openapi: 3.0.3
 info:
   title: Intentum API
   description: Intent-driven development framework REST API
-  version: 1.1.8
+  version: 1.2.0
   contact:
     name: Intentum Team
     url: https://github.com/keremvaris/Intentum
@@ -79,6 +79,66 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/SpaceResponse'
+
+  /api/intent/analytics/timeline/{entityId}:
+    get:
+      operationId: getIntentTimeline
+      summary: Get intent timeline for an entity
+      tags:
+        - Analytics
+      parameters:
+        - name: entityId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Intent timeline
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TimelineResponse'
+
+  /api/intent/explain-tree:
+    post:
+      operationId: explainIntentTree
+      summary: Get decision tree explanation for intent
+      tags:
+        - Explainability
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ExplainRequest'
+      responses:
+        '200':
+          description: Decision tree explanation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ExplainResponse'
+
+  /api/intent/playground/compare:
+    post:
+      operationId: compareModels
+      summary: Compare intent models in playground
+      tags:
+        - Playground
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CompareRequest'
+      responses:
+        '200':
+          description: Model comparison results
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CompareResponse'
 
 components:
   schemas:
@@ -225,3 +285,87 @@ components:
           type: object
           additionalProperties:
             type: number
+
+    TimelineResponse:
+      type: object
+      properties:
+        entityId:
+          type: string
+        entries:
+          type: array
+          items:
+            $ref: '#/components/schemas/TimelineEntry'
+
+    TimelineEntry:
+      type: object
+      properties:
+        timestamp:
+          type: string
+          format: date-time
+        intentName:
+          type: string
+        confidence:
+          $ref: '#/components/schemas/Confidence'
+        decision:
+          type: string
+
+    ExplainRequest:
+      type: object
+      required:
+        - intent
+      properties:
+        intent:
+          $ref: '#/components/schemas/Intent'
+
+    ExplainResponse:
+      type: object
+      properties:
+        root:
+          $ref: '#/components/schemas/ExplainNode'
+
+    ExplainNode:
+      type: object
+      properties:
+        label:
+          type: string
+        confidence:
+          type: number
+          format: double
+        children:
+          type: array
+          items:
+            $ref: '#/components/schemas/ExplainNode'
+
+    CompareRequest:
+      type: object
+      required:
+        - events
+        - modelNames
+      properties:
+        events:
+          type: array
+          items:
+            $ref: '#/components/schemas/BehaviorEvent'
+        modelNames:
+          type: array
+          items:
+            type: string
+
+    CompareResponse:
+      type: object
+      properties:
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/ModelComparison'
+
+    ModelComparison:
+      type: object
+      properties:
+        modelName:
+          type: string
+        intent:
+          $ref: '#/components/schemas/Intent'
+        elapsedMs:
+          type: number
+          format: double
