@@ -1,3 +1,5 @@
+$ErrorActionPreference = 'Stop'
+
 Write-Host "Intentum SDK Setup" -ForegroundColor Cyan
 Write-Host "=================="
 Write-Host ""
@@ -19,6 +21,13 @@ if ($kiota) {
     Write-Host "Installing Microsoft.OpenApi.Kiota..." -ForegroundColor Yellow
     dotnet tool install -g Microsoft.OpenApi.Kiota
     Write-Host "Kiota installed successfully." -ForegroundColor Green
+}
+
+# Verify installation
+$kiotaAfter = Get-Command "kiota" -ErrorAction SilentlyContinue
+if (-not $kiotaAfter) {
+    Write-Host "ERROR: Kiota installation failed" -ForegroundColor Red
+    exit 1
 }
 
 Write-Host ""

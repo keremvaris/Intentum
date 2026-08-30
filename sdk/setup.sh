@@ -22,5 +22,11 @@ else
     echo "Kiota installed successfully."
 fi
 
+# Verify installation
+if ! command -v kiota &> /dev/null; then
+    echo "ERROR: Kiota installation failed" >&2
+    exit 1
+fi
+
 echo ""
 echo "Setup complete. Run 'bash sdk/generate.sh' to generate SDKs."
