@@ -13,11 +13,13 @@ Or use the generated package directly (see Local Development below).
 ## Usage
 
 ```typescript
-import { IntentumClient } from '@intentum/sdk';
+import { createIntentumClient } from '@intentum/sdk';
+import { HttpClientRequestAdapter } from '@microsoft/kiota-http-httpx';
 
-const client = new IntentumClient('https://api.intentum.dev');
+const requestAdapter = new HttpClientRequestAdapter('https://api.intentum.dev');
+const client = createIntentumClient(requestAdapter);
 
-const intent = await client.inferIntent({
+const intent = await client.api.intent.infer.post({
     events: [
         { actor: 'user', action: 'login' }
     ]

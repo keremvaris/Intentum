@@ -17,15 +17,18 @@ dotnet add reference sdk/csharp/IntentumSdk/IntentumSdk.csproj
 ## Usage
 
 ```csharp
-using Intentum.Sdk;
+using ApiSdk;
+using ApiSdk.Models;
+using Microsoft.Kiota.Abstractions;
 
-var client = new IntentumClient("https://api.intentum.dev");
+var requestAdapter = new HttpClientRequestAdapter("https://api.intentum.dev");
+var client = new IntentumClient(requestAdapter);
 
-var intent = await client.InferAsync(new InferRequest
+var intent = await client.Api.Intent.Infer.PostAsync(new InferRequest
 {
     Events = new List<BehaviorEvent>
     {
-        new("user", "login", DateTimeOffset.UtcNow)
+        new() { Actor = "user", Action = "login", Timestamp = DateTimeOffset.UtcNow }
     }
 });
 
