@@ -32,9 +32,27 @@ echo "Generating C# SDK..."
 kiota generate --openapi "$SPEC_PATH" --language csharp --output "$SCRIPT_DIR/csharp/IntentumSdk" --class-name IntentumClient
 
 # Verify C# SDK was generated
-if [ ! -f "$SCRIPT_DIR/csharp/IntentumSdk/IntentumSdk.csproj" ]; then
+if [ ! -d "$SCRIPT_DIR/csharp/IntentumSdk" ]; then
     echo "ERROR: C# SDK generation failed" >&2
     exit 1
+fi
+
+# Create .csproj file if not present (Kiota 1.34+ no longer generates it)
+if [ ! -f "$SCRIPT_DIR/csharp/IntentumSdk/IntentumSdk.csproj" ]; then
+    echo "Creating IntentumSdk.csproj..."
+    cat > "$SCRIPT_DIR/csharp/IntentumSdk/IntentumSdk.csproj" << 'CSPROJ'
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <RootNamespace>IntentumSdk</RootNamespace>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Kiota.Bundle" Version="2.0.0" />
+  </ItemGroup>
+</Project>
+CSPROJ
 fi
 
 # Generate Python SDK

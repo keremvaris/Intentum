@@ -8,7 +8,7 @@ Auto-generated SDK for the Intentum API.
 pip install intentum-sdk
 ```
 
-Or use the generated package directly.
+Or use the generated package directly (see Local Development below).
 
 ## Usage
 
@@ -23,6 +23,31 @@ events = [
 
 result = client.infer_intent(events)
 print(f"Intent: {result.name} (confidence: {result.confidence.score})")
+```
+
+## Local Development
+
+To use the generated SDK directly without installing from PyPI:
+
+1. Install required dependencies:
+
+```bash
+pip install kiota-abstractions kiota-serialization-json kiota-serialization-text kiota-serialization-form kiota-serialization-multipart kiota-http-httpx
+```
+
+2. Add the `sdk/python` directory to your Python path:
+
+```python
+import sys
+sys.path.insert(0, 'sdk/python')
+
+from intentum_sdk import IntentumClient
+```
+
+Or set the `PYTHONPATH` environment variable:
+
+```bash
+export PYTHONPATH=/path/to/repo/sdk/python:$PYTHONPATH
 ```
 
 ## Requirements
