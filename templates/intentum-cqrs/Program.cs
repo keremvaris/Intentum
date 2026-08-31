@@ -8,29 +8,51 @@ using Intentum.Core.Contracts;
 using Intentum.Runtime.Policy;
 using MediatR;
 using Scalar.AspNetCore;
+using Serilog;
 
-var builder = WebApplication.CreateBuilder(args);
-builder.Services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(Assembly.GetExecutingAssembly()));
-builder.Services.AddValidatorsFromAssembly(Assembly.GetExecutingAssembly());
-builder.Services.AddTransient(typeof(IPipelineBehavior<,>), typeof(Intentum.Cqrs.Web.Behaviors.ValidationBehavior<,>));
-builder.Services.AddSingleton<IIntentEmbeddingProvider, MockEmbeddingProvider>();
-builder.Services.AddSingleton<IIntentSimilarityEngine, SimpleAverageSimilarityEngine>();
-builder.Services.AddSingleton<IIntentModel>(sp =>
+Log.Logger = new LoggerConfiguration()
+    .WriteTo.Console()
+    .CreateLogger();
+
+try
 {
-    var e = sp.GetRequiredService<IIntentEmbeddingProvider>();
-    var s = sp.GetRequiredService<IIntentSimilarityEngine>();
-    return new LlmIntentModel(e, s);
-});
-builder.Services.AddSingleton(_ => new IntentPolicy()
-    .AddRule(new PolicyRule("HighConfidenceAllow", i => i.Confidence.Level is "High" or "Certain", PolicyDecision.Allow))
-    .AddRule(new PolicyRule("MediumConfidenceObserve", i => i.Confidence.Level == "Medium", PolicyDecision.Observe))
-    .AddRule(new PolicyRule("LowConfidenceWarn", i => i.Confidence.Level == "Low", PolicyDecision.Warn)));
-builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddOpenApi();
+    Log.Information("Starting Intentum CQRS API");
 
-var app = builder.Build();
-app.MapOpenApi();
-app.MapScalarApiReference();
-app.MapGet("/", () => "Intentum CQRS + Intentum sample. See /scalar for API docs.");
-await app.RunAsync();
+    var builder = WebApplication.CreateBuilder(args);
+    builder.Host.UseSerilog();
+
+    builder.Services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(Assembly.GetExecutingAssembly()));
+    builder.Services.AddValidatorsFromAssembly(Assembly.GetExecutingAssembly());
+    builder.Services.AddTransient(typeof(IPipelineBehavior<,>), typeof(Intentum.Cqrs.Web.Behaviors.ValidationBehavior<,>));
+    builder.Services.AddSingleton<IIntentEmbeddingProvider, MockEmbeddingProvider>();
+    builder.Services.AddSingleton<IIntentSimilarityEngine, SimpleAverageSimilarityEngine>();
+    builder.Services.AddSingleton<IIntentModel>(sp =>
+    {
+        var e = sp.GetRequiredService<IIntentEmbeddingProvider>();
+        var s = sp.GetRequiredService<IIntentSimilarityEngine>();
+        return new LlmIntentModel(e, s);
+    });
+    builder.Services.AddSingleton(_ => new IntentPolicy()
+        .AddRule(new PolicyRule("HighConfidenceAllow", i => i.Confidence.Level is "High" or "Certain", PolicyDecision.Allow))
+        .AddRule(new PolicyRule("MediumConfidenceObserve", i => i.Confidence.Level == "Medium", PolicyDecision.Observe))
+        .AddRule(new PolicyRule("LowConfidenceWarn", i => i.Confidence.Level == "Low", PolicyDecision.Warn)));
+    builder.Services.AddEndpointsApiExplorer();
+    builder.Services.AddOpenApi();
+
+    var app = builder.Build();
+    app.UseSerilogRequestLogging();
+    app.MapOpenApi();
+    app.MapScalarApiReference();
+    app.MapGet("/", () => "Intentum CQRS + Intentum sample. See /scalar for API docs.");
+    await app.RunAsync();
+}
+catch (Exception ex)
+{
+    Log.Fatal(ex, "Application terminated unexpectedly");
+}
+finally
+{
+    Log.CloseAndFlush();
+}
+
 public static partial class Program;
