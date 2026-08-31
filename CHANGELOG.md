@@ -18,6 +18,93 @@ Bu dosya **conventional commit** mesajlarından otomatik üretilir. Commit'te **
 
 
 
+
+
+### Bug Fixes
+
+- **Add fail-fast and installation verification to setup scripts** *(sdk)*
+
+
+- **Align PowerShell script with bash, add post-generation validation** *(sdk)*
+
+
+- **Add clean step and use  in generate.ps1** *(sdk)*
+
+
+- **Exit with error when Kiota is missing in generate.ps1** *(sdk)*
+
+
+- **Add missing __init__.py and index.ts for Python and TypeScript SDKs** *(sdk)*
+
+
+- **Fix Python imports and TypeScript exports in SDK** *(sdk)*
+
+
+
+
+### Documentation
+
+- **Extend OpenAPI spec with timeline, explain-tree, and playground endpoints** *(api)*
+
+
+
+
+### Features
+
+- **Add cross-platform setup scripts for Kiota installation** *(sdk)*
+
+
+- **Add bash SDK generation script with Kiota** *(sdk)*
+
+
+- **Generate C#, Python, TypeScript SDKs from OpenAPI spec** *(sdk)*
+
+
+- **Generate C#, Python, TypeScript SDKs from OpenAPI spec** *(sdk)*
+
+
+- **Add supply chain risk intent detection example** *(examples)*
+
+
+- **Add education risk intent detection example** *(examples)*
+
+
+- **Add IoT device risk intent detection example** *(examples)*
+
+
+- **Add finance risk intent detection example** *(examples)*
+
+
+- **Add e-commerce risk intent detection example** *(examples)*
+
+
+- **Add community example template and contribution guide** *(examples)*
+
+
+- **Improve webapi template with Serilog, health checks, Docker, and docs** *(templates)*
+
+
+- **Improve backgroundservice template with Serilog, Docker, docs** *(templates)*
+
+
+- **Improve function template with Serilog, docs** *(templates)*
+
+
+- **Improve cqrs template with Serilog, docs** *(templates)*
+
+
+
+
+### Miscellaneous
+
+- **Add community examples build and run validation workflow**
+
+
+## [1.2.6] - 2026-08-28
+
+
+
+
 ### Features
 
 - **Add ClimateVarResult and ScenarioLoss models** *(climate)*
