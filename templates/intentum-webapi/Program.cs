@@ -8,46 +8,70 @@ using Intentum.Core.Behavior;
 using Intentum.Core.Contracts;
 using Intentum.Runtime.Engine;
 using Intentum.Runtime.Policy;
+using Serilog;
 
-var builder = WebApplication.CreateBuilder(args);
+Log.Logger = new LoggerConfiguration()
+    .WriteTo.Console()
+    .CreateLogger();
 
-builder.Services.AddSingleton<IIntentEmbeddingProvider, MockEmbeddingProvider>();
-builder.Services.AddSingleton<IIntentSimilarityEngine, SimpleAverageSimilarityEngine>();
-builder.Services.AddSingleton<IIntentModel>(sp =>
+try
 {
-    var e = sp.GetRequiredService<IIntentEmbeddingProvider>();
-    var s = sp.GetRequiredService<IIntentSimilarityEngine>();
-    return new LlmIntentModel(e, s);
-});
-builder.Services.AddSingleton(_ => new IntentPolicyBuilder()
-    .Allow("HighConfidence", i => i.Confidence.Level is "High" or "Certain")
-    .Observe("MediumConfidence", i => i.Confidence.Level == "Medium")
-    .Warn("LowConfidence", i => i.Confidence.Level == "Low")
-    .Build());
+    Log.Information("Starting Intentum Web API");
 
-builder.Services.AddIntentum();
-builder.Services.AddIntentumHealthChecks();
-builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddOpenApi();
+    var builder = WebApplication.CreateBuilder(args);
+    builder.Host.UseSerilog();
 
-var app = builder.Build();
+    builder.Services.AddSingleton<IIntentEmbeddingProvider, MockEmbeddingProvider>();
+    builder.Services.AddSingleton<IIntentSimilarityEngine, SimpleAverageSimilarityEngine>();
+    builder.Services.AddSingleton<IIntentModel>(sp =>
+    {
+        var e = sp.GetRequiredService<IIntentEmbeddingProvider>();
+        var s = sp.GetRequiredService<IIntentSimilarityEngine>();
+        return new LlmIntentModel(e, s);
+    });
+    builder.Services.AddSingleton(_ => new IntentPolicyBuilder()
+        .Allow("HighConfidence", i => i.Confidence.Level is "High" or "Certain")
+        .Observe("MediumConfidence", i => i.Confidence.Level == "Medium")
+        .Warn("LowConfidence", i => i.Confidence.Level == "Low")
+        .Build());
 
-app.MapOpenApi();
-app.MapHealthChecks("/health");
+    builder.Services.AddIntentum();
+    builder.Services.AddIntentumHealthChecks();
+    builder.Services.AddEndpointsApiExplorer();
+    builder.Services.AddOpenApi();
 
-app.MapPost("/api/intent/infer", (InferRequest req, IIntentModel model, IntentPolicy policy) =>
+    var app = builder.Build();
+
+    app.UseSerilogRequestLogging();
+
+    app.MapOpenApi();
+    app.MapHealthChecks("/health");
+
+    app.MapPost("/api/intent/infer", (InferRequest req, IIntentModel model, IntentPolicy policy) =>
+    {
+        var space = new BehaviorSpace();
+        foreach (var e in req.Events)
+            space.Observe(new BehaviorEvent(e.Actor, e.Action, DateTimeOffset.UtcNow));
+        var intent = model.Infer(space);
+        var decision = IntentPolicyEngine.Evaluate(intent, policy);
+        Log.Information("Inferred intent: {Intent} ({Confidence}) -> {Decision}", intent.Name, intent.Confidence.Score, decision);
+        return Results.Ok(new { intent.Name, intent.Confidence.Level, intent.Confidence.Score, Decision = decision.ToString() });
+    })
+    .WithName("InferIntent")
+    .WithOpenApi();
+
+    app.MapGet("/", () => "Intentum Web API. POST /api/intent/infer. Health: /health");
+
+    await app.RunAsync();
+}
+catch (Exception ex)
 {
-    var space = new BehaviorSpace();
-    foreach (var e in req.Events)
-        space.Observe(new BehaviorEvent(e.Actor, e.Action, DateTimeOffset.UtcNow));
-    var intent = model.Infer(space);
-    var decision = IntentPolicyEngine.Evaluate(intent, policy);
-    return Results.Ok(new { intent.Name, intent.Confidence.Level, intent.Confidence.Score, Decision = decision.ToString() });
-});
-
-app.MapGet("/", () => "Intentum Web API. POST /api/intent/infer with body: { \"events\": [ { \"actor\": \"user\", \"action\": \"login\" } ] }. Health: /health");
-
-await app.RunAsync();
+    Log.Fatal(ex, "Application terminated unexpectedly");
+}
+finally
+{
+    Log.CloseAndFlush();
+}
 
 public static partial class Program;
 
