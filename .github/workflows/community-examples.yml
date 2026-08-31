@@ -1,0 +1,44 @@
+name: Community Examples CI
+
+on:
+  pull_request:
+    paths:
+      - 'examples/community/**'
+  workflow_dispatch:
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Find community examples
+        id: find
+        run: |
+          EXAMPLES=$(find examples/community -maxdepth 1 -mindepth 1 -type d ! -name template | jq -R -s -c 'split("\n") | map(select(length > 0))')
+          echo "examples=$EXAMPLES" >> $GITHUB_OUTPUT
+
+      - name: Build examples
+        run: |
+          for dir in examples/community/*/; do
+            if [ "$dir" = "examples/community/template/" ]; then continue; fi
+            if [ -f "$dir"/*.csproj ]; then
+              echo "Building $dir..."
+              dotnet build "$dir" --configuration Release
+            fi
+          done
+
+      - name: Run examples
+        run: |
+          for dir in examples/community/*/; do
+            if [ "$dir" = "examples/community/template/" ]; then continue; fi
+            if [ -f "$dir"/*.csproj ]; then
+              echo "Running $dir..."
+              timeout 30 dotnet run --project "$dir" --configuration Release
+            fi
+          done
