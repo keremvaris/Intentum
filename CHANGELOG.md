@@ -18,6 +18,7 @@ Bu dosya **conventional commit** mesajlarından otomatik üretilir. Commit'te **
 
 
 
+
 ### Bug Fixes
 
 - **Mark Intentum.Testing packable explicitly** *(nuget)*
@@ -25,6 +26,24 @@ Bu dosya **conventional commit** mesajlarından otomatik üretilir. Commit'te **
 NuGet pack targets default IsPackable=false when IsTestProject=true
 (set via xunit), so this testing library was silently excluded from
 every release and has never been published.
+
+
+
+
+
+### Documentation
+
+- **Cover System One in READMEs and EN/TR docs** *(systemone)*
+
+- README/README.tr: add Intentum.AI.SystemOne to provider packages,
+  System One example to the examples list, /system-one page to the
+  Sample.Blazor description
+- docs/tr: add System One provider section (setup, providers, api) to
+  mirror the EN docs updated with the demo work
+- examples-overview (en+tr): add system-one-decision entry and quick
+  reference row; mention /system-one in the Sample.Blazor rows
+- architecture (en+tr): add Intentum.AI.SystemOne to the package
+  diagram and package summary
 
 
 
