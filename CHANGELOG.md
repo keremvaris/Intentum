@@ -13,6 +13,15 @@ Bu dosya **conventional commit** mesajlarından otomatik üretilir. Commit'te **
 
 ---
 
+## [unreleased]
+
+
+
+### Documentation
+
+- **Add System One section and sample pointer (EN/TR)** *(getting-started)*
+
+
 ## [1.3.2] - 2026-10-02
 
 
