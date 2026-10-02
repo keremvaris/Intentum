@@ -2,8 +2,10 @@
   <PropertyGroup>
     <Authors>Intentum Contributors</Authors>
     <RepositoryUrl>https://github.com/keremvaris/Intentum</RepositoryUrl>
+    <PackageProjectUrl>https://keremvaris.github.io/Intentum/</PackageProjectUrl>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PackageReadmeFile>README.md</PackageReadmeFile>
+    <PackageIcon>icon.png</PackageIcon>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <!-- MinVer: sürüm git tag'lerinden (v1.0.0 vb.) türetilir; manuel Version gerekmez -->
     <MinVerTagPrefix>v</MinVerTagPrefix>
@@ -12,6 +14,7 @@
   <!-- Tüm paketlere repo kökündeki README.md dahil edilir (NU5039 önlenir) -->
   <ItemGroup>
     <None Include="$(MSBuildThisFileDirectory)..\README.md" Pack="true" PackagePath="" />
+    <None Include="$(MSBuildThisFileDirectory)..\logo.png" Pack="true" PackagePath="icon.png" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="JetBrains.Annotations" Version="2024.2.0" PrivateAssets="All" />
