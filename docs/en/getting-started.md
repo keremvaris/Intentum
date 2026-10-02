@@ -142,6 +142,20 @@ var intent = model.Infer(space);
 // Returns actual intent name from catalog, not "AI-Inferred-Intent"
 ```
 
+## System One decision engines (local, no LLM)
+
+`Intentum.AI.SystemOne` runs real inference against any **System One compatible** engine (`POST /v1/systemone`) — the built-in **demo** engine on the sample's `/system-one` page, local open engines like [Kev](https://github.com/jaredpalmer/kev) (:8009) and [Laya](https://github.com/NandhaKishorM/laya) (:8000), or hosted Jev:
+
+```csharp
+using Intentum.AI.SystemOne;
+
+var options = SystemOneEngines.Laya();   // or SystemOneEngines.FromName("kev"), "tinyjev", ...
+var model = new SystemOneIntentModel(options, new HttpClient());
+var intent = model.Infer(space);         // intent.Name from the engine's choice answer
+```
+
+No API key needed for local engines. Full walkthrough with per-engine launch commands: [examples/system-one-decision](https://github.com/keremvaris/Intentum/tree/master/examples/system-one-decision). Live UI: run the Blazor sample and open the **System One** page (`/system-one`).
+
 ## ASP.NET Core Integration
 
 ```csharp
@@ -168,6 +182,7 @@ app.UseAuthorization();
 | `Intentum.Runtime` | Policies, decisions, rate limiting |
 | `Intentum.AI` | Embeddings, similarity engines, AI inference |
 | `Intentum.AI.OpenAI` | OpenAI embedding provider |
+| `Intentum.AI.SystemOne` | System One engine adapters (demo, Kev, Laya, TinyJev, Jev, ...) |
 | `Intentum.AspNetCore` | Middleware, health checks, auth |
 | `Intentum.Analytics` | Anomaly detection, confidence trends |
 | `Intentum.Experiments` | A/B testing with statistical significance |
@@ -175,4 +190,4 @@ app.UseAuthorization();
 
 ## Try the sample
 
-The **Intentum.Sample.Blazor** app demonstrates the same capabilities as the library: **infer** (rule-based and catalog/LLM), **policy** (Allow/Block/Warn/Escalate), **analytics** (Z-score/IQR anomaly, signals, export), and **experiments** (A/B test with p-value). What you see in the UI is built and used in production; event sources in the demos (e.g. "Demo Başlat") are simulated for illustration. See [samples/Intentum.Sample.Blazor/README.md](../../samples/Intentum.Sample.Blazor/README.md) and the Overview page in the app for "Gerçek / Simülasyon" (real vs demo).
+The **Intentum.Sample.Blazor** app demonstrates the same capabilities as the library: **infer** (rule-based and catalog/LLM), **policy** (Allow/Block/Warn/Escalate), **analytics** (Z-score/IQR anomaly, signals, export), and **experiments** (A/B test with p-value). What you see in the UI is built and used in production; event sources in the demos (e.g. "Demo Başlat") are simulated for illustration. See [samples/Intentum.Sample.Blazor/README.md](../../samples/Intentum.Sample.Blazor/README.md) and the Overview page in the app for "Gerçek / Simülasyon" (real vs demo). The **System One** page (`/system-one`) runs real inference against the built-in demo engine or local Kev/Laya — see [System One decision engines](#system-one-decision-engines-local-no-llm).

@@ -142,6 +142,20 @@ var intent = model.Infer(space);
 // "AI-Inferred-Intent" değil, katalogdaki gerçek niyet adı döner
 ```
 
+## System One karar motorları (yerel, LLM yok)
+
+`Intentum.AI.SystemOne` gerçek çıkarımı herhangi bir **System One uyumlu** motora (`POST /v1/systemone`) çalıştırır — örneğin `/system-one` sayfasındaki yerleşik **demo** motoru, yerel açık motorlar [Kev](https://github.com/jaredpalmer/kev) (:8009) ve [Laya](https://github.com/NandhaKishorM/laya) (:8000) veya barındırılan Jev:
+
+```csharp
+using Intentum.AI.SystemOne;
+
+var options = SystemOneEngines.Laya();   // veya SystemOneEngines.FromName("kev"), "tinyjev", ...
+var model = new SystemOneIntentModel(options, new HttpClient());
+var intent = model.Infer(space);         // intent.Name, motorun choice cevabından gelir
+```
+
+Yerel motorlar için API anahtarı gerekmez. Motor bazlı başlatma komutlarıyla tam örnek: [examples/system-one-decision](https://github.com/keremvaris/Intentum/tree/master/examples/system-one-decision). Canlı arayüz: Blazor örneğini çalıştırıp **System One** sayfasını (`/system-one`) açın.
+
 ## ASP.NET Core Entegrasyonu
 
 ```csharp
@@ -168,6 +182,7 @@ app.UseAuthorization();
 | `Intentum.Runtime` | Politikalar, kararlar, rate limiting |
 | `Intentum.AI` | Embedding'ler, benzerlik motorları, AI çıkarımı |
 | `Intentum.AI.OpenAI` | OpenAI embedding sağlayıcı |
+| `Intentum.AI.SystemOne` | System One motor adaptörleri (demo, Kev, Laya, TinyJev, Jev, ...) |
 | `Intentum.AspNetCore` | Middleware, health check'ler, auth |
 | `Intentum.Analytics` | Anomali tespiti, güven eğilimleri |
 | `Intentum.Experiments` | İstatistiksel anlamlılıkla A/B testi |
@@ -175,4 +190,4 @@ app.UseAuthorization();
 
 ## Örnek uygulamayı çalıştırın
 
-**Intentum.Sample.Blazor** uygulaması kütüphaneyle aynı kabiliyetleri gösterir: **infer** (kural tabanlı ve katalog/LLM), **politika** (Allow/Block/Warn/Escalate), **analitik** (Z-score/IQR anomali, sinyaller, export) ve **deneyler** (p-value ile A/B testi). Arayüzde gördüğünüz çıktılar yapıldı ve kullanılıyor; demolardaki olay kaynakları (örn. "Demo Başlat") örnek amaçlı simüle edilir. Bkz. [samples/Intentum.Sample.Blazor/README.md](../../samples/Intentum.Sample.Blazor/README.md) ve uygulamadaki Genel Bakış sayfasında "Gerçek / Simülasyon" kartı.
+**Intentum.Sample.Blazor** uygulaması kütüphaneyle aynı kabiliyetleri gösterir: **infer** (kural tabanlı ve katalog/LLM), **politika** (Allow/Block/Warn/Escalate), **analitik** (Z-score/IQR anomali, sinyaller, export) ve **deneyler** (p-value ile A/B testi). Arayüzde gördüğünüz çıktılar yapıldı ve kullanılıyor; demolardaki olay kaynakları (örn. "Demo Başlat") örnek amaçlı simüle edilir. Bkz. [samples/Intentum.Sample.Blazor/README.md](../../samples/Intentum.Sample.Blazor/README.md) ve uygulamadaki Genel Bakış sayfasında "Gerçek / Simülasyon" kartı. **System One** sayfası (`/system-one`) yerleşik demo motoruna veya yerel Kev/Laya'ya karşı gerçek çıkarım çalıştırır — bkz. [System One karar motorları](#system-one-karar-motorları-yerel-llm-yok).
