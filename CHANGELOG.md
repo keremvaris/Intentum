@@ -17,6 +17,15 @@ Bu dosya **conventional commit** mesajlarından otomatik üretilir. Commit'te **
 
 
 
+### Documentation
+
+- **Remove quotes from 'world' in ECharts map registration example** *(examples)*
+
+
+## [1.3.1] - 2026-10-02
+
+
+
 
 
 ### Bug Fixes
