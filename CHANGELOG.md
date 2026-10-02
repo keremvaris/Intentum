@@ -17,6 +17,15 @@ Bu dosya **conventional commit** mesajlarından otomatik üretilir. Commit'te **
 
 
 
+### Miscellaneous
+
+- **Add package icon and project URL to all packages** *(nuget)*
+
+
+## [1.3.0] - 2026-10-02
+
+
+
 
 
 ### Bug Fixes
