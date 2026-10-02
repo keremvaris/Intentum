@@ -29,6 +29,7 @@ dotnet add package Intentum.AI.Mistral
 dotnet add package Intentum.AI.AzureOpenAI
 dotnet add package Intentum.AI.Claude
 dotnet add package Intentum.AI.ONNX
+dotnet add package Intentum.AI.SystemOne
 ```
 
 İstersen **Intentum.Providers** ekleyerek Core, Runtime, AI ve tüm sağlayıcı paketlerini tek seferde alabilirsin: `dotnet add package Intentum.Providers`.
@@ -208,7 +209,7 @@ Detay ve örnekler: [Sağlayıcılar](providers.md).
 
 **AI sağlayıcıları** (opsiyonel; gerçek embedding için bir veya daha fazlası):
 
-- `Intentum.AI.OpenAI`, `Intentum.AI.Gemini`, `Intentum.AI.Mistral`, `Intentum.AI.AzureOpenAI`, `Intentum.AI.Claude`, `Intentum.AI.ONNX`
+- `Intentum.AI.OpenAI`, `Intentum.AI.Gemini`, `Intentum.AI.Mistral`, `Intentum.AI.AzureOpenAI`, `Intentum.AI.Claude`, `Intentum.AI.ONNX`, `Intentum.AI.SystemOne`
 
 **Uzantılar** (ihtiyaca göre eklenir):
 

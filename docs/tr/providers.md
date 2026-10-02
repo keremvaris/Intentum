@@ -251,6 +251,42 @@ Kural tabanlı veya LLM modelleriyle birleştirme için [Hibrit mod ve kural tab
 
 ---
 
+## System One motorları (Kev, Laya, TinyJev, ...)
+
+**Ne yapar:** `SystemOneIntentModel`, herhangi bir **System One uyumlu** karar motoruna HTTP ile bağlanır (`POST /v1/systemone`, TypeSafe Jev wire protokolü) ve tipli cevabı bir Intent'e eşler. Barındırılan **Jev**'in kendisi (`https://api.typesafe.ai`, anahtar `console.typesafe.ai/keys`, `TYPESAFE_API_KEY`) ve aynı protokolü konuşan açık motorlar desteklenir: [Kev](https://github.com/jaredpalmer/kev) (:8009), [TinyJev](https://github.com/ankit-aglawe/tinyjev) (:8077), [Laya](https://github.com/NandhaKishorM/laya) (`laya-serve`, :8000), OpenDecision, Decision 1.0, Open-Jev, NanoJev, OpenJevPro, Foq.
+
+**Env var:** Gerekmez. Opsiyonel: `SYSTEMONE_ENGINE`, `SYSTEMONE_BASE_URL`, `SYSTEMONE_API_KEY` (motorun bearer token gerektirdiği durumlarda, örn. `KEV_API_KEY` / `LAYA_API_KEY`).
+
+**DI (önerilen):**
+
+```csharp
+using Intentum.AI.SystemOne;
+
+var options = SystemOneEngines.FromName("laya") with
+{
+    IntentCatalog = new Dictionary<string, string>
+    {
+        ["Billing"] = "invoices, charges, refunds",
+        ["Technical"] = "bugs, outages, errors",
+    },
+};
+services.AddIntentumSystemOne(options);
+```
+
+**Minimal kod:**
+
+```csharp
+using Intentum.AI.SystemOne;
+
+var options = SystemOneEngines.Laya();
+var model = new SystemOneIntentModel(options, new HttpClient());
+var intent = model.Infer(space);   // intent.Name, motorun choice cevabından gelir
+```
+
+**Ne zaman kullanılır:** Doğrulama, policy ve geçmişi Intentum'un tuttuğu; çıkarım adımı olarak hızlı ve kalibre yerel karar modelleri (tek forward pass, metin üretimi yok) gerektiğinde. Çalışan bir motor gerektirir — motor bazlı başlatma komutları için [examples/system-one-decision](https://github.com/keremvaris/Intentum/tree/master/examples/system-one-decision).
+
+---
+
 ## Güvenlik ve yapılandırma
 
 - **API anahtarlarını asla commit etme.** Ortam değişkenleri veya secret manager kullan.

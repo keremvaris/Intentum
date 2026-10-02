@@ -279,13 +279,14 @@ No API key required. Infers suspicious vs. legitimate behavior, then policy deci
 - [API Reference](https://keremvaris.github.io/Intentum/api/)
 - [CodeGen](docs/en/codegen.md) — scaffold CQRS + Intentum, dotnet new template
 - **Sample.Web:** `dotnet run --project samples/Intentum.Sample.Web` — UI, `POST /api/intent/infer`, `POST /api/intent/explain`, greenwashing (`POST /api/greenwashing/analyze`, `GET /api/greenwashing/recent`), Dashboard (analytics, son çıkarımlar, son greenwashing analizleri), analytics export, health. See [docs/setup](docs/en/setup.md) and [samples/Intentum.Sample.Web/README.md](samples/Intentum.Sample.Web/README.md).
-- **Sample.Blazor:** `dotnet run --project samples/Intentum.Sample.Blazor` — Blazor UI; infer, policy, analytics, experiments (catalog intent, Z-score/IQR anomaly, A/B significance) are real; demo event sources are simulated. Overview page has "Gerçek / Simülasyon" (real vs demo). See [samples/Intentum.Sample.Blazor/README.md](samples/Intentum.Sample.Blazor/README.md) and [Getting started](docs/en/getting-started.md).
+- **Sample.Blazor:** `dotnet run --project samples/Intentum.Sample.Blazor` — Blazor UI; infer, policy, analytics, experiments (catalog intent, Z-score/IQR anomaly, A/B significance) are real; demo event sources are simulated. Overview page has "Gerçek / Simülasyon" (real vs demo); **System One** page (`/system-one`) runs real inference against the built-in demo engine or Kev/Laya. See [samples/Intentum.Sample.Blazor/README.md](samples/Intentum.Sample.Blazor/README.md) and [Getting started](docs/en/getting-started.md).
 - **Fraud intent:** `dotnet run --project examples/fraud-intent` — fraud/abuse intent, policy Block/Observe/Allow
 - **Customer intent:** `dotnet run --project examples/customer-intent` — purchase, support, route by intent
 - **Greenwashing intent:** `dotnet run --project examples/greenwashing-intent` — ESG/report detection
 - **Chained intent:** `dotnet run --project examples/chained-intent` — rule-based first, LLM fallback, intent reasoning
 - **Time decay:** `dotnet run --project examples/time-decay-intent` — recent events weighted higher
 - **Vector normalization:** `dotnet run --project examples/vector-normalization` — Cap, L1, SoftCap for behavior vectors
+- **System One intent:** `dotnet run --project examples/system-one-decision -- --engine laya` — Jev-compatible engines (built-in demo, Kev, Laya, ...) as `IIntentModel` over `POST /v1/systemone`; see [examples/system-one-decision](examples/system-one-decision)
 
 ---
 
@@ -300,7 +301,7 @@ No API key required. Infers suspicious vs. legitimate behavior, then policy deci
 ## Packages
 
 - **Core:** Intentum.Core, Intentum.Runtime, Intentum.AI
-- **AI providers:** Intentum.AI.OpenAI, Intentum.AI.Gemini, Intentum.AI.Claude, Intentum.AI.Mistral, Intentum.AI.AzureOpenAI
+- **AI providers:** Intentum.AI.OpenAI, Intentum.AI.Gemini, Intentum.AI.Claude, Intentum.AI.Mistral, Intentum.AI.AzureOpenAI, Intentum.AI.SystemOne
 - **Extensions:** Intentum.Testing, Intentum.AspNetCore, Intentum.Observability, Intentum.Logging
 - **Persistence:** Intentum.Persistence, Intentum.Persistence.EntityFramework, Intentum.Analytics
 - **Advanced:** Intentum.AI.Caching.Redis, Intentum.Clustering, Intentum.Events, Intentum.Experiments, Intentum.MultiTenancy, Intentum.Explainability, Intentum.Simulation, Intentum.Versioning — see [Advanced Features](docs/en/advanced-features.md)

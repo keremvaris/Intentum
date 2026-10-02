@@ -280,6 +280,7 @@ API anahtarı gerekmez. Şüpheli vs. meşru davranışı çıkarır; policy Blo
 - **Zincirli niyet:** `dotnet run --project examples/chained-intent` — önce kural tabanlı, LLM yedek, intent reasoning
 - **Zaman azalması:** `dotnet run --project examples/time-decay-intent` — yakın event'ler daha ağır
 - **Vektör normalizasyonu:** `dotnet run --project examples/vector-normalization` — Cap, L1, SoftCap
+- **System One niyeti:** `dotnet run --project examples/system-one-decision -- --engine laya` — Jev uyumlu motorlar (yerleşik demo, Kev, Laya, ...) `POST /v1/systemone` üzerinden `IIntentModel` olarak; bkz. [examples/system-one-decision](examples/system-one-decision)
 
 ---
 
@@ -294,7 +295,7 @@ API anahtarı gerekmez. Şüpheli vs. meşru davranışı çıkarır; policy Blo
 ## Paketler
 
 - **Çekirdek:** Intentum.Core, Intentum.Runtime, Intentum.AI
-- **AI sağlayıcılar:** Intentum.AI.OpenAI, Intentum.AI.Gemini, Intentum.AI.Claude, Intentum.AI.Mistral, Intentum.AI.AzureOpenAI
+- **AI sağlayıcılar:** Intentum.AI.OpenAI, Intentum.AI.Gemini, Intentum.AI.Claude, Intentum.AI.Mistral, Intentum.AI.AzureOpenAI, Intentum.AI.SystemOne
 - **Eklentiler:** Intentum.Testing, Intentum.AspNetCore, Intentum.Observability, Intentum.Logging
 - **Persistence:** Intentum.Persistence, Intentum.Persistence.EntityFramework, Intentum.Analytics
 - **Gelişmiş:** Intentum.AI.Caching.Redis, Intentum.Clustering, Intentum.Events, Intentum.Experiments, Intentum.MultiTenancy, Intentum.Explainability, Intentum.Simulation, Intentum.Versioning — bkz. [Gelişmiş Özellikler](docs/tr/advanced-features.md)

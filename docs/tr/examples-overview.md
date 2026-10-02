@@ -80,6 +80,20 @@ dotnet run --project examples/ai-fallback-intent
 
 ---
 
+### [system-one-decision](https://github.com/keremvaris/Intentum/tree/master/examples/system-one-decision)
+
+**Kavram:** Herhangi bir **System One uyumlu** karar motoruna (`POST /v1/systemone`) gerçek çıkarım çalıştırır — barındırılan Jev, yerel Kev / Laya / TinyJev veya yerleşik demo motoru — `SystemOneIntentModel` üzerinden.
+
+**Gerçek hayat:** Çıkarım adımı olarak hızlı ve kalibre yerel karar modelleri kullan; doğrulama, policy ve geçmişi Intentum tutar. Motorlar isimle değişir, kod değişmez.
+
+```bash
+dotnet run --project examples/system-one-decision -- --engine laya
+```
+
+**Docs:** [Sağlayıcılar — System One motorları](providers.md).
+
+---
+
 ## Zor örnekler (alan + tam pipeline)
 
 ### [fraud-intent](https://github.com/keremvaris/Intentum/tree/master/examples/fraud-intent)
@@ -129,7 +143,7 @@ dotnet run --project examples/greenwashing-intent
 | Sample | Açıklama | Zorluk |
 |--------|----------|--------|
 | [Intentum.Sample](https://github.com/keremvaris/Intentum/tree/master/samples/Intentum.Sample) | Konsol: tek uygulamada birçok senaryo (ödeme, ESG, uyumluluk, yeniden denemeler). | Orta |
-| [Intentum.Sample.Blazor](https://github.com/keremvaris/Intentum/tree/master/samples/Intentum.Sample.Blazor) | Blazor UI + CQRS Web API: infer, explain, explain-tree, analytics, timeline, playground compare, greenwashing; Overview, Commerce, Explain, FraudLive, Sustainability, Timeline, PolicyLab, Sandbox; SSE inference, dolandırıcılık ve sürdürülebilirlik simülasyonu. | Zor |
+| [Intentum.Sample.Blazor](https://github.com/keremvaris/Intentum/tree/master/samples/Intentum.Sample.Blazor) | Blazor UI + CQRS Web API: infer, explain, explain-tree, analytics, timeline, playground compare, greenwashing; Overview, Commerce, Explain, FraudLive, Sustainability, Timeline, PolicyLab, Sandbox, System One (`/system-one` demo + Kev/Laya adaptörleri); SSE inference, dolandırıcılık ve sürdürülebilirlik simülasyonu. | Zor |
 
 Web sample’ı çalıştırma:
 
@@ -139,7 +153,7 @@ dotnet run --project samples/Intentum.Sample.Blazor
 
 Ardından arayüzü ve Scalar API dokümanını açın; `POST /api/intent/infer`, `POST /api/intent/explain-tree`, `GET /api/intent/analytics/timeline/{entityId}`, `POST /api/intent/playground/compare` deneyin.
 
-Ardından tarayıcıda Overview, Commerce, Explain, FraudLive, Sustainability, Timeline, PolicyLab, Sandbox sayfalarını deneyebilirsiniz.
+Ardından tarayıcıda Overview, Commerce, Explain, FraudLive, Sustainability, Timeline, PolicyLab, Sandbox ve System One sayfalarını deneyebilirsiniz.
 
 ---
 
@@ -151,6 +165,7 @@ Ardından tarayıcıda Overview, Commerce, Explain, FraudLive, Sustainability, T
 | time-decay-intent | Basit | `dotnet run --project examples/time-decay-intent` |
 | chained-intent | Orta | `dotnet run --project examples/chained-intent` |
 | ai-fallback-intent | Orta | `dotnet run --project examples/ai-fallback-intent` |
+| system-one-decision | Orta | `dotnet run --project examples/system-one-decision -- --engine laya` |
 | fraud-intent | Zor | `dotnet run --project examples/fraud-intent` |
 | customer-intent | Zor | `dotnet run --project examples/customer-intent` |
 | greenwashing-intent | Zor | `dotnet run --project examples/greenwashing-intent` |

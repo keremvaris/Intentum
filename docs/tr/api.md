@@ -113,6 +113,7 @@ var policy = new IntentPolicyBuilder()
 | **AzureOpenAIEmbeddingProvider** | Azure OpenAI embedding deployment kullanır; **AzureOpenAIOptions**. |
 | **ClaudeMessageIntentModel** | Claude tabanlı intent modeli (mesaj skoru); **ClaudeOptions**. |
 | **OnnxIntentModel** | ONNX tabanlı yerel intent modeli; **OnnxIntentModelOptions** ile model yolu ve yapılandırma. |
+| **SystemOneIntentModel** | System One uyumlu motorlara (Kev, Laya, TinyJev, OpenDecision, ...) HTTP adaptörü; `POST /v1/systemone` için **SystemOneOptions** / **SystemOneEngines** hazır ayarları. |
 
 Sağlayıcılar **AddIntentum\*** extension metodları ve options (env var) ile kaydedilir. Kurulum ve env var için [Sağlayıcılar](providers.md).
 

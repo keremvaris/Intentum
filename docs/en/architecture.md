@@ -79,6 +79,7 @@ flowchart TB
     Mistral[Intentum.AI.Mistral]
     Azure[Intentum.AI.AzureOpenAI]
     Claude[Intentum.AI.Claude]
+    SystemOne[Intentum.AI.SystemOne]
   end
 
   subgraph persistence [Persistence]
@@ -121,7 +122,7 @@ flowchart TB
   ai --> Redis
 ```
 
-**All packages (summary):** Core, Runtime, AI, AI providers (OpenAI, Gemini, Mistral, Azure, Claude), Persistence (abstractions + EF, MongoDB, Redis), Analytics, AspNetCore, Clustering, Events, Experiments, Explainability, Simulation, MultiTenancy, Versioning, AI.Caching.Redis. Also Testing, Observability, Logging, CodeGen — see [API Reference](api.md) and [Advanced Features](advanced-features.md).
+**All packages (summary):** Core, Runtime, AI, AI providers (OpenAI, Gemini, Mistral, Azure, Claude, SystemOne), Persistence (abstractions + EF, MongoDB, Redis), Analytics, AspNetCore, Clustering, Events, Experiments, Explainability, Simulation, MultiTenancy, Versioning, AI.Caching.Redis. Also Testing, Observability, Logging, CodeGen — see [API Reference](api.md) and [Advanced Features](advanced-features.md).
 
 **Which package for which need?**
 

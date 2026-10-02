@@ -80,6 +80,20 @@ dotnet run --project examples/ai-fallback-intent
 
 ---
 
+### [system-one-decision](https://github.com/keremvaris/Intentum/tree/master/examples/system-one-decision)
+
+**Concept:** Run real inference against any **System One compatible** decision engine (`POST /v1/systemone`) — hosted Jev, local Kev / Laya / TinyJev, or the built-in demo engine — through `SystemOneIntentModel`.
+
+**Real-life:** Use fast, calibrated local decision models as the inference step while Intentum keeps verification, policy and history; switch engines by name, no code changes.
+
+```bash
+dotnet run --project examples/system-one-decision -- --engine laya
+```
+
+**Docs:** [Providers — System One engines](providers.md).
+
+---
+
 ## Hard examples (domain + full pipeline)
 
 ### [fraud-intent](https://github.com/keremvaris/Intentum/tree/master/examples/fraud-intent)
@@ -129,7 +143,7 @@ dotnet run --project examples/greenwashing-intent
 | Sample | Description | Difficulty |
 |--------|-------------|------------|
 | [Intentum.Sample](https://github.com/keremvaris/Intentum/tree/master/samples/Intentum.Sample) | Console: many scenarios (payment, ESG, compliance, retries) in one app. | Medium |
-| [Intentum.Sample.Blazor](https://github.com/keremvaris/Intentum/tree/master/samples/Intentum.Sample.Blazor) | Blazor UI + CQRS Web API: infer, explain, explain-tree, analytics, timeline, playground compare, greenwashing; Overview, Commerce, Explain, FraudLive, Sustainability, Timeline, PolicyLab, Sandbox; SSE inference, fraud/sustainability simulation. | Hard |
+| [Intentum.Sample.Blazor](https://github.com/keremvaris/Intentum/tree/master/samples/Intentum.Sample.Blazor) | Blazor UI + CQRS Web API: infer, explain, explain-tree, analytics, timeline, playground compare, greenwashing; Overview, Commerce, Explain, FraudLive, Sustainability, Timeline, PolicyLab, Sandbox, System One (`/system-one` demo + Kev/Laya adapters); SSE inference, fraud/sustainability simulation. | Hard |
 
 Run the web sample (Blazor):
 
@@ -137,7 +151,7 @@ Run the web sample (Blazor):
 dotnet run --project samples/Intentum.Sample.Blazor
 ```
 
-Then open the UI and Scalar API docs; try `POST /api/intent/infer`, `POST /api/intent/explain-tree`, `GET /api/intent/analytics/timeline/{entityId}`, `POST /api/intent/playground/compare`. In the browser you can try Overview, Commerce, Explain, FraudLive, Sustainability, Timeline, PolicyLab, and Sandbox.
+Then open the UI and Scalar API docs; try `POST /api/intent/infer`, `POST /api/intent/explain-tree`, `GET /api/intent/analytics/timeline/{entityId}`, `POST /api/intent/playground/compare`. In the browser you can try Overview, Commerce, Explain, FraudLive, Sustainability, Timeline, PolicyLab, Sandbox, and System One.
 
 ---
 
@@ -149,6 +163,7 @@ Then open the UI and Scalar API docs; try `POST /api/intent/infer`, `POST /api/i
 | time-decay-intent | Simple | `dotnet run --project examples/time-decay-intent` |
 | chained-intent | Medium | `dotnet run --project examples/chained-intent` |
 | ai-fallback-intent | Medium | `dotnet run --project examples/ai-fallback-intent` |
+| system-one-decision | Medium | `dotnet run --project examples/system-one-decision -- --engine laya` |
 | fraud-intent | Hard | `dotnet run --project examples/fraud-intent` |
 | customer-intent | Hard | `dotnet run --project examples/customer-intent` |
 | greenwashing-intent | Hard | `dotnet run --project examples/greenwashing-intent` |
