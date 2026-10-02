@@ -46,4 +46,22 @@ jobs:
             echo "::error::NUGET_API_KEY secret tanımlı değil. Repo Settings → Secrets and variables → Actions → New repository secret → Name: NUGET_API_KEY, Value: nuget.org API key"
             exit 1
           fi
-          find src -name '*.nupkg' -path '*/Release/*' -exec dotnet nuget push {} -k "$NUGET_API_KEY" -s https://api.nuget.org/v3/index.json --skip-duplicate \;
+          # find -exec her koşulda exit 0 döndürür; push hataları sessizce yutuluyordu.
+          # Her paketi ayrı ayrı itele, sonucu logla ve hatayı workflow'a taşı.
+          failed=0
+          count=0
+          while IFS= read -r pkg; do
+            count=$((count + 1))
+            echo "::group::Push $(basename "$pkg")"
+            if ! dotnet nuget push "$pkg" -k "$NUGET_API_KEY" -s https://api.nuget.org/v3/index.json --skip-duplicate; then
+              echo "::error::Push başarısız: $pkg"
+              failed=1
+            fi
+            echo "::endgroup::"
+          done < <(find src -name '*.nupkg' -path '*/Release/*' 2>/dev/null)
+          if [ "$count" -eq 0 ]; then
+            echo "::error::Push edilecek nupkg bulunamadı (find src ...)"
+            exit 1
+          fi
+          echo "Push denemesi: $count paket → $([ "$failed" -eq 0 ] && echo 'TÜMÜ_OK' || echo 'HATA_VAR')"
+          exit "$failed"
