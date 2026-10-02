@@ -57,8 +57,7 @@ try
         Log.Information("Inferred intent: {Intent} ({Confidence}) -> {Decision}", intent.Name, intent.Confidence.Score, decision);
         return Results.Ok(new { intent.Name, intent.Confidence.Level, intent.Confidence.Score, Decision = decision.ToString() });
     })
-    .WithName("InferIntent")
-    .WithOpenApi();
+    .WithName("InferIntent");
 
     app.MapGet("/", () => "Intentum Web API. POST /api/intent/infer. Health: /health");
 
