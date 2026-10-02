@@ -17,6 +17,19 @@ Bu dosya **conventional commit** mesajlarından otomatik üretilir. Commit'te **
 
 
 
+
+### Bug Fixes
+
+- **Mark Intentum.Testing packable explicitly** *(nuget)*
+
+NuGet pack targets default IsPackable=false when IsTestProject=true
+(set via xunit), so this testing library was silently excluded from
+every release and has never been published.
+
+
+
+
+
 ### Miscellaneous
 
 - **Add package icon and project URL to all packages** *(nuget)*
