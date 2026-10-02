@@ -19,6 +19,70 @@ Bu dosya **conventional commit** mesajlarından otomatik üretilir. Commit'te **
 
 
 
+### Bug Fixes
+
+- **Stop release workflows being skipped by [skip ci] tag targets** *(ci)*
+
+changelog bot commits carried [skip ci], and release.sh tagged HEAD.
+Tagging a [skip ci] commit made GitHub skip nuget-release and
+github-release entirely, which silently dropped v1.2.6 and v1.2.7
+from GitHub Releases and NuGet. GITHUB_TOKEN pushes already do not
+re-trigger workflows, so the marker was redundant and harmful.
+
+
+
+- **Climate dashboard null-safe risk percentages and text fixes** *(sample)*
+
+
+
+
+### Features
+
+- **Add Intentum.AI.SystemOne package** *(systemone)*
+
+HTTP adapter for System One compatible engines (Jev, Kev, Laya,
+TinyJev, OpenDecision, and the other open alternatives) behind the
+POST /v1/systemone contract: SystemOneOptions, engine presets via
+SystemOneEngines, SystemOneClient, and SystemOneIntentModel with
+AddIntentumSystemOne() DI wiring.
+
+
+
+- **System-one page with demo engine, health, API key UI** *(sample)*
+
+The /system-one page now works out of the box: an in-process demo
+engine is the default (keyless, no external service), engines show
+health dots probed by GET /api/intent/systemone/health, an API Key
+field focuses on 403, and a setup card with copyable commands appears
+on 503. Infer options resolve engine/baseUrl/apiKey from query, env,
+then presets.
+
+
+
+- **Add system-one-decision example with local engine helpers** *(examples)*
+
+Console example against POST /v1/systemone with kev/laya run
+instructions and run-engines.sh, which prepares both engines on
+first run (clones and syncs kev, builds a Python 3.12 venv for laya).
+
+
+
+
+
+### Miscellaneous
+
+- **Bump Serilog.Extensions.Hosting 9, OpenApi 10.0.12** *(templates)*
+
+Drop the deprecated WithOpenApi() call from the webapi template.
+
+
+
+## [1.2.7] - 2026-08-31
+
+
+
+
+
 
 ### Bug Fixes
 
