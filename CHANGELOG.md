@@ -13,7 +13,24 @@ Bu dosya **conventional commit** mesajlarından otomatik üretilir. Commit'te **
 
 ---
 
-## [unreleased]
+## [1.3.2] - 2026-10-02
+
+
+
+
+### Bug Fixes
+
+- **SystemOne package was rejected for duplicate README.md** *(nuget)*
+
+Intentum.AI.SystemOne packed both its package-specific README and the
+repo-root README from Directory.Build.props, putting README.md into the
+nupkg twice; NuGet rejected the push in the v1.3.0 and v1.3.1 releases
+(the find -exec wrapper previously hid the failure). Expose the shared
+readme path as RepoReadmePath so the package can exclude it, and echo
+the real dotnet nuget push error into the failure annotation so future
+rejections are visible without opening the raw log.
+
+
 
 
 
