@@ -1,5 +1,7 @@
 # master'a her push'ta CHANGELOG.md'yi conventional commit'lerden günceller (git-cliff).
-# Commit mesajı [skip ci] içerir; bu push workflow'u tekrar tetiklemez.
+# NOT: commit mesajında [skip ci] YOKTUR — [skip ci] içeren bir commit'i hedefleyen
+# tag push'u release workflow'larını sessizce atlar (v1.2.6/v1.2.7 böyle kaybedildi).
+# Zaten GITHUB_TOKEN ile push edildiği için bu workflow kendi kendini tekrar tetiklemez.
 name: changelog
 
 on:
@@ -32,6 +34,6 @@ jobs:
             echo "CHANGELOG.md unchanged, nothing to commit."
           else
             git add CHANGELOG.md
-            git commit -m "chore: update CHANGELOG [skip ci]"
+            git commit -m "chore: update CHANGELOG"
             git push
           fi
