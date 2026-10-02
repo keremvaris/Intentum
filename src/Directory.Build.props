@@ -11,9 +11,13 @@
     <MinVerTagPrefix>v</MinVerTagPrefix>
     <MinVerMinimumMajorMinor>1.0</MinVerMinimumMajorMinor>
   </PropertyGroup>
-  <!-- Tüm paketlere repo kökündeki README.md dahil edilir (NU5039 önlenir) -->
+  <!-- Tüm paketlere repo kökündeki README.md dahil edilir (NU5039 önlenir).
+       Paket kendi README'sini paketliyorsa bu yolu Remove ile eleyebilir (örn. Intentum.AI.SystemOne). -->
+  <PropertyGroup>
+    <RepoReadmePath>$(MSBuildThisFileDirectory)..\README.md</RepoReadmePath>
+  </PropertyGroup>
   <ItemGroup>
-    <None Include="$(MSBuildThisFileDirectory)..\README.md" Pack="true" PackagePath="" />
+    <None Include="$(RepoReadmePath)" Pack="true" PackagePath="" />
     <None Include="$(MSBuildThisFileDirectory)..\logo.png" Pack="true" PackagePath="icon.png" />
   </ItemGroup>
   <ItemGroup>

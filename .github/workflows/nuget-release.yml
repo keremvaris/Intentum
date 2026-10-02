@@ -53,8 +53,9 @@ jobs:
           while IFS= read -r pkg; do
             count=$((count + 1))
             echo "::group::Push $(basename "$pkg")"
-            if ! dotnet nuget push "$pkg" -k "$NUGET_API_KEY" -s https://api.nuget.org/v3/index.json --skip-duplicate; then
-              echo "::error::Push başarısız: $pkg"
+            if ! out=$(dotnet nuget push "$pkg" -k "$NUGET_API_KEY" -s https://api.nuget.org/v3/index.json --skip-duplicate 2>&1); then
+              echo "$out"
+              echo "::error::Push başarısız: $pkg → $(printf '%s' "$out" | tr '\n' ' ' | tail -c 600)"
               failed=1
             fi
             echo "::endgroup::"

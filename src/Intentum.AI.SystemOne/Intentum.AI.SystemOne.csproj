@@ -22,6 +22,9 @@
   </ItemGroup>
 
   <ItemGroup>
+    <!-- Kendi package-specific README'imizi paketliyoruz; kök README ile duplicate dosya oluşmasın
+         (NuGet push'u duplicate README.md nedeniyle reddediyordu). -->
+    <None Remove="$(RepoReadmePath)" />
     <None Include="README.md" Pack="true" PackagePath="\" />
   </ItemGroup>
 
