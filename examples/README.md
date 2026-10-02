@@ -26,6 +26,7 @@ Minimal runnable examples for real-world use cases. Each example focuses on **on
 | [content-moderation](content-moderation/) | **New:** Toxic content, harassment, and spam detection for social platforms. |
 | [grpc-client](grpc-client/) | **New:** gRPC client calling Infer and Evaluate endpoints. |
 | [climate-risk-intent](climate-risk-intent/) | **New:** Climate risk assessment with SSP, RCP, WRI scenarios: physical, transition, and economic risks across sectors. |
+| [system-one-decision](system-one-decision/) | **New:** System One / Jev-compatible decision engines (Kev, Laya, TinyJev, OpenDecision, ...) as `IIntentModel` over HTTP. |
 
 ## Run
 
@@ -49,6 +50,7 @@ dotnet run --project examples/healthcare-triage
 dotnet run --project examples/content-moderation
 dotnet run --project examples/grpc-client
 dotnet run --project examples/climate-risk-intent
+dotnet run --project examples/system-one-decision -- --engine laya
 ```
 
 No API keys required for these examples (Mock or Core only).
