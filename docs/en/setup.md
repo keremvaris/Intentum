@@ -206,7 +206,7 @@ The solution contains many packages and two sample applications.
 
 **AI providers** (optional; pick one or more for real embeddings):
 
-- `Intentum.AI.OpenAI`, `Intentum.AI.Gemini`, `Intentum.AI.Mistral`, `Intentum.AI.AzureOpenAI`, `Intentum.AI.Claude`, `Intentum.AI.ONNX`
+- `Intentum.AI.OpenAI`, `Intentum.AI.Gemini`, `Intentum.AI.Mistral`, `Intentum.AI.AzureOpenAI`, `Intentum.AI.Claude`, `Intentum.AI.ONNX`, `Intentum.AI.SystemOne`
 
 **Extensions** (optional; add as needed):
 

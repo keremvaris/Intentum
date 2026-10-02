@@ -42,6 +42,7 @@
     <ProjectReference Include="..\..\src\Intentum.AI.Mistral\Intentum.AI.Mistral.csproj" />
     <ProjectReference Include="..\..\src\Intentum.AI.AzureOpenAI\Intentum.AI.AzureOpenAI.csproj" />
     <ProjectReference Include="..\..\src\Intentum.AI.ONNX\Intentum.AI.ONNX.csproj" />
+    <ProjectReference Include="..\..\src\Intentum.AI.SystemOne\Intentum.AI.SystemOne.csproj" />
     <ProjectReference Include="..\..\src\Intentum.Testing\Intentum.Testing.csproj" />
     <ProjectReference Include="..\..\src\Intentum.Persistence\Intentum.Persistence.csproj" />
     <ProjectReference Include="..\..\src\Intentum.Analytics\Intentum.Analytics.csproj" />

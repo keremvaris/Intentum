@@ -251,6 +251,42 @@ See [Hybrid mode and fallback](hybrid-mode-and-fallback.md) for combining ONNX w
 
 ---
 
+## System One engines (Kev, Laya, TinyJev, ...)
+
+**What it does:** `SystemOneIntentModel` talks HTTP to any **System One compatible** decision engine (`POST /v1/systemone`, TypeSafe Jev wire protocol) and maps the typed answer to an Intent. Includes the hosted **Jev** itself (`https://api.typesafe.ai`, key from `console.typesafe.ai/keys`, `TYPESAFE_API_KEY`) plus open engines speaking the same protocol: [Kev](https://github.com/jaredpalmer/kev) (:8009), [TinyJev](https://github.com/ankit-aglawe/tinyjev) (:8077), [Laya](https://github.com/NandhaKishorM/laya) (`laya-serve`, :8000), OpenDecision, Decision 1.0, Open-Jev, NanoJev, OpenJevPro, Foq.
+
+**Env vars:** None required. Optional: `SYSTEMONE_ENGINE`, `SYSTEMONE_BASE_URL`, `SYSTEMONE_API_KEY` (bearer token when the engine requires one, e.g. `KEV_API_KEY` / `LAYA_API_KEY`).
+
+**DI (recommended):**
+
+```csharp
+using Intentum.AI.SystemOne;
+
+var options = SystemOneEngines.FromName("laya") with
+{
+    IntentCatalog = new Dictionary<string, string>
+    {
+        ["Billing"] = "invoices, charges, refunds",
+        ["Technical"] = "bugs, outages, errors",
+    },
+};
+services.AddIntentumSystemOne(options);
+```
+
+**Minimal code:**
+
+```csharp
+using Intentum.AI.SystemOne;
+
+var options = SystemOneEngines.Laya();
+var model = new SystemOneIntentModel(options, new HttpClient());
+var intent = model.Infer(space);   // intent.Name from the engine's choice answer
+```
+
+**Use when:** You want fast, calibrated, local decision models (single forward pass, no text generation) as the inference step, while Intentum keeps verification, policy and history. Requires a running engine — see [examples/system-one-decision](https://github.com/keremvaris/Intentum/tree/master/examples/system-one-decision) for launch commands per engine.
+
+---
+
 ## Security and configuration
 
 - **Never commit API keys.** Use environment variables or a secret manager.
