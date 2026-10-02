@@ -29,6 +29,15 @@ every release and has never been published.
 
 
 
+- **Make NuGet push failures fail the workflow** *(ci)*
+
+find -exec always exits 0, so individual dotnet nuget push errors were
+silently swallowed and the Push step showed success even when a package
+was rejected. Push each package in a loop, log the result per package,
+and fail the step if any push fails or no nupkg is found.
+
+
+
 
 
 ### Documentation
