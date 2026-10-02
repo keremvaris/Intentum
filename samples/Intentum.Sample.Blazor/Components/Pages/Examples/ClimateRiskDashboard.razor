@@ -455,7 +455,6 @@
     @if (!string.IsNullOrEmpty(_selectedProvince))
     {
         var isCompanyLocation = _selectedProfile != null && string.Equals(_selectedProfile.LocationName, _selectedProvince, StringComparison.OrdinalIgnoreCase);
-        var companyProvince = _selectedProfile?.LocationName;
         <div class="climate-chart-card span-2">
             <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
                 <span style="font-size:0.72rem;text-transform:uppercase;color:#8b949e;letter-spacing:0.5px;">
@@ -490,14 +489,14 @@
                     {
                         <text>
                             <strong>@_selectedProfile.Name</strong> (@_selectedProfile.Sector sektörü) <strong>@_selectedProfile.LocationName</strong>'de kurulu.
-                            Bu ilin risk profili yukarıda — fiili analiz sonucu: <strong>@GetPolicyDecision()</strong> (fiziksel %@(_assessment?.PhysicalRisk * 100):F0, geçiş %@(_assessment?.TransitionRisk * 100):F0).
+                            Bu ilin risk profili yukarıda — fiili analiz sonucu: <strong>@GetPolicyDecision()</strong> (fiziksel @((_assessment?.PhysicalRisk * 100)?.ToString("F0") ?? "—")%, geçiş @((_assessment?.TransitionRisk * 100)?.ToString("F0") ?? "—")%).
                         </text>
                     }
                     else
                     {
                         <text>
                             <span style="color:#fbbf24;">Senaryo:</span> <strong>@_selectedProfile.Name</strong> şu an <strong>@_selectedProfile.LocationName</strong>'de. Bu tesis <strong>@_selectedProvince</strong>'de olsaydı,
-                            su stresi @_selectedProvinceRisks.FirstOrDefault(r => r.Name == "Su Stresi").Score.ToString("F1")/5 seviyesine çıkar/bu bölgedeki iklim tehlikeleriyle karşı karşıya kalırdı.
+                            su stresi @(_selectedProvinceRisks.FirstOrDefault(r => r.Name == "Su Stresi").Score.ToString("F1"))/5 seviyesine çıkar/bu bölgedeki iklim tehlikeleriyle karşı karşıya kalırdı.
                             (Mevcut İzmir analizi: <strong>@GetPolicyDecision()</strong>)
                         </text>
                     }
@@ -527,7 +526,7 @@
             <div id="climate-scenario-line" class="chart-container" style="height:170px;"></div>
         </div>
 
-        @if (_ngfsComparison != null && _ngfsComparison.Count > 0)
+        @if (_ngfsComparison is { Count: > 0 })
         {
             <div class="climate-chart-card">
                 <div class="chart-title" data-tip="NGFS Phase 5 senaryolarına göre GSYİH değişimi, karbon fiyatı ve sıcaklık artışını gösterir. Seçili ülke ve yıl için tüm NGFS senaryolarını karşılaştırır.">🌍 NGFS Makro Karşılaştırma</div>
@@ -547,7 +546,7 @@
             </div>
         }
 
-        @if (_varResult != null && _varResult.LossDistribution.Count > 0)
+        @if (_varResult is { LossDistribution.Count: > 0 })
         {
             <div class="climate-chart-card">
                 <div class="chart-title" data-tip="NGFS senaryolarına göre şirketin beklenen iklim kayıplarını gösterir. VaR95, %95 güvenle bu kaybın aşılmayacağını; CVaR95 ise aşıldığında ortalama kaybı temsil eder.">💰 Climate VaR</div>
@@ -755,7 +754,7 @@
             </div>
 
             <!-- Senaryo Karşılaştırma -->
-            @if (_scenarioResults != null && _scenarioResults.Count > 0)
+            @if (_scenarioResults is { Count: > 0 })
             {
                 <div class="climate-chart-card span-2">
                     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
@@ -832,7 +831,7 @@
             }
 
             <!-- IPCC Risk Matrix: Tehlike × Varlık & Tehlike × Senaryo -->
-            @if (_assessment.HazardExposureMatrix != null || _assessment.ScenarioMatrix != null)
+            @if (_assessment?.HazardExposureMatrix != null || _assessment?.ScenarioMatrix != null)
             {
                 <div class="climate-chart-card span-2">
                     <div class="chart-title" data-tip="IPCC risk çerçevesi: Risk = Tehlike × Maruziyet × Kırılganlık. Solda tehlikelerin şirket varlıkları üzerindeki bileşik riski, sağda ise her SSP senaryosunun tehlikeler üzerindeki etkisi hücre hücre görünür.">📊 İklim Risk Matrix — Tehlike × (Varlık / Senaryo)</div>
@@ -906,6 +905,8 @@
             }
 
             <!-- Politika Kararı (en altta, tam genişlik) -->
+            @if (_assessment != null)
+            {
             <div class="climate-chart-card span-2">
                 <div class="chart-title" data-tip="Intentum'un davranış uzayından çıkardığı niyet ve güven seviyesine göre verilen nihai karar (ALLOW/REVIEW/REJECT). Altında kararın nedenleri, önerileri ve sinyalleri ayrıntılı olarak açıklanır.">Politika Karari (Intentum)</div>
                 <div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin-bottom:8px;">
@@ -978,6 +979,7 @@
                 </details>
                 <div style="font-size:0.5rem;color:#475569;margin-top:6px;">BehaviorSpace · @(_assessment.Signals.Sum(s=>s.Weight).ToString("F2")) ağırlık · Policy: @GetPolicyDecision() via Intentum.Runtime.Engine</div>
             </div>
+            }
         }
     </div>
     </div>

@@ -41,6 +41,9 @@ public sealed partial class ClimateRiskDashboard : IAsyncDisposable
 
     private string _importMessage = "";
     private bool _importError;
+    private bool IsSelectedCompanyLocation =>
+        _selectedProfile != null &&
+        string.Equals(_selectedProfile.LocationName, _selectedProvince, StringComparison.OrdinalIgnoreCase);
 
     protected override async Task OnInitializedAsync()
     {
