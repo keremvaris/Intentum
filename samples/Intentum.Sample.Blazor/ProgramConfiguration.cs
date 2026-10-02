@@ -1,3 +1,4 @@
+using System.Net;
 using System.Reflection;
 using System.Text.Json;
 using System.Text.Json.Serialization;
@@ -8,6 +9,7 @@ using Intentum.AI.Embeddings;
 using Intentum.AI.Mock;
 using Intentum.AI.Models;
 using Intentum.AI.Similarity;
+using Intentum.AI.SystemOne;
 using Intentum.Analytics;
 using Intentum.Analytics.Models;
 using Intentum.AspNetCore;
@@ -262,6 +264,7 @@ internal static class ProgramConfiguration
         }).WithName("PlaceOrder").Produces(201).Produces(400);
 
         MapIntentEndpoints(app);
+        MapSystemOneEndpoints(app);
         MapAnalyticsEndpoints(app);
         MapDashboardEndpoints(app);
         MapSimulationEndpoints(app);
@@ -399,6 +402,129 @@ internal static class ProgramConfiguration
             };
             return Results.Json(new ExperimentResponse(distributions, sig.PValue, sig.IsSignificant, sig.ChiSquare));
         }).WithName("RunExperiment").Produces(200).Produces(400);
+    }
+
+    private static readonly HttpClient SystemOneHttpClient = new() { Timeout = TimeSpan.FromSeconds(60) };
+    private static readonly HttpClient DemoHttpClient = new(DemoEngineHttpHandler.Instance, disposeHandler: false);
+
+    internal static readonly IReadOnlyDictionary<string, string> SystemOneIntentCatalog =
+        new Dictionary<string, string>
+        {
+            ["Billing"] = "invoices, charges, refunds, payment problems",
+            ["Technical"] = "bugs, outages, login failures, integration errors",
+            ["Account"] = "profile, password reset, account recovery",
+            ["Other"] = "everything else",
+        };
+
+    internal static SystemOneOptions ResolveSystemOneOptions(
+        string? engine,
+        string? baseUrl,
+        string? apiKey,
+        HttpContext ctx)
+    {
+        var name = engine ?? Environment.GetEnvironmentVariable("SYSTEMONE_ENGINE") ?? "demo";
+        var options = SystemOneEngines.FromName(name); // ArgumentException → 400 upstream
+
+        var resolvedBaseUrl = !string.IsNullOrWhiteSpace(baseUrl)
+            ? baseUrl
+            : Environment.GetEnvironmentVariable("SYSTEMONE_BASE_URL");
+        if (string.IsNullOrWhiteSpace(resolvedBaseUrl) && string.Equals(name, "demo", StringComparison.OrdinalIgnoreCase))
+            resolvedBaseUrl = $"{ctx.Request.Scheme}://{ctx.Request.Host}";
+
+        if (!string.IsNullOrWhiteSpace(resolvedBaseUrl)
+            && !Uri.TryCreate(resolvedBaseUrl, UriKind.Absolute, out _))
+        {
+            throw new ArgumentException($"Invalid base URL '{resolvedBaseUrl}'.", nameof(baseUrl));
+        }
+
+        return options with
+        {
+            BaseUrl = !string.IsNullOrWhiteSpace(resolvedBaseUrl) ? resolvedBaseUrl! : options.BaseUrl,
+            ApiKey = !string.IsNullOrWhiteSpace(apiKey)
+                ? apiKey
+                : Environment.GetEnvironmentVariable("SYSTEMONE_API_KEY") ?? options.ApiKey,
+        };
+    }
+
+    internal static void MapSystemOneEndpoints(WebApplication app)
+    {
+        app.MapPost("/v1/systemone", (SystemOneWireRequest req) =>
+            Results.Ok(SystemOneDemoEngine.Decide(req.State, req.Questions)))
+            .WithName("SystemOneEngine")
+            .Produces(200)
+            .Produces(400);
+
+        app.MapGet("/api/intent/systemone/health", async () =>
+            Results.Ok(await SystemOneHealth.GetAsync()))
+            .WithName("SystemOneHealth")
+            .Produces(200);
+
+        app.MapPost("/api/intent/systemone/infer", (
+            InferIntentRequest req,
+            string? engine,
+            string? baseUrl,
+            HttpContext ctx) =>
+        {
+            SystemOneOptions options;
+            try
+            {
+                options = ResolveSystemOneOptions(engine, baseUrl, req.ApiKey, ctx);
+            }
+            catch (ArgumentException ex)
+            {
+                return Results.BadRequest(new { Error = ex.Message });
+            }
+
+            options = options with
+            {
+                IntentCatalog = SystemOneIntentCatalog,
+            };
+
+            var space = BehaviorSpaceFromRequest(req);
+            var httpClient = string.Equals(options.Engine, "demo", StringComparison.OrdinalIgnoreCase)
+                ? DemoHttpClient
+                : SystemOneHttpClient;
+            var model = new SystemOneIntentModel(options, httpClient);
+
+            try
+            {
+                var intent = model.Infer(space);
+                return Results.Ok(new
+                {
+                    Engine = options.Engine,
+                    intent.Name,
+                    Confidence = intent.Confidence.Level,
+                    ConfidenceScore = intent.Confidence.Score,
+                    intent.Reasoning,
+                    Signals = intent.Signals
+                        .Select(s => new { s.Source, s.Description, s.Weight })
+                        .ToArray(),
+                });
+            }
+            catch (HttpRequestException ex) when (ex.StatusCode is HttpStatusCode.Unauthorized or HttpStatusCode.Forbidden)
+            {
+                return Results.Json(new
+                {
+                    Error = "API Key gerekli — console.typesafe.ai/keys adresinden alıp API Key alanına girin.",
+                    Detail = ex.Message,
+                }, statusCode: StatusCodes.Status403Forbidden);
+            }
+            catch (HttpRequestException ex)
+            {
+                return Results.Json(new
+                {
+                    Error = $"Cannot reach {options.Engine} at {options.BaseUrl}. Start the engine (see examples/system-one-decision/README.md) or set SYSTEMONE_BASE_URL.",
+                    Detail = ex.Message,
+                }, statusCode: StatusCodes.Status503ServiceUnavailable);
+            }
+            catch (OperationCanceledException)
+            {
+                return Results.Json(new
+                {
+                    Error = "Motor yanıt vermedi (timeout).",
+                }, statusCode: StatusCodes.Status504GatewayTimeout);
+            }
+        }).WithName("SystemOneInfer").Produces(200).Produces(400).Produces(403).Produces(503).Produces(504);
     }
 
     private static void MapAnalyticsEndpoints(WebApplication app)

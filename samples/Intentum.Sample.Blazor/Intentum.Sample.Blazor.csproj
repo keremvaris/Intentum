@@ -12,7 +12,7 @@
     <PackageReference Include="FluentValidation" Version="11.11.0" />
     <PackageReference Include="FluentValidation.DependencyInjectionExtensions" Version="11.11.0" />
     <PackageReference Include="MediatR" Version="12.4.1" />
-    <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="10.0.2" />
+    <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="10.0.12" />
     <PackageReference Include="Scalar.AspNetCore" Version="2.12.20" />
     <PackageReference Include="SixLabors.ImageSharp" Version="3.1.11" />
   </ItemGroup>
@@ -21,6 +21,7 @@
     <ProjectReference Include="..\..\src\Intentum.Core\Intentum.Core.csproj" />
     <ProjectReference Include="..\..\src\Intentum.Runtime\Intentum.Runtime.csproj" />
     <ProjectReference Include="..\..\src\Intentum.AI\Intentum.AI.csproj" />
+    <ProjectReference Include="..\..\src\Intentum.AI.SystemOne\Intentum.AI.SystemOne.csproj" />
     <ProjectReference Include="..\..\src\Intentum.AspNetCore\Intentum.AspNetCore.csproj" />
     <ProjectReference Include="..\..\src\Intentum.Persistence\Intentum.Persistence.csproj" />
     <ProjectReference Include="..\..\src\Intentum.Persistence.EntityFramework\Intentum.Persistence.EntityFramework.csproj" />

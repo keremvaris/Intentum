@@ -1,0 +1,270 @@
+@page "/system-one"
+@rendermode InteractiveServer
+@inject HttpClient Http
+@inject NavigationManager Navigation
+@inject IJSRuntime JS
+@using System.Text.Json
+
+<PageTitle>System One</PageTitle>
+
+<div class="page-card">
+    <p class="muted" style="margin: 0 0 0.75rem 0;">Gerçek System One motorları (Jev, Kev, Laya, TinyJev, ...) tek forward pass ile tipli kararlar verir; Intentum bunu niyete ve politikaya bağlar. Varsayılan `demo` motoru kurulumsuz ve keysiz çalışır; canlı motorlar için dropdown'daki durum noktalarına bakın.</p>
+    <div class="card-header-row">
+        <h2 style="margin: 0; font-size: 1.35rem;">System One</h2>
+        <InfoIcon Text="Bir motor seçin, olayları girin ve Çalıştır'a basın. Sunucu POST /v1/systemone ile gerçek motoru çağırır (motor ayakta değilse 503 ve ipucu döner). Sonuç: intent adı, güven seviyesi, motorun gerekçesi ve olasılık sinyalleri. Motor kurulumu: examples/system-one-decision/README.md" />
+    </div>
+    <p class="subtitle" style="margin: 0.5rem 0 1rem 0;">Olay → System One motoru → Intent → (politika). Motorlar arası geçiş: listeden seçin.</p>
+</div>
+
+<div class="page-card">
+    <div class="card-header-row">
+        <h3 class="page-card h3" style="margin: 0 0 0.5rem 0;">Motor ve olay girişi</h3>
+        <InfoIcon Text="Layá, Kev, TinyJev gibi motorlar lokal çalışır (varsayılan port 8000; kev 8009, tinyjev 8077). Jev TypeSafe'in barındırılan servisidir: TYPESAFE_API_KEY gerekir. Özel endpoint için Base URL girin." />
+    </div>
+    <div class="dashboard-toolbar" style="margin-bottom: 0; flex-wrap: wrap; gap: 0.75rem;">
+        <label>Motor
+            <select @bind="_engine" @bind:after="OnEngineChanged" style="min-width: 160px;">
+                @foreach (var engine in Engines)
+                {
+                    <option value="@engine">@HealthMarker(engine) @engine</option>
+                }
+            </select>
+        </label>
+        <label>Base URL (opsiyonel)
+            <input type="text" @bind="_baseUrl" placeholder="http://127.0.0.1:8000" style="min-width: 220px;" />
+        </label>
+        <label>API Key (opsiyonel)
+            <input type="password" @bind="_apiKey" @ref="_apiKeyInput" placeholder="typesafe.ai key" style="min-width: 180px;" autocomplete="off" />
+        </label>
+        <button type="button" class="btn-app-primary" @onclick="RunInfer" disabled="@_loading">@(_loading ? "Çalışıyor…" : "Çalıştır")</button>
+    </div>
+    @if (_health.TryGetValue(_engine, out var selectedHealth))
+    {
+        <p class="muted" style="margin:0.5rem 0 0 0;">@HealthMarker(_engine) @selectedHealth.Hint</p>
+    }
+    <div style="margin-top: 0.75rem;">
+        <label>Olaylar (JSON) <textarea @bind="_eventsJson" rows="3" style="width: 100%; max-width: 560px;" placeholder='[{"actor":"user","action":"login"}]'></textarea></label>
+    </div>
+</div>
+
+@if (_loading) { <p class="muted">Motor çağrılıyor…</p> }
+@if (_error != null) { <p class="error">@_error</p> }
+
+@if (_actionEngine != null)
+{
+    <div class="page-card">
+        <div class="card-header-row">
+            <h3 style="margin:0;">Motor kapalı</h3>
+        </div>
+        <p><strong>@_actionEngine</strong> şu anda yanıt vermiyor (connection refused). Lokalde başlatmak için:</p>
+        @if (SetupCommands.TryGetValue(_actionEngine, out var setupCommand))
+        {
+            <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+                <code style="background:#0f172a;border:1px solid #1e293b;border-radius:6px;padding:8px;user-select:all;">@setupCommand</code>
+                <button type="button" class="btn-app-primary" @onclick="() => CopyText(setupCommand)">Kopyala</button>
+            </div>
+        }
+        else
+        {
+            <p class="muted">Kurulum yönergesi: examples/system-one-decision/README.md</p>
+        }
+    </div>
+}
+
+@if (_result != null)
+{
+    <div class="page-card">
+        <div class="card-header-row">
+            <h3 style="margin: 0;">Sonuç</h3>
+            <InfoIcon Text="Intent adı motorun choice cevabıdır; güven, motorun bildirdiği kalibre olasılıktır. Sinyaller, seçenek başına olasılıklardır (kaynak = motor adı)." />
+        </div>
+        <p><strong>Motor:</strong> @(string.Equals(_result.Engine, "demo", StringComparison.OrdinalIgnoreCase) ? "demo (in-process)" : _result.Engine)</p>
+        <p><strong>Intent:</strong> @_result.Name</p>
+        <p><strong>Güven:</strong> @_result.Confidence (@_result.ConfidenceScore.ToString("P2"))</p>
+        @if (!string.IsNullOrEmpty(_result.Reasoning))
+        {
+            <p><strong>Gerekçe:</strong> @_result.Reasoning</p>
+        }
+        @if (_result.Signals.Count > 0)
+        {
+            <div class="table-wrap">
+                <table class="history-table">
+                    <thead><tr><th>Kaynak</th><th>Seçenek</th><th>Olasılık</th></tr></thead>
+                    <tbody>
+                        @foreach (var signal in _result.Signals.OrderByDescending(s => s.Weight))
+                        {
+                            <tr><td>@signal.Source</td><td>@signal.Description</td><td>@signal.Weight.ToString("F2")</td></tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+    </div>
+}
+
+@code {
+    private static readonly string[] Engines =
+        ["demo", "laya", "jev", "kev", "tinyjev", "opendecision", "decision10", "openjev", "nanojev", "openjevpro", "foq"];
+
+    private static readonly Dictionary<string, string> SetupCommands = new(StringComparer.OrdinalIgnoreCase)
+    {
+        ["kev"] = "uv run --extra serve python -m kev.serve --run jaredpalmer/kev-4b --port 8009",
+        ["laya"] = "pip install \"laya[serve]\" && laya-serve",
+        ["tinyjev"] = "tinyjev serve",
+    };
+
+    private string _engine = "demo";
+    private string? _baseUrl;
+    private string? _apiKey;
+    private string _eventsJson =
+        "[{\"actor\":\"user-42\",\"action\":\"payment.charged_twice\"}," +
+        "{\"actor\":\"user-42\",\"action\":\"invoice.viewed\"}," +
+        "{\"actor\":\"user-42\",\"action\":\"refund.requested\"}]";
+    private bool _loading;
+    private string? _error;
+    private string? _actionEngine;
+    private bool _focusApiKey;
+    private SystemOneResult? _result;
+    private ElementReference _apiKeyInput;
+    private Dictionary<string, HealthStatus> _health = new();
+
+    private sealed record HealthStatus(string Engine, string Status, string Hint);
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadHealthAsync();
+    }
+
+    private async Task LoadHealthAsync()
+    {
+        try
+        {
+            var baseUri = new Uri(Navigation.BaseUri).GetLeftPart(UriPartial.Authority);
+            var items = await Http.GetFromJsonAsync<List<HealthStatus>>(baseUri + "/api/intent/systemone/health");
+            _health = items?.ToDictionary(h => h.Engine, StringComparer.OrdinalIgnoreCase) ?? new();
+        }
+        catch
+        {
+            // Health is optional UI sugar; never block the page on it.
+        }
+        StateHasChanged();
+    }
+
+    private async Task OnEngineChanged()
+    {
+        _actionEngine = null;
+        _error = null;
+        await LoadHealthAsync();
+    }
+
+    private string HealthMarker(string engine)
+    {
+        if (!_health.TryGetValue(engine, out var health))
+            return "⚪";
+        return health.Status switch
+        {
+            "up" => "🟢",
+            "down" => "🔴",
+            _ => "⚪",
+        };
+    }
+
+    private async Task RunInfer()
+    {
+        _loading = true;
+        _error = null;
+        _result = null;
+        _actionEngine = null;
+        _focusApiKey = false;
+        StateHasChanged();
+        try
+        {
+            object[]? events;
+            try { events = JsonSerializer.Deserialize<object[]>(_eventsJson); }
+            catch { _error = "Geçersiz JSON."; return; }
+            if (events == null || events.Length == 0) { _error = "En az bir olay girin."; return; }
+
+            var url = $"/api/intent/systemone/infer?engine={Uri.EscapeDataString(_engine)}";
+            if (!string.IsNullOrWhiteSpace(_baseUrl))
+                url += $"&baseUrl={Uri.EscapeDataString(_baseUrl)}";
+            var requestedEngine = _engine;
+
+            var baseUri = new Uri(Navigation.BaseUri).GetLeftPart(UriPartial.Authority);
+            var body = new
+            {
+                events,
+                apiKey = string.IsNullOrWhiteSpace(_apiKey) ? null : _apiKey,
+            };
+            var opts = new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase };
+            var response = await Http.PostAsJsonAsync(baseUri + url, body, opts);
+
+            if (!response.IsSuccessStatusCode)
+            {
+                var error = await response.Content.ReadFromJsonAsync<ErrorResponse>(
+                    new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+                var message = error?.Detail is { Length: > 0 } detail ? $"{error.Error} ({detail})" : error?.Error;
+
+                switch ((int)response.StatusCode)
+                {
+                    case 403:
+                        _error = message ?? "API Key gerekli — console.typesafe.ai/keys adresinden alıp API Key alanına girin.";
+                        _focusApiKey = true;
+                        break;
+                    case 503:
+                        _error = message;
+                        _actionEngine = requestedEngine;
+                        break;
+                    case 504:
+                        _error = message ?? "Motor yanıt vermedi (timeout).";
+                        break;
+                    default:
+                        _error = message ?? $"İstek başarısız: {(int)response.StatusCode}";
+                        break;
+                }
+                return;
+            }
+
+            _result = await response.Content.ReadFromJsonAsync<SystemOneResult>(
+                new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+        }
+        catch (Exception ex)
+        {
+            _error = ex.Message;
+        }
+        finally
+        {
+            _loading = false;
+            StateHasChanged();
+            if (_focusApiKey)
+            {
+                _focusApiKey = false;
+                try { await _apiKeyInput.FocusAsync(); }
+                catch { /* circuit disconnected */ }
+            }
+        }
+    }
+
+    private sealed record SystemOneResult(
+        string Engine,
+        string Name,
+        string Confidence,
+        double ConfidenceScore,
+        string? Reasoning,
+        List<SystemOneSignal> Signals);
+
+    private sealed record SystemOneSignal(string Source, string Description, double Weight);
+
+    private sealed record ErrorResponse(string? Error, string? Detail);
+
+    private async Task CopyText(string text)
+    {
+        try
+        {
+            await JS.InvokeVoidAsync("navigator.clipboard.writeText", text);
+        }
+        catch
+        {
+            // Clipboard unavailable (non-secure context / permission) — ignore.
+        }
+    }
+}

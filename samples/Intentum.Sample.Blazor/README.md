@@ -14,6 +14,7 @@ dotnet run --project samples/Intentum.Sample.Blazor
 ## Özellikler
 
 - **Intent infer / explain:** `POST /api/intent/infer`, `POST /api/intent/explain` — olaylardan niyet çıkarımı ve sinyal katkıları
+- **System One motorları:** `POST /api/intent/systemone/infer?engine=laya` ve `/system-one` sayfası — Jev, Kev, Laya, TinyJev gibi `/v1/systemone` uyumlu motorlardan gerçek çıkarım (`SYSTEMONE_ENGINE`, `SYSTEMONE_BASE_URL`, `SYSTEMONE_API_KEY` / `TYPESAFE_API_KEY` ortam değişkenleri; bkz. [examples/system-one-decision](../../examples/system-one-decision/README.md))
 - **Greenwashing tespiti:** `POST /api/greenwashing/analyze`, `GET /api/greenwashing/recent` — rapor analizi, çok dilli pattern'ler, opsiyonel görsel, Scope 3 / blockchain (mock)
 - **Dashboard:** Analytics özeti, son çıkarımlar, son greenwashing analizleri (otomatik yenileme)
 - **CQRS:** Carbon footprint (`/api/carbon/calculate`, `/api/carbon/report/{id}`), Orders (`POST /api/orders`)
@@ -39,3 +40,13 @@ Render `PORT` env değişkenini verir; uygulama `Program.cs` içinde buna göre 
 
 - Free tier’da servis 15 dk trafik yoksa kapanır; ilk istekte ~1 dk cold start olur.
 - Veritabanı in-memory olduğu için restart’ta veri sıfırlanır.
+
+## System One demo (Render)
+
+`/system-one` sayfası varsayılan olarak süreç içi `demo` motorunu kullanır (anahtarsız, harici servis gerekmez); yapılandırma gerekmez. Opsiyonel Render ortam değişkenleri:
+
+- `SYSTEMONE_ENGINE` — sayfanın varsayılan motoru (`demo`, `kev`, `laya`, `jev`, ...)
+- `SYSTEMONE_BASE_URL` — seçili motorun base URL değerini ezerek geçer
+- `SYSTEMONE_API_KEY` — `jev` için varsayılan API anahtarı (UI alanındaki istek-anahtarını tercih edin)
+
+Base URL alanı / `SYSTEMONE_BASE_URL`, sunucunun istediğiniz bir host'a istek atmasını sağlar — yalnızca güvendiğiniz motorlara yönlendirin.

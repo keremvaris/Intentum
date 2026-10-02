@@ -1,6 +1,14 @@
+using System.Text.Json;
+using Intentum.AI.SystemOne;
+
 namespace Intentum.Sample.Blazor.Api;
 
-internal record InferIntentRequest(IReadOnlyList<IntentEventDto> Events, string? EntityId = null);
+internal record SystemOneWireRequest(
+    JsonElement State,
+    Dictionary<string, SystemOneQuestion>? Questions,
+    string? Model);
+
+internal record InferIntentRequest(IReadOnlyList<IntentEventDto> Events, string? EntityId = null, string? ApiKey = null);
 internal record IntentEventDto(string Actor, string Action);
 
 internal record PlaygroundCompareRequest(IReadOnlyList<IntentEventDto> Events, IReadOnlyList<string>? Providers = null);
