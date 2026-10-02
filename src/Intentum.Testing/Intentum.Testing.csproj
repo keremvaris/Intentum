@@ -7,6 +7,8 @@
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <NoWarn>$(NoWarn);1591</NoWarn>
     <PackageId>Intentum.Testing</PackageId>
+    <!-- xunit -> IsTestProject=true olduğu için NuGet varsayılanı IsPackable=false olur; bu bir test KİTAPLIĞI olduğu için açıkça true -->
+    <IsPackable>true</IsPackable>
     <Authors>Intentum Contributors</Authors>
     <Description>Testing utilities and helpers for Intentum.</Description>
     <PackageTags>intent;behavior;ai;testing;dotnet</PackageTags>
